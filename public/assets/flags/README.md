@@ -1,0 +1,1 @@
+Country flag PNGs retained from the original review-card sources at https://flagcdn.com/w80/{country}.png (eg, sa, ae, jo, dz). Stored locally so testimonial cards do not depend on an external image request.

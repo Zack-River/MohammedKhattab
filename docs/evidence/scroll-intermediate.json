@@ -1,0 +1,1385 @@
+{
+  "recordedAt": "2026-10-02T15:35:50.269Z",
+  "target": "http://127.0.0.1:3022",
+  "duration": 8000,
+  "notes": "Synthetic rAF-driven full-document scroll, headless Chromium, 4x CPU throttle. Relative repeatable diagnostic, not a device FPS benchmark. Task/Script/Layout durations use CDP seconds; trace hotspots use milliseconds. Same duration with different page heights changes scroll velocity; compare alongside distance.",
+  "results": [
+    {
+      "device": "desktop",
+      "trial": 1,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8119.60000000149,
+      "scrollDistancePx": 10915,
+      "frames": 461,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.799999999999727,
+        "p99": 33.399999999999636,
+        "max": 149.89999999999964,
+        "over33": 13,
+        "over50": 1
+      },
+      "longTasks": [
+        {
+          "start": 3070.199999999255,
+          "duration": 65
+        },
+        {
+          "start": 3135.199999999255,
+          "duration": 54
+        }
+      ],
+      "scriptBytes": {
+        "decoded": 623915,
+        "transferred": 199257,
+        "count": 8
+      },
+      "domCount": 805,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.16928500000000002,
+        "RecalcStyleDuration": 0.924954,
+        "ScriptDuration": 0.738215,
+        "TaskDuration": 4.975620000000001,
+        "LayoutCount": 125,
+        "RecalcStyleCount": 1190
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 41.508,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296225021,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 13.339,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296219029,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 11.906
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 11.582,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "O",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296218836,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 11.549,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "O",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296222540,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 10.115,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296218830,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 10.088,
+          "data": {
+            "columnNumber": 8483,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "IntersectionObserver.rootMargin",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296224958,
+            "scriptId": "15",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/1k8mjwr4jlxwr.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 9.13,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296220508,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.251,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "O",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296221489,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.145,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296220040,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.923
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.706
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.318,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296220968,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.252,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "O",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296220975,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.188,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "8DFF2B9DBEF2AF1FBA19AC0AC54A51DF",
+            "functionName": "tx",
+            "isolate": "16610969230088714496",
+            "lineNumber": 1,
+            "sampleTraceId": 8235224296221267,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "device": "desktop",
+      "trial": 2,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8119.5,
+      "scrollDistancePx": 10915,
+      "frames": 465,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.799999999999727,
+        "p99": 33.399999999999636,
+        "max": 133.29999999999973,
+        "over33": 10,
+        "over50": 1
+      },
+      "longTasks": [
+        {
+          "start": 2887.699999999255,
+          "duration": 67
+        },
+        {
+          "start": 2955.60000000149,
+          "duration": 58
+        }
+      ],
+      "scriptBytes": {
+        "decoded": 623915,
+        "transferred": 199257,
+        "count": 8
+      },
+      "domCount": 805,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.17499699999999996,
+        "RecalcStyleDuration": 0.7665959999999999,
+        "ScriptDuration": 0.6444540000000001,
+        "TaskDuration": 4.73776,
+        "LayoutCount": 123,
+        "RecalcStyleCount": 1201
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 39.599,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402838136,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 10.273,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "O",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402844065,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 9.729,
+          "data": {
+            "columnNumber": 8483,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "IntersectionObserver.rootMargin",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402838046,
+            "scriptId": "15",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/1k8mjwr4jlxwr.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 9.038,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402842510,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.771,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402841046,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.835
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.587,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402842102,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.428,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402841400,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.88,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "O",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402841054,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.396,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402843066,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.36,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402844121,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.232,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "tx",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402840398,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 6.142
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 6.102
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.99,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "B7B2BA8FCE7F3F017B9C1667B94E9DEB",
+            "functionName": "O",
+            "isolate": "11828767773048983565",
+            "lineNumber": 1,
+            "sampleTraceId": 6311583402842519,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "device": "desktop",
+      "trial": 3,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8106.60000000149,
+      "scrollDistancePx": 10915,
+      "frames": 471,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.700000000000728,
+        "p99": 16.80000000000109,
+        "max": 150,
+        "over33": 4,
+        "over50": 1
+      },
+      "longTasks": [
+        {
+          "start": 3410.39999999851,
+          "duration": 68
+        }
+      ],
+      "scriptBytes": {
+        "decoded": 623915,
+        "transferred": 199257,
+        "count": 8
+      },
+      "domCount": 805,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.15580300000000002,
+        "RecalcStyleDuration": 0.777261,
+        "ScriptDuration": 0.640398,
+        "TaskDuration": 4.669964,
+        "LayoutCount": 121,
+        "RecalcStyleCount": 1204
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 38.284,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912827710,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 9.73,
+          "data": {
+            "columnNumber": 8483,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "IntersectionObserver.rootMargin",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912827901,
+            "scriptId": "15",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/1k8mjwr4jlxwr.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 9.548,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912825519,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.888,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "O",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912824668,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.698,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "O",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912827009,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.129,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912824067,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.089,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912825912,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.989,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912827014,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.756,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912823645,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.66,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "O",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912823636,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.377,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912826701,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.352
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.901,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912824647,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.567,
+          "data": {
+            "columnNumber": 13812,
+            "frame": "E8C486F1CDC9BC841015BF027436FD2B",
+            "functionName": "tx",
+            "isolate": "3684306978848068201",
+            "lineNumber": 1,
+            "sampleTraceId": 1395630912827567,
+            "scriptId": "33",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/2p2jd75im6m_h.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 6.533
+        }
+      ],
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "trial": 1,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8113.800000000745,
+      "scrollDistancePx": 12026,
+      "frames": 481,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.700000000000728,
+        "p99": 16.800000000000182,
+        "max": 16.80000000000109,
+        "over33": 0,
+        "over50": 0
+      },
+      "longTasks": [],
+      "scriptBytes": {
+        "decoded": 509905,
+        "transferred": 153834,
+        "count": 6
+      },
+      "domCount": 803,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.126575,
+        "RecalcStyleDuration": 0.51942,
+        "ScriptDuration": 0.44434200000000007,
+        "TaskDuration": 3.5248850000000003,
+        "LayoutCount": 102,
+        "RecalcStyleCount": 1062
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 11.675,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "O",
+            "isolate": "10434123801355080318",
+            "lineNumber": 1,
+            "sampleTraceId": 8927991882467567,
+            "scriptId": "12",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.963,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "O",
+            "isolate": "10434123801355080318",
+            "lineNumber": 1,
+            "sampleTraceId": 8927991882470764,
+            "scriptId": "12",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.661,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882470954,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.612,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882470120,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.333,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882470547,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.154,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882470319,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.077,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882469637,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.775,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882467349,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.655,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "O",
+            "isolate": "10434123801355080318",
+            "lineNumber": 1,
+            "sampleTraceId": 8927991882465583,
+            "scriptId": "12",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 5.206
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.086,
+          "data": {
+            "columnNumber": 25,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "frame",
+            "isolate": "10434123801355080318",
+            "lineNumber": 16,
+            "sampleTraceId": 8927991882471182,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 5.076
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.045,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "O",
+            "isolate": "10434123801355080318",
+            "lineNumber": 1,
+            "sampleTraceId": 8927991882470974,
+            "scriptId": "12",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 5.038
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 4.738,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "F30E2A04989A4242539DCF82E97CF422",
+            "functionName": "O",
+            "isolate": "10434123801355080318",
+            "lineNumber": 1,
+            "sampleTraceId": 8927991882471175,
+            "scriptId": "12",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "trial": 2,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8113.599999997765,
+      "scrollDistancePx": 12026,
+      "frames": 471,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.799999999999272,
+        "p99": 33.30000000000109,
+        "max": 50,
+        "over33": 10,
+        "over50": 0
+      },
+      "longTasks": [],
+      "scriptBytes": {
+        "decoded": 509905,
+        "transferred": 153834,
+        "count": 6
+      },
+      "domCount": 803,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.13325900000000002,
+        "RecalcStyleDuration": 0.549664,
+        "ScriptDuration": 0.47882399999999997,
+        "TaskDuration": 3.824496,
+        "LayoutCount": 101,
+        "RecalcStyleCount": 1027
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 14.912,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939269850,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 12.404,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "O",
+            "isolate": "528210490950962484",
+            "lineNumber": 1,
+            "sampleTraceId": 729625939264870,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 12.289
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 11.298,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "O",
+            "isolate": "528210490950962484",
+            "lineNumber": 1,
+            "sampleTraceId": 729625939269842,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 10.573,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "O",
+            "isolate": "528210490950962484",
+            "lineNumber": 1,
+            "sampleTraceId": 729625939266729,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.174,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "O",
+            "isolate": "528210490950962484",
+            "lineNumber": 1,
+            "sampleTraceId": 729625939270585,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.158,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939270560,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.116,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939270143,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.591,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939271395,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.418,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939270030,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.996,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939269678,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.915,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939270295,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 6.766
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.714,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939270686,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.197,
+          "data": {
+            "columnNumber": 25,
+            "frame": "DBBC70197E8C83F9F57F265D694F620B",
+            "functionName": "frame",
+            "isolate": "528210490950962484",
+            "lineNumber": 16,
+            "sampleTraceId": 729625939267709,
+            "scriptId": "31",
+            "url": ""
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "trial": 3,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pageMarkers": {
+        "editingStory": true,
+        "pinSpacers": 0,
+        "webpImages": 8
+      },
+      "cpuThrottle": 4,
+      "durationMs": 8119.599999997765,
+      "scrollDistancePx": 12026,
+      "frames": 480,
+      "frameIntervalMs": {
+        "median": 16.699999999999818,
+        "p95": 16.700000000000728,
+        "p99": 16.80000000000109,
+        "max": 33.400000000000546,
+        "over33": 2,
+        "over50": 0
+      },
+      "longTasks": [],
+      "scriptBytes": {
+        "decoded": 509905,
+        "transferred": 153834,
+        "count": 6
+      },
+      "domCount": 803,
+      "pinSpacers": 0,
+      "metricsDelta": {
+        "LayoutDuration": 0.14356899999999995,
+        "RecalcStyleDuration": 0.603664,
+        "ScriptDuration": 0.49553299999999995,
+        "TaskDuration": 3.980078,
+        "LayoutCount": 103,
+        "RecalcStyleCount": 1055
+      },
+      "hotspots": [
+        {
+          "name": "FunctionCall",
+          "durationMs": 16.442,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "O",
+            "isolate": "8287202262407486417",
+            "lineNumber": 1,
+            "sampleTraceId": 5543742340195616,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 10.093,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340201461,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.8,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340195635,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 8.387,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "O",
+            "isolate": "8287202262407486417",
+            "lineNumber": 1,
+            "sampleTraceId": 5543742340201440,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.662
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 7.353
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.067,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340202266,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 7.023,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340200600,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.933,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "O",
+            "isolate": "8287202262407486417",
+            "lineNumber": 1,
+            "sampleTraceId": 5543742340201518,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.468,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340201163,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 6.232,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340202078,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "Layout",
+          "durationMs": 6.163
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 5.766,
+          "data": {
+            "columnNumber": 25,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "frame",
+            "isolate": "8287202262407486417",
+            "lineNumber": 16,
+            "sampleTraceId": 5543742340201531,
+            "scriptId": "31",
+            "url": ""
+          }
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "durationMs": 5.687
+        },
+        {
+          "name": "FunctionCall",
+          "durationMs": 4.986,
+          "data": {
+            "columnNumber": 3117,
+            "frame": "12A3B44DF5734705411A039BB30F452C",
+            "functionName": "O",
+            "isolate": "8287202262407486417",
+            "lineNumber": 1,
+            "sampleTraceId": 5543742340200577,
+            "scriptId": "11",
+            "url": "http://127.0.0.1:3022/_next/static/chunks/0hgkmctr7yhhe.js"
+          }
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
