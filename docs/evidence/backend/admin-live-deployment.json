@@ -1,0 +1,41 @@
+{
+  "verifiedAt": "2026-10-10T17:04:37.282Z",
+  "origin": "https://mohammed-khattab.vercel.app",
+  "revision": "0ffbb059b9103a417049abf6b366311bf6338747",
+  "deploymentState": "success",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/ta3allam",
+      "status": 200
+    },
+    {
+      "path": "/ta3allam/7days-freelance",
+      "status": 200
+    },
+    {
+      "path": "/api/courses/7days-freelance",
+      "status": 200
+    }
+  ],
+  "legacyRedirect": 308,
+  "anonymousAdmin": 401,
+  "accounts": [
+    {
+      "email": "admin@ta3allam.com",
+      "login": true,
+      "editor": true,
+      "apiStatus": 200
+    },
+    {
+      "email": "zackriver.dev@gmail.com",
+      "login": true,
+      "editor": true,
+      "apiStatus": 200
+    }
+  ],
+  "browserErrors": []
+}
