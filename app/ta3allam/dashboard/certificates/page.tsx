@@ -5,12 +5,12 @@ import PageHeading from "@platform/components/ui/page-heading";
 import EmptyState from "@platform/components/ui/empty-state";
 import { listCourses } from "@platform/features/catalog";
 import { copy, site } from "@platform/data/site";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 export const metadata = {
   title: interfaceCopy.certificatesPageTitle,
 };
 export default async function CertificatesPage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const earned = courses.filter(
     (course) =>

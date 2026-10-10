@@ -42,7 +42,7 @@ export const routes = {
   },
 };
 export const endpoints = {
-  auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout" },
+  auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",

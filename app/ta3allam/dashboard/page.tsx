@@ -11,12 +11,12 @@ import EmptyState from "@platform/components/ui/empty-state";
 import DashboardStats from "@platform/components/learning/dashboard-stats";
 import ContinueCard from "@platform/components/learning/continue-card";
 import CourseGrid from "@platform/components/courses/course-grid";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 import { listCourses } from "@platform/features/catalog";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.dashboardLabel };
 export default async function DashboardPage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const enrolled = courses.filter((course) =>
     state.enrolled.includes(course.slug),

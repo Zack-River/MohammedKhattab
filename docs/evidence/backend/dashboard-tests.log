@@ -1,0 +1,96 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Anonymous catalog is database-backed
+PASS 2: Public metadata excludes playback URLs
+PASS 3: Anonymous denied /api/profile
+PASS 4: Anonymous denied /api/progress
+PASS 5: Anonymous denied /api/enrollments
+PASS 6: Anonymous denied /api/auth/session
+PASS 7: Anonymous denied /api/certificates/editing-foundations
+PASS 8: Protected dashboard redirects (including streamed redirects)
+PASS 9: Private playback denied without enrollment
+PASS 10: Published preview playback is public
+PASS 11: Wrong password rejected
+PASS 12: Invalid signup rejected
+PASS 13: Oversized JSON payload rejected
+PASS 14: Cross-origin login rejected
+PASS 15: Forged demo cookie grants no authority
+PASS 16: Student A: real login
+PASS 17: Student B: real login
+PASS 18: Verified session endpoint
+PASS 19: Browser login navigates to protected dashboard
+PASS 20: Browser logout returns to login
+PASS 21: Invalid browser signup focuses first field
+PASS 22: Signup waits for email confirmation
+PASS 23: Signup creates an unconfirmed real account
+PASS 24: Supabase sends confirmation email to local Mailpit
+PASS 25: Confirmation email includes valid Auth verification link
+PASS 26: Email verification and PKCE callback establish browser session
+PASS 27: Auth layout fits 390px
+PASS 28: Auth layout fits 1440px
+PASS 29: Real authentication browser flows have no JavaScript errors
+PASS 30: Signed-in student cannot use admin course APIs
+PASS 31: Lost session cannot navigate through a retained dashboard layout
+PASS 32: Back after logout cannot restore cached dashboard content
+PASS 33: Logout removes access before dashboard rendering
+PASS 34: Anonymous cannot access course editor API
+PASS 35: Student cannot access course editor API
+PASS 36: Student cannot assign own admin role
+PASS 37: Student cannot add admin allowlist email
+PASS 38: User metadata cannot grant admin privileges
+PASS 39: Live workshop cannot self-enroll directly
+PASS 40: Course Manager: real login
+PASS 41: Trusted admin membership assigned
+PASS 42: Admin reads course editor data
+PASS 43: Admin edits name description price category and media
+PASS 44: Database edits appear in public catalog
+PASS 45: Workshop landing reads database changes
+PASS 46: Unsafe media URL rejected
+PASS 47: Negative price rejected
+PASS 48: Cross-origin admin mutation rejected
+PASS 49: Student cannot mutate through admin API
+PASS 50: Admin unpublishes course
+PASS 51: Unpublished course disappears publicly
+PASS 52: Admin retains unpublished course access
+PASS 53: Browser editor persists changes across refresh
+PASS 54: Admin editor fits mobile
+PASS 55: Google Drive link persists in admin editor
+PASS 56: Drive intro uses the custom streaming player
+PASS 57: Drive streaming retrieves actual MP4 bytes and supports cancellation
+PASS 58: Admin can edit protected lesson video
+PASS 59: Student cannot edit protected lesson video
+PASS 60: Protected stream enforces enrollment before retrieving Drive bytes
+PASS 61: Legacy workshop redirects with query preserved
+PASS 62: Generic workshop detail URL redirects to approved landing
+PASS 63: RLS also blocks zero-price live self-enrollment
+PASS 64: Verified allowlisted email receives role through trusted trigger
+PASS 65: Changing away from allowlisted email removes admin role
+PASS 66: Paid course cannot self-enroll through API
+PASS 67: RLS blocks direct paid enrollment
+PASS 68: RLS blocks profile ownership forgery
+PASS 69: RLS hides other student profile
+PASS 70: Students cannot alter prices
+PASS 71: Progress requires enrollment
+PASS 72: Free enrollment succeeds
+PASS 73: Free enrollment is idempotent
+PASS 74: Trusted grant unlocks private playback
+PASS 75: Grant never unlocks another account
+PASS 76: Direct requests hide another account enrollment
+PASS 77: Concurrent progress updates succeed
+PASS 78: Concurrent progress preserves both lessons
+PASS 79: RLS hides another account progress
+PASS 80: RLS rejects forged progress owner
+PASS 81: Unknown lesson rejected
+PASS 82: Incomplete course certificate denied
+PASS 83: Completed enrolled course certificate allowed
+PASS 84: Enrolled student can download resource
+PASS 85: Other student cannot download resource
+PASS 86: Own profile updates persist
+PASS 87: Personalized responses never cached
+PASS 88: Email change waits for provider confirmation and preserves verified identity
+PASS 89: Revoked grant immediately denies playback
+PASS 90: Logout succeeds
+PASS 91: Logout removes authenticated session
+Backend integration: 91 checks passed

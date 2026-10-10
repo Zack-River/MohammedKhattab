@@ -2,6 +2,14 @@
 
 Last updated: **2026-10-10**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — dashboard authentication boundary
+
+- Reproduced eight failing access regressions: logged-out dashboard routes returned streamed HTTP 200 responses instead of blocking before rendering. Layout redirects were present, but student child pages used an anonymous empty-state fallback. Layouts also persist during client navigation.
+- Added a pre-render dashboard guard in the session proxy using provider-verified identity, and an authenticated student-state reader used by every student data page. Resource pages check identity before rendering. Public course previews retain their intentional anonymous behavior; protected APIs and RLS remain authoritative.
+- Login/logout now perform document navigation to discard client route caches. A shared protected-session hook verifies identity on pathname changes, browser page restoration and history navigation, withholding cached dashboard UI until verified. Added real-account regression checks for lost-session navigation, Back after logout, admin denial and absence of streamed dashboard content.
+- Created and verified `student@ta3allam.com` with the supplied password through Supabase Auth; confirmed no admin membership. Passwords are not recorded in source or this checkpoint.
+- Final checks passed: **91 backend checks**, **21 targeted production-browser tests**, plus four real hosted-student checks against the local production build. TypeScript, lint, architecture (421 files, zero violations) and production build passed. Eight access tests failed before the fix and pass afterward. Earlier Back-button test synchronization was corrected, and an independently reproduced memory-cache restoration gap was fixed with server-session revalidation. Production deployment verification is pending.
+
 ## Latest checkpoint — live workshop and course administration
 
 - Added the seven-day live workshop to the database catalog with an initial editable price of **499 ج.م**, category business and supplied intro/poster. Canonical landing: `/ta3allam/7days-freelance`; legacy workshop and generic course-detail links permanently redirect there. The approved workshop layout and initial copy remain intact; edited course text/media appear on its landing.

@@ -1,6 +1,5 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useAsyncCommand } from "./use-async-command";
 import { httpRequest } from "@platform/lib/http-request";
 import { authFields } from "@platform/config/auth";
@@ -10,7 +9,7 @@ import { validateAuthField } from "@platform/features/auth/helpers/validate-fiel
 import { readAuthResponse } from "@platform/features/auth/helpers/read-response";
 import type { AuthErrors, AuthPageModel } from "@platform/types/auth";
 export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageModel, "mode" | "endpoint" | "redirectTo" | "copy">) {
-  const router = useRouter(), command = useAsyncCommand(copy.requestError);
+  const command = useAsyncCommand(copy.requestError);
   const [errors, setErrors] = useState<AuthErrors>({});
   const [edited, setEdited] = useState(false);
   const [confirmation, setConfirmation] = useState(false);
@@ -43,7 +42,7 @@ export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageM
     setErrors({});
     const response = await command.run(() => httpRequest({ path: endpoint, body: result.values, failureLabel: copy.requestError, decode: (input) => readAuthResponse(input, copy.requestError) }));
     if (response?.status === "confirmation_required") { form.reset(); setConfirmation(true); }
-    if (response?.status === "authenticated") { form.reset(); router.push(redirectTo); router.refresh(); }
+    if (response?.status === "authenticated") { form.reset(); window.location.assign(redirectTo); }
   }
   return { submit, change, blur, errors, pending: command.pending, confirmation, error: edited ? "" : command.error };
 }

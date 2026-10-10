@@ -2,11 +2,11 @@ import { backendCopy } from "@platform/data/backend-copy";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import PageHeading from "@platform/components/ui/page-heading";
 import ProfileForm from "@platform/components/account/profile-form";
-import { readLearningState } from "@platform/features/learning";
+import { readStudentState } from "@platform/features/learning";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.profilePageTitle };
 export default async function ProfilePage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   return (
     <>
       <PageHeading

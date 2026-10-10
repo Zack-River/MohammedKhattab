@@ -1,0 +1,32 @@
+[WebServer] (node:116915) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 21 tests using 2 workers
+
+(node:116938) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:116939) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [site] › tests/auth.spec.ts:12:5 › shared validation normalizes identity, preserves passwords and rejects malformed values (13ms)
+  ✓   2 [site] › tests/auth.spec.ts:21:5 › auth APIs reject invalid payloads and cross-origin writes (142ms)
+  ✓   3 [site] › tests/auth.spec.ts:31:5 › signup errors, field focus, blur, confirmation and password visibility (3.0s)
+  ✓   4 [site] › tests/auth.spec.ts:56:5 › login provides pending feedback, recovers from errors and links to signup (3.1s)
+  ✓   5 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 320px (1.2s)
+  ✓   6 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 390px (1.3s)
+  ✓   7 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 768px (828ms)
+  ✓   9 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for network failures (778ms)
+  ✓   8 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 1440px (1.3s)
+  ✓  11 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard (605ms)
+  ✓  10 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for malformed failures (865ms)
+  ✓  12 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/courses (671ms)
+  ✓  13 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/profile (732ms)
+  ✓  14 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/resources (679ms)
+  ✓  15 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/certificates (697ms)
+  ✓  16 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/admin/courses (555ms)
+  ✓  18 [site] › tests/dashboard-access.spec.ts:16:5 › forged session and old demo cookies cannot unlock the dashboard (20ms)
+  ✓  17 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /ta3allam/dashboard/admin/courses/7days-freelance (478ms)
+  ✓  20 [site] › tests/workshop-course.spec.ts:23:5 › legacy workshop links redirect without losing section anchors or query strings (948ms)
+  ✓  21 [site] › tests/workshop-course.spec.ts:30:5 › admin inputs reject malformed values and seeds preserve existing edits (20ms)
+  ✓  19 [site] › tests/workshop-course.spec.ts:8:5 › workshop is a live database course with the approved landing and working card (1.6s)
+
+  21 passed (11.8s)

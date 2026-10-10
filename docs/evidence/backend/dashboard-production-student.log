@@ -1,0 +1,4 @@
+PASS: Signed-in student cannot use admin course APIs
+PASS: Lost session cannot navigate through a retained dashboard layout
+PASS: Back after logout cannot restore cached dashboard content
+PASS: Logout removes access before dashboard rendering

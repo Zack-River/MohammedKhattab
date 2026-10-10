@@ -1,22 +1,19 @@
 import { hasAdminAccess } from "@platform/features/admin/identity";
 import { adminCopy } from "@platform/data/admin";
-import { redirect } from "next/navigation";
 import { routes } from "@platform/config/navigation";
-import { currentIdentity } from "@platform/features/auth/server/identity";
 import { backendCopy } from "@platform/data/backend-copy";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { dashboardNavigation } from "@platform/data/site";
 import { site } from "@platform/data/site";
 import { copy } from "@platform/data/site";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
-import { readLearningState } from "@platform/features/learning";
+import { readStudentState } from "@platform/features/learning";
 export default async function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  if (!await currentIdentity()) redirect(routes.login);
-  const state = await readLearningState();
+  const state = await readStudentState();
   const admin = await hasAdminAccess();
   return (
     <DashboardShell

@@ -6,11 +6,11 @@ import PageHeading from "@platform/components/ui/page-heading";
 import EmptyState from "@platform/components/ui/empty-state";
 import CourseGrid from "@platform/components/courses/course-grid";
 import { listCourses } from "@platform/features/catalog";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.libraryPageTitle };
 export default async function MyCourses() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const enrolled = courses.filter((course) =>
     state.enrolled.includes(course.slug),

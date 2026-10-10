@@ -6,7 +6,7 @@ Approved visual baseline: **2026-10-07**; maintained unified architecture snapsh
 
 > Reproduce the approved Arabic RTL workshop design using this document. Treat the embedded source, content, CSS cascade, component tree, interaction logic, and asset manifest as the specification. First inventory the available files and compare them with the manifest. Reuse the existing implementation when present. If creating a fresh project, materialize the source blocks at their exact indicated paths and use the original visual assets and dependency lockfile. Preserve the approved design; do not redesign, paraphrase, simplify, reorder sections, invent assets, replace fonts/icons, change dependencies, or approximate values. Read this entire specification, including responsive rules and behavioral source, before implementing. Run the specified validation. Report actual differences and missing inputs; do not assert pixel equality without a measured comparison. A new page may change only the inputs explicitly requested by its user, while retaining these existing patterns and theme.
 
-The source appendix includes one Next.js application with three main pages and the private shared package. The portfolio is `/`, Ta3llam is `/ta3allam`, and the workshop is `/7days-freelance`; routes/API handlers live under root `app/`. `modules/` contains namespaced feature modules, not another app. Root `public/` owns assets; `modules/public` is a compatibility symlink. Preserve canonical ownership; never reconstruct a second base theme or primitive implementation inside the LMS. User-authorized changes include the recorded FAQ/duration corrections, real media/player improvements, uncaptioned reels, reusable coming-soon poster artwork, and unified routing with shared cross-page links. The 2026-10-07 pixel results below remain historical reference evidence, not a claim about an untested current reconstruction.
+The source appendix includes one Next.js application with three main pages and the private shared package. The portfolio is `/`, Ta3llam is `/ta3allam`, and the workshop is `/ta3allam/7days-freelance`; routes/API handlers live under root `app/`. `modules/` contains namespaced feature modules, not another app. Root `public/` owns assets; `modules/public` is a compatibility symlink. Preserve canonical ownership; never reconstruct a second base theme or primitive implementation inside the LMS. User-authorized changes include the recorded FAQ/duration corrections, real media/player improvements, uncaptioned reels, reusable coming-soon poster artwork, and unified routing with shared cross-page links. The 2026-10-07 pixel results below remain historical reference evidence, not a claim about an untested current reconstruction.
 
 **Default task mode: exact workshop replication.** A request to create a different page authorizes the specified content changes, not an aesthetic redesign. With changed content, compare shared patterns and responsive behavior; do not claim that the new page has identical whole-page pixels or height to this workshop.
 
@@ -2632,7 +2632,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
 ### File: `app/ta3allam/dashboard/certificates/page.tsx`
 
-SHA-256: `bc4fbf1c052e304722beb32ab0894c1bb24343902571e5b058664624c0df80df`
+SHA-256: `62fb0f663b0485da89ba1140404739bf32997b481770119863160b8fd92f9240`
 
 ```tsx
 import CertificateCard from "@platform/components/certificates/certificate-card";
@@ -2642,12 +2642,12 @@ import PageHeading from "@platform/components/ui/page-heading";
 import EmptyState from "@platform/components/ui/empty-state";
 import { listCourses } from "@platform/features/catalog";
 import { copy, site } from "@platform/data/site";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 export const metadata = {
   title: interfaceCopy.certificatesPageTitle,
 };
 export default async function CertificatesPage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const earned = courses.filter(
     (course) =>
@@ -2690,7 +2690,7 @@ export default async function CertificatesPage() {
 
 ### File: `app/ta3allam/dashboard/courses/page.tsx`
 
-SHA-256: `db7bb501038dff0297b5e59fcbf9bcce1d6690fb452ea7a614d221826dcf2908`
+SHA-256: `b8031dac024c64e267b98a512186d290a5fd6e681696bc63492e17c71ac0a4e3`
 
 ```tsx
 import { routes } from "@platform/config/navigation";
@@ -2701,11 +2701,11 @@ import PageHeading from "@platform/components/ui/page-heading";
 import EmptyState from "@platform/components/ui/empty-state";
 import CourseGrid from "@platform/components/courses/course-grid";
 import { listCourses } from "@platform/features/catalog";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.libraryPageTitle };
 export default async function MyCourses() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const enrolled = courses.filter((course) =>
     state.enrolled.includes(course.slug),
@@ -2749,28 +2749,25 @@ export default async function MyCourses() {
 
 ### File: `app/ta3allam/dashboard/layout.tsx`
 
-SHA-256: `1d3929fb0f8bca1f028ba7c334f096c3efed6d63aeb4e8b43e97dd316a347f4b`
+SHA-256: `b143a1d70dda69dafddb81b8dfbfc1440b85e63d6c69b6866cb7b82284994070`
 
 ```tsx
 import { hasAdminAccess } from "@platform/features/admin/identity";
 import { adminCopy } from "@platform/data/admin";
-import { redirect } from "next/navigation";
 import { routes } from "@platform/config/navigation";
-import { currentIdentity } from "@platform/features/auth/server/identity";
 import { backendCopy } from "@platform/data/backend-copy";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { dashboardNavigation } from "@platform/data/site";
 import { site } from "@platform/data/site";
 import { copy } from "@platform/data/site";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
-import { readLearningState } from "@platform/features/learning";
+import { readStudentState } from "@platform/features/learning";
 export default async function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  if (!await currentIdentity()) redirect(routes.login);
-  const state = await readLearningState();
+  const state = await readStudentState();
   const admin = await hasAdminAccess();
   return (
     <DashboardShell
@@ -2804,7 +2801,7 @@ export default async function StudentLayout({
 
 ### File: `app/ta3allam/dashboard/page.tsx`
 
-SHA-256: `c04e339322100c15b1cfaa1c8ebc8cc7d9a77b26600290180baa8b01f336484e`
+SHA-256: `1691ddcb1bc68e8f940071556e0ceca430716e2bb0ffbd4949de741c9a02646e`
 
 ```tsx
 import { dashboardStats } from "@platform/features/learning/helpers/dashboard-stats";
@@ -2820,12 +2817,12 @@ import EmptyState from "@platform/components/ui/empty-state";
 import DashboardStats from "@platform/components/learning/dashboard-stats";
 import ContinueCard from "@platform/components/learning/continue-card";
 import CourseGrid from "@platform/components/courses/course-grid";
-import { readLearningState, courseProgress } from "@platform/features/learning";
+import { readStudentState, courseProgress } from "@platform/features/learning";
 import { listCourses } from "@platform/features/catalog";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.dashboardLabel };
 export default async function DashboardPage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   const courses = await listCourses();
   const enrolled = courses.filter((course) =>
     state.enrolled.includes(course.slug),
@@ -2911,18 +2908,18 @@ export default async function DashboardPage() {
 
 ### File: `app/ta3allam/dashboard/profile/page.tsx`
 
-SHA-256: `fecde1854ea25dadb3407f90e0a14bc3a6ae7c2370aac6cb81837969f79b97f6`
+SHA-256: `983decadcd91cad920c0e03d71c222d60fd52537fbc71e07ff4ae6068f37f767`
 
 ```tsx
 import { backendCopy } from "@platform/data/backend-copy";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import PageHeading from "@platform/components/ui/page-heading";
 import ProfileForm from "@platform/components/account/profile-form";
-import { readLearningState } from "@platform/features/learning";
+import { readStudentState } from "@platform/features/learning";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.profilePageTitle };
 export default async function ProfilePage() {
-  const state = await readLearningState();
+  const state = await readStudentState();
   return (
     <>
       <PageHeading
@@ -2964,9 +2961,10 @@ export default async function ProfilePage() {
 
 ### File: `app/ta3allam/dashboard/resources/page.tsx`
 
-SHA-256: `77f5b22e664db58c4811a85a68859e0004c2511d3fa2325757880c451c52bdcf`
+SHA-256: `69d538a5f42d755d7231b9d7a529a1277563c3d2618c8e5c19145e9f62c2c167`
 
 ```tsx
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
 import ResourceCard from "@platform/components/resources/resource-card";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import PageHeading from "@platform/components/ui/page-heading";
@@ -2974,6 +2972,7 @@ import { listResources } from "@platform/features/resources/service";
 import { copy } from "@platform/data/site";
 export const metadata = { title: interfaceCopy.resourcesPageTitle };
 export default async function ResourcePage() {
+  await requirePageIdentity();
   const resources = await listResources();
   return (
     <>
@@ -5137,7 +5136,7 @@ return (<header className="lms-app-header">
 
 ### File: `modules/components/layout/dashboard-shell.tsx`
 
-SHA-256: `9f06251ddd573fc42b486ab6ec346c2dab0c1bddd805bea02dad2f179c484241`
+SHA-256: `2d458a05977e47bcf6201d5a0e8a811025d0f873af8d52b6c34f79c78a12728b`
 
 ```tsx
 "use client";
@@ -5147,6 +5146,8 @@ import type { DashboardShellProps } from "@platform/types/dashboard-shell";
 import { useId } from "react";
 import { usePathname } from "next/navigation";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
+import { useProtectedSession } from "@platform/hooks/use-protected-session";
+import { endpoints, routes } from "@platform/config/navigation";
 import DashboardHeader from "./dashboard-header";
 import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
@@ -5159,7 +5160,9 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const navigationId = useId();
   const pathname = usePathname();
+  const verified = useProtectedSession(pathname, endpoints.auth.session, routes.login);
   const menu = useMobileMenu({ breakpointToken: "--breakpoint-mobile" });
+  if (!verified) return null;
   return (
     <div className="lms-app">
       <DashboardHeader name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
@@ -7263,7 +7266,7 @@ export type ArtworkKind = (typeof artworkKinds)[number];
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `3dd7277120dd3c024b7833200336a99abb4635af5d6c1f8f37e6b11f55d239d7`
+SHA-256: `cd48cab8d27290c7e00907ba86bdd06e1c52e152ff5f58cb2fcce9ebb994262f`
 
 ```typescript
 import { workshopCourseConfig } from "../../config/workshop-course";
@@ -7310,7 +7313,7 @@ export const routes = {
   },
 };
 export const endpoints = {
-  auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout" },
+  auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
@@ -8516,6 +8519,22 @@ export async function requireIdentity() {
 }
 ```
 
+### File: `modules/features/auth/server/page-identity.ts`
+
+SHA-256: `e4cbbaf236cd3fa5fba366335eb6d7becb8f598195fa273e1932317733572977`
+
+```typescript
+import "server-only";
+import { redirect } from "next/navigation";
+import { routes } from "@platform/config/navigation";
+import { currentIdentity } from "./identity";
+export async function requirePageIdentity() {
+  const identity = await currentIdentity();
+  if (!identity) redirect(routes.login);
+  return identity;
+}
+```
+
 ### File: `modules/features/catalog/helpers/course-lessons.ts`
 
 SHA-256: `fbe6836f15c3c41d56c63f50ddba9ec7514dada443be4326d7bec2f32a3301cf`
@@ -9121,10 +9140,11 @@ export type LessonOutlineModel = ReturnType<typeof lessonOutline>;
 
 ### File: `modules/features/learning/index.ts`
 
-SHA-256: `fac23de01a43979d565de93d8c85360b1f58b62cd3bfe014c8311dbd56edf0e3`
+SHA-256: `a23536f1388ccf22bb9cab0c77fbda487645df5ca4c6614d7fac2967529632e6`
 
 ```typescript
 export { readLearningState } from "./service";
+export { readStudentState } from "./read-student-state";
 export * from "./helpers";
 ```
 
@@ -9218,6 +9238,20 @@ export async function readLessonContext(slug: string, lessonId: string) {
     next: lessons[index + 1], complete: state.completed.includes(lessonKey(slug, lessonId)) };
 }
 export type LessonContext = Awaited<ReturnType<typeof readLessonContext>>;
+```
+
+### File: `modules/features/learning/read-student-state.ts`
+
+SHA-256: `1900f4a413ae7b56dff4a663c00696bb18227cc856f828130a873ceb4691bd95`
+
+```typescript
+import "server-only";
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { readState } from "./repositories/read-state";
+export async function readStudentState() {
+  const { client, user } = await requirePageIdentity();
+  return readState(client, user);
+}
 ```
 
 ### File: `modules/features/learning/repositories/enroll-course.ts`
@@ -10106,12 +10140,11 @@ export function useAsyncCommand(failureLabel: string) {
 
 ### File: `modules/hooks/use-auth-form.ts`
 
-SHA-256: `3d59483896c8a988d0d7631624422301dc7c962897be737ff93f98e008f9a946`
+SHA-256: `30db054f61613bbb9e81ae8ebbdbbe30122611f1bfaa15d3ed87fba9d0305a04`
 
 ```typescript
 "use client";
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { useAsyncCommand } from "./use-async-command";
 import { httpRequest } from "@platform/lib/http-request";
 import { authFields } from "@platform/config/auth";
@@ -10121,7 +10154,7 @@ import { validateAuthField } from "@platform/features/auth/helpers/validate-fiel
 import { readAuthResponse } from "@platform/features/auth/helpers/read-response";
 import type { AuthErrors, AuthPageModel } from "@platform/types/auth";
 export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageModel, "mode" | "endpoint" | "redirectTo" | "copy">) {
-  const router = useRouter(), command = useAsyncCommand(copy.requestError);
+  const command = useAsyncCommand(copy.requestError);
   const [errors, setErrors] = useState<AuthErrors>({});
   const [edited, setEdited] = useState(false);
   const [confirmation, setConfirmation] = useState(false);
@@ -10154,7 +10187,7 @@ export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageM
     setErrors({});
     const response = await command.run(() => httpRequest({ path: endpoint, body: result.values, failureLabel: copy.requestError, decode: (input) => readAuthResponse(input, copy.requestError) }));
     if (response?.status === "confirmation_required") { form.reset(); setConfirmation(true); }
-    if (response?.status === "authenticated") { form.reset(); router.push(redirectTo); router.refresh(); }
+    if (response?.status === "authenticated") { form.reset(); window.location.assign(redirectTo); }
   }
   return { submit, change, blur, errors, pending: command.pending, confirmation, error: edited ? "" : command.error };
 }
@@ -10251,21 +10284,18 @@ export function useLessonNotes(key: string) {
 
 ### File: `modules/hooks/use-logout.ts`
 
-SHA-256: `3c148d24ec4b6b66bdc9ccc563e663ef0b6e7b27ac6faf8fa559e4b5a723af1b`
+SHA-256: `4bdbeed1b02a95e4a8d40d0d9f2729363cf76e81da13bd26fbcfb42e82037982`
 
 ```typescript
 "use client";
-import { useRouter } from "next/navigation";
 import { endpoints, routes } from "@platform/config/navigation";
 import { httpRequest } from "@platform/lib/http-request";
 import { useAsyncCommand } from "./use-async-command";
 export function useLogout(errorLabel: string) {
-  const router = useRouter();
   const command = useAsyncCommand(errorLabel);
   const logout = () => command.run(async () => {
     await httpRequest({ path: endpoints.auth.logout, body: {}, failureLabel: errorLabel, decode: value => value });
-    router.replace(routes.login);
-    router.refresh();
+    window.location.replace(routes.login);
   });
   return { logout, pending: command.pending, error: command.error };
 }
@@ -10312,6 +10342,46 @@ export function useProfileSubmission(entry: boolean, errorLabel: string) {
     }
   }
   return { submit, pending, error: validationError || error, saved, emailChangePending };
+}
+```
+
+### File: `modules/hooks/use-protected-session.ts`
+
+SHA-256: `a7b2d7e396a04a0269d479c1100efe00b4cba0f8a01c6505c0dd4611061cc20e`
+
+```typescript
+"use client";
+import { useEffect, useState } from "react";
+export function useProtectedSession(pathname: string, endpoint: string, login: string) {
+  const [verifiedPath, setVerifiedPath] = useState<string | null>(null);
+  useEffect(() => {
+    let controller: AbortController | undefined;
+    const verify = async () => {
+      controller?.abort();
+      controller = new AbortController();
+      const signal = controller.signal;
+      setVerifiedPath(null);
+      try {
+        const response = await fetch(endpoint, { cache: "no-store", signal });
+        if (!response.ok || (await response.json()).status !== "authenticated") {
+          window.location.replace(login);
+          return;
+        }
+        if (!signal.aborted) setVerifiedPath(pathname);
+      } catch {
+        if (!signal.aborted) window.location.replace(login);
+      }
+    };
+    void verify();
+    window.addEventListener("pageshow", verify);
+    window.addEventListener("popstate", verify);
+    return () => {
+      controller?.abort();
+      window.removeEventListener("pageshow", verify);
+      window.removeEventListener("popstate", verify);
+    };
+  }, [pathname, endpoint, login]);
+  return verifiedPath === pathname;
 }
 ```
 
@@ -10468,12 +10538,13 @@ export function supabaseEnvironment() {
 
 ### File: `modules/lib/supabase/middleware.ts`
 
-SHA-256: `490c0e2c82823ba91d9c208e9ea32c426964b6657e014a2f61e3287efddb347b`
+SHA-256: `de47dab091f610222e47c304a1795190bb98237c11b7c5e7e9e8e65bb0fc4179`
 
 ```typescript
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseEnvironment } from "./environment";
+import { routes } from "@platform/config/navigation";
 export async function updateSession(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return NextResponse.next();
   const { url, key } = supabaseEnvironment();
@@ -10487,7 +10558,18 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
-  await client.auth.getClaims();
+  if (request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
+    const { data, error } = await client.auth.getUser();
+    if (error || !data.user) {
+      const target = request.nextUrl.clone();
+      target.pathname = routes.login;
+      target.search = "";
+      const denied = NextResponse.redirect(target);
+      response.cookies.getAll().forEach(cookie => denied.cookies.set(cookie));
+      denied.headers.set("Cache-Control", "private, no-store");
+      return denied;
+    }
+  } else await client.auth.getClaims();
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
@@ -24423,9 +24505,50 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 };
 ```
 
+### File: `tests/backend/dashboard-access.cjs`
+
+SHA-256: `6ab1caaadfecabc41b1b8f6d9bd62b939cb419a1138229765b889d3f10cb1df2`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-account access regression. */
+const { chromium, expect } = require('@playwright/test');
+module.exports = async function dashboardAccess({ url, student, verify }) {
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const login = async () => {
+    await page.goto(url + '/ta3allam/login');
+    await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(student.email);
+    await page.getByLabel('كلمة المرور', { exact: true }).fill(student.password);
+    await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+  };
+  try {
+    await login();
+    const admin = await context.request.get(url + '/api/admin/courses/7days-freelance');
+    verify(admin.status() === 403, 'Signed-in student cannot use admin course APIs');
+    await context.clearCookies();
+    await page.locator('a[href="/ta3allam/dashboard/profile"]').first().click();
+    await expect(page, 'Lost session navigation').toHaveURL(/\/ta3allam\/login$/);
+    verify(true, 'Lost session cannot navigate through a retained dashboard layout');
+    await login();
+    await page.locator('a[href="/ta3allam/dashboard/profile"]').first().click();
+    await expect(page).toHaveURL(/\/ta3allam\/dashboard\/profile$/);
+    await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+    await expect(page, 'Logout navigation').toHaveURL(/\/ta3allam\/login$/);
+    await page.waitForLoadState('load');
+    await page.goBack();
+    await expect(page, 'Back navigation after logout').toHaveURL(/\/ta3allam\/login$/);
+    verify(true, 'Back after logout cannot restore cached dashboard content');
+    const response = await context.request.get(url + '/ta3allam/dashboard', { maxRedirects: 0 });
+    verify(response.status() === 307 && !(await response.text()).includes('lms-dashboard'), 'Logout removes access before dashboard rendering');
+  } finally { await browser.close(); }
+};
+```
+
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `53dbb3a4c74b4c78ffa39c8be3d1d44f2f869ab4233dd8eb5283639ee02b6d8d`
+SHA-256: `96c7aed1543d6253fbfe301add504ca5b5f478bd0a1fcdbf270076fa2b9c0f93`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -24492,6 +24615,7 @@ async function run() {
   const a = await provision('Student A'), b = await provision('Student B');
   verify((await a.api('/api/auth/session')).status === 200, 'Verified session endpoint');
   await require('./browser.cjs')({ url, config, admin, identities, verify, student: a });
+  await require('./dashboard-access.cjs')({ url, student: a, verify });
   await require('./admin.cjs')({ admin, provision, anonymous, student: b, verify, url, config });
   verify((await a.api('/api/enrollments', { courseSlug: course.slug })).status === 403, 'Paid course cannot self-enroll through API');
   verify(Boolean((await a.direct.from('enrollments').insert({ user_id: a.id, course_slug: course.slug })).error), 'RLS blocks direct paid enrollment');
@@ -24775,6 +24899,33 @@ test("hero reports media failure and retries", async ({ page }) => {
     )
     .toBeGreaterThanOrEqual(2);
   await expect(hero.getByRole("alert")).toHaveCount(0);
+});
+```
+
+### File: `tests/dashboard-access.spec.ts`
+
+SHA-256: `18f49aec18aaf01483458987f488d2949d9be9046dad672b2d01d1d1b57740e1`
+
+```typescript
+import { test, expect } from "@playwright/test";
+import { routes } from "../modules/config/navigation";
+const protectedPages = [routes.dashboard, routes.library, routes.profile, routes.resources, routes.certificates, routes.admin, routes.adminCourse("7days-freelance")];
+for (const path of protectedPages) test(`logged-out requests cannot render ${path}`, async ({ request, page }) => {
+  const response = await request.get(path, { maxRedirects: 0 });
+  expect(response.status()).toBe(307);
+  expect(response.headers().location).toMatch(/\/ta3allam\/login$/);
+  expect(await response.text()).not.toContain("lms-dashboard");
+  const rsc = await request.get(path, { maxRedirects: 0, headers: { RSC: "1" } });
+  expect(rsc.status()).toBe(307);
+  expect(await rsc.text()).not.toContain("lms-dashboard");
+  await page.goto(path);
+  await expect(page).toHaveURL(/\/ta3allam\/login$/);
+  await expect(page.locator(".lms-dashboard-stats")).toHaveCount(0);
+});
+test("forged session and old demo cookies cannot unlock the dashboard", async ({ request }) => {
+  const response = await request.get(routes.dashboard, { maxRedirects: 0, headers: { Cookie: "ta3allam-session=forged; ta3allam-learning=forged; sb-tatseklsvfdpuxuepbfo-auth-token=forged" } });
+  expect(response.status()).toBe(307);
+  expect(response.headers().location).toMatch(/\/ta3allam\/login$/);
 });
 ```
 

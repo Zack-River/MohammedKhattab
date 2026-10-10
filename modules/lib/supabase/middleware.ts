@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseEnvironment } from "./environment";
+import { routes } from "@platform/config/navigation";
 export async function updateSession(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return NextResponse.next();
   const { url, key } = supabaseEnvironment();
@@ -14,7 +15,18 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
-  await client.auth.getClaims();
+  if (request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
+    const { data, error } = await client.auth.getUser();
+    if (error || !data.user) {
+      const target = request.nextUrl.clone();
+      target.pathname = routes.login;
+      target.search = "";
+      const denied = NextResponse.redirect(target);
+      response.cookies.getAll().forEach(cookie => denied.cookies.set(cookie));
+      denied.headers.set("Cache-Control", "private, no-store");
+      return denied;
+    }
+  } else await client.auth.getClaims();
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }

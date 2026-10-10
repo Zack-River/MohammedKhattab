@@ -62,6 +62,7 @@ async function run() {
   const a = await provision('Student A'), b = await provision('Student B');
   verify((await a.api('/api/auth/session')).status === 200, 'Verified session endpoint');
   await require('./browser.cjs')({ url, config, admin, identities, verify, student: a });
+  await require('./dashboard-access.cjs')({ url, student: a, verify });
   await require('./admin.cjs')({ admin, provision, anonymous, student: b, verify, url, config });
   verify((await a.api('/api/enrollments', { courseSlug: course.slug })).status === 403, 'Paid course cannot self-enroll through API');
   verify(Boolean((await a.direct.from('enrollments').insert({ user_id: a.id, course_slug: course.slug })).error), 'RLS blocks direct paid enrollment');

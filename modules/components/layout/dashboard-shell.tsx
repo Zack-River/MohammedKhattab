@@ -5,6 +5,8 @@ import type { DashboardShellProps } from "@platform/types/dashboard-shell";
 import { useId } from "react";
 import { usePathname } from "next/navigation";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
+import { useProtectedSession } from "@platform/hooks/use-protected-session";
+import { endpoints, routes } from "@platform/config/navigation";
 import DashboardHeader from "./dashboard-header";
 import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
@@ -17,7 +19,9 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const navigationId = useId();
   const pathname = usePathname();
+  const verified = useProtectedSession(pathname, endpoints.auth.session, routes.login);
   const menu = useMobileMenu({ breakpointToken: "--breakpoint-mobile" });
+  if (!verified) return null;
   return (
     <div className="lms-app">
       <DashboardHeader name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
