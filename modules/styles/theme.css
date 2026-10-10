@@ -1,0 +1,44 @@
+@import "../../packages/design-system/styles/theme.css";
+
+/* Ta3llam product variants. */
+:root {
+  --text-on-action: var(--text-primary);
+  --text-on-compact-action: var(--bg-main);
+  --text-accent-readable: var(--color-ffa59c);
+  --font-size-caption: 0.875rem;
+  --font-size-control: 1rem;
+  --font-size-body: 1rem;
+  --font-size-action: 1.25rem;
+  --font-weight-body: 400;
+  --font-weight-label: 500;
+  --font-weight-action: 700;
+  --shadow-course-hover:
+    0 var(--space-lg) var(--space-2xl) var(--color-rgba-0-0-0-0-35),
+    0 0 var(--space-lg) var(--primary-red-subtle);
+  --lms-size-1_7rem: 1.7rem;
+  --lms-size-1_4rem: 1.4rem;
+  --lms-size-negative-10deg: -10deg;
+  --lms-size-0_12em: 0.12em;
+  --lms-size-0_96em: 0.96em;
+  --lms-size-0_2em: 0.2em;
+  --lms-size-70vh: 70vh;
+  --lms-size-3vw: 3vw;
+  --lms-size-2_5rem: 2.5rem;
+  --lms-size-64ch: 64ch;
+  --lms-size-560px: 560px;
+  --lms-size-1_3rem: 1.3rem;
+  --lms-size-248px: 248px;
+  --lms-size-1600px: 1600px;
+  --lms-size-1_8rem: 1.8rem;
+  --lms-size-270px: 270px;
+  --lms-size-1_5rem: 1.5rem;
+  --lms-size-320px: 320px;
+  --lms-size-640px: 640px;
+  --lms-size-80vh: 80vh;
+  --lms-size-3_4rem: 3.4rem;
+  --lms-size-90vh: 90vh;
+  --lms-size-1_6s: 1.6s;
+  --lms-size-70px: 70px;
+  --lms-size-210px: 210px;
+  --lms-size-280px: 280px;
+}

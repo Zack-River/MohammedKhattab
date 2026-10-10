@@ -1,0 +1,11 @@
+{
+  "previousThumbnail": "/assets/images/portfolio/work-01.jpg",
+  "previousVideoCount": 0,
+  "released": {
+    "src": null,
+    "paused": true,
+    "ready": 0
+  },
+  "currentVideoSource": "/assets/video/portfolio/work-02.mp4",
+  "errors": []
+}

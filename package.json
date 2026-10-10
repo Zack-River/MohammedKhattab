@@ -1,34 +1,44 @@
 {
-  "name": "warshat-altagheer",
+  "name": "khatab-platform",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0",
+    "dev": "next dev --hostname 0.0.0.0 --port 3040",
     "build": "next build",
-    "start": "next start --hostname 0.0.0.0",
+    "start": "next start --hostname 0.0.0.0 --port 3040",
     "lint": "eslint .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prebuild": "node scripts/generate-theme.cjs",
+    "predev": "node scripts/generate-theme.cjs",
+    "test:platform": "playwright test --project=platform",
+    "test:fixtures:build": "node scripts/prepare-reuse-fixture.cjs",
+    "test:architecture": "node scripts/architecture-boundaries.cjs",
+    "test:crossbrowser": "playwright test --config playwright.crossbrowser.config.ts",
+    "typecheck": "tsc --noEmit",
+    "backend:seed:generate": "tsx scripts/backend/generate-seed.ts",
+    "backend:test": "node tests/backend/integration.cjs",
+    "backend:migrate:hosted": "node scripts/backend/migrate-hosted.cjs"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "gsap": "^3.14.2",
-    "motion": "^14.0.0",
+    "@khatab/design": "file:packages/design-system",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
     "next": "^16.3.8",
-    "plyr": "^3.8.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tailwind-merge": "^3.7.0"
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.18.6",
+    "@types/pg": "8.15.5",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "eslint": "^9.36.0",
     "eslint-config-next": "^16.3.8",
-    "postcss": "^8.5.28",
-    "tailwindcss": "^4.3.3",
+    "pg": "8.16.3",
+    "supabase": "2.120.0",
+    "tsx": "4.23.15",
     "typescript": "^5.9.2"
   }
 }

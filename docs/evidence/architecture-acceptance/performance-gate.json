@@ -1,0 +1,49 @@
+{
+  "scope": "Two homepages, matched screenshot-warmed five-run capture. Non-homepage historical comparisons unavailable. Separate cold route diagnostics are not interchangeable.",
+  "results": [
+    {
+      "app": "workshop",
+      "before": {
+        "cls": 0.2498348345135138,
+        "p95FrameMs": 33.40000000000009,
+        "jsBytes": 143993,
+        "cssBytes": 11513
+      },
+      "after": {
+        "cls": 0.015649498456790124,
+        "p95FrameMs": 16.800000000000182,
+        "jsBytes": 144319,
+        "cssBytes": 12458
+      },
+      "checks": {
+        "cls": true,
+        "frameBudget": true,
+        "jsBudget": true,
+        "cssBudget": true
+      },
+      "pass": true
+    },
+    {
+      "app": "lms",
+      "before": {
+        "cls": 0.04424721465352795,
+        "p95FrameMs": 33.399999999999864,
+        "jsBytes": 161377,
+        "cssBytes": 17718
+      },
+      "after": {
+        "cls": 0.00028336714128407924,
+        "p95FrameMs": 16.799999999999955,
+        "jsBytes": 155582,
+        "cssBytes": 18678
+      },
+      "checks": {
+        "cls": true,
+        "frameBudget": true,
+        "jsBudget": true,
+        "cssBudget": true
+      },
+      "pass": true
+    }
+  ]
+}

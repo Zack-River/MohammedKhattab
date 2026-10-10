@@ -1,0 +1,181 @@
+
+> ta3llam-lms@1.0.0 test:e2e
+> playwright test --workers=1 --reporter=line
+
+
+Running 28 tests using 1 worker
+
+(node:41059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/28] tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid
+  1) tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid ────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+    Call Log:
+    - Timeout 800ms exceeded while waiting on the predicate
+
+      17 |   await expect.poll(() => page.locator(".lms-card-entrance").evaluate(
+      18 |     (element) => element.getAnimations().filter((animation) => animation.playState === "running").length,
+    > 19 |   ), { timeout: 800 }).toBe(1);
+         |                        ^
+      20 | });
+      21 |
+      22 | test("T27 reduced-motion initial load subscribes to preference changes", async ({ page }) => {
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/acceptance-motion.spec.ts:19:24
+
+    Error Context: test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:41142) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/28] tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes
+  2) tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+    Call Log:
+    - Timeout 800ms exceeded while waiting on the predicate
+
+      28 |   await expect.poll(() => page.locator(".faq-header").evaluate(
+      29 |     (element) => element.getAnimations().filter((animation) => animation.playState === "running").length,
+    > 30 |   ), { timeout: 800 }).toBe(1);
+         |                        ^
+      31 | });
+      32 |
+      33 | test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/acceptance-motion.spec.ts:30:24
+
+    Error Context: test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:41221) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[3/28] tests/acceptance-motion.spec.ts:33:5 › T29 mobile FAQ panel has zero closed height
+[4/28] tests/certificate-renderer.spec.ts:3:5 › T33 renderer escapes learner/issuer XML and receives concrete palette
+[5/28] tests/domain.spec.ts:12:5 › T11 T12 explicit selections and associated resources survive reorder
+[6/28] tests/domain.spec.ts:19:5 › T13 route builders reject path injection and preserve query values
+[7/28] tests/domain.spec.ts:25:5 › T14 shared profile boundary validation
+[8/28] tests/domain.spec.ts:33:5 › T15 note scopes and lessons are isolated
+[9/28] tests/domain.spec.ts:36:5 › T16 course summaries have one numeric source and numbering handles ten
+[10/28] tests/domain.spec.ts:42:5 › T17 T32 progress is finite, deduplicated and total-completion safe
+[11/28] tests/lms.spec.ts:3:5 › approved identity and landing content
+[12/28] tests/lms.spec.ts:26:5 › catalog filters and search
+[13/28] tests/lms.spec.ts:42:5 › enrollment and progress persist
+[14/28] tests/lms.spec.ts:61:5 › deferred video and saved lesson notes
+[15/28] tests/lms.spec.ts:81:5 › demo entry and profile updates
+[16/28] tests/lms.spec.ts:99:5 › API validation, isolation, downloads and earned certificates
+[17/28] tests/lms.spec.ts:168:7 › all screens fit at 320px
+[18/28] tests/lms.spec.ts:168:7 › all screens fit at 768px
+[19/28] tests/lms.spec.ts:168:7 › all screens fit at 1440px
+[20/28] tests/lms.spec.ts:199:5 › mobile navigation and FAQ
+[21/28] tests/lms.spec.ts:228:5 › invalid routes show 404
+[22/28] tests/lms.spec.ts:239:5 › course cards prioritize mock price and registration
+[23/28] tests/lms.spec.ts:283:5 › readable action labels, metadata and lesson status on mobile
+[24/28] tests/lms.spec.ts:328:5 › FAQ transitions finish and reduced motion exposes reveal content
+[25/28] tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion
+  3) tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion ─────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      364 |     return Number(style.opacity) > 0 && Number(style.opacity) < 1 &&
+      365 |       new DOMMatrix(style.transform).m42 > 0;
+    > 366 |   })).toBe(true);
+          |       ^
+      367 |   await expect.poll(() => heading.evaluate((element) => element.getAnimations().length)).toBe(0);
+      368 |   await expect(heading).toHaveCSS("opacity", "1");
+      369 |   await expect(heading).toHaveCSS("transform", "none");
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/lms.spec.ts:366:7
+
+    Error Context: test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:41590) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[26/28] tests/lms.spec.ts:379:5 › course entrances and hover movement are visible and independent
+  4) tests/lms.spec.ts:379:5 › course entrances and hover movement are visible and independent ─────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      383 |   await expect.poll(() => entrance.evaluate((element) => element.getAnimations().some((animation) => animation.playState === "paused"))).toBe(true);
+      384 |   await entrance.scrollIntoViewIfNeeded();
+    > 385 |   await expect.poll(() => entrance.evaluate((element) => element.getAnimations().some((animation) => animation.playState === "running"))).toBe(true);
+          |                                                                                                                                           ^
+      386 |   await expect.poll(() => entrance.evaluate((element) => element.getAnimations().length)).toBe(0);
+      387 |   const card = entrance.locator(".lms-course-card");
+      388 |   await card.hover();
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/lms.spec.ts:385:139
+
+    Error Context: test-results/lms-course-entrances-and-h-502d1-are-visible-and-independent/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/lms-course-entrances-and-h-502d1-are-visible-and-independent/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/lms-course-entrances-and-h-502d1-are-visible-and-independent/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:41668) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[27/28] tests/theme-contract.spec.ts:3:5 › T06 radius does not control spacing or footer measure
+[28/28] tests/theme-contract.spec.ts:17:5 › T08 palette follows primary without changing production identity
+  4 failed
+    tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid ─────
+    tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes 
+    tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion ──────
+    tests/lms.spec.ts:379:5 › course entrances and hover movement are visible and independent ──────
+  24 passed (34.9s)

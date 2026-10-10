@@ -1,0 +1,90 @@
+
+Running 53 tests using 1 worker
+
+(node:52340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid (792ms)
+  ✓   2 tests/acceptance-motion.spec.ts:34:5 › T27 reduced-motion initial load subscribes to preference changes (619ms)
+  ✓   3 tests/acceptance-motion.spec.ts:75:5 › T29 mobile FAQ panel has zero closed height (615ms)
+  ✓   4 tests/acceptance-motion.spec.ts:96:5 › T30 production reveal timing is milliseconds after CSS optimization (576ms)
+  ✓   5 tests/certificate-renderer.spec.ts:3:5 › T33 renderer escapes learner/issuer XML and receives concrete palette (6ms)
+  ✓   6 tests/defensive-ui.spec.ts:6:5 › T22 T32 invalid supplied presentation models fail clearly (18ms)
+  ✓   7 tests/domain.spec.ts:26:5 › T11 T12 explicit selections and associated resources survive reorder (6ms)
+  ✓   8 tests/domain.spec.ts:39:5 › T13 route builders reject path injection and preserve query values (8ms)
+  ✓   9 tests/domain.spec.ts:55:5 › T14 shared profile boundary validation (9ms)
+  ✓  10 tests/domain.spec.ts:81:5 › T15 note scopes and lessons are isolated (2ms)
+  ✓  11 tests/domain.spec.ts:90:5 › T16 course summaries have one numeric source and numbering handles ten (11ms)
+  ✓  12 tests/domain.spec.ts:99:5 › T17 T32 progress is finite, deduplicated and total-completion safe (10ms)
+  ✓  13 tests/domain.spec.ts:143:5 › T14 T32 persisted state sanitation and published-data invariants (9ms)
+  ✓  14 tests/domain.spec.ts:209:5 › T11 preview identity and configured lesson order survive module reordering (3ms)
+  ✓  15 tests/engine-lifecycle.spec.ts:14:5 › T25 T26 T27 T28 engine owns targets, future motion and ten clean lifecycles (2.1s)
+  ✓  16 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 (2.1s)
+  ✓  17 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 390 (2.5s)
+  ✓  18 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 768 (2.8s)
+  ✓  19 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 1440 (2.4s)
+  ✓  20 tests/interaction-acceptance.spec.ts:21:5 › T24 retained occurrences do not replay; removal, search and history remain usable (1.7s)
+  ✓  21 tests/interaction-acceptance.spec.ts:36:5 › T30 actual localhost:3040 entrance, surface timing and live hover interpolation (3.2s)
+  ✓  22 tests/interaction-acceptance.spec.ts:48:5 › T09 T30 touch has no sticky hover movement (1.4s)
+  ✓  23 tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus (959ms)
+  ✓  24 tests/lms.spec.ts:3:5 › approved identity and landing content (507ms)
+  ✓  25 tests/lms.spec.ts:26:5 › catalog filters and search (1.0s)
+  ✓  26 tests/lms.spec.ts:42:5 › enrollment and progress persist (982ms)
+  ✓  27 tests/lms.spec.ts:61:5 › deferred video and saved lesson notes (664ms)
+  ✓  28 tests/lms.spec.ts:81:5 › demo entry and profile updates (1.0s)
+  ✓  29 tests/lms.spec.ts:99:5 › API validation, isolation, downloads and earned certificates (177ms)
+  ✓  30 tests/lms.spec.ts:168:7 › all screens fit at 320px (1.9s)
+  ✓  31 tests/lms.spec.ts:168:7 › all screens fit at 768px (1.6s)
+  ✓  32 tests/lms.spec.ts:168:7 › all screens fit at 1440px (1.9s)
+  ✓  33 tests/lms.spec.ts:199:5 › mobile navigation and FAQ (2.5s)
+  ✓  34 tests/lms.spec.ts:228:5 › invalid routes show 404 (659ms)
+  ✓  35 tests/lms.spec.ts:241:5 › course cards prioritize mock price and registration (904ms)
+  ✓  36 tests/lms.spec.ts:287:5 › readable action labels, metadata and lesson status on mobile (1.9s)
+  ✓  37 tests/lms.spec.ts:377:5 › FAQ transitions finish and reduced motion exposes reveal content (2.6s)
+  ✓  38 tests/lms.spec.ts:423:5 › landing hero visibly enters on load and respects reduced motion (2.1s)
+  ✓  39 tests/lms.spec.ts:461:5 › course entrances and hover movement are visible and independent (3.8s)
+  ✓  40 tests/marketing-media.spec.ts:3:5 › supplied intro and four curated samples use the shared deferred player and reset previous playback (3.1s)
+  ✘  41 tests/marketing-media.spec.ts:41:5 › manual fullscreen preserves portrait framing and completion restores the thumbnail (1.9s)
+(node:53113) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  42 tests/marketing-media.spec.ts:60:5 › featured testimonial plus three reviews expands through the primary show-more action (1.9s)
+  ✓  43 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 320px (2.6s)
+  ✓  44 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 390px (2.6s)
+  ✓  45 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 1440px (2.4s)
+  ✓  46 tests/production-contracts.spec.ts:10:5 › T05 T21 T33 T37 server-only export assets and standalone artifact identity (902ms)
+  ✓  47 tests/reuse.spec.ts:3:5 › T22 profile normalization errors and mutation feedback prevent duplicate submission (738ms)
+  ✓  48 tests/reuse.spec.ts:18:5 › T18 T20 alternate landing models own copy, sections and destinations (586ms)
+  ✓  49 tests/reuse.spec.ts:50:5 › T15 T19 independent controls and scoped same-key notes (1.2s)
+  ✓  50 tests/reuse.spec.ts:114:5 › T21 T23 minimal view models and layout variants render independently (590ms)
+  ✓  51 tests/reuse.spec.ts:143:5 › T25 standalone section markers remain effective with alternate identifiers (692ms)
+  ✓  52 tests/theme-contract.spec.ts:3:5 › T06 radius does not control spacing or footer measure (766ms)
+  ✓  53 tests/theme-contract.spec.ts:48:5 › T08 palette follows primary without changing production identity (599ms)
+
+
+  1) tests/marketing-media.spec.ts:41:5 › manual fullscreen preserves portrait framing and completion restores the thumbnail 
+
+    Error: expect(received).toBeNull()
+
+    Received: "ref: <Node>"
+
+      52 |   await expect(exit).toHaveCSS("cursor", "pointer");
+      53 |   await exit.click();
+    > 54 |   expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
+         |                                                                 ^
+      55 |   await video.evaluate(node => { const v = node as HTMLVideoElement; v.currentTime = v.duration - .1; void v.play(); });
+      56 |   await expect(reel.locator(".media-player-poster")).toBeVisible();
+      57 |   await expect(video).toHaveCount(0);
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/marketing-media.spec.ts:54:65
+
+    Error Context: test-results/marketing-media-manual-ful-cce44-tion-restores-the-thumbnail/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/marketing-media-manual-ful-cce44-tion-restores-the-thumbnail/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/marketing-media-manual-ful-cce44-tion-restores-the-thumbnail/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/marketing-media.spec.ts:41:5 › manual fullscreen preserves portrait framing and completion restores the thumbnail 
+  52 passed (1.2m)

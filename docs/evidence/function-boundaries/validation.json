@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-09",
+  "buildId": "cKL2Ivcb1KssxvtqR5JlZ",
+  "url": "http://localhost:3040",
+  "checks": {
+    "lint": "passed",
+    "typescript": "passed",
+    "productionBuild": "passed",
+    "reuseFixtureBuild": "passed",
+    "architecture": {
+      "files": 394,
+      "violations": 0
+    },
+    "targeted": {
+      "passed": 16
+    },
+    "completeSuite": {
+      "passed": 135,
+      "failed": 0,
+      "retries": 0,
+      "skipped": 0
+    },
+    "snapshot": {
+      "files": 469,
+      "status": "verified"
+    }
+  },
+  "representativeFileSizes": [
+    {
+      "path": "packages/design-system/hooks/use-native-video-player.ts",
+      "beforeLines": 120,
+      "afterLines": 25
+    },
+    {
+      "path": "packages/design-system/hooks/use-youtube-player.ts",
+      "beforeLines": 172,
+      "afterLines": 29
+    },
+    {
+      "path": "packages/design-system/lib/scroll-reveals.ts",
+      "beforeLines": 144,
+      "afterLines": 24
+    },
+    {
+      "path": "modules/hooks/portfolio/use-portfolio-navigation.ts",
+      "beforeLines": 116,
+      "afterLines": 15
+    },
+    {
+      "path": "app/hooks/use-roadmap-progress.ts",
+      "beforeLines": 86,
+      "afterLines": 32
+    },
+    {
+      "path": "modules/features/marketing/landing.tsx",
+      "beforeLines": 150,
+      "afterLines": 36
+    },
+    {
+      "path": "modules/components/courses/course-artwork.tsx",
+      "beforeLines": 200,
+      "afterLines": 50
+    },
+    {
+      "path": "app/ta3allam/learn/[slug]/[lessonId]/page.tsx",
+      "beforeLines": 121,
+      "afterLines": 34
+    }
+  ],
+  "initialFullRun": {
+    "passed": 134,
+    "failed": 1,
+    "resolution": "Restored eager parent artwork validation via a focused helper; unchanged defensive test now passes."
+  },
+  "preserved": [
+    "Approved CSS and theme",
+    "Visible copy and media",
+    "Canonical routes and demo APIs"
+  ],
+  "newDependencies": []
+}

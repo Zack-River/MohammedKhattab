@@ -1,0 +1,18 @@
+[WebServer] (node:25073) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:25112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 (2.9s)
+  ✓  2 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 390 (2.6s)
+  ✓  3 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 768 (2.6s)
+  ✓  4 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 1440 (3.3s)
+  ✓  5 tests/interaction-acceptance.spec.ts:21:5 › T24 retained occurrences do not replay; removal, search and history remain usable (2.9s)
+  ✓  6 tests/interaction-acceptance.spec.ts:36:5 › T30 actual localhost:3040 entrance, surface timing and live hover interpolation (3.8s)
+  ✓  7 tests/interaction-acceptance.spec.ts:48:5 › T09 T30 touch has no sticky hover movement (2.1s)
+  ✓  8 tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus (995ms)
+  ✓  9 tests/production-contracts.spec.ts:5:5 › T05 T21 T33 T37 server-only export assets and standalone artifact identity (234ms)
+
+  9 passed (23.3s)

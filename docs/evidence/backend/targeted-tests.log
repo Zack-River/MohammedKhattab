@@ -1,0 +1,37 @@
+[WebServer] (node:63092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 26 tests using 1 worker
+
+(node:63126) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [site] › tests/architecture.spec.ts:17:5 › renderers and hooks do not import page data or configuration (52ms)
+  ✓   2 [site] › tests/architecture.spec.ts:42:5 › component content and asset destinations are supplied through props (22ms)
+  ✓   3 [site] › tests/architecture.spec.ts:64:5 › reusable modules do not create accidental Next.js special-file routes (5ms)
+  ✓   4 [site] › tests/auth.spec.ts:12:5 › shared validation normalizes identity, preserves passwords and rejects malformed values (10ms)
+  ✓   5 [site] › tests/auth.spec.ts:21:5 › auth APIs reject invalid payloads and cross-origin writes (121ms)
+  ✓   6 [site] › tests/auth.spec.ts:31:5 › signup errors, field focus, blur, confirmation and password visibility (2.2s)
+  ✓   7 [site] › tests/auth.spec.ts:56:5 › login provides pending feedback, recovers from errors and links to signup (1.8s)
+  ✓   8 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 320px (551ms)
+  ✓   9 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 390px (688ms)
+  ✓  10 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 768px (690ms)
+  ✓  11 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 1440px (972ms)
+  ✓  12 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for network failures (724ms)
+  ✓  13 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for malformed failures (586ms)
+  ✓  14 [site] › tests/learning-command-contracts.spec.ts:7:5 › R07 workflows order enrollment, progress and navigation and stop on failures (8ms)
+  ✓  15 [site] › tests/learning-command-contracts.spec.ts:31:5 › R07 successful HTTP responses require decoding and transport allows cancellation/substitution (10ms)
+  ✓  16 [site] › tests/learning-command-contracts.spec.ts:42:5 › R07 completion locks the entire two-request workflow and allows retry after failure (971ms)
+  ✓  17 [site] › tests/shared-helper-contracts.spec.ts:9:5 › menu dismissal respects owner, optional focus policy and cleanup (109ms)
+  ✓  18 [site] › tests/shared-helper-contracts.spec.ts:37:5 › native playback scope is configurable and defaults to the owning document (86ms)
+(node:63423) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 [platform] › tests/platform/domain.spec.ts:23:5 › T11 T12 explicit selections and associated resources survive reorder (7ms)
+  ✓  20 [platform] › tests/platform/domain.spec.ts:36:5 › T13 route builders reject path injection and preserve query values (12ms)
+  ✓  21 [platform] › tests/platform/domain.spec.ts:52:5 › T14 shared profile boundary validation (6ms)
+  ✓  22 [platform] › tests/platform/domain.spec.ts:78:5 › T15 note scopes and lessons are isolated (1ms)
+  ✓  23 [platform] › tests/platform/domain.spec.ts:87:5 › T16 course summaries have one numeric source and numbering handles ten (4ms)
+  ✓  24 [platform] › tests/platform/domain.spec.ts:96:5 › T17 T32 progress is finite, deduplicated and total-completion safe (7ms)
+  ✓  25 [platform] › tests/platform/domain.spec.ts:127:5 › T14 T32 public projection strips playback and validates published records (7ms)
+  ✓  26 [platform] › tests/platform/domain.spec.ts:161:5 › T11 preview identity and configured lesson order survive module reordering (2ms)
+
+  26 passed (13.0s)

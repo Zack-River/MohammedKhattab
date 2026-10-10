@@ -1,0 +1,14 @@
+[WebServer] (node:36514) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 1 worker
+
+(node:36539) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/reuse.spec.ts:3:5 › T22 profile normalization errors and mutation feedback prevent duplicate submission (3.2s)
+  ✓  2 tests/reuse.spec.ts:18:5 › T18 T20 alternate landing models own copy, sections and destinations (750ms)
+  ✓  3 tests/reuse.spec.ts:50:5 › T15 T19 independent controls and scoped same-key notes (1.8s)
+  ✓  4 tests/reuse.spec.ts:114:5 › T21 T23 minimal view models and layout variants render independently (847ms)
+  ✓  5 tests/reuse.spec.ts:143:5 › T25 standalone section markers remain effective with alternate identifiers (609ms)
+
+  5 passed (10.5s)

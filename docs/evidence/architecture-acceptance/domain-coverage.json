@@ -1,0 +1,38 @@
+{
+  "method": "V8 block-range coverage from isolated Playwright pure-domain worker; most detailed source record per module. Function entry ranges are included; not Istanbul instrumentation.",
+  "modules": [
+    {
+      "module": "lms/features/certificates/renderer.ts",
+      "blocks": 4,
+      "covered": 4,
+      "percent": 100.0
+    },
+    {
+      "module": "lms/features/catalog/selectors.ts",
+      "blocks": 64,
+      "covered": 59,
+      "percent": 92.19
+    },
+    {
+      "module": "lms/features/learning/sanitize.ts",
+      "blocks": 16,
+      "covered": 16,
+      "percent": 100.0
+    },
+    {
+      "module": "lms/features/profile/validation.ts",
+      "blocks": 12,
+      "covered": 12,
+      "percent": 100.0
+    },
+    {
+      "module": "lms/features/learning/selectors.ts",
+      "blocks": 11,
+      "covered": 11,
+      "percent": 100.0
+    }
+  ],
+  "totalBlocks": 107,
+  "coveredBlocks": 102,
+  "percent": 95.33
+}

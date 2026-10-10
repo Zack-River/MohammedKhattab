@@ -1,0 +1,745 @@
+{
+  "revision": "5ae7b079c6f21094a467bf135a2a5daeda02f884",
+  "files": [
+    {
+      "file": "app/layout.tsx",
+      "sha256": "40975cdf70fdf7e4328be9e002379badfcdfa2327bbe846b7b290d73f9e6b5c9"
+    },
+    {
+      "file": "app/globals.css",
+      "sha256": "cb2e3350f947b24b308810793c6573293b4f73248dd216baf8ffcefd0588e112"
+    },
+    {
+      "file": "app/page.tsx",
+      "sha256": "f140070779ffc5690efd8d593c38b0f016b71c52479fd187584748b0c1f0c310"
+    },
+    {
+      "file": "app/data/workshop.ts",
+      "sha256": "1cf3126bc86fce44091a5ceb8d57962d8a66d0edc466a6b4d24d86557b82bee0"
+    },
+    {
+      "file": "app/styles/workshop.css",
+      "sha256": "806bb5109a67d3a75c1a762eacb8d39a9d6f29e626b698b71963e4ca7888bc9f"
+    },
+    {
+      "file": "app/styles/fonts.css",
+      "sha256": "1cbeb63c4e038236f45a9d9fefb3b7674b953266f81a670098e9bc78d11a5624"
+    },
+    {
+      "file": "app/styles/theme.css",
+      "sha256": "5e4715fcecdc22c9704003b427fc154d5762f04c0ed16f7f8fb67264af954a8e"
+    },
+    {
+      "file": "app/hooks/use-roadmap-progress.ts",
+      "sha256": "00cf016d3ac7653d4452f5702c9da2f4849681284452f51d7be63f6d8d1ff012"
+    },
+    {
+      "file": "app/hooks/use-reference-signup.ts",
+      "sha256": "2e5df44661b3b1b5949785890a64524b816cae36cf68faad336de3e84874dfa8"
+    },
+    {
+      "file": "app/hooks/use-accordion.ts",
+      "sha256": "25d3d78424bbb3bf6bec4ef077ad6bc07eb228fd8fe6b52aa93587d05b628ace"
+    },
+    {
+      "file": "app/hooks/use-discount-countdown.ts",
+      "sha256": "dcf3e1234d77d54846f476c50d66c0098503bb5fa3efd90c65d4e6e7a0d1985c"
+    },
+    {
+      "file": "app/hooks/use-mobile-navigation.ts",
+      "sha256": "17aad0ae71384d3bdea1d9be2c83c8ecd2bbd0f8afc1b95a83221e9ac58e62ce"
+    },
+    {
+      "file": "app/hooks/use-inner-corridor.ts",
+      "sha256": "a7bce1b009df79962af8a5e9a19c11139fef02c2723601f0d1360793f8f718cf"
+    },
+    {
+      "file": "app/hooks/use-scroll-reveals.ts",
+      "sha256": "55aff8aea15af084bb6bcc3898e4ea2471e007a0fda357f9c9dd062e7b340c26"
+    },
+    {
+      "file": "app/hooks/use-video-embed.ts",
+      "sha256": "81bbe55be2c38f9dd4fd7b9b967b869560907deb507fcfdf1c817429f87f5f6c"
+    },
+    {
+      "file": "app/lib/countdown.ts",
+      "sha256": "fe730ce206b8f85a56469554592edb5c2f26378bc28c5c8fe387310c82ebabab"
+    },
+    {
+      "file": "app/lib/scroll-reveals.ts",
+      "sha256": "e6afc2f793b82a71f996046ac4197245304a1d5088fab99b684b5fd50f2c7823"
+    },
+    {
+      "file": "app/lib/video.ts",
+      "sha256": "948f4defc50b6a6e367b0a85ef269928ad199f990c109a04d5b1154a52784e5e"
+    },
+    {
+      "file": "app/lib/timeline.ts",
+      "sha256": "a5c7d48ed5f4f9efa9b91c0684d50d1d5cfa130fb862af3979917c5006db1a09"
+    },
+    {
+      "file": "app/config/offer.ts",
+      "sha256": "b25d3ec991d003bab450e08dc9ee0c4501a8d1332f747f90ebb29dbc2868e02b"
+    },
+    {
+      "file": "app/config/reference-motion.ts",
+      "sha256": "49fcc143ff24fb05e9e0098a85d0786a0894417d94216ba9c61fca31b0285224"
+    },
+    {
+      "file": "app/config/reference-ui.ts",
+      "sha256": "f9c8210129ff8ddeace8091c0a8ff84dfc436e5ffa27f70d29321e9698e4ea5e"
+    },
+    {
+      "file": "app/config/site.ts",
+      "sha256": "b8d61c38b6c67278f3074fcc50521dbe4a44c20ce1b0e84cebf026c1306508f5"
+    },
+    {
+      "file": "app/types/ui.ts",
+      "sha256": "8641d366817f35fcb6989a2ff8ecbd9ac7adc5bdd72c4a7f3ddf30a635305488"
+    },
+    {
+      "file": "app/types/interactions.ts",
+      "sha256": "632659b437e59730e77f553f3003eb09719fdb58cbda1e070dbddf212ccf86a3"
+    },
+    {
+      "file": "app/types/workshop.ts",
+      "sha256": "7f210aa37f09143139da5474cc43af823164bd8a969e32bdae9bbcaf815a3143"
+    },
+    {
+      "file": "app/types/marketing.ts",
+      "sha256": "133d95232c6824185c20a5985401ce353b517642c8042dc7523fb89be1be3bbb"
+    },
+    {
+      "file": "app/data/workshop/content.ts",
+      "sha256": "c8a6e777da7760a86f481399724c1bbc72043e1b41b0b47c365042a108f50c2d"
+    },
+    {
+      "file": "app/data/workshop/faq.ts",
+      "sha256": "4fd0d44a2b94094ce75017d4d99d66942fd7e53f54150a0a372b336d21db9fb9"
+    },
+    {
+      "file": "app/data/workshop/clients.ts",
+      "sha256": "5df9b2b268262f8f54dc99eea2d5f38ea8f189d0c8e1cc9ea343c119e0bd646a"
+    },
+    {
+      "file": "app/data/workshop/reviews.ts",
+      "sha256": "dc1ee504e244265fee06f32b0f5eebe9111079a9a31de9f533e7e7c6f2014207"
+    },
+    {
+      "file": "app/data/workshop/curriculum.ts",
+      "sha256": "f3cd061e6fc1a374ce6ced583ebdb479db6a7274c8faabc85efbd57a16863a89"
+    },
+    {
+      "file": "app/data/workshop/signup.ts",
+      "sha256": "e316bf75b34198b960ba797d3635d17e3536c0f42020e843512d27f1356f2175"
+    },
+    {
+      "file": "app/components/ui/section.tsx",
+      "sha256": "41c70dc076dc4e8107756dafdc333c036aa9cc62cd91898f69cd1e5d71808b85"
+    },
+    {
+      "file": "app/components/ui/action-link.tsx",
+      "sha256": "7ee074000ecd03775bc2adf9158af1061f21cb49ceb71734390c6b66d3bb95e5"
+    },
+    {
+      "file": "app/components/ui/social-icon.tsx",
+      "sha256": "00402e29df6531b7620d14517916c4998be0e4ea500d6fc19b29dd1c34579f50"
+    },
+    {
+      "file": "app/components/ui/eyebrow.tsx",
+      "sha256": "acc0ee732b8dcf3e3982d518809fae4276638c6c3f381c92f838928b37507db7"
+    },
+    {
+      "file": "app/components/ui/microcopy.tsx",
+      "sha256": "7ca6c25f463245588468b78e559a6be095593416374bea3938487070f7a8cc05"
+    },
+    {
+      "file": "app/components/ui/section-heading.tsx",
+      "sha256": "378c2e34c6a9d01da4b65fbedd34b28a6391d56a561856d02387b1ad8489339d"
+    },
+    {
+      "file": "app/components/ui/container.tsx",
+      "sha256": "23a2d5803d71ad7c6369ca76c382f3888151d01de0a10130a5c681854b069f14"
+    },
+    {
+      "file": "app/components/ui/ui-icon.tsx",
+      "sha256": "ac05d707161d58f69b51df97cae6560d2c173e9839b1878a6b3c31d1eb9ee348"
+    },
+    {
+      "file": "app/components/ui/rich-text.tsx",
+      "sha256": "ebe4d8041cbfb6175070475934e26b69717e8bb7f4a05869c9e02ccf6ddd9a47"
+    },
+    {
+      "file": "app/components/ui/social-links.tsx",
+      "sha256": "422bd071ab78d6df481549aa8afd7d9e4b419e3b13a89d655f6780a24d409c19"
+    },
+    {
+      "file": "app/components/ui/asset-image.tsx",
+      "sha256": "602ad90cd8706f08215237d78260d716f5cfad3870133cb616b611f1782ebe9d"
+    },
+    {
+      "file": "app/components/workshop/scarcity-bar.tsx",
+      "sha256": "7554aecd32134549ea1bc9b03305add4cc29fc7eec47df00733f8a430d480624"
+    },
+    {
+      "file": "app/components/workshop/clients-section.tsx",
+      "sha256": "5eecd6faebc1445920651ec4d5dd5d57367699cb35733369c96c3c460aa919d4"
+    },
+    {
+      "file": "app/components/workshop/final-cta-section.tsx",
+      "sha256": "d673c5249b0a6489ada05a671da6f1e8fac1f58ec1033b2580aa4df3b423fcf6"
+    },
+    {
+      "file": "app/components/workshop/faq-item.tsx",
+      "sha256": "12abc2e33de2d1dffc4601a704fd2a1d84b9f4ca5837463895febc4fac16a3cd"
+    },
+    {
+      "file": "app/components/workshop/reel-card.tsx",
+      "sha256": "1fe343b5edac19db0f018172391ba45ac3a6149c8958610fbb474e6ae62d54c9"
+    },
+    {
+      "file": "app/components/workshop/transformation-section.tsx",
+      "sha256": "e09aa705953f17e347bceeccf094c45119b5e76eba8ebe4ca380eeee76a27c71"
+    },
+    {
+      "file": "app/components/workshop/workshop-content.tsx",
+      "sha256": "2c3be067ae9177d9b0d9f62e3037ce731d8015c16060a882dc7838595c664f70"
+    },
+    {
+      "file": "app/components/workshop/creator-marquee.tsx",
+      "sha256": "cc99f60a7c8a783c66f033a439d6754c9acf0a27b27682ee0b5c14f9687d6e47"
+    },
+    {
+      "file": "app/components/workshop/testimonials-section.tsx",
+      "sha256": "0a6cb74440d5d5133d4ee02d33ffa41a0a7f7d3db90cbe61cfaafa5949618ec6"
+    },
+    {
+      "file": "app/components/workshop/roadmap-timeline.tsx",
+      "sha256": "091117fc85ed372f6c9bd6e1b7e64c9c772852986c9b0e515a17e1d79e3ec38b"
+    },
+    {
+      "file": "app/components/workshop/hero-section.tsx",
+      "sha256": "3a8e90b2df182764d75c33db2598d4e78225207cc287d23b6d549f5cca781863"
+    },
+    {
+      "file": "app/components/workshop/instructor-photo.tsx",
+      "sha256": "69b34e902c8d8f231811f61630664519820ed92e5e737c7c0da275ba672389aa"
+    },
+    {
+      "file": "app/components/workshop/transformation-stage.tsx",
+      "sha256": "8925e37956864a76e94d80cc17e054b585db3965e66878c348aa5b51ca3ba53b"
+    },
+    {
+      "file": "app/components/workshop/roadmap-section.tsx",
+      "sha256": "b13101d74f8a63497f1436892d55449f010723eef344627d5ca5ac1b0eb3b03b"
+    },
+    {
+      "file": "app/components/workshop/faq-accordion.tsx",
+      "sha256": "b5da542197d9ac2bdc394f52af36a8cb6d234e44dfe08f2eb222180912dddb49"
+    },
+    {
+      "file": "app/components/workshop/guarantee-section.tsx",
+      "sha256": "ea83773f4efe4b0287d1ac937472e23e1f233b5fc7828e298529eecb1f7261c1"
+    },
+    {
+      "file": "app/components/workshop/site-footer.tsx",
+      "sha256": "aa70480d3ba3b96a5eafcd9b42c35c3f86211de30925403c1f019e5c4ca356d1"
+    },
+    {
+      "file": "app/components/workshop/faq-section.tsx",
+      "sha256": "2dbfe81d3d3a3f41f029b2440eb6f997989536cead08b91408d75649f8e1382a"
+    },
+    {
+      "file": "app/components/workshop/roadmap-day.tsx",
+      "sha256": "c56c18067f2a9df5c716c6df0d16e5ffc409779632c40eab8e2a9147e4cf5f39"
+    },
+    {
+      "file": "app/components/workshop/index.ts",
+      "sha256": "82142d9288124edf9e84758cf830cd7894e25f1b73686be3da07fab686903331"
+    },
+    {
+      "file": "app/components/workshop/review-card.tsx",
+      "sha256": "de0eb541bff7374acaf353476fef523d16cc471239e23d61a84e297df494ea7a"
+    },
+    {
+      "file": "app/components/workshop/recent-signup-toast.tsx",
+      "sha256": "0a5439a811405e30be151881755b73b96b616135743795bdfd8d46e175d00787"
+    },
+    {
+      "file": "app/components/workshop/site-header.tsx",
+      "sha256": "a3e605bc437a1b7ff72d8e6ccd8de1b4c4db013b511b12597d9250afe0ed64f4"
+    },
+    {
+      "file": "app/components/workshop/featured-review.tsx",
+      "sha256": "fdca1c91100a77bb8b059c9af3586034821c454f3cccb4fc60a84dc614bcfe05"
+    },
+    {
+      "file": "app/components/workshop/instructor-stats.tsx",
+      "sha256": "9d3ba22fac92c372ad0c1a68f7bb848cda33595e8be82389b9cd5d2add0ffbac"
+    },
+    {
+      "file": "app/components/workshop/instructor-section.tsx",
+      "sha256": "fdb05f5b2c0dfc90cd74d5ef4d248a68e99e00da69ea749bebd3fe828e4fabac"
+    },
+    {
+      "file": "app/components/workshop/workshop-page.tsx",
+      "sha256": "bf428919b4cf185d07b00b4a841aa59cefd354b65272ca4f5f88b750eb03d396"
+    },
+    {
+      "file": "app/components/workshop/author-identity.tsx",
+      "sha256": "9a8cd1fd5c8340b1a3e3124a78f0d3c568564b8538da406426b7a823dba5918f"
+    },
+    {
+      "file": "app/components/workshop/site-navigation.tsx",
+      "sha256": "bfd7886101db5f467da0a4978fd0b8d72909d581551bbecfbc50d5c529457bf8"
+    },
+    {
+      "file": "app/components/workshop/discount-countdown.tsx",
+      "sha256": "9076894946c1346fd75a55fc598dfe350a1dacb349d124ebdae007abf869ee4c"
+    },
+    {
+      "file": "app/components/workshop/hero-video.tsx",
+      "sha256": "a07502ef708dbeb34d5632988d9985aa26cc9c5d64dd267851b14cddc7a1e28f"
+    },
+    {
+      "file": "app/components/workshop/creator-chip.tsx",
+      "sha256": "f5ac0d2b6d956067b38c787844c6d8ef0d25c96028a2695514d07700543180bb"
+    },
+    {
+      "file": "app/components/workshop/roadmap-formula.tsx",
+      "sha256": "eaf690400b51057acd8cd72282a27c6bfc629d7a1451d4d80588e2b2d9fc1166"
+    },
+    {
+      "file": "lms/app/not-found.tsx",
+      "sha256": "a2e9f02d486072808c7c1ec22d7af433f9643340e486fce38500c99e6133f498"
+    },
+    {
+      "file": "lms/app/layout.tsx",
+      "sha256": "8880cacd08f2e986ad0a8eb119471677edcfa8d39ab9a4a7477a660ebca9e0fc"
+    },
+    {
+      "file": "lms/app/error.tsx",
+      "sha256": "c9ab646fcf0e36b3b3a2d0adf0bcb6b0db774b616a8632a124f501f6a2a5e583"
+    },
+    {
+      "file": "lms/app/globals.css",
+      "sha256": "96e4613b34e474c052df3e6a774b2b651e201c1db09e5b7b651f31de487bc7d3"
+    },
+    {
+      "file": "lms/app/page.tsx",
+      "sha256": "1394821b2a9803ba63722ddcfeb09abdea97930f115c1b9e9a04701f8025c3a2"
+    },
+    {
+      "file": "lms/app/loading.tsx",
+      "sha256": "330a2fbb52706e07e29483d105a2cde337e8454bdb55d3cadf5a05732ecb52c5"
+    },
+    {
+      "file": "lms/app/(public)/layout.tsx",
+      "sha256": "560e9b8db3e995b42c02550b0344d44d902dcbcaba8789c4fd1b8e43797d1a7e"
+    },
+    {
+      "file": "lms/app/dashboard/layout.tsx",
+      "sha256": "2e92a00e7a6a9c62224805e2bd65a61029f75d899f03f87b4c67fb942985097e"
+    },
+    {
+      "file": "lms/app/dashboard/page.tsx",
+      "sha256": "dae08e9500c0b8bfb61e2f7e8428adfa48cffa6deef31e0162c1f38c366bb3b4"
+    },
+    {
+      "file": "lms/app/dashboard/resources/page.tsx",
+      "sha256": "23c5c1890c2f0b65bad90d49ae150e940363c84d23cb7c800eaa57d028013cfc"
+    },
+    {
+      "file": "lms/app/dashboard/profile/page.tsx",
+      "sha256": "bb66494a99ea722e86b0bbfd687ac4e34134c725c8075f8a2b1891e9347bfd4e"
+    },
+    {
+      "file": "lms/app/dashboard/certificates/page.tsx",
+      "sha256": "22d5497f9e6a5399782e240a3a3b52ab6747d01cf100b8c221c6ca5fa191a6a2"
+    },
+    {
+      "file": "lms/app/dashboard/courses/page.tsx",
+      "sha256": "d7b45fa4864af186f2dcb69bf880200f93c887ec7815a6df076d4d8b55c53ad6"
+    },
+    {
+      "file": "lms/app/api/enrollments/route.ts",
+      "sha256": "2f8a8152d2be743779db1aab42d7ec2393dc1dab3ec5481f9e4cb73fc0b91b7c"
+    },
+    {
+      "file": "lms/app/api/progress/route.ts",
+      "sha256": "a0935a39141ae58e0fe283c393408728c43d17a4ba89e10769d36c8a93cd6375"
+    },
+    {
+      "file": "lms/app/api/profile/route.ts",
+      "sha256": "11cf6b976b501a235097b2a0e8259e16343475e78b77214b0a45438fd3272350"
+    },
+    {
+      "file": "lms/app/api/courses/route.ts",
+      "sha256": "b445d99bca2799108248799aa89293209e020e08559db6d0123ddae4fcb47efd"
+    },
+    {
+      "file": "lms/app/api/courses/[slug]/route.ts",
+      "sha256": "45c558391f3a335f86e1301198de3b6653132414d646db6570bd4d7a225d5233"
+    },
+    {
+      "file": "lms/app/api/certificates/[slug]/route.ts",
+      "sha256": "a9e72ca9474286718b93d8353eb1ffeb9886ae2d1a3ea63faa42b19f58ea2f49"
+    },
+    {
+      "file": "lms/app/api/resources/[id]/route.ts",
+      "sha256": "afc69afb3d3e1145850855aa314675b2a2df1d26d6331d1d82cbb2e635dc979c"
+    },
+    {
+      "file": "lms/app/(public)/login/page.tsx",
+      "sha256": "370c48e91fbe448e8faabf1b9bb313b69962702fa63377b7b89b32386791c360"
+    },
+    {
+      "file": "lms/app/(public)/courses/page.tsx",
+      "sha256": "6602f730ef5672ba9ca6e483bb0af322725e619133a646a91ed24fbe47d4e7c4"
+    },
+    {
+      "file": "lms/app/(public)/courses/[slug]/page.tsx",
+      "sha256": "c821c52de617355adf94b1c2a3c9f3c444f53d84918bdd83cfdfd2caa3d1f80b"
+    },
+    {
+      "file": "lms/app/learn/[slug]/[lessonId]/page.tsx",
+      "sha256": "ee684a52db2317368fd69f20ee349d5f906c0862c8d065f73c62a75f57409a48"
+    },
+    {
+      "file": "lms/components/layout/site-footer.tsx",
+      "sha256": "92939cfd4a5103f4baed0ea461af387e7706bf51eb656fae008f2d0d939246f3"
+    },
+    {
+      "file": "lms/components/layout/dashboard-shell.tsx",
+      "sha256": "f3ea9eb8b409986177719e8db8cbfb4ae1cf338b77d2f3405eea1664d76de136"
+    },
+    {
+      "file": "lms/components/layout/site-header.tsx",
+      "sha256": "7a1684892f7e39e97dee196c3a7861cca99edeee696571f434bd36fc76b06624"
+    },
+    {
+      "file": "lms/components/layout/brand.tsx",
+      "sha256": "efca554d037815509eea2f58bf9c1d790283d91f0991721c6db2fd3d98393dfb"
+    },
+    {
+      "file": "lms/components/ui/section.tsx",
+      "sha256": "41c70dc076dc4e8107756dafdc333c036aa9cc62cd91898f69cd1e5d71808b85"
+    },
+    {
+      "file": "lms/components/ui/page-heading.tsx",
+      "sha256": "5212a11451415d0e985794dde80260a66e721f325a7a88fcf3bd314a57075021"
+    },
+    {
+      "file": "lms/components/ui/action-link.tsx",
+      "sha256": "cd86098569267e0ffc74d487cb9302c8ecf0fe2b0321ff329974e638f268c4ca"
+    },
+    {
+      "file": "lms/components/ui/social-icon.tsx",
+      "sha256": "ae591aa3fc5891837ceb44559775651af75b6103843655df461a6fe5e1d7066f"
+    },
+    {
+      "file": "lms/components/ui/progress-bar.tsx",
+      "sha256": "66c094d35654480124adfed0d2d638552f438f8994b1fb40412e2015235c4d8d"
+    },
+    {
+      "file": "lms/components/ui/eyebrow.tsx",
+      "sha256": "acc0ee732b8dcf3e3982d518809fae4276638c6c3f381c92f838928b37507db7"
+    },
+    {
+      "file": "lms/components/ui/microcopy.tsx",
+      "sha256": "7ca6c25f463245588468b78e559a6be095593416374bea3938487070f7a8cc05"
+    },
+    {
+      "file": "lms/components/ui/section-heading.tsx",
+      "sha256": "509ff71cc7af4086463a80487a436df74052287fdb354e2c4b019395a1b38b61"
+    },
+    {
+      "file": "lms/components/ui/container.tsx",
+      "sha256": "23a2d5803d71ad7c6369ca76c382f3888151d01de0a10130a5c681854b069f14"
+    },
+    {
+      "file": "lms/components/ui/ui-icon.tsx",
+      "sha256": "b095f6d7aa0b5d3dd59e2f448d3929b56bbc46b03ba80ea0aa4f2c07ee435529"
+    },
+    {
+      "file": "lms/components/ui/rich-text.tsx",
+      "sha256": "b5c104f6f7b8031aa0e743d1c45c72c174e5f80d68aa22bee81ec43ad1d889ce"
+    },
+    {
+      "file": "lms/components/ui/social-links.tsx",
+      "sha256": "45fe38761ad163d66560265c5118e6451b448e6b1858bf67d556cd886c64e406"
+    },
+    {
+      "file": "lms/components/ui/symbol.tsx",
+      "sha256": "eb1073ef715e47ce68fda27c8e3bb497153efd3c8f33165d4f56e8385661b126"
+    },
+    {
+      "file": "lms/components/ui/asset-image.tsx",
+      "sha256": "546812a9608a55b78d2ed40e25e006227a4b92ec5d5b19fe3359de7628b4dedb"
+    },
+    {
+      "file": "lms/components/ui/empty-state.tsx",
+      "sha256": "e987b57da391fabb324ee961dd6d50d25b8f66ef4b3b4adc34125640ce28d396"
+    },
+    {
+      "file": "lms/components/account/profile-form.tsx",
+      "sha256": "0a949c0cd12c33310e05aca6d5d1bb9820f590440674f4cc6ed308dd1ce2aaad"
+    },
+    {
+      "file": "lms/components/marketing/faq-item.tsx",
+      "sha256": "7a666afae6f5a091840d7de052bf9c9b283bf63ef698ba048a8b344913d10bad"
+    },
+    {
+      "file": "lms/components/marketing/transformation-section.tsx",
+      "sha256": "1f0243e3660085b0b20fb26e0053145d6cd8e68171218b65dcfb61b2cf0f9b78"
+    },
+    {
+      "file": "lms/components/marketing/landing-hero.tsx",
+      "sha256": "97628a19bae53024bd07f400082ef0cb5d171393449ecaecd0df2b9dc8e9b711"
+    },
+    {
+      "file": "lms/components/marketing/instructor-photo.tsx",
+      "sha256": "12d8c48a5a9e78555c089862b4970b03d2cc098c3d2d5db12e0a9d464d456053"
+    },
+    {
+      "file": "lms/components/marketing/transformation-stage.tsx",
+      "sha256": "66f740b295b14ce535fde0e48be584575f4edcd94d4a0bf2002bb50aec71f59f"
+    },
+    {
+      "file": "lms/components/marketing/faq-accordion.tsx",
+      "sha256": "c1d46536e9351ec314dc5344f7a212d127f6a192f3eca09499979e29223b185a"
+    },
+    {
+      "file": "lms/components/marketing/faq-section.tsx",
+      "sha256": "16726aacb5bb925c75d4ed05cb15ea3a99dea93a8e3c11704145e4df3151cf39"
+    },
+    {
+      "file": "lms/components/marketing/instructor-stats.tsx",
+      "sha256": "9d61e00dde1705f4558d2121223198ed4323f75aaaddec22b1d0e1201ef6ff0d"
+    },
+    {
+      "file": "lms/components/marketing/instructor-section.tsx",
+      "sha256": "ae0f14e35d6cb9c23570e92408d70128b376ac2f92a90c00dacdb9446041b4f2"
+    },
+    {
+      "file": "lms/components/marketing/reveal-content.tsx",
+      "sha256": "1e2718b25fd3fcd76596ca81a0944bca691fbb02043d7fc2dc877e8fcc279dc7"
+    },
+    {
+      "file": "lms/components/courses/course-artwork.tsx",
+      "sha256": "773b557a413d688752f61f0ce67a601796780adeaf46771c68752fbd46aa725c"
+    },
+    {
+      "file": "lms/components/courses/course-card.tsx",
+      "sha256": "85041f88f94ec936ff3ad131868b90702f73da29a3c5244b42d449ace212770b"
+    },
+    {
+      "file": "lms/components/courses/course-grid.tsx",
+      "sha256": "a5aaf66f7aab3fde382d76b4ed0a9218bb22ba73b1c8e75eba66e1b8f87d9cb8"
+    },
+    {
+      "file": "lms/components/courses/curriculum.tsx",
+      "sha256": "7a93d60647a1a7e1e8dc9a8675a984f2ceff211c6ac2843dfd0377018e90fa25"
+    },
+    {
+      "file": "lms/components/courses/course-price.tsx",
+      "sha256": "cb70a6b2faf6e064b9c9da3f3a791510f8218dcfb29c2574dbf0d1a8bec6ff33"
+    },
+    {
+      "file": "lms/components/courses/enroll-button.tsx",
+      "sha256": "0c6692af8a1f0b07e36c9a33c5114981fab46e076723922c530c64ff94d982f8"
+    },
+    {
+      "file": "lms/components/courses/catalog-filters.tsx",
+      "sha256": "e774715686d12a7d6b52f34461eb51d04a94a60fdd8243a3e22fbf26e3a7e0f6"
+    },
+    {
+      "file": "lms/components/learning/continue-card.tsx",
+      "sha256": "af4dc50a8a1973978b930c006b9c1ba0a858a1f366b3bf21f3781bde4a7f0990"
+    },
+    {
+      "file": "lms/components/learning/dashboard-stats.tsx",
+      "sha256": "b6d22b5f4c83ee2c038b258d83701af793ed65d8bcf7709f294f7775936358ff"
+    },
+    {
+      "file": "lms/components/learning/lesson-player.tsx",
+      "sha256": "1fa0c015b07505951617cf9d34996be46b32d497b0df036e44208c78367bf090"
+    },
+    {
+      "file": "lms/components/learning/lesson-notes.tsx",
+      "sha256": "87205f16bb5793a8f7659e46df39f48dabcebe1f9ae3b79d3cd927de6d98dce0"
+    },
+    {
+      "file": "lms/components/learning/completion-button.tsx",
+      "sha256": "0e9f0a3318b4c712bbae816631292b54079a331e07f93bd77c4d519249d65710"
+    },
+    {
+      "file": "lms/components/learning/lesson-outline.tsx",
+      "sha256": "791be1617b88fe0b97bb9ad67034ff842ea0f8eddb4b9f89632ec3e203baea1e"
+    },
+    {
+      "file": "lms/features/marketing/landing.tsx",
+      "sha256": "d458bf29b76ab271fdf8e8639cb8c9f70b693944b4ceb06f538d4342546f1ee0"
+    },
+    {
+      "file": "lms/features/marketing/index.ts",
+      "sha256": "402b50b1786dcab9ac7af367a2d74e8857c02b7ece116cde9b1cbf38cc0d6e47"
+    },
+    {
+      "file": "lms/features/catalog/service.ts",
+      "sha256": "0e9f7b065a7766c2c87b3693367d3d480f9642c500cf64e4bec6f48705905cb7"
+    },
+    {
+      "file": "lms/features/catalog/index.ts",
+      "sha256": "56d2c2124c57ef897f469beb3459239bc499393e0c9804f58a3083f49f6bbc14"
+    },
+    {
+      "file": "lms/features/learning/service.ts",
+      "sha256": "ad80da5cf94978fd037376e69e5333c37c7f81eb1b41025aaa4a09123f574810"
+    },
+    {
+      "file": "lms/features/learning/index.ts",
+      "sha256": "382668e4942bdceb8473c5df7e091be48ca637cca5a21b4db965d26b5a56fd85"
+    },
+    {
+      "file": "lms/hooks/use-lesson-notes.ts",
+      "sha256": "d195fd3905b0935e329bb6929f684ff46b01215e70811b2870f1b71fca474e28"
+    },
+    {
+      "file": "lms/hooks/use-accordion.ts",
+      "sha256": "25d3d78424bbb3bf6bec4ef077ad6bc07eb228fd8fe6b52aa93587d05b628ace"
+    },
+    {
+      "file": "lms/hooks/use-api-mutation.ts",
+      "sha256": "541892dd7470b2006ed63888d108eb31648f8f2941a6c696de401e5e62234505"
+    },
+    {
+      "file": "lms/hooks/use-scroll-reveals.ts",
+      "sha256": "9f160f99188f7bdb8be0df5b2ef7bccb90dd894774d87c020154cdd2d8a75a15"
+    },
+    {
+      "file": "lms/hooks/use-mobile-menu.ts",
+      "sha256": "813053eaf572ce57cf7d8e389641dc0e4629d957eb6be292818a6d58f5c2180f"
+    },
+    {
+      "file": "lms/hooks/use-video-embed.ts",
+      "sha256": "1d45754b0c68577a12530cfab06058fdaa3d358e32c43f62cdc96732a907bd98"
+    },
+    {
+      "file": "lms/lib/api.ts",
+      "sha256": "41e2a039711d6e6addf429ec6531d4dec19dac2eb4963b81774d1e6350ab9e0b"
+    },
+    {
+      "file": "lms/lib/scroll-reveals.ts",
+      "sha256": "112fdf509844e0d7ca9788e95d3d152e595873f91a52be7434b6de44ad1a47c7"
+    },
+    {
+      "file": "lms/lib/reveal-options.ts",
+      "sha256": "02eba4b6e0a7386c018468044a913bcd7e97a3ade4c1de8072075126dca2897e"
+    },
+    {
+      "file": "lms/lib/video.ts",
+      "sha256": "948f4defc50b6a6e367b0a85ef269928ad199f990c109a04d5b1154a52784e5e"
+    },
+    {
+      "file": "lms/lib/theme.ts",
+      "sha256": "cd16ca463296671928eaa4e767a2043e83ea681428ecd9f1bf188a7b89617e59"
+    },
+    {
+      "file": "lms/types/ui.ts",
+      "sha256": "cfc83709717f8c3d9370e50659e26f0bc154c4781765e3c4ebd5faebccdf3b50"
+    },
+    {
+      "file": "lms/types/interactions.ts",
+      "sha256": "632659b437e59730e77f553f3003eb09719fdb58cbda1e070dbddf212ccf86a3"
+    },
+    {
+      "file": "lms/types/lms.ts",
+      "sha256": "3f5358b38e4da70f04a97c3ba2bddb8f9672de9623bcd8be465739653a58d2ad"
+    },
+    {
+      "file": "lms/types/workshop.ts",
+      "sha256": "7f210aa37f09143139da5474cc43af823164bd8a969e32bdae9bbcaf815a3143"
+    },
+    {
+      "file": "lms/types/marketing.ts",
+      "sha256": "32a53cf98c8bf02c87556c0d8f9b942c3f26397f41d36d9aa6c2d0628849bfb0"
+    },
+    {
+      "file": "lms/data/interface-copy.ts",
+      "sha256": "7964f59aacbe384840a4670e68835b8c07afba826797c852dc9880af4c7facb5"
+    },
+    {
+      "file": "lms/data/courses.ts",
+      "sha256": "c486f7cc424717694ce1fd655e7dbc532cad8974e62f113f64cf5a5ecf2f20fc"
+    },
+    {
+      "file": "lms/data/offers.ts",
+      "sha256": "48dc82dd77f1e79eea00daac37f8bb64e3869b3946ed4746437c9a9c580461af"
+    },
+    {
+      "file": "lms/data/resources.ts",
+      "sha256": "d42a98000e70680d1e441656a31f26f84372262574b27a747a8fa7074a3fe19d"
+    },
+    {
+      "file": "lms/data/site.ts",
+      "sha256": "5057a6d4ba11bf0fce03104b820cda8e93d58f8eefa2a5aac7feb323ac085156"
+    },
+    {
+      "file": "lms/styles/workshop.css",
+      "sha256": "806bb5109a67d3a75c1a762eacb8d39a9d6f29e626b698b71963e4ca7888bc9f"
+    },
+    {
+      "file": "lms/styles/fonts.css",
+      "sha256": "1cbeb63c4e038236f45a9d9fefb3b7674b953266f81a670098e9bc78d11a5624"
+    },
+    {
+      "file": "lms/styles/lms.css",
+      "sha256": "cfbe631bb03bfb250a707f970c3b3583db1a394155547c2a7c18a6fbbf30b79c"
+    },
+    {
+      "file": "lms/styles/theme.css",
+      "sha256": "5e2152794a0b6f4bf41e5f63c0af7b6845d33cc18438aa5f76594879b8cd394f"
+    },
+    {
+      "file": "tests/architecture.spec.ts",
+      "sha256": "b369b3f9ba9aa24534c2059882d6b4a18fb892d443163f0a749fce7c7cd3fbb0"
+    },
+    {
+      "file": "tests/reference-design.spec.ts",
+      "sha256": "75d144705adbce0e82f308ca7af14764650698c01604a0c93b00a97d7937a74f"
+    },
+    {
+      "file": "tests/hydration.spec.ts",
+      "sha256": "4449fcd99a57d00f03643ec18ea98da8b99c3ab1424a28b9fe0f4413b052ab2b"
+    },
+    {
+      "file": "tests/reusability.spec.ts",
+      "sha256": "ef6e41aa0459404d47d0a87d011f5270da43e577b918fab5b2b482d62670a1c4"
+    },
+    {
+      "file": "tests/countdown.spec.ts",
+      "sha256": "5593c0a0b43d2f8c14bd29b4c1bb83c587811cdab4885f0bffca8c7f8750e777"
+    },
+    {
+      "file": "tests/scroll-reveals.spec.ts",
+      "sha256": "508f42e5f75cf2d3156bb8895fe9e86e5b311662ae39afa8820b0a4b63a24486"
+    },
+    {
+      "file": "tests/reference-copy.spec.ts",
+      "sha256": "6bc358e541e2643b8c0801eeb934b6fe8b2ba157fc6b8f43704827c06a69f516"
+    },
+    {
+      "file": "tests/helpers/render-reuse.cjs",
+      "sha256": "8732d4aa9b4a99e137838c6d02e62b4f4481f7643647f3e45c7b42e20a72968e"
+    },
+    {
+      "file": "tests/fixtures/reference-copy.json",
+      "sha256": "84e82386f0df263d120bd6909110cbcd67492b544e7e3d50842df59d8747ce35"
+    },
+    {
+      "file": "scripts/compare-reference.cjs",
+      "sha256": "10615b2f6e37e5a739d320cab1a00fc24b2416dcee27ef837a87ea60fffd30ac"
+    }
+  ]
+}

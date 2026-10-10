@@ -1,0 +1,23 @@
+
+> ta3llam-lms@1.0.0 test:e2e
+> playwright test tests/domain.spec.ts tests/certificate-renderer.spec.ts tests/defensive-ui.spec.ts --workers=1 --retries=0
+
+[WebServer] (node:50741) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:50791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/certificate-renderer.spec.ts:3:5 › T33 renderer escapes learner/issuer XML and receives concrete palette (12ms)
+  ✓   2 tests/defensive-ui.spec.ts:6:5 › T22 T32 invalid supplied presentation models fail clearly (19ms)
+  ✓   3 tests/domain.spec.ts:26:5 › T11 T12 explicit selections and associated resources survive reorder (5ms)
+  ✓   4 tests/domain.spec.ts:39:5 › T13 route builders reject path injection and preserve query values (11ms)
+  ✓   5 tests/domain.spec.ts:55:5 › T14 shared profile boundary validation (6ms)
+  ✓   6 tests/domain.spec.ts:81:5 › T15 note scopes and lessons are isolated (2ms)
+  ✓   7 tests/domain.spec.ts:90:5 › T16 course summaries have one numeric source and numbering handles ten (12ms)
+  ✓   8 tests/domain.spec.ts:99:5 › T17 T32 progress is finite, deduplicated and total-completion safe (6ms)
+  ✓   9 tests/domain.spec.ts:143:5 › T14 T32 persisted state sanitation and published-data invariants (8ms)
+  ✓  10 tests/domain.spec.ts:193:5 › T11 preview identity and configured lesson order survive module reordering (3ms)
+
+  10 passed (2.1s)

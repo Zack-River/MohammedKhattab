@@ -1,0 +1,227 @@
+workshop /: five runs
+lms /: five runs
+lms /courses: five runs
+lms /courses?category=motion: five runs
+lms /courses?q=missing-term: five runs
+lms /courses/editing-foundations: five runs
+lms /courses/motion-essentials: five runs
+lms /login: five runs
+lms /dashboard: five runs
+lms /dashboard/courses: five runs
+lms /dashboard/profile: five runs
+lms /dashboard/resources: five runs
+lms /dashboard/certificates: five runs
+lms /learn/editing-foundations/first-cut: five runs
+lms /courses/unknown-course: five runs
+[
+  {
+    "route": "workshop /",
+    "cls": 0.016556177662037038,
+    "p95FrameMs": 33.40000000000009,
+    "jsBytes": 144319,
+    "cssBytes": 12458,
+    "scrollLongTasks": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  {
+    "route": "lms /",
+    "cls": 0.00028336714128407924,
+    "p95FrameMs": 50,
+    "jsBytes": 155582,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses",
+    "cls": 0.0000470799575617284,
+    "p95FrameMs": 33.39999999999998,
+    "jsBytes": 157120,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses?category=motion",
+    "cls": 0.0000470799575617284,
+    "p95FrameMs": 16.799999999999955,
+    "jsBytes": 157120,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses?q=missing-term",
+    "cls": 0.0000470799575617284,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 157120,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses/editing-foundations",
+    "cls": 0.000036914966724537036,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 156448,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses/motion-essentials",
+    "cls": 0.000036914966724537036,
+    "p95FrameMs": 16.799999999999955,
+    "jsBytes": 156448,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /login",
+    "cls": 0,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 155582,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /dashboard",
+    "cls": 0.0001826230482145919,
+    "p95FrameMs": 16.799999999999955,
+    "jsBytes": 156023,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /dashboard/courses",
+    "cls": 0,
+    "p95FrameMs": 16.799999999999955,
+    "jsBytes": 156023,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /dashboard/profile",
+    "cls": 0,
+    "p95FrameMs": 16.73400000000001,
+    "jsBytes": 159317,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /dashboard/resources",
+    "cls": 0,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 158096,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /dashboard/certificates",
+    "cls": 0.0001826230482145919,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 154485,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /learn/editing-foundations/first-cut",
+    "cls": 0.0027614966624067644,
+    "p95FrameMs": 33.39999999999998,
+    "jsBytes": 155920,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "route": "lms /courses/unknown-course",
+    "cls": 0.000036914966724537036,
+    "p95FrameMs": 16.700000000000273,
+    "jsBytes": 156448,
+    "cssBytes": 18678,
+    "scrollLongTasks": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  }
+]

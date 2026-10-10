@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-10",
+  "mode": "audit/documentation-only",
+  "productionFiles": 344,
+  "productionLines": 18690,
+  "inventoryFiles": 952,
+  "checks": {
+    "architecture": {
+      "files": 335,
+      "violations": 0
+    },
+    "typescript": "passed",
+    "lint": "passed",
+    "reproductionSnapshot": {
+      "files": 412,
+      "status": "verified"
+    },
+    "contractProbes": "confirmed expected gaps, not acceptance passes"
+  },
+  "priorFullSuite": {
+    "date": "2026-10-09",
+    "passed": 138,
+    "buildId": "blmGjDpltv87wO56bTZWc",
+    "rerunThisAudit": false
+  },
+  "openFindings": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12"
+  ],
+  "applicationChanges": false
+}

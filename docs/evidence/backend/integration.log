@@ -1,0 +1,60 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Anonymous catalog is database-backed
+PASS 2: Public metadata excludes playback URLs
+PASS 3: Anonymous denied /api/profile
+PASS 4: Anonymous denied /api/progress
+PASS 5: Anonymous denied /api/enrollments
+PASS 6: Anonymous denied /api/auth/session
+PASS 7: Anonymous denied /api/certificates/editing-foundations
+PASS 8: Protected dashboard redirects (including streamed redirects)
+PASS 9: Private playback denied without enrollment
+PASS 10: Published preview playback is public
+PASS 11: Wrong password rejected
+PASS 12: Invalid signup rejected
+PASS 13: Oversized JSON payload rejected
+PASS 14: Cross-origin login rejected
+PASS 15: Forged demo cookie grants no authority
+PASS 16: Student A: real login
+PASS 17: Student B: real login
+PASS 18: Verified session endpoint
+PASS 19: Browser login navigates to protected dashboard
+PASS 20: Browser logout returns to login
+PASS 21: Invalid browser signup focuses first field
+PASS 22: Signup waits for email confirmation
+PASS 23: Signup creates an unconfirmed real account
+PASS 24: Supabase sends confirmation email to local Mailpit
+PASS 25: Confirmation email includes valid Auth verification link
+PASS 26: Email verification and PKCE callback establish browser session
+PASS 27: Auth layout fits 390px
+PASS 28: Auth layout fits 1440px
+PASS 29: Real authentication browser flows have no JavaScript errors
+PASS 30: Paid course cannot self-enroll through API
+PASS 31: RLS blocks direct paid enrollment
+PASS 32: RLS blocks profile ownership forgery
+PASS 33: RLS hides other student profile
+PASS 34: Students cannot alter prices
+PASS 35: Progress requires enrollment
+PASS 36: Free enrollment succeeds
+PASS 37: Free enrollment is idempotent
+PASS 38: Trusted grant unlocks private playback
+PASS 39: Grant never unlocks another account
+PASS 40: Direct requests hide another account enrollment
+PASS 41: Concurrent progress updates succeed
+PASS 42: Concurrent progress preserves both lessons
+PASS 43: RLS hides another account progress
+PASS 44: RLS rejects forged progress owner
+PASS 45: Unknown lesson rejected
+PASS 46: Incomplete course certificate denied
+PASS 47: Completed enrolled course certificate allowed
+PASS 48: Enrolled student can download resource
+PASS 49: Other student cannot download resource
+PASS 50: Own profile updates persist
+PASS 51: Personalized responses never cached
+PASS 52: Email change waits for provider confirmation and preserves verified identity
+PASS 53: Revoked grant immediately denies playback
+PASS 54: Logout succeeds
+PASS 55: Logout removes authenticated session
+Backend integration: 55 checks passed

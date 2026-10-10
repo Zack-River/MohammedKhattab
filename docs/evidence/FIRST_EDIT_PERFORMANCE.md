@@ -1,3 +1,5 @@
+> Historical evidence for the superseded journey/player redesign. The current reference reconstruction is documented in `DESIGN_SYSTEM.md`; these results do not measure its performance.
+
 # First-edit journey: production scroll check
 
 Collected on 2026-10-02 after the connected coffee-clip implementation. Headless local Chromium, 4× CPU throttle, three trials per viewport, an eight-second full-document scroll with tracing. No builds or browser tests ran alongside collection. The predecessor is the completed six-chapter redesign, not the original site.

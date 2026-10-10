@@ -1,0 +1,55 @@
+[WebServer] (node:49150) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:49161) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:49411) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[WebServer] 
+[WebServer] - A server/client branch `if (typeof window !== 'undefined')`.
+[WebServer] - Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+[WebServer] - Date formatting in a user's locale which doesn't match the server.
+[WebServer] - External changing data without sending a snapshot of it along with the HTML.
+[WebServer] - Invalid HTML tag nesting.
+[WebServer] 
+[WebServer] It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+[WebServer] 
+[WebServer] https://react.dev/link/hydration-mismatch
+[WebServer] 
+[WebServer]   ...
+[WebServer]     <LoadingBoundary name="/" loading={null}>
+[WebServer]       <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+[WebServer]         <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+[WebServer]           <RedirectBoundary>
+[WebServer]             <RedirectErrorBoundary router={{...}}>
+[WebServer]               <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+[WebServer]                 <SegmentViewNode type="page" pagePath="page.tsx">
+[WebServer]                   <SegmentTrieNode>
+[WebServer]                   <Home>
+[WebServer]                     <WorkshopPage>
+[WebServer]                       <SiteHeader>
+[WebServer]                       <WorkshopContent motion={{...}}>
+[WebServer]                         <main ref={{current:null}}>
+[WebServer]                           <HeroSection>
+[WebServer]                             <Section>
+[WebServer]                               <section className="section he..." id="hero">
+[WebServer]                                 <div>
+[WebServer]                                 <Container>
+[WebServer]                                   <div className="container">
+[WebServer]                                     <div className="hero-inner...">
+[WebServer]                                       <h1
+[WebServer]                                         className="headline-h1 hero-headline"
+[WebServer] -                                       data-test-child-mismatch="injected"
+[WebServer]                                       >
+[WebServer]                                       ...
+[WebServer]                           ...
+[WebServer]                       ...
+[WebServer]                 ...
+[WebServer]               ...
+[WebServer]  
+  ✓  1 tests/hydration-development.spec.ts:2:5 › body tolerance leaves child hydration warnings enabled in development (3.1s)
+
+  1 passed (12.9s)

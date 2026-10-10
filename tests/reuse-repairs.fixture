@@ -1,0 +1,71 @@
+import { expect } from "@playwright/test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import About from "../modules/components/portfolio/about";
+import Header from "../modules/components/portfolio/header";
+import Hero from "../modules/components/portfolio/hero";
+import Actions from "../modules/components/portfolio/actions";
+import Instructor from "@khatab/design/ui/instructor-section";
+import Transformation from "@khatab/design/ui/transformation-section";
+import Faq from "@khatab/design/ui/faq-section";
+import { personalPortfolio } from "../config/personal-portfolio-model";
+import { creatorContacts, creatorSocials, portfolioSocials } from "../config/creator-contacts";
+import { socialLinks } from "../app/config/site";
+import { workshopPage } from "../app/data/workshop";
+import { readPortfolioAction } from "../modules/helpers/portfolio/read-action";
+const test = (name: string, run: () => void) => { if (name.startsWith(process.argv[3])) run(); };
+const rootRequire = createRequire(resolve("package.json"));
+const { inspect } = rootRequire("./scripts/architecture-boundaries.cjs");
+
+test("R05 alternate About text round trips absent, repeated, empty and single emphasis", () => {
+  for (const [body, emphasis] of [["before NAME middle NAME after", "NAME"], ["no match", "NAME"], ["empty emphasis", ""], ["before NAME after", "NAME"]]) {
+    const markup = renderToStaticMarkup(createElement(About, { content: { ...personalPortfolio.about, body, emphasis } }));
+    const text = markup.match(/<p class="p-ref-about-paragraph"[^>]*>([\s\S]*?)<\/p>/)![1].replace(/<[^>]+>/g, "");
+    expect(text).toBe(body);
+  }
+});
+
+test("R03 shared section variants preserve optional content and independent FAQ IDs", () => {
+  const instructor = { ...workshopPage.instructor, eyebrow: undefined, action: undefined, name: "ALTERNATE" };
+  for (const contextVariant of ["badge", "plain"] as const) {
+    const html = renderToStaticMarkup(createElement(Instructor, { content: instructor, contextVariant, reveal: contextVariant === "plain" }));
+    expect(html).toContain("ALTERNATE");
+    expect(html).not.toContain("data-instructor-actions");
+    expect(html.includes("data-reveal=\"true\"")).toBe(contextVariant === "plain");
+    const transform = renderToStaticMarkup(createElement(Transformation, { content: workshopPage.transformation, contextVariant }));
+    expect(transform.includes("lms-heading-context")).toBe(contextVariant === "plain");
+  }
+  const faq = { ...workshopPage.faq, heading: { title: ["QUESTIONS"] }, items: [{ question: "Q", answer: "A" }] };
+  const html = renderToStaticMarkup(createElement("div", null, createElement(Faq, { content: { ...faq, section: { ...faq.section, id: "faq-one" } } }), createElement(Faq, { content: { ...faq, section: { ...faq.section, id: "faq-two" } }, contextVariant: "plain", reveal: true })));
+  const ids = [...html.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]);
+  expect(new Set(ids).size).toBe(ids.length);
+});
+
+test("R04 R06 model owns identity variants and reordered actions keep semantic presentation", () => {
+  expect(socialLinks).toEqual(Object.values(creatorSocials));
+  expect(portfolioSocials.map((s) => s.platform)).toEqual(socialLinks.map((s) => s.platform));
+  expect(personalPortfolio.collaboration.actions.find((a) => a.icon === "email")?.href).toBe(creatorContacts.portfolioEmail);
+  const actions = [...personalPortfolio.collaboration.actions].reverse();
+  const html = renderToStaticMarkup(createElement(Actions, { actions, collaboration: true }));
+  const firstLink = html.match(/<a[^>]+href="([^"]+)"[^>]+class="([^"]+)"[^>]*>([\s\S]*?)<\/a>/)!;
+  expect(firstLink[1]).toBe(creatorContacts.portfolioEmail);
+  expect(firstLink[2]).toContain("p-ref-btn-secondary");
+  expect(() => readPortfolioAction({ href: "#x", label: "X", icon: "unknown", variant: "primary" })).toThrow();
+  const heroes = renderToStaticMarkup(createElement("div", null, ...["first", "second"].map((id) => createElement(Hero, { key: id, content: { ...personalPortfolio.hero, id } }))));
+  expect(heroes).toContain('aria-labelledby="first-title"');
+  expect(heroes).toContain('aria-labelledby="second-title"');
+  const headers = renderToStaticMarkup(createElement("div", null, ...["first", "second"].map((id) =>
+    createElement(Header, { key: id, content: personalPortfolio.header, sectionIds: [id], heroId: id }))));
+  const menuIds = [...headers.matchAll(/<nav id="([^"]+)"/g)].map((m) => m[1]);
+  expect(new Set(menuIds).size).toBe(2);
+  for (const id of menuIds) expect(headers).toContain(`aria-controls="${id}"`);
+});
+
+test("R09 canonical-owner forwarding is rejected for relative and alias imports", () => {
+  for (const target of ["../../config/identity", "@/config/identity", "@khatab/design/ui/container"]) {
+    expect(inspect([["app/data/copy.ts", `// leading comment\nexport { value } from "${target}";`]]).some((error: string) => error.includes("forwarding"))).toBe(true);
+  }
+  expect(inspect([["modules/features/example/index.ts", 'export { model } from "./model";']])).toEqual([]);
+});

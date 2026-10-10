@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-10",
+  "status": "demo-feature-verified; full-regression-suite-not-clean",
+  "buildId": "mljwSIVkP_o04g4BuCaAq",
+  "urls": [
+    "http://localhost:3040/ta3allam/login",
+    "http://localhost:3040/ta3allam/signup"
+  ],
+  "checks": {
+    "lint": "passed",
+    "typescript": "passed",
+    "architecture": {
+      "files": 362,
+      "violations": 0
+    },
+    "productionBuild": "passed",
+    "reuseFixtureBuild": "passed",
+    "newAuthTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "focusedExistingRegressions": {
+      "passed": 20,
+      "failed": 0,
+      "workers": 1
+    },
+    "finalFullSuite": {
+      "passed": 160,
+      "failed": 1,
+      "retries": 0,
+      "skipped": 0,
+      "workers": 1,
+      "duration": "4.7m",
+      "failure": "Existing LMS hover test: expected a live transform transition after hover() returned (tests/site-motion.spec.ts:106). The same test passed unchanged in the isolated run; global suite acceptance is not claimed."
+    },
+    "snapshot": {
+      "files": 446,
+      "status": "verified"
+    }
+  },
+  "demoOnly": true,
+  "realAccountsCreated": false,
+  "passwordsVerified": false,
+  "passwordsPersisted": false,
+  "packagesAdded": 0,
+  "screenshots": [
+    "login-390.png",
+    "login-1440.png",
+    "signup-390.png",
+    "signup-1440.png"
+  ],
+  "notes": [
+    "Initial three-worker full run: 157 passed, four failures in existing scroll/hover tests. All affected test files passed unchanged in an isolated one-worker run (20 tests).",
+    "Final serial run: 160 passed, one existing animation sampling failure. Auth checks passed in every run. No animation implementation changed for this feature.",
+    "No commit, push or deployment performed."
+  ]
+}

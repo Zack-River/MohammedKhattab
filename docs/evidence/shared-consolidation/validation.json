@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-09",
+  "buildId": "blmGjDpltv87wO56bTZWc",
+  "url": "http://localhost:3040",
+  "changes": {
+    "sharedForwardingFilesRemoved": 52,
+    "sharedStylesheetAdaptersRemoved": 5,
+    "consolidatedBehaviors": [
+      "menu dismissal",
+      "scroll reveal hooks and theme option resolution",
+      "FAQ item and accordion"
+    ],
+    "domainProjections": [
+      "dashboard stats",
+      "lesson outline with injected URL builder"
+    ],
+    "optionalPolicyOverrides": [
+      "focus restoration and menu breakpoint",
+      "native playback scope",
+      "YouTube SDK loading and timeout"
+    ]
+  },
+  "checks": {
+    "lint": "passed",
+    "typescript": "passed",
+    "productionBuild": "passed",
+    "reuseFixtureBuild": "passed",
+    "architecture": {
+      "files": 335,
+      "violations": 0
+    },
+    "identicalProductionSourceGroups": 0,
+    "completeSuite": {
+      "passed": 138,
+      "failed": 0,
+      "retries": 0,
+      "skipped": 0,
+      "workers": 3
+    },
+    "snapshot": {
+      "files": 412,
+      "status": "verified"
+    },
+    "finalArchitectureTests": {
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "initialFullRun": {
+    "passed": 129,
+    "failed": 9,
+    "note": "Run overlapped lint/build; intermediate animation checks failed. Isolated browser check confirmed existing 500 ms CSS transitions. Fresh final artifact and complete run without concurrent build/lint passed every unchanged motion assertion."
+  },
+  "preserved": [
+    "approved visual identity and theme values",
+    "visible copy and media",
+    "canonical routes and demo APIs"
+  ],
+  "newDependencies": []
+}

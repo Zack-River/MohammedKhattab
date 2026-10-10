@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@platform/components",
+    "ui": "@platform/components/ui",
+    "lib": "@platform/lib",
+    "utils": "@platform/lib/utils",
+    "hooks": "@platform/hooks"
+  },
+  "registries": {
+    "@supabase": "https://supabase.com/ui/r/{name}.json"
+  }
+}

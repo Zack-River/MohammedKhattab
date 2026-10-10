@@ -1,0 +1,180 @@
+[
+  {
+    "screen": "landing",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [
+      {
+        "text": "\u2022\u2022\u2022",
+        "selector": "span.lms-preview-dots",
+        "size": 14,
+        "weight": "400",
+        "color": "rgb(71, 85, 105)",
+        "background": [
+          35,
+          43,
+          54
+        ],
+        "contrast": 1.88,
+        "uncertain": false
+      }
+    ],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "catalog",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": [
+      {
+        "type": "search",
+        "name": "q",
+        "autocomplete": "",
+        "font": "16px"
+      },
+      {
+        "type": "hidden",
+        "name": "category",
+        "autocomplete": "",
+        "font": "16px"
+      }
+    ]
+  },
+  {
+    "screen": "detail",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "dashboard",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "lesson",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "login",
+    "width": 1440,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": [
+      {
+        "type": "text",
+        "name": "name",
+        "autocomplete": "name",
+        "font": "16px"
+      },
+      {
+        "type": "email",
+        "name": "email",
+        "autocomplete": "email",
+        "font": "16px"
+      }
+    ]
+  },
+  {
+    "screen": "landing",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [
+      {
+        "text": "\u2022\u2022\u2022",
+        "selector": "span.lms-preview-dots",
+        "size": 14,
+        "weight": "400",
+        "color": "rgb(71, 85, 105)",
+        "background": [
+          35,
+          43,
+          54
+        ],
+        "contrast": 1.88,
+        "uncertain": false
+      }
+    ],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "catalog",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": [
+      {
+        "type": "search",
+        "name": "q",
+        "autocomplete": "",
+        "font": "16px"
+      },
+      {
+        "type": "hidden",
+        "name": "category",
+        "autocomplete": "",
+        "font": "16px"
+      }
+    ]
+  },
+  {
+    "screen": "detail",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "dashboard",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "lesson",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": []
+  },
+  {
+    "screen": "login",
+    "width": 390,
+    "overflow": false,
+    "lowContrast": [],
+    "smallTextBelow12px": [],
+    "inputs": [
+      {
+        "type": "text",
+        "name": "name",
+        "autocomplete": "name",
+        "font": "16px"
+      },
+      {
+        "type": "email",
+        "name": "email",
+        "autocomplete": "email",
+        "font": "16px"
+      }
+    ]
+  }
+]

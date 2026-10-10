@@ -1,0 +1,15 @@
+{
+  "before": [
+    {
+      "width": 320,
+      "height": 180,
+      "color": "rgb(54, 243, 41)"
+    },
+    {
+      "width": 240,
+      "height": 150,
+      "color": "rgb(252, 53, 34)"
+    }
+  ],
+  "activeColor": "rgb(54, 243, 41)"
+}

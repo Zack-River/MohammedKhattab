@@ -1,0 +1,64 @@
+
+> ta3llam-lms@1.0.0 test:e2e
+> playwright test tests/lms.spec.ts --workers=2 --reporter=line
+
+
+Running 16 tests using 2 workers
+
+(node:30455) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:30460) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/16] tests/lms.spec.ts:26:5 › catalog filters and search
+[2/16] tests/lms.spec.ts:3:5 › approved identity and landing content
+[3/16] tests/lms.spec.ts:42:5 › enrollment and progress persist
+[4/16] tests/lms.spec.ts:61:5 › deferred video and saved lesson notes
+[5/16] tests/lms.spec.ts:81:5 › demo entry and profile updates
+[6/16] tests/lms.spec.ts:99:5 › API validation, isolation, downloads and earned certificates
+[7/16] tests/lms.spec.ts:168:7 › all screens fit at 320px
+[8/16] tests/lms.spec.ts:168:7 › all screens fit at 768px
+[9/16] tests/lms.spec.ts:168:7 › all screens fit at 1440px
+[10/16] tests/lms.spec.ts:199:5 › mobile navigation and FAQ
+[11/16] tests/lms.spec.ts:228:5 › invalid routes show 404
+[12/16] tests/lms.spec.ts:239:5 › course cards prioritize mock price and registration
+[13/16] tests/lms.spec.ts:283:5 › readable action labels, metadata and lesson status on mobile
+[14/16] tests/lms.spec.ts:328:5 › FAQ transitions finish and reduced motion exposes reveal content
+[15/16] tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion
+[16/16] tests/lms.spec.ts:379:5 › course entrances and hover movement are visible and independent
+  1) tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion ─────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      364 |     return Number(style.opacity) > 0 && Number(style.opacity) < 1 &&
+      365 |       new DOMMatrix(style.transform).m42 > 0;
+    > 366 |   })).toBe(true);
+          |       ^
+      367 |   await expect.poll(() => heading.evaluate((element) => element.getAnimations().length)).toBe(0);
+      368 |   await expect(heading).toHaveCSS("opacity", "1");
+      369 |   await expect(heading).toHaveCSS("transform", "none");
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/lms.spec.ts:366:7
+
+    Error Context: test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/lms-landing-hero-visibly-e-544b1-and-respects-reduced-motion/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  1 failed
+    tests/lms.spec.ts:358:5 › landing hero visibly enters on load and respects reduced motion ──────
+  15 passed (41.6s)

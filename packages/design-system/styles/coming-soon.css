@@ -1,0 +1,81 @@
+.coming-soon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: inline-size;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  padding: var(--space-xl);
+  box-sizing: border-box;
+  font-family: var(--font-arabic);
+}
+.coming-soon-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+.coming-soon-ghost {
+  position: absolute;
+  top: var(--coming-soon-ghost-top);
+  inset-inline-start: var(--space-md);
+  white-space: nowrap;
+  font-size: var(--coming-soon-ghost-size);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-headline);
+  color: transparent;
+  -webkit-text-stroke: var(--size-1px) var(--border-subtle);
+  direction: ltr;
+}
+.coming-soon-ribbon {
+  position: absolute;
+  bottom: var(--coming-soon-ribbon-bottom);
+  left: -15%;
+  width: 130%;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xl);
+  padding-block: var(--space-sm);
+  background: var(--coming-soon-accent, var(--primary-red));
+  color: var(--bg-main);
+  transform: rotate(var(--coming-soon-ribbon-angle));
+  font-size: var(--coming-soon-ribbon-size);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-body);
+  direction: ltr;
+}
+.coming-soon-ribbon > span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.coming-soon-ribbon i {
+  width: var(--space-xs);
+  height: var(--space-xs);
+  background: currentColor;
+  transform: rotate(var(--coming-soon-mark-angle));
+}
+.coming-soon-copy {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+  transform: translateY(var(--coming-soon-copy-offset));
+}
+.coming-soon-label {
+  font-size: var(--coming-soon-title-size);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-headline);
+  color: var(--text-primary);
+}
+.coming-soon-detail {
+  font-size: var(--coming-soon-detail-size);
+  color: var(--text-muted);
+  line-height: var(--leading-body);
+  letter-spacing: var(--coming-soon-detail-tracking);
+}

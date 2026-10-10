@@ -1,0 +1,17 @@
+
+Running 8 tests using 2 workers
+
+(node:71112) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71111) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/portfolio-player.spec.ts:73:7 › reel button stays centered and video preserves 9:16 at 320px (2.4s)
+  ✓  3 tests/portfolio-player.spec.ts:73:7 › reel button stays centered and video preserves 9:16 at 390px (2.3s)
+  ✓  4 tests/portfolio-player.spec.ts:73:7 › reel button stays centered and video preserves 9:16 at 768px (4.1s)
+  ✓  5 tests/portfolio-player.spec.ts:73:7 › reel button stays centered and video preserves 9:16 at 1440px (1.9s)
+  ✓  2 tests/portfolio-player.spec.ts:3:5 › six real reels load on click with a single centered play/pause control (12.9s)
+  ✓  6 tests/portfolio-player.spec.ts:107:5 › failed media offers retry and recovers (2.3s)
+  ✓  8 tests/portfolio-player.spec.ts:159:5 › web videos support byte-range playback (53ms)
+  ✓  7 tests/portfolio-player.spec.ts:127:5 › finished reel returns to its original thumbnail and restarts from the beginning (2.4s)
+
+  8 passed (16.6s)

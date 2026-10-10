@@ -1,0 +1,431 @@
+[
+  {
+    "name": "workshop---320",
+    "pass": true,
+    "pixelRatio": 0.000016238452655889147,
+    "notes": [],
+    "rawPixelRatio": 0.000016238452655889147
+  },
+  {
+    "name": "workshop---390",
+    "pass": true,
+    "pixelRatio": 0.000014121883623910703,
+    "notes": [],
+    "rawPixelRatio": 0.000014121883623910703
+  },
+  {
+    "name": "workshop---768",
+    "pass": true,
+    "pixelRatio": 0.000009552923194497516,
+    "notes": [],
+    "rawPixelRatio": 0.000009552923194497516
+  },
+  {
+    "name": "workshop---1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms---320",
+    "pass": true,
+    "pixelRatio": 0.00012122944169924036,
+    "notes": [
+      "Five erroneous 16px collapsed FAQ gaps removed; lower pixels aligned by those exact rows.",
+      "Baseline capture missed the instructor portrait despite matching frame geometry. Asset-load region is excluded from comparison; current loaded source is separately verified against the approved asset."
+    ],
+    "rawPixelRatio": null
+  },
+  {
+    "name": "lms--courses-320",
+    "pass": true,
+    "pixelRatio": 0.00023801766579785693,
+    "notes": [],
+    "rawPixelRatio": 0.00023801766579785693
+  },
+  {
+    "name": "lms--courses-category-motion-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-q-missing-term-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-editing-foundations-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [
+      "Numeric duration now two hours: metadata reflows by 38px; only its text region is excepted, lower raster edges allow the documented 1px geometry tolerance."
+    ],
+    "rawPixelRatio": null
+  },
+  {
+    "name": "lms--courses-motion-essentials-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--login-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-320",
+    "pass": true,
+    "pixelRatio": 0.00034316283924843425,
+    "notes": [],
+    "rawPixelRatio": 0.00034316283924843425
+  },
+  {
+    "name": "lms--dashboard-courses-320",
+    "pass": true,
+    "pixelRatio": 0.0009131944444444444,
+    "notes": [],
+    "rawPixelRatio": 0.0009131944444444444
+  },
+  {
+    "name": "lms--dashboard-profile-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-resources-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-certificates-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-unknown-course-320",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms---390",
+    "pass": true,
+    "pixelRatio": 0.0000958304638850326,
+    "notes": [
+      "Five erroneous 16px collapsed FAQ gaps removed; lower pixels aligned by those exact rows."
+    ],
+    "rawPixelRatio": null
+  },
+  {
+    "name": "lms--courses-390",
+    "pass": true,
+    "pixelRatio": 0.00018831582640574542,
+    "notes": [],
+    "rawPixelRatio": 0.00018831582640574542
+  },
+  {
+    "name": "lms--courses-category-motion-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-q-missing-term-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-editing-foundations-390",
+    "pass": true,
+    "pixelRatio": 0.00033557966250273943,
+    "notes": [],
+    "rawPixelRatio": 0.00033557966250273943
+  },
+  {
+    "name": "lms--courses-motion-essentials-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--login-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-390",
+    "pass": true,
+    "pixelRatio": 0.0002770579187999073,
+    "notes": [],
+    "rawPixelRatio": 0.0002770579187999073
+  },
+  {
+    "name": "lms--dashboard-courses-390",
+    "pass": true,
+    "pixelRatio": 0.0007492877492877493,
+    "notes": [],
+    "rawPixelRatio": 0.0007492877492877493
+  },
+  {
+    "name": "lms--dashboard-profile-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-resources-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-certificates-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-unknown-course-390",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms---768",
+    "pass": true,
+    "pixelRatio": 0.00005156571550469307,
+    "notes": [
+      "Five erroneous 16px collapsed FAQ gaps removed; lower pixels aligned by those exact rows."
+    ],
+    "rawPixelRatio": null
+  },
+  {
+    "name": "lms--courses-768",
+    "pass": true,
+    "pixelRatio": 0.0001620671635904717,
+    "notes": [],
+    "rawPixelRatio": 0.0001620671635904717
+  },
+  {
+    "name": "lms--courses-category-motion-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-q-missing-term-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-editing-foundations-768",
+    "pass": true,
+    "pixelRatio": 0.00018601190476190475,
+    "notes": [],
+    "rawPixelRatio": 0.00018601190476190475
+  },
+  {
+    "name": "lms--courses-motion-essentials-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--login-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-768",
+    "pass": true,
+    "pixelRatio": 0.00017383142978003385,
+    "notes": [],
+    "rawPixelRatio": 0.00017383142978003385
+  },
+  {
+    "name": "lms--dashboard-courses-768",
+    "pass": true,
+    "pixelRatio": 0.00038049768518518516,
+    "notes": [],
+    "rawPixelRatio": 0.00038049768518518516
+  },
+  {
+    "name": "lms--dashboard-profile-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-resources-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-certificates-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-unknown-course-768",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms---1440",
+    "pass": true,
+    "pixelRatio": 0.00003329181350508365,
+    "notes": [],
+    "rawPixelRatio": 0.00003329181350508365
+  },
+  {
+    "name": "lms--courses-1440",
+    "pass": true,
+    "pixelRatio": 0.0001074978745667386,
+    "notes": [],
+    "rawPixelRatio": 0.0001074978745667386
+  },
+  {
+    "name": "lms--courses-category-motion-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-q-missing-term-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-editing-foundations-1440",
+    "pass": true,
+    "pixelRatio": 0.00010899352267065272,
+    "notes": [],
+    "rawPixelRatio": 0.00010899352267065272
+  },
+  {
+    "name": "lms--courses-motion-essentials-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--login-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-1440",
+    "pass": true,
+    "pixelRatio": 0.00008935366383996521,
+    "notes": [],
+    "rawPixelRatio": 0.00008935366383996521
+  },
+  {
+    "name": "lms--dashboard-courses-1440",
+    "pass": true,
+    "pixelRatio": 0.00020225790574627785,
+    "notes": [],
+    "rawPixelRatio": 0.00020225790574627785
+  },
+  {
+    "name": "lms--dashboard-profile-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-resources-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--dashboard-certificates-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  },
+  {
+    "name": "lms--courses-unknown-course-1440",
+    "pass": true,
+    "pixelRatio": 0,
+    "notes": [],
+    "rawPixelRatio": 0
+  }
+]

@@ -1,0 +1,32 @@
+
+> ta3llam-lms@1.0.0 test:crossbrowser
+> playwright test --config playwright.crossbrowser.config.ts
+
+
+Running 15 tests using 1 worker
+
+(node:48932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+  ✓   1 [chromium] › tests/lms.spec.ts:26:5 › catalog filters and search (2.3s)
+  ✓   2 [chromium] › tests/lms.spec.ts:42:5 › enrollment and progress persist (2.5s)
+  ✓   3 [chromium] › tests/lms.spec.ts:61:5 › deferred video and saved lesson notes (1.1s)
+  ✓   4 [chromium] › tests/lms.spec.ts:81:5 › demo entry and profile updates (2.0s)
+  ✓   5 [chromium] › tests/lms.spec.ts:199:5 › mobile navigation and FAQ (2.8s)
+(node:49202) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.
+  ✓   6 [firefox] › tests/lms.spec.ts:26:5 › catalog filters and search (7.9s)
+  ✓   7 [firefox] › tests/lms.spec.ts:42:5 › enrollment and progress persist (4.1s)
+  ✓   8 [firefox] › tests/lms.spec.ts:61:5 › deferred video and saved lesson notes (3.1s)
+  ✓   9 [firefox] › tests/lms.spec.ts:81:5 › demo entry and profile updates (2.4s)
+  ✓  10 [firefox] › tests/lms.spec.ts:199:5 › mobile navigation and FAQ (3.6s)
+(node:49780) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 [webkit] › tests/lms.spec.ts:26:5 › catalog filters and search (2.9s)
+  ✓  12 [webkit] › tests/lms.spec.ts:42:5 › enrollment and progress persist (2.6s)
+  ✓  13 [webkit] › tests/lms.spec.ts:61:5 › deferred video and saved lesson notes (1.5s)
+  ✓  14 [webkit] › tests/lms.spec.ts:81:5 › demo entry and profile updates (1.7s)
+  ✓  15 [webkit] › tests/lms.spec.ts:199:5 › mobile navigation and FAQ (2.9s)
+
+  15 passed (50.1s)

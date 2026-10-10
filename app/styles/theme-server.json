@@ -1,0 +1,29 @@
+{
+  "primary": "#fc3522",
+  "background": "#101317",
+  "text": "#ffffff",
+  "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\",\n    Roboto, sans-serif",
+  "workshopMotion": {
+    "viewport": 0.75,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "distanceCard": 24,
+    "distanceText": 20,
+    "distancePreview": 26,
+    "distanceAction": 18,
+    "distancePanel": 25,
+    "offsetPhoto": 35,
+    "offsetCopy": -35,
+    "durationMain": 500,
+    "durationHeading": 500,
+    "durationCard": 500,
+    "durationFaq": 500,
+    "delayHeading": 50,
+    "delaySupport": 200,
+    "delayPreview": 350,
+    "delayAction": 480,
+    "staggerHeading": 100,
+    "staggerFaq": 70,
+    "scalePreview": 0.97,
+    "scaleReview": 0.98
+  }
+}

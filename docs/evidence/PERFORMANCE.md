@@ -1,3 +1,5 @@
+> Historical evidence for the superseded journey/player redesign. The current reference reconstruction is documented in `DESIGN_SYSTEM.md`; these results do not measure its performance.
+
 # Scroll profiling: redesign comparison
 
 The redesign removes the observed repeated global ScrollTrigger refresh stalls and reduces mobile style work and slow frames in this synthetic run. Desktop style work decreases, but desktop total task, script, and layout time increase. These results do **not** support a blanket claim that the redesign is faster everywhere.

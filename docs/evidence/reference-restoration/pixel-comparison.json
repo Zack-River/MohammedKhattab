@@ -1,0 +1,38 @@
+[
+  {
+    "width": 320,
+    "imageSize": [
+      320,
+      13808
+    ],
+    "differentPixels": 0,
+    "bounds": null
+  },
+  {
+    "width": 390,
+    "imageSize": [
+      390,
+      13034
+    ],
+    "differentPixels": 0,
+    "bounds": null
+  },
+  {
+    "width": 768,
+    "imageSize": [
+      768,
+      13085
+    ],
+    "differentPixels": 0,
+    "bounds": null
+  },
+  {
+    "width": 1440,
+    "imageSize": [
+      1440,
+      10843
+    ],
+    "differentPixels": 0,
+    "bounds": null
+  }
+]

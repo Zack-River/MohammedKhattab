@@ -1,0 +1,218 @@
+ M .gitignore
+ M AGENTS.md
+ M ARCHITECTURE_AUDIT.md
+ M CLAUDE.md
+ M README.md
+ M RESEARCH.md
+ M THEME.md
+ D app/components/ui/button-link.tsx
+ D app/components/ui/card.tsx
+ M app/components/ui/container.tsx
+ D app/components/ui/heading.tsx
+ D app/components/ui/media-player.tsx
+ M app/components/ui/section.tsx
+ D app/components/workshop-motion.tsx
+ D app/components/workshop/animated-stat.tsx
+ D app/components/workshop/chapter-label.tsx
+ M app/components/workshop/clients-section.tsx
+ D app/components/workshop/clip-credit.tsx
+ D app/components/workshop/clip-preview.tsx
+ M app/components/workshop/creator-chip.tsx
+ D app/components/workshop/cta-microcopy.tsx
+ D app/components/workshop/edit-preview.tsx
+ D app/components/workshop/editing-desk.tsx
+ D app/components/workshop/editing-story.tsx
+ D app/components/workshop/eyebrow.tsx
+ M app/components/workshop/faq-accordion.tsx
+ M app/components/workshop/faq-section.tsx
+ M app/components/workshop/final-cta-section.tsx
+ D app/components/workshop/final-edit.tsx
+ D app/components/workshop/first-edit-provider.tsx
+ M app/components/workshop/guarantee-section.tsx
+ M app/components/workshop/hero-section.tsx
+ M app/components/workshop/hero-video.tsx
+ D app/components/workshop/horizontal-showcase.tsx
+ M app/components/workshop/instructor-section.tsx
+ D app/components/workshop/journey-progress.tsx
+ D app/components/workshop/lesson-outcomes.tsx
+ M app/components/workshop/reel-card.tsx
+ M app/components/workshop/review-card.tsx
+ M app/components/workshop/roadmap-day.tsx
+ M app/components/workshop/roadmap-section.tsx
+ M app/components/workshop/roadmap-timeline.tsx
+ D app/components/workshop/scroll-to-top-link.tsx
+ M app/components/workshop/site-footer.tsx
+ M app/components/workshop/site-header.tsx
+ D app/components/workshop/social-icon.tsx
+ D app/components/workshop/social-links.tsx
+ M app/components/workshop/testimonials-section.tsx
+ M app/components/workshop/transformation-section.tsx
+ D app/components/workshop/whatsapp-cta.tsx
+ D app/config/motion.ts
+ D app/config/player.ts
+ M app/config/site.ts
+ D app/data/first-edit.ts
+ D app/data/journey.ts
+ M app/data/workshop.ts
+ M app/globals.css
+ D app/hooks/use-count-up.ts
+ D app/hooks/use-edit-preview.ts
+ D app/hooks/use-editing-story.ts
+ D app/hooks/use-horizontal-showcase.ts
+ D app/hooks/use-journey-progress.ts
+ D app/hooks/use-media-player.ts
+ D app/hooks/use-media-query.ts
+ M app/hooks/use-mobile-navigation.ts
+ D app/hooks/use-reduced-motion.ts
+ M app/hooks/use-roadmap-progress.ts
+ M app/hooks/use-scroll-reveals.ts
+ M app/hooks/use-video-embed.ts
+ M app/layout.tsx
+ D app/lib/cn.ts
+ D app/lib/design-tokens.ts
+ D app/lib/navigation.ts
+ M app/lib/timeline.ts
+ M app/lib/video.ts
+ M app/page.tsx
+ D app/styles/effects.css
+ M app/styles/fonts.css
+ D app/styles/player.css
+ M app/styles/theme.css
+ M app/types/workshop.ts
+ M content/workshop.html
+ M docs/evidence/FIRST_EDIT_PERFORMANCE.md
+ M docs/evidence/PERFORMANCE.md
+ M docs/evidence/scroll-after.json
+ M docs/evidence/scroll-before.json
+ M docs/evidence/scroll-corrected-desktop.json
+ M docs/evidence/scroll-first-edit.json
+ M docs/evidence/scroll-intermediate.json
+ M docs/research/FIRST_EDIT_JOURNEY.md
+ M docs/research/UX_JOURNEY.md
+ M eslint.config.mjs
+ M next-env.d.ts
+ M next.config.ts
+ M package-lock.json
+ M package.json
+ M playwright.config.ts
+ D postcss.config.mjs
+ M public/assets/flags/README.md
+ M public/assets/flags/ae.png
+ M public/assets/flags/dz.png
+ M public/assets/flags/eg.png
+ M public/assets/flags/jo.png
+ M public/assets/flags/sa.png
+ M public/assets/fonts/OFL.txt
+ M public/assets/fonts/README.md
+ M public/assets/fonts/ibm-plex-arabic-400.ttf
+ M public/assets/fonts/ibm-plex-arabic-500.ttf
+ M public/assets/fonts/ibm-plex-arabic-600.ttf
+ M public/assets/fonts/ibm-plex-arabic-700.ttf
+ M public/assets/images/clients/abdullah-alghufais.jpg
+ M public/assets/images/clients/abdullah-alghufais.webp
+ M public/assets/images/clients/bilal-tarkhan.jpg
+ M public/assets/images/clients/bilal-tarkhan.webp
+ M public/assets/images/clients/mohammed-alkhudair.jpg
+ M public/assets/images/clients/mohammed-alkhudair.webp
+ M public/assets/images/clients/mr-ahmed.jpg
+ M public/assets/images/clients/mr-ahmed.webp
+ M public/assets/images/clients/najm-eldeen.jpg
+ M public/assets/images/clients/najm-eldeen.webp
+ M public/assets/images/clients/osama-essam-eldeen.jpg
+ M public/assets/images/clients/osama-essam-eldeen.webp
+ M public/assets/images/favicon.svg
+ M public/assets/images/instructor.png
+ M public/assets/images/instructor.webp
+ M public/assets/images/workshop-video-poster.jpg
+ D public/assets/player/LICENSE.md
+ D public/assets/player/plyr.svg
+ D public/assets/video/README.md
+ D public/assets/video/first-edit-calm.mp4
+ D public/assets/video/first-edit-energetic.mp4
+ D public/assets/video/first-edit-poster.webp
+ D public/assets/video/first-edit-raw.mp4
+ M scripts/prepare-reference.py
+ D scripts/profile-scroll.mjs
+ M session.sh
+ D tests/first-edit.spec.ts
+ M tests/hydration.spec.ts
+ D tests/journey.spec.ts
+ D tests/media-player.spec.ts
+ D tests/motion.spec.ts
+ D tests/workshop.spec.ts
+ M tsconfig.json
+?? ARCHITECTURE_ACCEPTANCE_TESTS.md
+?? ARCHITECTURE_REFACTOR_PLAN.md
+?? CURRENT_ARCHITECTURE_AUDIT.md
+?? DESIGN_REPRODUCTION_PROMPT.md
+?? DESIGN_SYSTEM.md
+?? app/components/ui/action-link.tsx
+?? app/components/ui/asset-image.tsx
+?? app/components/ui/eyebrow.tsx
+?? app/components/ui/microcopy.tsx
+?? app/components/ui/rich-text.tsx
+?? app/components/ui/section-heading.tsx
+?? app/components/ui/social-icon.tsx
+?? app/components/ui/social-links.tsx
+?? app/components/ui/ui-icon.tsx
+?? app/components/workshop/author-identity.tsx
+?? app/components/workshop/creator-marquee.tsx
+?? app/components/workshop/discount-countdown.tsx
+?? app/components/workshop/faq-item.tsx
+?? app/components/workshop/featured-review.tsx
+?? app/components/workshop/index.ts
+?? app/components/workshop/instructor-photo.tsx
+?? app/components/workshop/instructor-stats.tsx
+?? app/components/workshop/recent-signup-toast.tsx
+?? app/components/workshop/roadmap-formula.tsx
+?? app/components/workshop/scarcity-bar.tsx
+?? app/components/workshop/site-navigation.tsx
+?? app/components/workshop/transformation-stage.tsx
+?? app/components/workshop/workshop-content.tsx
+?? app/components/workshop/workshop-page.tsx
+?? app/config/offer.ts
+?? app/config/reference-motion.ts
+?? app/config/reference-ui.ts
+?? app/data/workshop/
+?? app/hooks/use-accordion.ts
+?? app/hooks/use-discount-countdown.ts
+?? app/hooks/use-inner-corridor.ts
+?? app/hooks/use-reference-signup.ts
+?? app/lib/countdown.ts
+?? app/lib/scroll-reveals.ts
+?? app/styles/workshop.css
+?? app/types/interactions.ts
+?? app/types/marketing.ts
+?? app/types/ui.ts
+?? content/reference/
+?? docs/evidence/architecture-acceptance/
+?? docs/evidence/catalog-1440.png
+?? docs/evidence/catalog-390.png
+?? docs/evidence/component-refactor/
+?? docs/evidence/course-1440.png
+?? docs/evidence/course-390.png
+?? docs/evidence/dashboard-1440-viewport.png
+?? docs/evidence/dashboard-1440.png
+?? docs/evidence/dashboard-390-viewport.png
+?? docs/evidence/dashboard-390.png
+?? docs/evidence/landing-1440-viewport.png
+?? docs/evidence/landing-1440.png
+?? docs/evidence/landing-390-viewport.png
+?? docs/evidence/landing-390.png
+?? docs/evidence/lesson-1440-viewport.png
+?? docs/evidence/lesson-1440.png
+?? docs/evidence/lesson-390-viewport.png
+?? docs/evidence/lesson-390.png
+?? docs/evidence/login-1440.png
+?? docs/evidence/login-390.png
+?? docs/evidence/reference-restoration/
+?? lms/
+?? scripts/compare-reference.cjs
+?? tests/architecture.spec.ts
+?? tests/countdown.spec.ts
+?? tests/fixtures/
+?? tests/helpers/
+?? tests/reference-copy.spec.ts
+?? tests/reference-design.spec.ts
+?? tests/reusability.spec.ts
+?? tests/scroll-reveals.spec.ts

@@ -1,0 +1,17 @@
+window.__customPlayerTest={calls:[],players:[],destroyed:0};
+window.YT={Player:class {
+ constructor(iframe,{events}) {this.iframe=iframe;this.events=events;this.time=10;this.volume=100;this.muted=false;this.playing=false;window.__customPlayerTest.players.push(this);setTimeout(()=>events.onReady({target:this}),0);}
+ emit(state){this.events.onStateChange({target:this,data:state});}
+ playVideo(){window.__customPlayerTest.calls.push(['play']);this.playing=true;this.emit(1);}
+ pauseVideo(){window.__customPlayerTest.calls.push(['pause']);this.playing=false;this.emit(2);}
+ seekTo(time){window.__customPlayerTest.calls.push(['seek',time]);this.time=time;}
+ mute(){window.__customPlayerTest.calls.push(['mute']);this.muted=true;}
+ unMute(){window.__customPlayerTest.calls.push(['unmute']);this.muted=false;}
+ isMuted(){return this.muted;}
+ setVolume(volume){window.__customPlayerTest.calls.push(['volume',volume]);this.volume=volume;}
+ getVolume(){return this.volume;}
+ getCurrentTime(){return this.time;}
+ getDuration(){return 120;}
+ destroy(){window.__customPlayerTest.destroyed++;this.iframe.remove();}
+}};
+window.onYouTubeIframeAPIReady?.();

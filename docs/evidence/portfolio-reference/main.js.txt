@@ -1,0 +1,756 @@
+/**
+ * محمد خطاب — Personal Brand Website
+ * Interactive Controller
+ * Mobile Nav + Smooth Scroll + Active Spy + Video Lightbox + Subtle Motion
+ */
+
+// ============================================================================
+// 00. SITE CONFIGURATION & CONTENT SETTINGS
+// ============================================================================
+/**
+ * إعدادات الموقع القابلة للتخصيص:
+ * يمكنك تعديل رقم واتساب أو روابط فيديوهات معرض الأعمال من هنا مباشرة.
+ */
+const SITE_CONFIG = {
+  // الرابط الإنتاجي لورشة التغيير (WORKSHOP_URL)
+  workshopUrl: 'https://warshataltagheer.vercel.app/',
+
+  // إعدادات التواصل المباشر عبر واتساب (الرابط الحقيقي المعتمد)
+  whatsapp: {
+    phone: '201558590242',
+    url: 'https://wa.me/201558590242'
+  },
+
+  // روابط معرض الأعمال (Reels & Showcase)
+  // استبدل روابط التضمين التجريبية بروابط فيديوهاتك الحقيقية
+  portfolioVideos: [
+    {
+      id: 'reel-1',
+      title: 'تكنيك الانتقالات السلسة والـ Sound Design',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'
+    },
+    {
+      id: 'reel-2',
+      title: 'صناعة الهوك وجذب المشاهد في أول 3 ثوانٍ',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'
+    },
+    {
+      id: 'reel-3',
+      title: 'أسرار التسعير والتعامل مع أول عميل فريلانس',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'
+    },
+    {
+      id: 'reel-4',
+      title: 'بناء البورتفوليو وإبهار صانع المحتوى',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'
+    }
+  ]
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  'use strict';
+
+  // ------------------------------------------------------------------------
+  // Helper: Body Scroll Locking with Layout-Shift Prevention
+  // ------------------------------------------------------------------------
+  let activeScrollLocks = 0;
+  let originalPaddingRight = '';
+
+  function lockBodyScroll() {
+    if (activeScrollLocks === 0) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      originalPaddingRight = document.body.style.paddingRight || '';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+      document.body.style.overflow = 'hidden';
+    }
+    activeScrollLocks++;
+  }
+
+  function unlockBodyScroll() {
+    activeScrollLocks = Math.max(0, activeScrollLocks - 1);
+    if (activeScrollLocks === 0) {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = originalPaddingRight;
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // Helper: Synchronize Dynamic Config (WhatsApp, Workshop & Portfolio)
+  // ------------------------------------------------------------------------
+  function applySiteConfiguration() {
+    // 1. WhatsApp Configuration Sync (Hardened & Exact URL)
+    const whatsappLinks = document.querySelectorAll('.btn-whatsapp, a[href*="wa.me"]');
+    if (SITE_CONFIG.whatsapp && SITE_CONFIG.whatsapp.url) {
+      whatsappLinks.forEach(link => {
+        link.setAttribute('href', SITE_CONFIG.whatsapp.url);
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    }
+
+    // 2. Workshop Production Link Sync (WORKSHOP_URL)
+    const workshopLinks = document.querySelectorAll('.js-workshop-link');
+    if (SITE_CONFIG.workshopUrl) {
+      workshopLinks.forEach(link => {
+        link.setAttribute('href', SITE_CONFIG.workshopUrl);
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    }
+
+    // 3. Portfolio Video Config Sync
+    const reelCards = document.querySelectorAll('.reel-card.js-video-trigger');
+    reelCards.forEach((card, idx) => {
+      const conf = SITE_CONFIG.portfolioVideos && SITE_CONFIG.portfolioVideos[idx];
+      if (conf && conf.embedUrl) {
+        card.setAttribute('data-video-url', conf.embedUrl);
+        if (conf.title) {
+          card.setAttribute('data-video-title', conf.title);
+        }
+      }
+    });
+  }
+
+  applySiteConfiguration();
+
+  // ------------------------------------------------------------------------
+  // 01. Sticky Header & Scroll Effect
+  // ------------------------------------------------------------------------
+  const siteHeader = document.getElementById('siteHeader');
+  
+  if (siteHeader) {
+    const handleScroll = () => {
+      if (window.scrollY > 30) {
+        siteHeader.classList.add('is-scrolled');
+      } else {
+        siteHeader.classList.remove('is-scrolled');
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+  }
+
+  // ------------------------------------------------------------------------
+  // 02. Mobile Navigation Toggle (Accessible & Resilient)
+  // ------------------------------------------------------------------------
+  const mobileToggle = document.getElementById('mobileNavToggle');
+  const navMenu = document.getElementById('navMenu');
+
+  if (mobileToggle && navMenu) {
+    const toggleMenu = (open) => {
+      const isOpen = typeof open === 'boolean' ? open : !navMenu.classList.contains('is-open');
+      navMenu.classList.toggle('is-open', isOpen);
+      mobileToggle.setAttribute('aria-expanded', String(isOpen));
+      
+      if (isOpen) {
+        lockBodyScroll();
+      } else {
+        unlockBodyScroll();
+      }
+    };
+
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    navMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        toggleMenu(false);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (navMenu.classList.contains('is-open') && !navMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
+        toggleMenu(false);
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('is-open')) {
+        toggleMenu(false);
+      }
+    });
+
+    // Automatically release lock if resized to desktop viewport
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 991 && navMenu.classList.contains('is-open')) {
+        toggleMenu(false);
+      }
+    }, { passive: true });
+  }
+
+  // ------------------------------------------------------------------------
+  // 03. Smooth Anchor Scrolling & History Integration
+  // ------------------------------------------------------------------------
+  const brandName = document.getElementById('brandName') || document.querySelector('.brand-name');
+  const navLinks = document.querySelectorAll('.nav-menu .nav-link[href^="#"]');
+
+  function scrollToTargetId(targetId, updateHistory = true) {
+    if (!targetId) return;
+
+    if (targetId === 'hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (brandName) brandName.classList.add('is-hero-active');
+      navLinks.forEach(link => link.classList.remove('is-active'));
+      if (updateHistory && window.location.hash !== '') {
+        try {
+          history.pushState(null, '', window.location.pathname + window.location.search);
+        } catch (e) {}
+      }
+      return;
+    }
+
+    const target = document.getElementById(targetId);
+    if (target) {
+      const headerHeight = siteHeader ? siteHeader.offsetHeight : 72;
+      const targetPos = target.getBoundingClientRect().top + window.scrollY - headerHeight - 14;
+
+      window.scrollTo({
+        top: Math.max(0, targetPos),
+        behavior: 'smooth'
+      });
+
+      if (updateHistory && window.location.hash !== '#' + targetId) {
+        try {
+          history.pushState(null, '', '#' + targetId);
+        } catch (e) {}
+      }
+    }
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (!href || href === '#' || href === '') return;
+
+      // Safe ID validation: must start with # followed by alphanumeric/dash/underscore
+      if (!/^#[a-zA-Z0-9_-]+$/.test(href)) return;
+
+      e.preventDefault();
+      scrollToTargetId(href.slice(1), true);
+    });
+  });
+
+  // Handle native Back / Forward browser navigation between hash anchors
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash;
+    if (hash && /^#[a-zA-Z0-9_-]+$/.test(hash)) {
+      scrollToTargetId(hash.slice(1), false);
+    } else if (!hash) {
+      scrollToTargetId('hero', false);
+    }
+  });
+
+  // Precision alignment on initial load / refresh with hash URL
+  if (window.location.hash && /^#[a-zA-Z0-9_-]+$/.test(window.location.hash)) {
+    window.addEventListener('load', () => {
+      requestAnimationFrame(() => {
+        scrollToTargetId(window.location.hash.slice(1), false);
+      });
+    }, { once: true });
+  }
+
+  // ------------------------------------------------------------------------
+  // 04. Active Section Nav Spy + Brand Name Hero Indicator
+  // ------------------------------------------------------------------------
+  const sections = document.querySelectorAll('section[id]');
+
+  if ('IntersectionObserver' in window && sections.length > 0) {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-15% 0px -65% 0px',
+      threshold: 0
+    };
+
+    const spyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const currentId = '#' + entry.target.getAttribute('id');
+
+          if (currentId === '#hero') {
+            // Top of the page: highlight Mohamed Khattab in orange CTA color
+            if (brandName) brandName.classList.add('is-hero-active');
+            navLinks.forEach(link => link.classList.remove('is-active'));
+          } else {
+            // Inside content sections: return Mohamed Khattab to white, highlight current section
+            if (brandName) brandName.classList.remove('is-hero-active');
+            navLinks.forEach(link => {
+              if (link.getAttribute('href') === currentId) {
+                link.classList.add('is-active');
+              } else {
+                link.classList.remove('is-active');
+              }
+            });
+          }
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(sec => spyObserver.observe(sec));
+  }
+
+  // ------------------------------------------------------------------------
+  // 05. Video Lightbox Modal (Accessible, Focus-Trapped, No Layout-Shift)
+  // ------------------------------------------------------------------------
+  const videoModal = document.getElementById('videoModal');
+  const videoModalClose = document.getElementById('videoModalClose');
+  const videoModalBackdrop = document.getElementById('videoModalBackdrop');
+  const videoShell = document.getElementById('videoModalShell');
+  const videoTriggers = document.querySelectorAll('.js-video-trigger');
+
+  function isAllowedVideoUrl(urlString) {
+    if (!urlString || typeof urlString !== 'string') return false;
+    try {
+      const parsed = new URL(urlString, window.location.origin);
+      if (parsed.protocol !== 'https:') return false;
+      const allowedHosts = new Set([
+        'www.youtube.com',
+        'youtube.com',
+        'www.youtube-nocookie.com',
+        'youtube-nocookie.com',
+        'player.vimeo.com',
+        'iframe.mediadelivery.net'
+      ]);
+      return allowedHosts.has(parsed.hostname.toLowerCase());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  let lastActiveElement = null;
+
+  function openVideoModal(embedUrl, title) {
+    if (!videoModal || !videoShell || !isAllowedVideoUrl(embedUrl)) return;
+
+    lastActiveElement = document.activeElement;
+
+    const urlObj = new URL(embedUrl);
+    urlObj.searchParams.set('autoplay', '1');
+
+    const iframe = document.createElement('iframe');
+    iframe.src = urlObj.toString();
+    iframe.title = title || 'فيديو من أعمال محمد خطاب';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+
+    videoShell.replaceChildren(iframe);
+    videoModal.setAttribute('aria-hidden', 'false');
+    videoModal.classList.add('is-active');
+    lockBodyScroll();
+
+    if (videoModalClose) {
+      videoModalClose.focus();
+    }
+  }
+
+  function closeVideoModal() {
+    if (!videoModal || !videoShell) return;
+    videoModal.classList.remove('is-active');
+    videoModal.setAttribute('aria-hidden', 'true');
+    videoShell.replaceChildren(); // Stop playback immediately by removing iframe
+    unlockBodyScroll();
+
+    if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+      lastActiveElement.focus();
+    }
+  }
+
+  videoTriggers.forEach(trigger => {
+    const handleTrigger = (e) => {
+      e.preventDefault();
+      const embedUrl = trigger.getAttribute('data-video-url');
+      const videoTitle = trigger.getAttribute('data-video-title');
+      if (embedUrl) {
+        openVideoModal(embedUrl, videoTitle);
+      }
+    };
+
+    trigger.addEventListener('click', handleTrigger);
+
+    // Keyboard Accessibility: activate via Enter or Space
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        handleTrigger(e);
+      }
+    });
+  });
+
+  if (videoModalClose) {
+    videoModalClose.addEventListener('click', closeVideoModal);
+  }
+
+  if (videoModalBackdrop) {
+    videoModalBackdrop.addEventListener('click', closeVideoModal);
+  }
+
+  // Keyboard Navigation: Escape to close + Focus Trap
+  document.addEventListener('keydown', (e) => {
+    if (!videoModal || !videoModal.classList.contains('is-active')) return;
+
+    if (e.key === 'Escape') {
+      closeVideoModal();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      const focusable = videoModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), iframe');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  // ------------------------------------------------------------------------
+  // 06. GSAP ScrollTrigger Motion Engine (Precision Engineered & Accessible)
+  // ------------------------------------------------------------------------
+  let gsapCtx = null;
+
+  function initGSAPMotion() {
+    const hasGSAP = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+    if (!hasGSAP) return;
+
+    // Respect User's Reduced Motion Preference for Accessibility
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Use gsap.context for clean scoping, prevent memory leaks and duplicate triggers
+    gsapCtx = gsap.context(() => {
+
+      // A. Navbar Entrance Reveal (Immediate, Smooth)
+      if (siteHeader) {
+        gsap.from(siteHeader, {
+          y: -16,
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power2.out',
+          clearProps: 'transform,opacity'
+        });
+      }
+
+      // B. Hero Section Entrance (Text Stagger + Image Reveal + Subtle Glow)
+      const heroTimeline = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+      const heroEyebrow = document.querySelector('.hero-eyebrow');
+      const heroHeadline = document.querySelector('.hero-headline');
+      const heroDesc = document.querySelector('.hero-description');
+      const heroActions = document.querySelector('.hero-actions');
+      const heroFrame = document.querySelector('.hero-image-frame');
+      const heroHalo = document.querySelector('.hero-halo');
+      const heroPill = document.querySelector('.hero-micro-pill');
+
+      if (heroHalo) {
+        heroTimeline.fromTo(heroHalo, 
+          { opacity: 0, scale: 0.8 }, 
+          { opacity: 1, scale: 1, duration: 1.2, clearProps: 'opacity' }, 
+          0
+        );
+      }
+
+      if (heroFrame) {
+        heroTimeline.from(heroFrame, {
+          y: 22,
+          scale: 0.95,
+          opacity: 0,
+          duration: 0.95,
+          clearProps: 'transform,opacity'
+        }, 0.1);
+      }
+
+      if (heroEyebrow) {
+        heroTimeline.from(heroEyebrow, {
+          y: 14,
+          opacity: 0,
+          duration: 0.6,
+          clearProps: 'all'
+        }, 0.15);
+      }
+
+      if (heroHeadline) {
+        heroTimeline.from(heroHeadline, {
+          y: 22,
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power3.out',
+          clearProps: 'all'
+        }, 0.25);
+      }
+
+      if (heroDesc) {
+        heroTimeline.from(heroDesc, {
+          y: 18,
+          opacity: 0,
+          duration: 0.7,
+          clearProps: 'all'
+        }, 0.38);
+      }
+
+      if (heroActions) {
+        heroTimeline.from(heroActions, {
+          y: 16,
+          opacity: 0,
+          duration: 0.65,
+          clearProps: 'all'
+        }, 0.5);
+      }
+
+      if (heroPill) {
+        heroTimeline.from(heroPill, {
+          scale: 0.88,
+          opacity: 0,
+          duration: 0.55,
+          ease: 'back.out(1.4)',
+          clearProps: 'all'
+        }, 0.55);
+      }
+
+      // C. Universal Section Header Reveals (Trigger at 82% viewport, Once Only)
+      const sectionHeaders = document.querySelectorAll('.section-header');
+      sectionHeaders.forEach(header => {
+        gsap.from(header.children, {
+          scrollTrigger: {
+            trigger: header,
+            start: 'top 82%',
+            once: true
+          },
+          y: 20,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.1,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      });
+
+      // D. About Section (Stagger reveal for texts and 3 values cards)
+      const aboutLeadQuote = document.querySelector('.about-lead-quote');
+      if (aboutLeadQuote) {
+        gsap.from(aboutLeadQuote, {
+          scrollTrigger: {
+            trigger: aboutLeadQuote,
+            start: 'top 82%',
+            once: true
+          },
+          x: 20,
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+      const aboutValueItems = document.querySelectorAll('.about-value-item');
+      if (aboutValueItems.length > 0) {
+        gsap.from(aboutValueItems, {
+          scrollTrigger: {
+            trigger: '.about-values-grid',
+            start: 'top 82%',
+            once: true
+          },
+          y: 22,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.12,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+      // E. Journey Timeline (Scroll-Linked Progress Line + Marker Activation + Card Reveals)
+      const timelineWrap = document.querySelector('.timeline-wrap');
+      const progressBar = document.getElementById('timelineProgress');
+
+      if (timelineWrap && progressBar) {
+        gsap.to(progressBar, {
+          scrollTrigger: {
+            trigger: timelineWrap,
+            start: 'top 75%',
+            end: 'bottom 65%',
+            scrub: 0.3
+          },
+          scaleY: 1,
+          ease: 'none'
+        });
+      }
+
+      const timelineItems = document.querySelectorAll('.timeline-item');
+      timelineItems.forEach((item) => {
+        const node = item.querySelector('.timeline-node');
+        const card = item.querySelector('.timeline-content-card');
+
+        // Scroll marker activation
+        if (node) {
+          ScrollTrigger.create({
+            trigger: item,
+            start: 'top 72%',
+            onEnter: () => node.classList.add('is-active'),
+            onLeaveBack: () => node.classList.remove('is-active')
+          });
+        }
+
+        // Card entrance
+        if (card) {
+          gsap.from(card, {
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 82%',
+              once: true
+            },
+            y: 22,
+            opacity: 0,
+            duration: 0.75,
+            ease: 'power2.out',
+            clearProps: 'all'
+          });
+        }
+      });
+
+      // F. Clients Section (Staggered image cards reveal)
+      const clientCards = document.querySelectorAll('.client-card');
+      if (clientCards.length > 0) {
+        gsap.from(clientCards, {
+          scrollTrigger: {
+            trigger: '.clients-grid',
+            start: 'top 82%',
+            once: true
+          },
+          y: 20,
+          opacity: 0,
+          scale: 0.96,
+          duration: 0.65,
+          stagger: 0.07,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+      // G. Portfolio Section (Reels grid staggered reveal)
+      const reelCards = document.querySelectorAll('.reel-card');
+      if (reelCards.length > 0) {
+        gsap.from(reelCards, {
+          scrollTrigger: {
+            trigger: '.reels-grid',
+            start: 'top 82%',
+            once: true
+          },
+          y: 24,
+          opacity: 0,
+          duration: 0.75,
+          stagger: 0.1,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+      // H. Courses Section (YouTube-style 2-card grid reveal)
+      const courseCards = document.querySelectorAll('.course-yt-card');
+      if (courseCards.length > 0) {
+        gsap.from(courseCards, {
+          scrollTrigger: {
+            trigger: '.courses-youtube-grid',
+            start: 'top 82%',
+            once: true
+          },
+          y: 24,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.14,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+      // I. Collaboration Section (Box entrance + Headline reveal + CTA interaction)
+      const collabBox = document.querySelector('.collab-box');
+      if (collabBox) {
+        gsap.from(collabBox, {
+          scrollTrigger: {
+            trigger: collabBox,
+            start: 'top 82%',
+            once: true
+          },
+          y: 24,
+          scale: 0.98,
+          opacity: 0,
+          duration: 0.85,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+
+        const collabChildren = collabBox.querySelectorAll('.section-eyebrow, #collabHeading, .collab-copy, .collab-actions-row');
+        if (collabChildren.length > 0) {
+          gsap.from(collabChildren, {
+            scrollTrigger: {
+              trigger: collabBox,
+              start: 'top 80%',
+              once: true
+            },
+            y: 18,
+            opacity: 0,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: 'power2.out',
+            clearProps: 'all'
+          });
+        }
+      }
+
+      // J. Footer (Subtle reveal only)
+      const footerContainer = document.querySelector('.site-footer .container');
+      if (footerContainer) {
+        gsap.from(footerContainer, {
+          scrollTrigger: {
+            trigger: '.site-footer',
+            start: 'top 92%',
+            once: true
+          },
+          y: 16,
+          opacity: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+          clearProps: 'all'
+        });
+      }
+
+    }); // End gsap.context
+
+    // Safe refresh after fonts & images have loaded to ensure exact trigger coordinates
+    const safeRefresh = () => {
+      if (typeof ScrollTrigger !== 'undefined') {
+        ScrollTrigger.refresh();
+      }
+    };
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(safeRefresh).catch(() => {});
+    }
+
+    window.addEventListener('load', safeRefresh, { once: true });
+  }
+
+  // Initialize Motion Engine
+  initGSAPMotion();
+
+  // Page Lifecycle & bfcache Cleanup
+  window.addEventListener('pagehide', () => {
+    closeVideoModal();
+    if (gsapCtx) gsapCtx.revert();
+  });
+});

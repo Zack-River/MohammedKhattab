@@ -1,3 +1,5 @@
+> Historical evidence for the superseded journey/player redesign. The current reference reconstruction is documented in `DESIGN_SYSTEM.md`; these results do not measure its performance.
+
 # Your first edit — UX direction
 
 Purpose: help a student imagine making their first video, understand the practical workshop and choose whether to contact Mohammed. The story earns the next scroll by answering a small question and opening the next one. Navigation, reading and leaving always remain under the visitor's control.

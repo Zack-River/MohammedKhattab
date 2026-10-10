@@ -1,0 +1,21 @@
+
+Running 14 tests using 1 worker
+
+(node:32833) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/custom-video-player.spec.ts:3:5 › hero thumbnail activates original MP4 with only centered play/pause (3.3s)
+  ✓   2 tests/custom-video-player.spec.ts:59:7 › hero thumbnail and overlay fit 16:9 at 320px (1.1s)
+  ✓   3 tests/custom-video-player.spec.ts:59:7 › hero thumbnail and overlay fit 16:9 at 390px (2.2s)
+  ✓   4 tests/custom-video-player.spec.ts:59:7 › hero thumbnail and overlay fit 16:9 at 768px (2.0s)
+  ✓   5 tests/custom-video-player.spec.ts:59:7 › hero thumbnail and overlay fit 16:9 at 1440px (2.0s)
+  ✓   6 tests/custom-video-player.spec.ts:107:5 › hero reports media failure and retries (1.3s)
+  ✓   7 tests/reel-motion.spec.ts:3:5 › creator marquee moves left and repeats without a gap or position jump (1.1s)
+  ✓   8 tests/reel-motion.spec.ts:28:5 › reduced motion reproduces the static reels and turning it off restores animation (1.3s)
+  ✓   9 tests/scroll-reveals.spec.ts:3:5 › reference content fades in at the viewport trigger and reveals only once (3.6s)
+  ✓  10 tests/scroll-reveals.spec.ts:17:5 › reduced motion and JavaScript-free visits keep all content visible (1.9s)
+  ✓  11 tests/site-motion.spec.ts:7:7 › workshop shares smooth motion and animates FAQ/menu in both directions (3.9s)
+  ✓  12 tests/site-motion.spec.ts:7:7 › LMS shares smooth motion and animates FAQ/menu in both directions (5.3s)
+  ✓  13 tests/site-motion.spec.ts:76:7 › workshop hover and leave visibly interpolate instead of snapping (3.9s)
+  ✓  14 tests/site-motion.spec.ts:76:7 › LMS hover and leave visibly interpolate instead of snapping (3.8s)
+
+  14 passed (38.3s)

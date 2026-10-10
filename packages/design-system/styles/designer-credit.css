@@ -1,0 +1,10 @@
+.designer-credit {
+  display: inline-block;
+  color: inherit;
+  cursor: pointer;
+  transition: color var(--motion-duration-control) var(--motion-easing);
+}
+.designer-credit:hover,
+.designer-credit:focus-visible {
+  color: var(--primary-red);
+}

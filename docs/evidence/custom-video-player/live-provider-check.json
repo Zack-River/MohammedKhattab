@@ -1,0 +1,20 @@
+{
+  "text": "0:00 / 1:01",
+  "frame": "https://www.youtube-nocookie.com/embed/h1G6qEPRIPg?autoplay=1&playsinline=1&controls=0&enablejsapi=1&disablekb=1&fs=0&rel=0&origin=http%3A%2F%2Flocalhost%3A3022",
+  "buttons": [
+    {
+      "label": "إيقاف الفيديو مؤقتًا",
+      "disabled": false
+    },
+    {
+      "label": "كتم الصوت",
+      "disabled": false
+    },
+    {
+      "label": "ملء الشاشة",
+      "disabled": false
+    }
+  ],
+  "error": false,
+  "pageErrors": []
+}

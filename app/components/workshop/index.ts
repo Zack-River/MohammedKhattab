@@ -1,0 +1,10 @@
+export { default as WorkshopPage } from "./workshop-page";
+export { default as HeroSection } from "./hero-section";
+export { default as ClientsSection } from "@khatab/design/ui/clients-section";
+export { default as TransformationSection } from "@khatab/design/ui/transformation-section";
+export { default as RoadmapSection } from "./roadmap-section";
+export { default as TestimonialsSection } from "@khatab/design/ui/testimonials-section";
+export { default as InstructorSection } from "@khatab/design/ui/instructor-section";
+export { default as GuaranteeSection } from "./guarantee-section";
+export { default as FaqSection } from "@khatab/design/ui/faq-section";
+export { default as FinalCtaSection } from "./final-cta-section";

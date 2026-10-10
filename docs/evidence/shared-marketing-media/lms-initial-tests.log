@@ -1,0 +1,182 @@
+
+Running 53 tests using 2 workers
+
+(node:49261) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:49262) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid (5.6s)
+  ✓   2 tests/acceptance-motion.spec.ts:34:5 › T27 reduced-motion initial load subscribes to preference changes (5.7s)
+  ✓   4 tests/acceptance-motion.spec.ts:96:5 › T30 production reveal timing is milliseconds after CSS optimization (2.3s)
+  ✓   5 tests/certificate-renderer.spec.ts:3:5 › T33 renderer escapes learner/issuer XML and receives concrete palette (28ms)
+  ✓   6 tests/defensive-ui.spec.ts:6:5 › T22 T32 invalid supplied presentation models fail clearly (73ms)
+  ✓   3 tests/acceptance-motion.spec.ts:75:5 › T29 mobile FAQ panel has zero closed height (3.0s)
+  ✓   7 tests/domain.spec.ts:26:5 › T11 T12 explicit selections and associated resources survive reorder (21ms)
+  ✓   8 tests/domain.spec.ts:55:5 › T14 shared profile boundary validation (36ms)
+  ✓   9 tests/domain.spec.ts:39:5 › T13 route builders reject path injection and preserve query values (43ms)
+  ✓  10 tests/domain.spec.ts:81:5 › T15 note scopes and lessons are isolated (6ms)
+  ✓  11 tests/domain.spec.ts:90:5 › T16 course summaries have one numeric source and numbering handles ten (48ms)
+  ✓  12 tests/domain.spec.ts:99:5 › T17 T32 progress is finite, deduplicated and total-completion safe (51ms)
+  ✓  13 tests/domain.spec.ts:143:5 › T14 T32 persisted state sanitation and published-data invariants (58ms)
+  ✓  14 tests/domain.spec.ts:209:5 › T11 preview identity and configured lesson order survive module reordering (23ms)
+  ✓  16 tests/engine-lifecycle.spec.ts:14:5 › T25 T26 T27 T28 engine owns targets, future motion and ten clean lifecycles (2.8s)
+  ✓  17 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 390 (4.0s)
+  ✘  15 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 (10.3s)
+(node:49904) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  18 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 768 (4.1s)
+  ✓  20 tests/interaction-acceptance.spec.ts:21:5 › T24 retained occurrences do not replay; removal, search and history remain usable (4.0s)
+  ✓  19 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 1440 (5.2s)
+  ✓  22 tests/interaction-acceptance.spec.ts:48:5 › T09 T30 touch has no sticky hover movement (2.1s)
+  ✓  21 tests/interaction-acceptance.spec.ts:36:5 › T30 actual localhost:3040 entrance, surface timing and live hover interpolation (4.5s)
+  ✓  24 tests/lms.spec.ts:3:5 › approved identity and landing content (1.9s)
+  ✘  23 tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus (3.5s)
+(node:50231) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 tests/lms.spec.ts:26:5 › catalog filters and search (2.6s)
+  ✓  26 tests/lms.spec.ts:61:5 › deferred video and saved lesson notes (2.3s)
+  ✓  27 tests/lms.spec.ts:42:5 › enrollment and progress persist (4.1s)
+  ✓  29 tests/lms.spec.ts:99:5 › API validation, isolation, downloads and earned certificates (801ms)
+  ✓  28 tests/lms.spec.ts:81:5 › demo entry and profile updates (3.3s)
+  ✓  31 tests/lms.spec.ts:168:7 › all screens fit at 768px (4.5s)
+  ✓  30 tests/lms.spec.ts:168:7 › all screens fit at 320px (4.8s)
+  ✓  33 tests/lms.spec.ts:199:5 › mobile navigation and FAQ (4.7s)
+  ✓  32 tests/lms.spec.ts:168:7 › all screens fit at 1440px (6.1s)
+  ✓  34 tests/lms.spec.ts:228:5 › invalid routes show 404 (1.5s)
+  ✓  35 tests/lms.spec.ts:241:5 › course cards prioritize mock price and registration (1.9s)
+  ✓  36 tests/lms.spec.ts:287:5 › readable action labels, metadata and lesson status on mobile (3.1s)
+  ✓  37 tests/lms.spec.ts:377:5 › FAQ transitions finish and reduced motion exposes reveal content (3.2s)
+  ✓  38 tests/lms.spec.ts:423:5 › landing hero visibly enters on load and respects reduced motion (2.9s)
+  ✓  39 tests/lms.spec.ts:461:5 › course entrances and hover movement are visible and independent (3.2s)
+  ✓  41 tests/marketing-media.spec.ts:41:5 › manual fullscreen preserves portrait framing and completion restores the thumbnail (3.2s)
+  ✓  42 tests/marketing-media.spec.ts:60:5 › featured testimonial plus three reviews expands through the primary show-more action (1.8s)
+  ✓  43 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 320px (2.8s)
+  ✓  44 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 390px (3.4s)
+  ✓  45 tests/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 1440px (2.2s)
+  ✓  46 tests/production-contracts.spec.ts:10:5 › T05 T21 T33 T37 server-only export assets and standalone artifact identity (1.6s)
+  ✓  47 tests/reuse.spec.ts:3:5 › T22 profile normalization errors and mutation feedback prevent duplicate submission (2.9s)
+  ✓  48 tests/reuse.spec.ts:18:5 › T18 T20 alternate landing models own copy, sections and destinations (1.1s)
+  ✓  49 tests/reuse.spec.ts:50:5 › T15 T19 independent controls and scoped same-key notes (1.8s)
+  ✓  50 tests/reuse.spec.ts:114:5 › T21 T23 minimal view models and layout variants render independently (800ms)
+  ✓  51 tests/reuse.spec.ts:143:5 › T25 standalone section markers remain effective with alternate identifiers (783ms)
+  ✓  52 tests/theme-contract.spec.ts:3:5 › T06 radius does not control spacing or footer measure (883ms)
+  ✓  53 tests/theme-contract.spec.ts:48:5 › T08 palette follows primary without changing production identity (706ms)
+  ✘  40 tests/marketing-media.spec.ts:3:5 › supplied intro and four curated samples use the shared deferred player and reset previous playback (30.8s)
+
+
+  1) tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      12 |  const full=await panel.evaluate(element=>element.getBoundingClientRect().height);expect(opening.height).toBeLessThan(full);
+      13 |  await button.press("Space");await expect(panel).toHaveAttribute("aria-hidden","true");
+    > 14 |  await expect.poll(()=>panel.evaluate((element,maximum)=>{const height=element.getBoundingClientRect().height;return height>1&&height<maximum;},full)).toBe(true);
+         |                                                                                                                                                        ^
+      15 |  await expect.poll(()=>panel.evaluate(element=>element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+      16 |  await button.press("Enter");await button.press("Enter");await button.press("Enter");
+      17 |  await expect(button).toHaveAttribute("aria-expanded","true");await expect(panel).toHaveAttribute("aria-hidden","false");
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/interaction-acceptance.spec.ts:14:152
+
+    Error Context: test-results/interaction-acceptance-T29-556ce-pid-keyboard-toggles-at-320/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/interaction-acceptance-T29-556ce-pid-keyboard-toggles-at-320/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/interaction-acceptance-T29-556ce-pid-keyboard-toggles-at-320/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus ──
+
+    Error: expect(received).toMatchObject(expected)
+
+    - Expected  - 2
+    + Received  + 2
+
+      Object {
+    -   "tag": "A",
+    -   "visible": true,
+    +   "tag": "BODY",
+    +   "visible": false,
+      }
+
+      58 |  for(const width of [1023,1024,1025]){await page.setViewportSize({width,height:900});if(width<=1024)await expect(toggle).toBeVisible();else await expect(toggle).toBeHidden();}
+      59 |  await page.goto("/courses");await page.keyboard.press("Tab");
+    > 60 |  expect(await page.evaluate(()=>{const node=document.activeElement!;const css=getComputedStyle(node);return {tag:node.tagName,visible:css.outlineStyle!=="none"&&parseFloat(css.outlineWidth)>0};})).toMatchObject({tag:"A",visible:true});
+         |                                                                                                                                                                                                      ^
+      61 |  const filter=page.getByRole("link",{name:"موشن جرافيك",exact:true});await filter.focus();await page.keyboard.press("Enter");await expect(page.locator(".lms-course-card")).toHaveCount(1);
+      62 |  const action=page.locator(".lms-card-action");await action.focus();await page.keyboard.press("Enter");await expect(page).toHaveURL(/motion-essentials#course-enrollment/);
+      63 | });
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/interaction-acceptance.spec.ts:60:198
+
+    Error Context: test-results/interaction-acceptance-T07-27046-undaries-and-keyboard-focus/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/interaction-acceptance-T07-27046-undaries-and-keyboard-focus/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/interaction-acceptance-T07-27046-undaries-and-keyboard-focus/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) tests/marketing-media.spec.ts:3:5 › supplied intro and four curated samples use the shared deferred player and reset previous playback 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.hero-video-shell').locator('.media-player-poster')
+        - locator resolved to <button type="button" aria-label="تشغيل الفيديو التعريفي" class="media-player-poster hero-video-placeholder">…</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is not visible
+      - retrying click action
+        - waiting for element to be visible, enabled and stable
+        - element is not stable
+      - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is not stable
+        - retrying click action
+          - waiting 100ms
+        - waiting for element to be visible, enabled and stable
+        - element is not stable
+      51 × retrying click action
+           - waiting 500ms
+           - waiting for element to be visible, enabled and stable
+           - element is not visible
+      - retrying click action
+        - waiting 500ms
+
+
+      14 |   const hero = page.locator(".hero-video-shell");
+      15 |   await expect(hero.locator("img")).toHaveAttribute("src", "/assets/images/workshop-intro-poster.jpg");
+    > 16 |   await hero.locator(".media-player-poster").click();
+         |                                              ^
+      17 |   await expect(hero.locator("video")).toHaveAttribute("src", "/assets/video/workshop-intro.mp4");
+      18 |   await expect.poll(() => hero.locator("video").evaluate(node => (node as HTMLVideoElement).paused)).toBe(false);
+      19 |   expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/marketing-media.spec.ts:16:46
+
+    Error Context: test-results/marketing-media-supplied-i-5c559-and-reset-previous-playback/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/marketing-media-supplied-i-5c559-and-reset-previous-playback/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/marketing-media-supplied-i-5c559-and-reset-previous-playback/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 
+    tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus ───
+    tests/marketing-media.spec.ts:3:5 › supplied intro and four curated samples use the shared deferred player and reset previous playback 
+  50 passed (1.6m)

@@ -1,0 +1,22 @@
+.lms-form-field { display: grid; gap: var(--space-control); min-width: 0; }
+.lms-field-input-wrap { position: relative; min-width: 0; }
+.lms-field-input-wrap[data-has-control] input { padding-inline-end: var(--size-80px); }
+.lms-password-toggle {
+  position: absolute; inset-inline-end: var(--space-control); top: 50%; transform: translateY(-50%);
+  border: 0; background: transparent; color: var(--text-secondary); font: inherit;
+  font-size: var(--font-size-caption); cursor: pointer; padding: var(--space-unit);
+  transition: color var(--motion-duration-control) var(--motion-easing);
+}
+.lms-password-toggle:hover, .lms-password-toggle:focus-visible { color: var(--primary-red); }
+.lms-password-toggle:disabled { cursor: default; }
+.lms-field-hint { color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-auth-card .lms-error { color: var(--color-ffb3aa); margin: 0; }
+.lms-auth-form input[aria-invalid="true"] { border-color: var(--primary-red); }
+.lms-auth-form .btn-primary { justify-self: stretch; }
+.lms-auth-alternate {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-control);
+  margin-top: var(--space-lg); font-size: var(--font-size-caption); color: var(--text-secondary);
+}
+.lms-auth-alternate a { color: var(--primary-red); transition: color var(--motion-duration-control) var(--motion-easing); }
+.lms-auth-alternate a:hover { text-decoration: underline; }
+.lms-auth-status { color: var(--text-muted); font-size: var(--font-size-caption); }

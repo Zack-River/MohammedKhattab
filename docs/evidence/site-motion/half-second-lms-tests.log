@@ -1,0 +1,19 @@
+
+Running 12 tests using 1 worker
+
+(node:32969) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid (1.5s)
+  ✓   2 tests/acceptance-motion.spec.ts:34:5 › T27 reduced-motion initial load subscribes to preference changes (739ms)
+  ✓   3 tests/acceptance-motion.spec.ts:75:5 › T29 mobile FAQ panel has zero closed height (864ms)
+  ✓   4 tests/acceptance-motion.spec.ts:96:5 › T30 production reveal timing is milliseconds after CSS optimization (1.3s)
+  ✓   5 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 320 (2.7s)
+  ✓   6 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 390 (2.5s)
+  ✓   7 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 768 (2.5s)
+  ✓   8 tests/interaction-acceptance.spec.ts:2:43 › T29 FAQ expansion, collapse and rapid keyboard toggles at 1440 (2.9s)
+  ✓   9 tests/interaction-acceptance.spec.ts:21:5 › T24 retained occurrences do not replay; removal, search and history remain usable (2.0s)
+  ✓  10 tests/interaction-acceptance.spec.ts:36:5 › T30 actual localhost:3040 entrance, surface timing and live hover interpolation (3.6s)
+  ✓  11 tests/interaction-acceptance.spec.ts:48:5 › T09 T30 touch has no sticky hover movement (1.6s)
+  ✓  12 tests/interaction-acceptance.spec.ts:55:5 › T07 T31 breakpoint boundaries and keyboard focus (1.3s)
+
+  12 passed (25.3s)

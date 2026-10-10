@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-10",
+  "method": "Real About renderer via React SSR; real DeferredVideoPlayer active branch with deterministic hook/dependency substitutes. Not a browser playback test.",
+  "about": [
+    {
+      "body": "before NAME middle NAME after",
+      "actual": "before NAME middle ",
+      "preserved": false
+    },
+    {
+      "body": "before without match after",
+      "actual": "before without match afterNAME",
+      "preserved": false
+    }
+  ],
+  "youtube": {
+    "requestedControlsVariant": "overlay",
+    "requestedReturnToPosterOnEnd": true,
+    "forwardedProps": [
+      "url",
+      "title",
+      "labels"
+    ],
+    "forwardsControlsVariant": false,
+    "forwardsEndedHandler": false
+  }
+}

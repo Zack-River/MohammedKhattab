@@ -1,27 +1,27 @@
-import Container from "@/app/components/ui/container";
-import type { JSX } from "react";
-import { contactLinks, siteConfig } from "@/app/config/site";
-import SocialLinks from "./social-links";
-import ScrollToTopLink from "./scroll-to-top-link";
+import DesignerCredit from "@khatab/design/ui/designer-credit";
+import ProjectNavigation from "@khatab/design/ui/project-navigation";
+import SocialLinks from "@khatab/design/ui/social-links";
+import Container from "@khatab/design/ui/container";
+import type { FooterContent } from "@khatab/design/types/marketing";
 
-export default function SiteFooter(): JSX.Element {
+export default function SiteFooter({ content }: { content: FooterContent }) {
   return (
-    <footer className="border-t border-line bg-footer py-12 sm:py-16">
-      <Container className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col items-center gap-1 md:items-start">
-          <ScrollToTopLink />
-          <div className="text-center text-sm text-muted md:text-start">
-            جميع الحقوق محفوظة © ورشة التغيير — محمد خطاب
-          </div>
-          <div className="mt-2 flex flex-wrap justify-center gap-1.5 text-sm text-muted md:justify-start">
-            <a href={contactLinks.phone}>{siteConfig.phoneDisplay}</a> ·{" "}
-            <a href={contactLinks.email}>{siteConfig.email}</a>
-          </div>
+    <footer className="site-footer">
+      <Container className="footer-layout">
+        <div className="footer-brand">
+          <a
+            href={content.brand.href}
+            className="footer-brand-title footer-scroll-top-link"
+            title={content.brand.title}
+          >
+            {content.brand.label}
+          </a>
+          <div className="footer-copy-text">{content.copyright}</div>
+          {content.projectNavigation && <ProjectNavigation content={content.projectNavigation} />}
         </div>
-
-        <div className="flex flex-col items-center gap-2 md:items-start">
-          <SocialLinks />
-          <div className="text-sm text-muted">فكرتك تستاهل تتشاف.</div>
+        <div className="footer-social-wrapper">
+          <SocialLinks links={content.social} />
+          <div className="footer-designer-credit"><DesignerCredit credit={content.credit} /></div>
         </div>
       </Container>
     </footer>

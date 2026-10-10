@@ -1,0 +1,15 @@
+
+Running 8 tests using 1 worker
+
+(node:61998) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/portfolio.spec.ts:5:5 › portfolio preserves reference sections, copy, links and real media (1.3s)
+  ✓  2 tests/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px (1.2s)
+  ✓  3 tests/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 390px (1.2s)
+  ✓  4 tests/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 768px (1.5s)
+  ✓  5 tests/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 1440px (1.0s)
+  ✓  6 tests/portfolio.spec.ts:86:5 › portfolio player remains inline and resets the prior sample (1.2s)
+  ✓  7 tests/portfolio.spec.ts:102:5 › portfolio shares smooth hover and progressing timeline with reduced motion support (1.6s)
+  ✓  8 tests/portfolio.spec.ts:130:5 › every original section and footer retains the complete reference text (568ms)
+
+  8 passed (11.3s)

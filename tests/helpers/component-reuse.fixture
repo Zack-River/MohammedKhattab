@@ -1,0 +1,32 @@
+runCase("sections render alternate content, assets, counts, identifiers, and actions", () => {
+  const hero = renderToStaticMarkup(<HeroSection content={{
+    ...workshopPage.hero, section: { id: "another-course", className: "hero-section" },
+    title: ["A different course"], description: "Another introduction",
+    video: { controls: workshopPage.hero.video.controls, url: "https://youtu.be/dQw4w9WgXcQ", title: "New video", playLabel: "Play preview", caption: "Preview caption", hint: "Click here" },
+    action: { href: "/register", label: "Join now" }, microcopy: ["Live lessons"],
+  }} />);
+  expect(hero).toContain('id="another-course"');
+  expect(hero).toContain("A different course");
+  expect(hero).toContain('href="/register"');
+  expect(hero).toContain("Preview caption");
+  expect(hero).not.toContain("أقوى الإديتورز");
+  expect(hero).not.toContain("wa.me");
+  const clients = renderToStaticMarkup(<ClientsSection content={{
+    ...workshopPage.clients, creators: [{ name: "New creator", platform: "Podcast", image: { src: "/alternate.png", alt: "Alternate portrait", width: 44, height: 44 } }], reels: [],
+  }} />);
+  expect(clients.match(/src="\/alternate.png"/g)).toHaveLength(2);
+  expect(clients).toContain("Alternate portrait");
+  expect(clients).not.toContain('class="reel-card"');
+  const roadmap = renderToStaticMarkup(<RoadmapSection content={{ ...workshopPage.roadmap, days: [workshopPage.roadmap.days[0]] }} />);
+  expect(roadmap.match(/class="timeline-item day-item/g)).toHaveLength(1);
+});
+
+runCase("multiple FAQ and navigation instances have unique linked controls", () => {
+  const faq = { ...workshopPage.faq, items: [{ question: "Custom question", answer: "Custom answer" }] };
+  const markup = renderToStaticMarkup(<><FaqSection content={faq} /><FaqSection content={faq} /><SiteNavigation content={workshopPage.header} open={false} onClose={() => {}} onToggle={() => {}} /><SiteNavigation content={workshopPage.header} open={false} onClose={() => {}} onToggle={() => {}} /></>);
+  const controls = Array.from(markup.matchAll(/aria-controls="([^"]+)"/g), match => match[1]);
+  expect(controls).toHaveLength(4);
+  expect(new Set(controls).size).toBe(4);
+  controls.forEach(id => expect(markup).toContain(`id="${id}"`));
+});
+

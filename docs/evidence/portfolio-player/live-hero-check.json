@@ -1,0 +1,18 @@
+[
+  {
+    "source": "/assets/video/workshop-intro.mp4",
+    "nativeControls": false,
+    "controlsBars": 0,
+    "buttons": 1,
+    "viewport": 1440,
+    "errors": []
+  },
+  {
+    "source": "/assets/video/workshop-intro.mp4",
+    "nativeControls": false,
+    "controlsBars": 0,
+    "buttons": 1,
+    "viewport": 390,
+    "errors": []
+  }
+]

@@ -1,0 +1,1 @@
+{"name":"ta3llam-reuse-fixture","private":true,"scripts":{"build":"next build","start":"next start --port 3043"}}

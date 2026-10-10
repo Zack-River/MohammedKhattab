@@ -1,0 +1,498 @@
+[
+  {
+    "width": 320,
+    "raster": {
+      "sameSize": true,
+      "imageSize": [
+        320,
+        13856
+      ],
+      "differentPixels": 0,
+      "bounds": null
+    },
+    "geometry": [
+      {
+        "id": "siteHeader",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "hero",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "clients",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "transformation",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "roadmap",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "testimonials",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "instructor",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "guarantee",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "faq",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "enroll",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "footer",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "raster": {
+      "sameSize": true,
+      "imageSize": [
+        390,
+        13073
+      ],
+      "differentPixels": 0,
+      "bounds": null
+    },
+    "geometry": [
+      {
+        "id": "siteHeader",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "hero",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "clients",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "transformation",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "roadmap",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "testimonials",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "instructor",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "guarantee",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "faq",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "enroll",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "footer",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "raster": {
+      "sameSize": true,
+      "imageSize": [
+        768,
+        13085
+      ],
+      "differentPixels": 0,
+      "bounds": null
+    },
+    "geometry": [
+      {
+        "id": "siteHeader",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "hero",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "clients",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "transformation",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "roadmap",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "testimonials",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "instructor",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "guarantee",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "faq",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "enroll",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "footer",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "raster": {
+      "sameSize": true,
+      "imageSize": [
+        1440,
+        10842
+      ],
+      "differentPixels": 0,
+      "bounds": null
+    },
+    "geometry": [
+      {
+        "id": "siteHeader",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "hero",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "clients",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "transformation",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "roadmap",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "testimonials",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "instructor",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "guarantee",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "faq",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "enroll",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "footer",
+        "textMatches": true,
+        "delta": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  }
+]

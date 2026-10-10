@@ -1,3 +1,5 @@
+> Historical evidence for the superseded journey/player redesign. The current reference reconstruction is documented in `DESIGN_SYSTEM.md`; these results do not measure its performance.
+
 # One clip, one consequential decision
 
 Implemented 2026-10-02 from the proposed first-edit journey. Direction: a student's first editing desk, using the established charcoal, paper, red and IBM Plex Arabic theme. The recognizable coffee shot connects the opening, scroll assembly, interactive decision, lesson outcomes and closing result. One selected rhythm carries across the experience.

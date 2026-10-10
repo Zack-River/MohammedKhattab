@@ -1,0 +1,1907 @@
+{
+  "cssFiles": 12,
+  "cssLines": 7931,
+  "definitions": 579,
+  "literalValueGroups": [
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 8,
+        "name": "--font-size-caption",
+        "value": "0.875rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 38,
+        "name": "--player-time-size",
+        "value": "0.875rem"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 9,
+        "name": "--font-size-control",
+        "value": "1rem"
+      },
+      {
+        "file": "modules/styles/theme.css",
+        "line": 10,
+        "name": "--font-size-body",
+        "value": "1rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 129,
+        "name": "--size-1rem",
+        "value": "1rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 492,
+        "name": "--personal-reference-value-1rem",
+        "value": "1rem"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 11,
+        "name": "--font-size-action",
+        "value": "1.25rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 153,
+        "name": "--size-1_25rem",
+        "value": "1.25rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 473,
+        "name": "--personal-reference-value-1-25rem",
+        "value": "1.25rem"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 12,
+        "name": "--font-weight-body",
+        "value": "400"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 388,
+        "name": "--weight-regular",
+        "value": "400"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 13,
+        "name": "--font-weight-label",
+        "value": "500"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 387,
+        "name": "--weight-medium",
+        "value": "500"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 14,
+        "name": "--font-weight-action",
+        "value": "700"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 385,
+        "name": "--weight-bold",
+        "value": "700"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 20,
+        "name": "--lms-size-negative-10deg",
+        "value": "-10deg"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 11,
+        "name": "--coming-soon-ribbon-angle",
+        "value": "-10deg"
+      }
+    ],
+    [
+      {
+        "file": "modules/styles/theme.css",
+        "line": 33,
+        "name": "--lms-size-1_8rem",
+        "value": "1.8rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 477,
+        "name": "--personal-reference-value-1-8rem",
+        "value": "1.8rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 12,
+        "name": "--coming-soon-mark-angle",
+        "value": "45deg"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 517,
+        "name": "--personal-reference-value-45deg",
+        "value": "45deg"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 19,
+        "name": "--motion-duration-surface",
+        "value": "500ms"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 21,
+        "name": "--motion-duration-reveal",
+        "value": "500ms"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 23,
+        "name": "--motion-reveal-distance",
+        "value": "32px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 78,
+        "name": "--space-xl",
+        "value": "32px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 510,
+        "name": "--personal-reference-value-32px",
+        "value": "32px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 26,
+        "name": "--motion-press-scale",
+        "value": "0.98"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 414,
+        "name": "--workshop-reveal-scale-review",
+        "value": "0.98"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 29,
+        "name": "--motion-button-lift",
+        "value": "-4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 270,
+        "name": "--size-negative-4px",
+        "value": "-4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 547,
+        "name": "--personal-reference-value-negative-4px",
+        "value": "-4px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 35,
+        "name": "--player-controls-height",
+        "value": "80px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 298,
+        "name": "--size-80px",
+        "value": "80px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 36,
+        "name": "--player-control-size",
+        "value": "40px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 312,
+        "name": "--size-40px",
+        "value": "40px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 516,
+        "name": "--personal-reference-value-40px",
+        "value": "40px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 37,
+        "name": "--player-icon-size",
+        "value": "22px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 155,
+        "name": "--size-22px",
+        "value": "22px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 443,
+        "name": "--personal-reference-radius-lg",
+        "value": "22px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 500,
+        "name": "--personal-reference-value-22px",
+        "value": "22px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 39,
+        "name": "--player-range-height",
+        "value": "16px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 73,
+        "name": "--space-md",
+        "value": "16px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 487,
+        "name": "--personal-reference-value-16px",
+        "value": "16px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 41,
+        "name": "--player-volume-compact-width",
+        "value": "44px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 139,
+        "name": "--size-44px",
+        "value": "44px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 55,
+        "name": "--primary-red-subtle",
+        "value": "rgb(from var(--primary-red) r g b / 0.1)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 566,
+        "name": "--personal-reference-value-rgba-252-53-34-0-1",
+        "value": "rgb(from var(--primary-red) r g b / 0.1)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 56,
+        "name": "--primary-red-border",
+        "value": "rgb(from var(--primary-red) r g b / 0.35)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 571,
+        "name": "--personal-reference-value-rgba-252-53-34-0-35",
+        "value": "rgb(from var(--primary-red) r g b / 0.35)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 64,
+        "name": "--border-hairline",
+        "value": "rgba(255, 255, 255, 0.08)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 578,
+        "name": "--personal-reference-value-rgba-255-255-255-0-08",
+        "value": "rgba(255, 255, 255, 0.08)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 70,
+        "name": "--space-unit",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 72,
+        "name": "--space-sm",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 86,
+        "name": "--radius-sm",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 341,
+        "name": "--dimension-8",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 380,
+        "name": "--shadow-offset-8",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 446,
+        "name": "--personal-reference-radius-sm",
+        "value": "8px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 536,
+        "name": "--personal-reference-value-8px",
+        "value": "8px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 71,
+        "name": "--space-xs",
+        "value": "4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 85,
+        "name": "--radius-xs",
+        "value": "4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 340,
+        "name": "--dimension-4",
+        "value": "4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 379,
+        "name": "--shadow-offset-4",
+        "value": "4px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 521,
+        "name": "--personal-reference-value-4px",
+        "value": "4px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 74,
+        "name": "--space-heading-tight",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 75,
+        "name": "--blur-navigation",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 101,
+        "name": "--portfolio-radius",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 338,
+        "name": "--dimension-14",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 377,
+        "name": "--shadow-offset-14",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 383,
+        "name": "--space-detail",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 444,
+        "name": "--personal-reference-radius-md",
+        "value": "14px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 485,
+        "name": "--personal-reference-value-14px",
+        "value": "14px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 76,
+        "name": "--measure-testimonial-summary",
+        "value": "44ch"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 372,
+        "name": "--measure-footer-copy",
+        "value": "44ch"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 77,
+        "name": "--space-lg",
+        "value": "24px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 396,
+        "name": "--workshop-reveal-distance-card",
+        "value": "24px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 502,
+        "name": "--personal-reference-value-24px",
+        "value": "24px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 79,
+        "name": "--space-2xl",
+        "value": "48px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 520,
+        "name": "--personal-reference-value-48px",
+        "value": "48px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 80,
+        "name": "--space-3xl",
+        "value": "64px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 527,
+        "name": "--personal-reference-value-64px",
+        "value": "64px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 87,
+        "name": "--radius-md",
+        "value": "12px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 337,
+        "name": "--dimension-12",
+        "value": "12px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 376,
+        "name": "--shadow-offset-12",
+        "value": "12px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 382,
+        "name": "--space-control",
+        "value": "12px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 483,
+        "name": "--personal-reference-value-12px",
+        "value": "12px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 88,
+        "name": "--radius-lg",
+        "value": "18px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 339,
+        "name": "--dimension-18",
+        "value": "18px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 378,
+        "name": "--shadow-offset-18",
+        "value": "18px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 381,
+        "name": "--space-comfortable",
+        "value": "18px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 399,
+        "name": "--workshop-reveal-distance-action",
+        "value": "18px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 490,
+        "name": "--personal-reference-value-18px",
+        "value": "18px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 89,
+        "name": "--radius-full",
+        "value": "9999px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 445,
+        "name": "--personal-reference-radius-pill",
+        "value": "9999px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 104,
+        "name": "--breakpoint-small-mobile",
+        "value": "480px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 519,
+        "name": "--personal-reference-value-480px",
+        "value": "480px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 110,
+        "name": "--size-9px",
+        "value": "9px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 539,
+        "name": "--personal-reference-value-9px",
+        "value": "9px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 111,
+        "name": "--color-0d1015",
+        "value": "#0d1015"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 468,
+        "name": "--personal-reference-value-0d1015",
+        "value": "#0D1015"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 112,
+        "name": "--color-202732",
+        "value": "#202732"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 498,
+        "name": "--personal-reference-value-202732",
+        "value": "#202732"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 113,
+        "name": "--size-6px",
+        "value": "6px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 529,
+        "name": "--personal-reference-value-6px",
+        "value": "6px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 114,
+        "name": "--size-2px",
+        "value": "2px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 507,
+        "name": "--personal-reference-value-2px",
+        "value": "2px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 116,
+        "name": "--size-3px",
+        "value": "3px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 515,
+        "name": "--personal-reference-value-3px",
+        "value": "3px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 117,
+        "name": "--size-100vh",
+        "value": "100vh"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 479,
+        "name": "--personal-reference-value-100vh",
+        "value": "100vh"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 119,
+        "name": "--size-1_85rem",
+        "value": "1.85rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 476,
+        "name": "--personal-reference-value-1-85rem",
+        "value": "1.85rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 120,
+        "name": "--size-5vw",
+        "value": "5vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 525,
+        "name": "--personal-reference-value-5vw",
+        "value": "5vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 124,
+        "name": "--size-3_5vw",
+        "value": "3.5vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 508,
+        "name": "--personal-reference-value-3-5vw",
+        "value": "3.5vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 125,
+        "name": "--size-2_75rem",
+        "value": "2.75rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 496,
+        "name": "--personal-reference-value-2-75rem",
+        "value": "2.75rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 126,
+        "name": "--size-1_15rem",
+        "value": "1.15rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 470,
+        "name": "--personal-reference-value-1-15rem",
+        "value": "1.15rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 130,
+        "name": "--size-1_4vw",
+        "value": "1.4vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 475,
+        "name": "--personal-reference-value-1-4vw",
+        "value": "1.4vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 134,
+        "name": "--size-4vw",
+        "value": "4vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 522,
+        "name": "--personal-reference-value-4vw",
+        "value": "4vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 135,
+        "name": "--size-7vw",
+        "value": "7vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 534,
+        "name": "--personal-reference-value-7vw",
+        "value": "7vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 137,
+        "name": "--size-1px",
+        "value": "1px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 491,
+        "name": "--personal-reference-value-1px",
+        "value": "1px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 142,
+        "name": "--color-rgba-0-0-0-0-35",
+        "value": "rgba(0, 0, 0, 0.35)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 549,
+        "name": "--personal-reference-value-rgba-0-0-0-0-35",
+        "value": "rgba(0, 0, 0, 0.35)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 143,
+        "name": "--size-0_88rem",
+        "value": "0.88rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 460,
+        "name": "--personal-reference-value-0-88rem",
+        "value": "0.88rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 144,
+        "name": "--size-10px",
+        "value": "10px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 480,
+        "name": "--personal-reference-value-10px",
+        "value": "10px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 147,
+        "name": "--size-1_05rem",
+        "value": "1.05rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 469,
+        "name": "--personal-reference-value-1-05rem",
+        "value": "1.05rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 148,
+        "name": "--size-0_82rem",
+        "value": "0.82rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 457,
+        "name": "--personal-reference-value-0-82rem",
+        "value": "0.82rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 150,
+        "name": "--size-0_95rem",
+        "value": "0.95rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 463,
+        "name": "--personal-reference-value-0-95rem",
+        "value": "0.95rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 151,
+        "name": "--color-rgba-16-19-23-0-98",
+        "value": "rgba(16, 19, 23, 0.98)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 559,
+        "name": "--personal-reference-value-rgba-16-19-23-0-98",
+        "value": "rgba(16, 19, 23, 0.98)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 152,
+        "name": "--size-20px",
+        "value": "20px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 397,
+        "name": "--workshop-reveal-distance-text",
+        "value": "20px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 499,
+        "name": "--personal-reference-value-20px",
+        "value": "20px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 156,
+        "name": "--size-0_92rem",
+        "value": "0.92rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 462,
+        "name": "--personal-reference-value-0-92rem",
+        "value": "0.92rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 157,
+        "name": "--size-38px",
+        "value": "38px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 514,
+        "name": "--personal-reference-value-38px",
+        "value": "38px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 158,
+        "name": "--color-rgba-252-53-34-0-12",
+        "value": "rgb(from var(--primary-red) r g b / 0.12)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 567,
+        "name": "--personal-reference-value-rgba-252-53-34-0-12",
+        "value": "rgb(from var(--primary-red) r g b / 0.12)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 159,
+        "name": "--size-0_85rem",
+        "value": "0.85rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 458,
+        "name": "--personal-reference-value-0-85rem",
+        "value": "0.85rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 163,
+        "name": "--color-rgba-252-53-34-0-14",
+        "value": "rgb(from var(--primary-red) r g b / 0.14)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 568,
+        "name": "--personal-reference-value-rgba-252-53-34-0-14",
+        "value": "rgb(from var(--primary-red) r g b / 0.14)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 169,
+        "name": "--size-7px",
+        "value": "7px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 532,
+        "name": "--personal-reference-value-7px",
+        "value": "7px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 171,
+        "name": "--size-1_1rem",
+        "value": "1.1rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 472,
+        "name": "--personal-reference-value-1-1rem",
+        "value": "1.1rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 172,
+        "name": "--size-36px",
+        "value": "36px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 512,
+        "name": "--personal-reference-value-36px",
+        "value": "36px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 173,
+        "name": "--size-negative-2px",
+        "value": "-2px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 544,
+        "name": "--personal-reference-value-negative-2px",
+        "value": "-2px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 175,
+        "name": "--size-28px",
+        "value": "28px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 506,
+        "name": "--personal-reference-value-28px",
+        "value": "28px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 177,
+        "name": "--size-30px",
+        "value": "30px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 509,
+        "name": "--personal-reference-value-30px",
+        "value": "30px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 180,
+        "name": "--color-000",
+        "value": "#000"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 466,
+        "name": "--personal-reference-value-000",
+        "value": "#000"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 186,
+        "name": "--color-rgba-252-53-34-0-38",
+        "value": "rgb(from var(--primary-red) r g b / 0.38)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 572,
+        "name": "--personal-reference-value-rgba-252-53-34-0-38",
+        "value": "rgb(from var(--primary-red) r g b / 0.38)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 195,
+        "name": "--color-rgba-255-255-255-0-05",
+        "value": "rgba(255, 255, 255, 0.05)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 577,
+        "name": "--personal-reference-value-rgba-255-255-255-0-05",
+        "value": "rgba(255, 255, 255, 0.05)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 199,
+        "name": "--size-negative-1px",
+        "value": "-1px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 543,
+        "name": "--personal-reference-value-negative-1px",
+        "value": "-1px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 206,
+        "name": "--color-rgba-252-53-34-0-7",
+        "value": "rgb(from var(--primary-red) r g b / 0.7)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 575,
+        "name": "--personal-reference-value-rgba-252-53-34-0-7",
+        "value": "rgb(from var(--primary-red) r g b / 0.7)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 207,
+        "name": "--size-35px",
+        "value": "35px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 401,
+        "name": "--workshop-reveal-offset-photo",
+        "value": "35px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 511,
+        "name": "--personal-reference-value-35px",
+        "value": "35px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 210,
+        "name": "--color-rgba-0-0-0-0-6",
+        "value": "rgba(0, 0, 0, 0.6)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 552,
+        "name": "--personal-reference-value-rgba-0-0-0-0-6",
+        "value": "rgba(0, 0, 0, 0.6)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 214,
+        "name": "--size-180deg",
+        "value": "180deg"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 489,
+        "name": "--personal-reference-value-180deg",
+        "value": "180deg"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 218,
+        "name": "--size-26px",
+        "value": "26px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 398,
+        "name": "--workshop-reveal-distance-preview",
+        "value": "26px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 505,
+        "name": "--personal-reference-value-26px",
+        "value": "26px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 219,
+        "name": "--size-negative-3px",
+        "value": "-3px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 545,
+        "name": "--personal-reference-value-negative-3px",
+        "value": "-3px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 228,
+        "name": "--color-0c0e11",
+        "value": "#0c0e11"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 467,
+        "name": "--personal-reference-value-0c0e11",
+        "value": "#0C0E11"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 230,
+        "name": "--size-0_72rem",
+        "value": "0.72rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 455,
+        "name": "--personal-reference-value-0-72rem",
+        "value": "0.72rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 237,
+        "name": "--size-0_78rem",
+        "value": "0.78rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 456,
+        "name": "--personal-reference-value-0-78rem",
+        "value": "0.78rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 239,
+        "name": "--color-rgba-0-0-0-0-4",
+        "value": "rgba(0, 0, 0, 0.4)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 550,
+        "name": "--personal-reference-value-rgba-0-0-0-0-4",
+        "value": "rgba(0, 0, 0, 0.4)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 240,
+        "name": "--size-1_35rem",
+        "value": "1.35rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 474,
+        "name": "--personal-reference-value-1-35rem",
+        "value": "1.35rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 246,
+        "name": "--color-rgba-0-0-0-0-5",
+        "value": "rgba(0, 0, 0, 0.5)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 551,
+        "name": "--personal-reference-value-rgba-0-0-0-0-5",
+        "value": "rgba(0, 0, 0, 0.5)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 252,
+        "name": "--color-rgba-255-255-255-0-12",
+        "value": "rgba(255, 255, 255, 0.12)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 432,
+        "name": "--personal-reference-border-light",
+        "value": "rgba(255, 255, 255, 0.12)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 580,
+        "name": "--personal-reference-value-rgba-255-255-255-0-12",
+        "value": "rgba(255, 255, 255, 0.12)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 263,
+        "name": "--color-rgba-252-53-34-0-6",
+        "value": "rgb(from var(--primary-red) r g b / 0.6)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 574,
+        "name": "--personal-reference-value-rgba-252-53-34-0-6",
+        "value": "rgb(from var(--primary-red) r g b / 0.6)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 271,
+        "name": "--color-rgba-252-53-34-0-15",
+        "value": "rgb(from var(--primary-red) r g b / 0.15)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 569,
+        "name": "--personal-reference-value-rgba-252-53-34-0-15",
+        "value": "rgb(from var(--primary-red) r g b / 0.15)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 272,
+        "name": "--size-0_98rem",
+        "value": "0.98rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 465,
+        "name": "--personal-reference-value-0-98rem",
+        "value": "0.98rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 275,
+        "name": "--color-rgba-252-53-34-0-05",
+        "value": "rgb(from var(--primary-red) r g b / 0.05)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 563,
+        "name": "--personal-reference-value-rgba-252-53-34-0-05",
+        "value": "rgb(from var(--primary-red) r g b / 0.05)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 276,
+        "name": "--color-rgba-255-255-255-0-22",
+        "value": "rgba(255, 255, 255, 0.22)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 581,
+        "name": "--personal-reference-value-rgba-255-255-255-0-22",
+        "value": "rgba(255, 255, 255, 0.22)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 283,
+        "name": "--color-rgba-252-53-34-0-4",
+        "value": "rgb(from var(--primary-red) r g b / 0.4)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 573,
+        "name": "--personal-reference-value-rgba-252-53-34-0-4",
+        "value": "rgb(from var(--primary-red) r g b / 0.4)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 291,
+        "name": "--size-60px",
+        "value": "60px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 526,
+        "name": "--personal-reference-value-60px",
+        "value": "60px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 295,
+        "name": "--color-rgba-16-19-23-0-92",
+        "value": "rgba(16, 19, 23, 0.92)"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 556,
+        "name": "--personal-reference-value-rgba-16-19-23-0-92",
+        "value": "rgba(16, 19, 23, 0.92)"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 296,
+        "name": "--size-0_8rem",
+        "value": "0.8rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 461,
+        "name": "--personal-reference-value-0-8rem",
+        "value": "0.8rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 299,
+        "name": "--size-72px",
+        "value": "72px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 531,
+        "name": "--personal-reference-value-72px",
+        "value": "72px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 309,
+        "name": "--size-5px",
+        "value": "5px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 524,
+        "name": "--personal-reference-value-5px",
+        "value": "5px"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 319,
+        "name": "--size-2_7vw",
+        "value": "2.7vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 497,
+        "name": "--personal-reference-value-2-7vw",
+        "value": "2.7vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 325,
+        "name": "--size-6vw",
+        "value": "6vw"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 530,
+        "name": "--personal-reference-value-6vw",
+        "value": "6vw"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 330,
+        "name": "--size-0_96rem",
+        "value": "0.96rem"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 464,
+        "name": "--personal-reference-value-0-96rem",
+        "value": "0.96rem"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 331,
+        "name": "--size-0_01ms",
+        "value": "0.01ms"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 452,
+        "name": "--personal-reference-value-0-01ms",
+        "value": "0.01ms"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 346,
+        "name": "--layer-content",
+        "value": "1"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 367,
+        "name": "--leading-solid",
+        "value": "1"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 347,
+        "name": "--layer-dashboard-header",
+        "value": "30"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 419,
+        "name": "--personal-header-scroll-threshold",
+        "value": "30"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 371,
+        "name": "--leading-title",
+        "value": "1.3"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 375,
+        "name": "--scale-decoration-1-3",
+        "value": "1.3"
+      }
+    ],
+    [
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 400,
+        "name": "--workshop-reveal-distance-panel",
+        "value": "25px"
+      },
+      {
+        "file": "packages/design-system/styles/theme.css",
+        "line": 503,
+        "name": "--personal-reference-value-25px",
+        "value": "25px"
+      }
+    ]
+  ],
+  "unusedCandidates": [
+    {
+      "file": "modules/styles/theme.css",
+      "line": 24,
+      "name": "--lms-size-0_65rem",
+      "value": "0.65rem"
+    },
+    {
+      "file": "modules/styles/theme.css",
+      "line": 45,
+      "name": "--lms-size-0_55rem",
+      "value": "0.55rem"
+    },
+    {
+      "file": "modules/styles/theme.css",
+      "line": 46,
+      "name": "--lms-size-0_6rem",
+      "value": "0.6rem"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 95,
+      "name": "--color-canvas",
+      "value": "var(--bg-main)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 96,
+      "name": "--color-brand",
+      "value": "var(--primary-red)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 101,
+      "name": "--portfolio-radius",
+      "value": "14px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 104,
+      "name": "--breakpoint-small-mobile",
+      "value": "480px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 105,
+      "name": "--breakpoint-compact-mobile",
+      "value": "374px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 115,
+      "name": "--size-0_25s",
+      "value": "0.25s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 194,
+      "name": "--size-0_5s",
+      "value": "0.5s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 198,
+      "name": "--size-0_85s",
+      "value": "0.85s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 202,
+      "name": "--size-0_4s",
+      "value": "0.4s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 233,
+      "name": "--color-e2e8f0",
+      "value": "#e2e8f0"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 235,
+      "name": "--size-0_3s",
+      "value": "0.3s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 245,
+      "name": "--size-0_35s",
+      "value": "0.35s"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 342,
+      "name": "--easing-reference",
+      "value": "cubic-bezier(0.16, 1, 0.3, 1)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 343,
+      "name": "--easing-responsive",
+      "value": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 394,
+      "name": "--workshop-reveal-viewport",
+      "value": "0.75"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 395,
+      "name": "--workshop-reveal-easing",
+      "value": "var(--motion-easing)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 396,
+      "name": "--workshop-reveal-distance-card",
+      "value": "24px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 397,
+      "name": "--workshop-reveal-distance-text",
+      "value": "20px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 398,
+      "name": "--workshop-reveal-distance-preview",
+      "value": "26px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 399,
+      "name": "--workshop-reveal-distance-action",
+      "value": "18px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 400,
+      "name": "--workshop-reveal-distance-panel",
+      "value": "25px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 401,
+      "name": "--workshop-reveal-offset-photo",
+      "value": "35px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 402,
+      "name": "--workshop-reveal-offset-copy",
+      "value": "-35px"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 403,
+      "name": "--workshop-reveal-duration-main",
+      "value": "var(--motion-duration-reveal)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 404,
+      "name": "--workshop-reveal-duration-heading",
+      "value": "var(--motion-duration-reveal)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 405,
+      "name": "--workshop-reveal-duration-card",
+      "value": "var(--motion-duration-reveal)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 406,
+      "name": "--workshop-reveal-duration-faq",
+      "value": "var(--motion-duration-surface)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 407,
+      "name": "--workshop-reveal-delay-heading",
+      "value": "50ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 408,
+      "name": "--workshop-reveal-delay-support",
+      "value": "200ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 409,
+      "name": "--workshop-reveal-delay-preview",
+      "value": "350ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 410,
+      "name": "--workshop-reveal-delay-action",
+      "value": "480ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 411,
+      "name": "--workshop-reveal-stagger-heading",
+      "value": "100ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 412,
+      "name": "--workshop-reveal-stagger-faq",
+      "value": "70ms"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 413,
+      "name": "--workshop-reveal-scale-preview",
+      "value": "0.97"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 414,
+      "name": "--workshop-reveal-scale-review",
+      "value": "0.98"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 429,
+      "name": "--personal-reference-bg-dark-elevated",
+      "value": "var(--portfolio-elevated)"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 430,
+      "name": "--personal-reference-bg-dark-subtle",
+      "value": "#1C2129"
+    },
+    {
+      "file": "packages/design-system/styles/theme.css",
+      "line": 437,
+      "name": "--personal-reference-font-h3",
+      "value": "clamp(1.25rem, 2.5vw, 1.65rem)"
+    }
+  ]
+}

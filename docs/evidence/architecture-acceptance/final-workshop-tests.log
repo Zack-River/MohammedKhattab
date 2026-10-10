@@ -1,0 +1,43 @@
+
+> warshat-altagheer@1.0.0 test:e2e
+> playwright test --workers=1 --retries=0
+
+
+Running 32 tests using 1 worker
+
+(node:55659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/acceptance-architecture.spec.ts:6:5 › T02 T04 guards cover both applications and shared source (608ms)
+  ✓   2 tests/acceptance-architecture.spec.ts:24:5 › T35 guard rejects injected boundary violations (9ms)
+  ✓   3 tests/acceptance-architecture.spec.ts:55:5 › T35 transitive imports, cycles and each planned ownership mutation are rejected (20ms)
+  ✓   4 tests/architecture.spec.ts:17:5 › renderers and hooks do not import page data or configuration (81ms)
+  ✓   5 tests/architecture.spec.ts:42:5 › component content and asset destinations are supplied through props (67ms)
+  ✓   6 tests/architecture.spec.ts:64:5 › reusable modules do not create accidental Next.js special-file routes (10ms)
+  ✓   7 tests/countdown.spec.ts:5:5 › countdown splits day boundaries and stops at zero (16ms)
+  ✓   8 tests/countdown.spec.ts:20:5 › reference countdown ticks and keeps its deadline after refreshing (3.7s)
+  ✓   9 tests/countdown.spec.ts:66:5 › expired discount stays expired and blocked storage does not crash (3.5s)
+  ✓  10 tests/foundation.spec.ts:9:5 › T03 both apps resolve the same maintained foundation (61ms)
+  ✓  11 tests/foundation.spec.ts:25:5 › T10 generated exports resolve aliases and reject invalid token graphs (447ms)
+  ✓  12 tests/hydration.spec.ts:3:5 › extension-injected body attributes do not warn or prevent hydration (2.2s)
+  ✓  13 tests/production-artifact.spec.ts:4:5 › T05 T34 workshop serves its build identity and critical font hints (149ms)
+  ✓  14 tests/production-artifact.spec.ts:19:5 › T36 approved instructor asset is loaded at all matrix widths (4.0s)
+  ✓  15 tests/reference-copy.spec.ts:4:5 › every section and footer retain the complete original wording (1.4s)
+  ✓  16 tests/reference-copy.spec.ts:24:5 › reference signup popup appears and its close button works (4.4s)
+  ✓  17 tests/reference-copy.spec.ts:35:5 › reference blur treatments survive CSS compilation (803ms)
+  ✓  18 tests/reference-design.spec.ts:3:5 › restores the approved section order and original workshop content (897ms)
+  ✓  19 tests/reference-design.spec.ts:48:7 › all content and images fit at 320px (1.5s)
+  ✓  20 tests/reference-design.spec.ts:48:7 › all content and images fit at 390px (1.5s)
+  ✓  21 tests/reference-design.spec.ts:48:7 › all content and images fit at 768px (1.6s)
+  ✓  22 tests/reference-design.spec.ts:48:7 › all content and images fit at 1024px (1.5s)
+  ✓  23 tests/reference-design.spec.ts:48:7 › all content and images fit at 1440px (1.7s)
+  ✓  24 tests/reference-design.spec.ts:90:5 › mobile navigation supports links, outside click, Escape, and resizing (1.9s)
+  ✓  25 tests/reference-design.spec.ts:115:5 › FAQ has linked accessible panels and one open answer (1.8s)
+  ✓  26 tests/reference-design.spec.ts:131:5 › hovering a day badge highlights its own card and scrolling fills the roadmap (1.4s)
+  ✓  27 tests/reference-design.spec.ts:161:5 › YouTube loads only after playback and enrollment links are working contact URLs (1.1s)
+  ✓  28 tests/reference-design.spec.ts:195:5 › reduced motion keeps the same layout without decorative animation (810ms)
+  ✓  29 tests/reusability.spec.ts:8:5 › alternate content and multiple instances work independently (1.9s)
+  ✓  30 tests/reusability.spec.ts:14:5 › campaigns isolate storage and refresh cadence does not alter elapsed seconds (3ms)
+  ✓  31 tests/scroll-reveals.spec.ts:3:5 › reference content fades in at the viewport trigger and reveals only once (3.6s)
+  ✓  32 tests/scroll-reveals.spec.ts:17:5 › reduced motion and JavaScript-free visits keep all content visible (1.9s)
+
+  32 passed (48.9s)

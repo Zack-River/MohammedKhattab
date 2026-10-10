@@ -1,0 +1,31 @@
+[WebServer] (node:24305) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 20 tests using 1 worker
+
+(node:24328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [site] › tests/site-motion.spec.ts:7:7 › workshop shares smooth motion and animates FAQ/menu in both directions (4.9s)
+  ✓   2 [site] › tests/site-motion.spec.ts:7:7 › LMS shares smooth motion and animates FAQ/menu in both directions (4.5s)
+  ✓   3 [site] › tests/site-motion.spec.ts:76:7 › workshop hover and leave visibly interpolate instead of snapping (3.5s)
+  ✓   4 [site] › tests/site-motion.spec.ts:76:7 › LMS hover and leave visibly interpolate instead of snapping (4.1s)
+(node:24454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   5 [platform] › tests/platform/marketing-media.spec.ts:3:5 › supplied intro and four curated samples use the shared deferred player and reset previous playback (4.4s)
+  ✓   6 [platform] › tests/platform/marketing-media.spec.ts:41:5 › manual fullscreen preserves portrait framing and completion restores the thumbnail (3.2s)
+  ✓   7 [platform] › tests/platform/marketing-media.spec.ts:60:5 › featured testimonial plus three reviews expands through the primary show-more action (1.9s)
+  ✓   8 [platform] › tests/platform/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 320px (2.0s)
+  ✓   9 [platform] › tests/platform/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 390px (2.1s)
+  ✓  10 [platform] › tests/platform/marketing-media.spec.ts:75:7 › shared media stays responsive and the supplied assets exist at 1440px (2.0s)
+  ✓  11 [platform] › tests/platform/portfolio.spec.ts:5:5 › portfolio preserves reference sections, copy, links and real media (1.1s)
+  ✓  12 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px (1.2s)
+  ✓  13 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 390px (1.2s)
+  ✓  14 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 768px (1.2s)
+  ✓  15 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 1440px (910ms)
+  ✓  16 [platform] › tests/platform/portfolio.spec.ts:86:5 › portfolio player remains inline and resets the prior sample (1.1s)
+  ✓  17 [platform] › tests/platform/portfolio.spec.ts:102:5 › portfolio shares smooth hover and progressing timeline with reduced motion support (1.6s)
+  ✓  18 [platform] › tests/platform/portfolio.spec.ts:130:5 › original section copy is preserved apart from authorized reel and upcoming preview changes (737ms)
+  ✓  19 [platform] › tests/platform/portfolio.spec.ts:184:5 › navigation clears the previous section highlight when returning to the original hero (952ms)
+  ✓  20 [platform] › tests/platform/portfolio.spec.ts:201:5 › reels have no visible captions and the upcoming course uses shared artwork (705ms)
+
+  20 passed (47.8s)

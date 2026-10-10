@@ -1,0 +1,108 @@
+
+> ta3llam-lms@1.0.0 test:e2e
+> playwright test tests/acceptance-motion.spec.ts --workers=1 --reporter=line
+
+
+Running 3 tests using 1 worker
+
+(node:29326) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/3] tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid
+  1) tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid ────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForFunction: Test timeout of 30000ms exceeded.
+
+      4 |   await page.goto("/courses");
+      5 |   await expect(page.locator(".lms-course-card")).toHaveCount(6);
+    > 6 |   await page.waitForFunction(() =>
+        |              ^
+      7 |     [...document.querySelectorAll(".lms-card-entrance")].every(
+      8 |       (element) => element.getAnimations().every((animation) => animation.playState === "finished"),
+      9 |     ),
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/acceptance-motion.spec.ts:6:14
+
+    Error Context: test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/acceptance-motion-T24-filt-dac1e--enter-on-the-retained-grid/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:29489) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/3] tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes
+  2) tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+    Call Log:
+    - Timeout 800ms exceeded while waiting on the predicate
+
+      28 |   await expect.poll(() => page.locator(".faq-header").evaluate(
+      29 |     (element) => element.getAnimations().filter((animation) => animation.playState === "running").length,
+    > 30 |   ), { timeout: 800 }).toBe(1);
+         |                        ^
+      31 | });
+      32 |
+      33 | test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/acceptance-motion.spec.ts:30:24
+
+    Error Context: test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/acceptance-motion-T27-redu-17eb2-ribes-to-preference-changes/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:29569) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[3/3] tests/acceptance-motion.spec.ts:33:5 › T29 mobile FAQ panel has zero closed height
+  3) tests/acceptance-motion.spec.ts:33:5 › T29 mobile FAQ panel has zero closed height ────────────
+
+    Error: expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    16
+
+      43 |   await page.locator(".faq-question-btn").first().click();
+      44 |   await expect(panel).toHaveAttribute("aria-hidden", "true");
+    > 45 |   expect(await panel.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
+         |                                                                                     ^
+      46 | });
+      47 |
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/lms/tests/acceptance-motion.spec.ts:45:85
+
+    Error Context: test-results/acceptance-motion-T29-mobi-1f37f-anel-has-zero-closed-height/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/acceptance-motion-T29-mobi-1f37f-anel-has-zero-closed-height/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/acceptance-motion-T29-mobi-1f37f-anel-has-zero-closed-height/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  3 failed
+    tests/acceptance-motion.spec.ts:3:5 › T24 filtered replacements enter on the retained grid ─────
+    tests/acceptance-motion.spec.ts:22:5 › T27 reduced-motion initial load subscribes to preference changes 
+    tests/acceptance-motion.spec.ts:33:5 › T29 mobile FAQ panel has zero closed height ─────────────

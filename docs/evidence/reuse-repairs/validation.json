@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-10",
+  "status": "accepted",
+  "buildId": "2TfiZPXdOfpOfFWe9nmAt",
+  "localUrl": "http://localhost:3040",
+  "checks": {
+    "productionBuild": "passed",
+    "reuseFixtureBuild": "passed",
+    "fullSuite": {
+      "passed": 151,
+      "failed": 0,
+      "retries": 0,
+      "skipped": 0,
+      "workers": 3,
+      "duration": "2.3m"
+    },
+    "architecture": {
+      "files": 342,
+      "violations": 0
+    },
+    "snapshot": {
+      "files": 425,
+      "status": "verified"
+    },
+    "lint": "passed",
+    "typescript": "passed"
+  },
+  "resolvedFindings": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12"
+  ],
+  "packagesAdded": 0,
+  "notes": [
+    "Initial focused checks exposed new test-harness issues: Playwright JSX instrumentation, a broad alert locator and an insufficiently short viewport for full exit. Real React SSR loading and scoped behavioral assertions corrected them.",
+    "The canonical portfolio model was given a distinct filename to avoid JSON/TypeScript resolution ambiguity in Node tooling.",
+    "Published theme roles and named approved portfolio contact variants are retained deliberately."
+  ]
+}

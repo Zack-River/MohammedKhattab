@@ -1,0 +1,65 @@
+{
+  "tables": [
+    {
+      "relname": "courses",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "enrollments",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "lesson_progress",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "lesson_resources",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "lessons",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "profiles",
+      "relrowsecurity": true
+    },
+    {
+      "relname": "resources",
+      "relrowsecurity": true
+    }
+  ],
+  "courses": [
+    {
+      "slug": "editing-foundations",
+      "position": 0,
+      "amount": "499.00"
+    },
+    {
+      "slug": "motion-essentials",
+      "position": 1,
+      "amount": "899.00"
+    },
+    {
+      "slug": "visual-design",
+      "position": 2,
+      "amount": "649.00"
+    },
+    {
+      "slug": "first-client",
+      "position": 3,
+      "amount": "349.00"
+    },
+    {
+      "slug": "editing-workflow",
+      "position": 4,
+      "amount": "449.00"
+    },
+    {
+      "slug": "sound-design",
+      "position": 5,
+      "amount": "299.00"
+    }
+  ],
+  "publicPlaybackLeaks": 0
+}

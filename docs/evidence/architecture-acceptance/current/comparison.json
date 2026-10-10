@@ -1,0 +1,1373 @@
+[
+  {
+    "name": "workshop---320",
+    "dimensions": [
+      320,
+      13856,
+      320,
+      13856
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "workshop---390",
+    "dimensions": [
+      390,
+      13073,
+      390,
+      13073
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "workshop---768",
+    "dimensions": [
+      768,
+      13085,
+      768,
+      13085
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "workshop---1440",
+    "dimensions": [
+      1440,
+      10842,
+      1440,
+      10842
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms---320",
+    "dimensions": [
+      320,
+      7188,
+      320,
+      7108
+    ],
+    "pixelRatio": null,
+    "bounds": [
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5819.984375,
+          "width": 320,
+          "height": 602.15625,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5819.984375,
+          "width": 320,
+          "height": 522.15625,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6044.140625,
+          "width": 286,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6044.140625,
+          "width": 286,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6122.140625,
+          "width": 286,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6106.140625,
+          "width": 286,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6200.140625,
+          "width": 286,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6168.140625,
+          "width": 286,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6278.140625,
+          "width": 286,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6230.140625,
+          "width": 286,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6356.140625,
+          "width": 286,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6292.140625,
+          "width": 286,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 6422.140625,
+          "width": 320,
+          "height": 376.9375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 6342.140625,
+          "width": 320,
+          "height": 376.9375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      }
+    ],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-320",
+    "dimensions": [
+      320,
+      3453,
+      320,
+      3453
+    ],
+    "pixelRatio": 0.00023801766579785693,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-category-motion-320",
+    "dimensions": [
+      320,
+      1308,
+      320,
+      1308
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-q-missing-term-320",
+    "dimensions": [
+      320,
+      1248,
+      320,
+      1248
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-editing-foundations-320",
+    "dimensions": [
+      320,
+      2049,
+      320,
+      2011
+    ],
+    "pixelRatio": null,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-motion-essentials-320",
+    "dimensions": [
+      320,
+      1884,
+      320,
+      1884
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--login-320",
+    "dimensions": [
+      320,
+      1411,
+      320,
+      1411
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-320",
+    "dimensions": [
+      320,
+      2395,
+      320,
+      2395
+    ],
+    "pixelRatio": 0.00034316283924843425,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-courses-320",
+    "dimensions": [
+      320,
+      900,
+      320,
+      900
+    ],
+    "pixelRatio": 0.0009131944444444444,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-profile-320",
+    "dimensions": [
+      320,
+      900,
+      320,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-resources-320",
+    "dimensions": [
+      320,
+      1220,
+      320,
+      1220
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-certificates-320",
+    "dimensions": [
+      320,
+      900,
+      320,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-320",
+    "dimensions": [
+      320,
+      2296,
+      320,
+      2296
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-unknown-course-320",
+    "dimensions": [
+      320,
+      1263,
+      320,
+      1263
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms---390",
+    "dimensions": [
+      390,
+      7117,
+      390,
+      7037
+    ],
+    "pixelRatio": null,
+    "bounds": [
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5775.046875,
+          "width": 390,
+          "height": 602.15625,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5775.046875,
+          "width": 390,
+          "height": 522.15625,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 5999.203125,
+          "width": 356,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 5999.203125,
+          "width": 356,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6077.203125,
+          "width": 356,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6061.203125,
+          "width": 356,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6155.203125,
+          "width": 356,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6123.203125,
+          "width": 356,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6233.203125,
+          "width": 356,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6185.203125,
+          "width": 356,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6311.203125,
+          "width": 356,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 17,
+          "y": 6247.203125,
+          "width": 356,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 6377.203125,
+          "width": 390,
+          "height": 351.34375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 6297.203125,
+          "width": 390,
+          "height": 351.34375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      }
+    ],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-390",
+    "dimensions": [
+      390,
+      3581,
+      390,
+      3581
+    ],
+    "pixelRatio": 0.00018831582640574542,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-category-motion-390",
+    "dimensions": [
+      390,
+      1313,
+      390,
+      1313
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-q-missing-term-390",
+    "dimensions": [
+      390,
+      1227,
+      390,
+      1227
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-editing-foundations-390",
+    "dimensions": [
+      390,
+      1872,
+      390,
+      1872
+    ],
+    "pixelRatio": 0.00033557966250273943,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-motion-essentials-390",
+    "dimensions": [
+      390,
+      1762,
+      390,
+      1762
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--login-390",
+    "dimensions": [
+      390,
+      1371,
+      390,
+      1371
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-390",
+    "dimensions": [
+      390,
+      2434,
+      390,
+      2434
+    ],
+    "pixelRatio": 0.0002770579187999073,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-courses-390",
+    "dimensions": [
+      390,
+      900,
+      390,
+      900
+    ],
+    "pixelRatio": 0.0007492877492877493,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-profile-390",
+    "dimensions": [
+      390,
+      900,
+      390,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-resources-390",
+    "dimensions": [
+      390,
+      1113,
+      390,
+      1113
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-certificates-390",
+    "dimensions": [
+      390,
+      900,
+      390,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-390",
+    "dimensions": [
+      390,
+      2244,
+      390,
+      2244
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-unknown-course-390",
+    "dimensions": [
+      390,
+      1263,
+      390,
+      1263
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms---768",
+    "dimensions": [
+      768,
+      6721,
+      768,
+      6641
+    ],
+    "pixelRatio": null,
+    "bounds": [
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5427.6875,
+          "width": 768,
+          "height": 618.4375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "faq",
+          "class": "section faq-section section-alt",
+          "x": 0,
+          "y": 5427.6875,
+          "width": 768,
+          "height": 538.4375,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(22, 27, 34)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5662.375,
+          "width": 718,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-0",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5662.375,
+          "width": 718,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5740.375,
+          "width": 718,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-1",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5724.375,
+          "width": 718,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5818.375,
+          "width": 718,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-2",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5786.375,
+          "width": 718,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5896.375,
+          "width": 718,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-3",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5848.375,
+          "width": 718,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5974.375,
+          "width": 718,
+          "height": 16,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "DIV",
+          "id": "_R_4uavb_-panel-4",
+          "class": "faq-answer-panel",
+          "x": 25,
+          "y": 5910.375,
+          "width": 718,
+          "height": 0,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      },
+      {
+        "before": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 6046.125,
+          "width": 768,
+          "height": 366.1875,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        },
+        "after": {
+          "tag": "SECTION",
+          "id": "",
+          "class": "section final-cta-section",
+          "x": 0,
+          "y": 5966.125,
+          "width": 768,
+          "height": 366.1875,
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "font": "\"IBM Plex Sans Arabic\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+          "weight": "400"
+        }
+      }
+    ],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-768",
+    "dimensions": [
+      768,
+      2113,
+      768,
+      2113
+    ],
+    "pixelRatio": 0.0001620671635904717,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-category-motion-768",
+    "dimensions": [
+      768,
+      1191,
+      768,
+      1191
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-q-missing-term-768",
+    "dimensions": [
+      768,
+      1104,
+      768,
+      1104
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-editing-foundations-768",
+    "dimensions": [
+      768,
+      1715,
+      768,
+      1715
+    ],
+    "pixelRatio": 0.00018601190476190475,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-motion-essentials-768",
+    "dimensions": [
+      768,
+      1623,
+      768,
+      1623
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--login-768",
+    "dimensions": [
+      768,
+      1238,
+      768,
+      1238
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-768",
+    "dimensions": [
+      768,
+      1970,
+      768,
+      1970
+    ],
+    "pixelRatio": 0.00017383142978003385,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-courses-768",
+    "dimensions": [
+      768,
+      900,
+      768,
+      900
+    ],
+    "pixelRatio": 0.00038049768518518516,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-profile-768",
+    "dimensions": [
+      768,
+      900,
+      768,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-resources-768",
+    "dimensions": [
+      768,
+      900,
+      768,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-certificates-768",
+    "dimensions": [
+      768,
+      900,
+      768,
+      900
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-768",
+    "dimensions": [
+      768,
+      2422,
+      768,
+      2422
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-unknown-course-768",
+    "dimensions": [
+      768,
+      1183,
+      768,
+      1183
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms---1440",
+    "dimensions": [
+      1440,
+      5486,
+      1440,
+      5486
+    ],
+    "pixelRatio": 0.00003329181350508365,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-1440",
+    "dimensions": [
+      1440,
+      1699,
+      1440,
+      1699
+    ],
+    "pixelRatio": 0.0001074978745667386,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-category-motion-1440",
+    "dimensions": [
+      1440,
+      1225,
+      1440,
+      1225
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-q-missing-term-1440",
+    "dimensions": [
+      1440,
+      1130,
+      1440,
+      1130
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-editing-foundations-1440",
+    "dimensions": [
+      1440,
+      1561,
+      1440,
+      1561
+    ],
+    "pixelRatio": 0.00010899352267065272,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-motion-essentials-1440",
+    "dimensions": [
+      1440,
+      1469,
+      1440,
+      1469
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--login-1440",
+    "dimensions": [
+      1440,
+      1061,
+      1440,
+      1061
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-1440",
+    "dimensions": [
+      1440,
+      2044,
+      1440,
+      2044
+    ],
+    "pixelRatio": 0.00008935366383996521,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-courses-1440",
+    "dimensions": [
+      1440,
+      903,
+      1440,
+      903
+    ],
+    "pixelRatio": 0.00020225790574627785,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-profile-1440",
+    "dimensions": [
+      1440,
+      903,
+      1440,
+      903
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-resources-1440",
+    "dimensions": [
+      1440,
+      903,
+      1440,
+      903
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--dashboard-certificates-1440",
+    "dimensions": [
+      1440,
+      903,
+      1440,
+      903
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--learn-editing-foundations-first-cut-1440",
+    "dimensions": [
+      1440,
+      1474,
+      1440,
+      1474
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  },
+  {
+    "name": "lms--courses-unknown-course-1440",
+    "dimensions": [
+      1440,
+      1132,
+      1440,
+      1132
+    ],
+    "pixelRatio": 0,
+    "bounds": [],
+    "overflow": 0,
+    "errors": []
+  }
+]

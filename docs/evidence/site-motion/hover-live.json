@@ -1,0 +1,16 @@
+[
+  {
+    "name": "workshop",
+    "enterQuarter": -0.821249,
+    "hovered": -5,
+    "leaveQuarter": -4.32986,
+    "rest": 0
+  },
+  {
+    "name": "lms",
+    "enterQuarter": -1.58665,
+    "hovered": -8,
+    "leaveQuarter": -6.41245,
+    "rest": 0
+  }
+]
