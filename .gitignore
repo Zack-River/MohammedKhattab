@@ -21,3 +21,7 @@ supabase/.branches/
 
 # Private credential scratch files must never be committed.
 .secret/
+
+# Generated fixture links are created by test:fixtures:build.
+tests/platform/fixtures/reuse/node_modules
+tests/platform/fixtures/reuse/public

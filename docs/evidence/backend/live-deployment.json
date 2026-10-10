@@ -1,0 +1,49 @@
+{
+  "verifiedAt": "2026-10-10T16:35:35.992Z",
+  "origin": "https://mohammed-khattab.vercel.app",
+  "revision": "020a5925ca6245e7e937f0d246631072e5d1a760",
+  "deploymentState": "success",
+  "htmlFingerprint": "32b6ee8939bc354225ed19d41a1942afc34e2675cb811bc8df4465d7bfed82a7",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "heading": "محمد خطاب"
+    },
+    {
+      "path": "/7days-freelance",
+      "status": 200,
+      "heading": " انضم إلى  أقوى الإديتورز في الوطن العربي  وابدأ طريقك نحو أول عميل حقيقي خلال 7 أيام فقط"
+    },
+    {
+      "path": "/ta3allam",
+      "status": 200,
+      "heading": "خطوة صغيرة اليوم،ومهارة تفتح لك طريق."
+    },
+    {
+      "path": "/ta3allam/login",
+      "status": 200,
+      "heading": "كمّل رحلتك مع تعلّم.خطوتك الجاية تبدأ هنا."
+    },
+    {
+      "path": "/ta3allam/signup",
+      "status": 200,
+      "heading": "ابدأ تعلّم مهارة جديدة.خطوتك الجاية تبدأ هنا."
+    },
+    {
+      "path": "/api/profile",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "path": "/api/progress",
+      "status": 401
+    }
+  ],
+  "courses": 6,
+  "privatePlaybackLeaks": 0,
+  "browserErrors": []
+}
