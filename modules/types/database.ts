@@ -23,7 +23,35 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "courses": {
+            "admin_allowlist": {
+                  Row: {
+                    "email": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email": string
+                  }
+                  Update: {
+                    "email"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"admin_users": {
+                  Row: {
+                    "user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "user_id": string
+                  }
+                  Update: {
+                    "user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"courses": {
                   Row: {
                     "amount": number,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string
                   }

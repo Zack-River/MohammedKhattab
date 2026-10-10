@@ -1165,7 +1165,9 @@ button:disabled {
   margin-bottom: var(--space-heading-tight);
 }
 .lms-notes textarea,
-.lms-profile-form input {
+.lms-profile-form input,
+.lms-profile-form textarea,
+.lms-profile-form select {
   display: block;
   resize: vertical;
   width: 100%;
@@ -2079,3 +2081,7 @@ button:disabled {
   width: 100%;
   margin-top: var(--space-xl);
 }
+
+.lms-admin-checkbox { display: flex; align-items: center; gap: var(--space-control); }
+.lms-admin-checkbox input { width: auto; accent-color: var(--primary-red); }
+.lms-admin-form .lms-form-field { margin: 0; }

@@ -87,7 +87,7 @@ test("T15 note scopes and lessons are isolated", () => {
 test("T16 course summaries have one numeric source and numbering handles ten", () => {
   expect(courseSeconds(courses[0])).toBe(7200);
   expect(courses[0].duration).toBe("ساعتان");
-  for (const course of courses)
+  for (const course of courses.filter(course => course.delivery !== "live"))
     expect(course.duration).toBe(formatCourseDuration(courseSeconds(course)));
   expect([0, 8, 9, 10].map(numbered)).toEqual(["01", "09", "10", "11"]);
   expect(() => parseLessonTime("12:75")).toThrow();

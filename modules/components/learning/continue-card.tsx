@@ -14,7 +14,7 @@ export default function ContinueCard({
   copy,
   site,
 }: {
-  course: Pick<Course,"slug"|"title"|"modules"|"artwork"|"tool"|"categoryLabel">;
+  course: Pick<Course,"slug"|"title"|"modules"|"artwork"|"tool"|"categoryLabel"|"delivery"|"deliveryLabel">;
   progress: CourseProgress;
 } & {
   interfaceCopy: Pick<ContentBindings["interfaceCopy"], "continueContext">;
@@ -35,10 +35,10 @@ export default function ContinueCard({
         <span className="lms-small-label">{interfaceCopy.continueContext}</span>
         <h2>{course.title}</h2>
         <p>{progress.next?.title ?? course.title}</p>
-        <ProgressBar
+        {course.delivery !== "live" && <ProgressBar
           copy={{ progress: copy.progress, lessons: copy.lessons }}
           {...progress}
-        />
+        />}
         <Link
           href={
             progress.next

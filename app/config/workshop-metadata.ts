@@ -1,10 +1,12 @@
+import { projectRoutes } from "@/config/project-navigation";
 import type { Metadata } from "next";
 import { siteConfig } from "./site";
 
 export const workshopMetadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? siteConfig.defaultUrl,
+    process.env.APP_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? siteConfig.defaultUrl,
   ),
+  alternates: { canonical: projectRoutes.workshop },
   title: { absolute: siteConfig.title },
   description: siteConfig.description,
   authors: [{ name: siteConfig.author }],

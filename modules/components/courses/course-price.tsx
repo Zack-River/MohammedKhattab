@@ -15,8 +15,7 @@ export default function CoursePrice({
       <div>
         {!compact && <span className="lms-price-label">{offerCopy.price}</span>}
         <strong>
-          <bdi className="numeral">{offer.amount}</bdi>{" "}
-          <small>{offer.currencyLabel}</small>
+          {offer.amountLabel ?? <><bdi className="numeral">{offer.amount}</bdi>{" "}<small>{offer.currencyLabel}</small></>}
         </strong>
       </div>
       {!compact && <span className="lms-price-caption">{offer.caption}</span>}

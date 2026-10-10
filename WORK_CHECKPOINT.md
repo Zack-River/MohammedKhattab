@@ -2,7 +2,14 @@
 
 Last updated: **2026-10-10**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
-## Latest checkpoint — Supabase backend and production preparation
+## Latest checkpoint — live workshop and course administration
+
+- Added the seven-day live workshop to the database catalog with an initial editable price of **499 ج.م**, category business and supplied intro/poster. Canonical landing: `/ta3allam/7days-freelance`; legacy workshop and generic course-detail links permanently redirect there. The approved workshop layout and initial copy remain intact; edited course text/media appear on its landing.
+- Added `/ta3allam/dashboard/admin/courses` and individual course editors for name, description, price, category, publication, thumbnail, intro and lesson video links. Course/lesson seeds preserve existing edits. Public Google Drive video streaming supports byte ranges and cancellation; protected lessons require playback authorization.
+- Provisioned both requested verified admin accounts through Supabase Auth. Actual stored passwords were verified as bcrypt hashes without recording hashes or credentials. Private allowlist and membership tables, verified-email trigger and RLS prevent student role forgery. Runtime editing uses the authenticated session, not the operational secret key.
+- Four migrations applied locally and hosted; nine public tables have RLS. Hosted/local database advisors reported no issues. Backend suite: **87 checks passed**. TypeScript, ESLint, architecture boundaries (418 files, zero violations), production and isolated reuse builds passed. Clean database reset and rerun: **87 checks passed**; targeted browser/domain/copy/routing checks: **29 passed**, zero failures. Both hosted admin credentials and memberships verified. Production deployment verification is pending; no claim that the full historical demo suite is green.
+
+## Previous checkpoint — Supabase backend and production preparation
 
 - Replaced demo-cookie authority with real Supabase Auth accounts, verified sessions, email confirmation, callback, refresh and logout. Kept the approved account-screen design. Profile email changes wait for provider confirmation; protected navigation redirects unauthenticated learners to login.
 - Installed pinned Supabase SDK/SSR dependencies and adapted the shadcn Supabase client registry block to Next.js 16 `proxy.ts`. Browser/server/session helpers each have one owner. API adapters call focused feature handlers and repositories; obsolete demo persistence/sanitation helpers were removed.

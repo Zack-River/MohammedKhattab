@@ -5,7 +5,7 @@ export interface ContentBindings {
  categories: Widen<typeof import("@platform/data/courses").categories>;
  site: Widen<typeof import("@platform/data/site").site>;
  offerCopy: Widen<typeof import("@platform/data/offers").offerCopy>;
- dashboardNavigation: Widen<typeof import("@platform/data/site").dashboardNavigation>;
+ dashboardNavigation: readonly { href: string; label: string; symbol: import("@platform/components/ui/symbol").SymbolName }[];
  marketingNavigation: Widen<typeof import("@platform/data/site").marketingNavigation>;
  courses: typeof import("@platform/data/courses").courses;
 }

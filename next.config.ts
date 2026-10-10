@@ -1,3 +1,4 @@
+import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
 import { projectRoutes, legacyLearningSections } from "./config/project-navigation";
 
@@ -6,6 +7,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   async redirects() {
     return [
+      { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+      { source: `${projectRoutes.learning}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
       { source: "/ta3llam/:path*", destination: `${projectRoutes.learning}/:path*`, permanent: false },
       ...legacyLearningSections.map((section) => ({
         source: `/${section}/:path*`,

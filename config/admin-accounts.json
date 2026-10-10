@@ -1,0 +1,4 @@
+[
+  { "email": "admin@ta3allam.com", "name": "إدارة تعلّم", "passwordEnvironment": "TA3ALLAM_ADMIN_PASSWORD" },
+  { "email": "zackriver.dev@gmail.com", "name": "Zack River", "passwordEnvironment": "ZACK_RIVER_PASSWORD" }
+]

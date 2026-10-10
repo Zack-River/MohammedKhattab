@@ -1,3 +1,4 @@
+import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
 const segment = (value: string) => {
@@ -25,11 +26,13 @@ export const routes = {
   resources: `${projectRoutes.learning}/dashboard/resources`,
   certificates: `${projectRoutes.learning}/dashboard/certificates`,
   profile: `${projectRoutes.learning}/dashboard/profile`,
-  course: (slug: string) => `${projectRoutes.learning}/courses/${segment(slug)}`,
+  admin: `${projectRoutes.learning}/dashboard/admin/courses`,
+  adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
+  course: (slug: string) => slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${projectRoutes.learning}/courses/${segment(slug)}`,
   lesson: (slug: string, id: string) =>
     `${projectRoutes.learning}/learn/${segment(slug)}/${segment(id)}`,
   enrollment: (slug: string) =>
-    `${routes.course(slug)}#${sectionIds.enrollment}`,
+    slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${routes.course(slug)}#${sectionIds.enrollment}`,
   section: (id: keyof typeof sectionIds) => `${projectRoutes.learning}#${sectionIds[id]}`,
   catalog: (query = "", category = "all") => {
     const params = new URLSearchParams();
@@ -40,10 +43,14 @@ export const routes = {
 };
 export const endpoints = {
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout" },
+  adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
+  adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
   enrollments: "/api/enrollments",
   progress: "/api/progress",
   profile: "/api/profile",
+  introStream: (slug: string) => `/api/courses/${segment(slug)}/intro`,
+  lessonStream: (slug: string, id: string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/stream`,
   course: (slug: string) => `/api/courses/${segment(slug)}`,
   resource: (id: string) => `/api/resources/${segment(id)}`,
   certificate: (slug: string) => `/api/certificates/${segment(slug)}`,

@@ -1,0 +1,44 @@
+[WebServer] (node:95810) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 29 tests using 2 workers
+
+(node:95864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:95865) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [site] › tests/auth.spec.ts:12:5 › shared validation normalizes identity, preserves passwords and rejects malformed values (35ms)
+  ✓   2 [site] › tests/auth.spec.ts:21:5 › auth APIs reject invalid payloads and cross-origin writes (366ms)
+  ✓   4 [site] › tests/auth.spec.ts:56:5 › login provides pending feedback, recovers from errors and links to signup (3.7s)
+  ✓   3 [site] › tests/auth.spec.ts:31:5 › signup errors, field focus, blur, confirmation and password visibility (4.9s)
+  ✓   5 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 320px (1.6s)
+  ✓   6 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 390px (2.2s)
+  ✓   7 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 768px (1.8s)
+  ✓   9 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for network failures (2.1s)
+  ✓   8 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 1440px (3.3s)
+  ✓  10 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for malformed failures (2.0s)
+  ✓  11 [site] › tests/reference-copy.spec.ts:4:5 › all unchanged sections retain original wording after portfolio population (5.9s)
+  ✓  13 [site] › tests/reference-copy.spec.ts:42:5 › reference blur treatments survive CSS compilation (3.5s)
+  ✓  12 [site] › tests/reference-copy.spec.ts:31:5 › reference signup popup appears and its close button works (8.6s)
+  ✓  14 [site] › tests/unified-project.spec.ts:6:5 › one Next.js router owns all pages and the previous URLs redirect (3.2s)
+  ✓  15 [site] › tests/unified-project.spec.ts:27:7 › all three pages are connected on the same origin at 390px (3.9s)
+  ✓  17 [site] › tests/unified-project.spec.ts:52:5 › LMS endpoints and player assets share the page origin (288ms)
+  ✓  16 [site] › tests/unified-project.spec.ts:27:7 › all three pages are connected on the same origin at 1440px (3.7s)
+  ✓  18 [site] › tests/unified-project.spec.ts:62:5 › Ta3allam owns its catalog, account and learning routes; legacy redirects retain queries (3.4s)
+  ✓  19 [site] › tests/workshop-course.spec.ts:8:5 › workshop is a live database course with the approved landing and working card (3.2s)
+  ✓  20 [site] › tests/workshop-course.spec.ts:23:5 › legacy workshop links redirect without losing section anchors or query strings (2.0s)
+  ✓  21 [site] › tests/workshop-course.spec.ts:30:5 › admin inputs reject malformed values and seeds preserve existing edits (17ms)
+(node:96882) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:96889) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  22 [platform] › tests/platform/domain.spec.ts:23:5 › T11 T12 explicit selections and associated resources survive reorder (27ms)
+  ✓  23 [platform] › tests/platform/domain.spec.ts:36:5 › T13 route builders reject path injection and preserve query values (35ms)
+  ✓  25 [platform] › tests/platform/domain.spec.ts:78:5 › T15 note scopes and lessons are isolated (7ms)
+  ✓  24 [platform] › tests/platform/domain.spec.ts:52:5 › T14 shared profile boundary validation (28ms)
+  ✓  27 [platform] › tests/platform/domain.spec.ts:96:5 › T17 T32 progress is finite, deduplicated and total-completion safe (21ms)
+  ✓  26 [platform] › tests/platform/domain.spec.ts:87:5 › T16 course summaries have one numeric source and numbering handles ten (27ms)
+  ✓  29 [platform] › tests/platform/domain.spec.ts:161:5 › T11 preview identity and configured lesson order survive module reordering (15ms)
+  ✓  28 [platform] › tests/platform/domain.spec.ts:127:5 › T14 T32 public projection strips playback and validates published records (29ms)
+
+  29 passed (34.5s)

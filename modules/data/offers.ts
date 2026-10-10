@@ -14,6 +14,7 @@ export const courseOffers = {
   "first-client": mockOffer(349),
   "editing-workflow": mockOffer(449),
   "sound-design": mockOffer(299),
+  "7days-freelance": mockOffer(499),
 };
 export const offerCopy = {
   price: "سعر الدورة",

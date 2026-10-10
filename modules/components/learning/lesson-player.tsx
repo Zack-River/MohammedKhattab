@@ -1,6 +1,7 @@
 "use client";
 import type { ContentBindings } from "@platform/types/content";
 
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
 import DeferredVideoPlayer from "@khatab/design/ui/deferred-video-player";
 import { useMediaPlayerSession } from "@khatab/design/hooks/use-media-player-session";
 import { arabicPlayerLabels } from "@khatab/design/lib/player-labels";
@@ -26,7 +27,7 @@ export default function LessonPlayer({
     <div className="lms-lesson-player" ref={ref}>
       <DeferredVideoPlayer
         key={`${lesson.videoUrl}:${generation}`}
-        url={lesson.videoUrl}
+        {...(getYouTubeEmbedUrl(lesson.videoUrl) ? { url: lesson.videoUrl } : { source: { kind: "file" as const, url: lesson.videoUrl } })}
         title={lesson.title}
         labels={arabicPlayerLabels}
         controlsVariant="full"

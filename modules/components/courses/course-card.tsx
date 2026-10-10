@@ -58,7 +58,7 @@ export default function CourseCard({
           <div className="lms-card-meta">
             <span>
               <Symbol name="book" />
-              {courseLessons(course).length} {copy.lessons}
+              {course.delivery === "live" ? course.deliveryLabel : `${courseLessons(course).length} ${copy.lessons}`}
             </span>
             <span>
               <Symbol name="clock" />
@@ -71,7 +71,7 @@ export default function CourseCard({
             compact
           />
         </div>
-        {progress && (
+        {progress && course.delivery !== "live" && (
           <ProgressBar
             copy={{ progress: copy.progress, lessons: copy.lessons }}
             {...progress}

@@ -62,11 +62,14 @@ async function run() {
   const a = await provision('Student A'), b = await provision('Student B');
   verify((await a.api('/api/auth/session')).status === 200, 'Verified session endpoint');
   await require('./browser.cjs')({ url, config, admin, identities, verify, student: a });
+  await require('./admin.cjs')({ admin, provision, anonymous, student: b, verify, url, config });
   verify((await a.api('/api/enrollments', { courseSlug: course.slug })).status === 403, 'Paid course cannot self-enroll through API');
   verify(Boolean((await a.direct.from('enrollments').insert({ user_id: a.id, course_slug: course.slug })).error), 'RLS blocks direct paid enrollment');
   verify(Boolean((await a.direct.from('profiles').upsert({ id: b.id, name: 'Impersonation' })).error), 'RLS blocks profile ownership forgery');
   verify((await a.direct.from('profiles').select('*').eq('id', b.id)).data.length === 0, 'RLS hides other student profile');
-  verify(Boolean((await a.direct.from('courses').update({ amount: 0 }).eq('slug',course.slug)).error), 'Students cannot alter prices');
+  const attemptedPrice = await a.direct.from('courses').update({ amount: 0 }).eq('slug',course.slug).select('amount');
+  const persistedPrice = (await admin.from('courses').select('amount').eq('slug',course.slug).single()).data.amount;
+  verify((attemptedPrice.error || attemptedPrice.data?.length === 0) && Number(persistedPrice) === course.offer.amount, 'Students cannot alter prices');
   verify((await a.api('/api/progress', { courseSlug: course.slug, lessonId: privateLesson.id, completed: true })).status === 403, 'Progress requires enrollment');
   const free = { ...course, slug: 'backend-test-free', offer: { ...course.offer, amount: 0 } };
   assert.ok(!(await admin.from('courses').upsert({ slug: free.slug, metadata: free, amount: 0, published: true, position: 99 })).error);

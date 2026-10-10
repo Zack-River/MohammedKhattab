@@ -1,3 +1,4 @@
+import { playableUrl } from "@platform/helpers/media/playable-url";
 import { currentIdentity } from "@platform/features/auth/server/identity";
 import { readPlayback } from "../catalog/repositories/read-playback";
 import { notFound, redirect } from "next/navigation";
@@ -16,7 +17,7 @@ export async function readLessonContext(slug: string, lessonId: string) {
   if (!enrolled && !lesson.preview) redirect(routes.course(slug));
   const lessons = courseLessons(course);
   const index = lessons.findIndex((item) => item.id === lessonId);
-  return { slug, lessonId, course, lesson: { ...lesson, videoUrl: await readPlayback(slug, lessonId) }, state, enrolled, lessons, index,
+  return { slug, lessonId, course, lesson: { ...lesson, videoUrl: playableUrl(await readPlayback(slug, lessonId), slug, lessonId) }, state, enrolled, lessons, index,
     next: lessons[index + 1], complete: state.completed.includes(lessonKey(slug, lessonId)) };
 }
 export type LessonContext = Awaited<ReturnType<typeof readLessonContext>>;

@@ -16,12 +16,17 @@ export interface CourseModule {
   lessons: Lesson[];
 }
 export interface CourseOffer {
+  amountLabel?: string;
   amount: number;
   currencyLabel: string;
   caption: string;
   actionLabel: string;
 }
 export interface Course {
+  thumbnailUrl?: string;
+  introVideoUrl?: string;
+  delivery?: "recorded" | "live";
+  deliveryLabel?: string;
   slug: string;
   title: string;
   description: string;

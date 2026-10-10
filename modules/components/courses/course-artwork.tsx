@@ -1,3 +1,5 @@
+import { thumbnailUrl } from "@platform/helpers/media/thumbnail-url";
+import AssetImage from "@khatab/design/ui/asset-image";
 import { validateArtworkKind } from "./artwork/helpers/validate-kind";
 import CourseIllustration from "./artwork/illustration";
 import { courseLessons } from "@platform/features/catalog/helpers";
@@ -11,12 +13,13 @@ export default function CourseArtwork({
   site,
   lessonLabel,
 }: {
-  course: Pick<Course,"modules"|"artwork"|"tool"|"categoryLabel">;
+  course: Pick<Course,"modules"|"artwork"|"tool"|"categoryLabel"|"thumbnailUrl"|"delivery"|"deliveryLabel">;
   large?: boolean;
 } & (
   | { showLabels: false; lessonLabel?: never }
   | { showLabels?: true; lessonLabel: string }
 ) & { site: Pick<ContentBindings["site"], "englishName"> }) {
+  if (course.thumbnailUrl) return <AssetImage asset={{ src: thumbnailUrl(course.thumbnailUrl), alt: "", width: 560, height: 260 }} className="lms-course-art" />;
   const kind = course.artwork;
   validateArtworkKind(kind);
   return (
@@ -41,7 +44,7 @@ export default function CourseArtwork({
         <div className="lms-art-bottom">
           <span>{course.categoryLabel}</span>
           <span className="numeral">
-            {courseLessons(course).length} {lessonLabel}
+            {course.delivery === "live" ? course.deliveryLabel : `${courseLessons(course).length} ${lessonLabel}`}
           </span>
         </div>
       )}

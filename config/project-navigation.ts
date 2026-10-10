@@ -1,7 +1,8 @@
+import { workshopCourseConfig } from "./workshop-course";
 export const projectRoutes = {
   portfolio: "/",
   learning: "/ta3allam",
-  workshop: "/7days-freelance",
+  workshop: `/ta3allam/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",

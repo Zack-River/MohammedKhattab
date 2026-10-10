@@ -1,3 +1,5 @@
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { adminCopy } from "@platform/data/admin";
 import { redirect } from "next/navigation";
 import { routes } from "@platform/config/navigation";
 import { currentIdentity } from "@platform/features/auth/server/identity";
@@ -15,6 +17,7 @@ export default async function StudentLayout({
 }) {
   if (!await currentIdentity()) redirect(routes.login);
   const state = await readLearningState();
+  const admin = await hasAdminAccess();
   return (
     <DashboardShell
       interfaceCopy={{
@@ -23,7 +26,7 @@ export default async function StudentLayout({
         sidebarDescription: interfaceCopy.sidebarDescription,
         homeLabel: interfaceCopy.homeLabel,
       }}
-      dashboardNavigation={dashboardNavigation}
+      dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.admin, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}
       site={{
         demoLabel: backendCopy.ACCOUNT_LABEL,
         name: site.name,

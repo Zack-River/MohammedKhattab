@@ -1,3 +1,4 @@
+import { liveWorkshopCourse } from "./workshop-course";
 import { categories } from "@platform/config/catalog";
 import {
   courseSeconds,
@@ -327,7 +328,7 @@ const records: Omit<Course, "categoryLabel" | "duration">[] = [
 ];
 export { categories } from "@platform/config/catalog";
 
-export const courses: Course[] = records.map((course) => ({
+export const courses: Course[] = [...records.map((course) => ({
   ...course,
   duration: formatCourseDuration(courseSeconds(course)),
   categoryLabel: categories.find((category) => category.id === course.category)!
@@ -339,4 +340,4 @@ export const courses: Course[] = records.map((course) => ({
       resourceIds: lessonResources[`${course.slug}/${lesson.id}`] ?? [],
     })),
   })),
-}));
+})), liveWorkshopCourse];

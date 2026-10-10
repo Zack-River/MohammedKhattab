@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
+import { courses } from "../modules/data/courses";
 import { projectRoutes } from "../config/project-navigation";
 
 test("one Next.js router owns all pages and the previous URLs redirect", async ({ page, request }) => {
@@ -34,7 +35,7 @@ for (const width of [390, 1440]) {
     await page.locator("[data-project-navigation] a[href='/ta3allam']").click();
     await expect(page).toHaveURL(`${origin}${projectRoutes.learning}`);
     await expect(page.locator(".lms-course-card")).toHaveCount(3);
-    await page.locator("[data-project-navigation] a[href='/7days-freelance']").click();
+    await page.locator("[data-project-navigation] a[href='/ta3allam/7days-freelance']").click();
     await expect(page).toHaveURL(`${origin}${projectRoutes.workshop}`);
     await expect(page.getByText("ينتهي الخصم خلال :", { exact: true })).toBeVisible();
     await expect(page.locator(".reel-card")).toHaveCount(4);
@@ -51,7 +52,7 @@ for (const width of [390, 1440]) {
 test("LMS endpoints and player assets share the page origin", async ({ request }) => {
   const response = await request.get("/api/courses");
   expect(response.status()).toBe(200);
-  expect((await response.json()).courses).toHaveLength(6);
+  expect((await response.json()).courses).toHaveLength(courses.length);
   expect((await request.get("/assets/images/personal/portrait.png")).status()).toBe(200);
   const media = await request.get("/assets/video/portfolio/work-01.mp4", { headers: { Range: "bytes=0-1023" } });
   expect(media.status()).toBe(206);
@@ -80,7 +81,7 @@ test("Ta3allam owns its catalog, account and learning routes; legacy redirects r
   await expect(course.locator("a").first()).toHaveAttribute("href", /^\/ta3allam\/courses\//);
   await page.getByRole("link", { name: "الدورات", exact: true }).first().click();
   await expect(page).toHaveURL(/\/ta3allam\/courses$/);
-  await expect(page.locator(".lms-course-card")).toHaveCount(6);
+  await expect(page.locator(".lms-course-card")).toHaveCount(courses.length);
   const links = await page.locator("a[href]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
   expect(links.some((href) => /^\/(courses|dashboard|learn|login)(?:\/|$|[?#])/.test(href ?? ""))).toBe(false);
   await page.getByRole("link", { name: "كيف تتعلّم؟", exact: true }).first().click();

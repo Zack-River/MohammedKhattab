@@ -5,7 +5,7 @@ The client chose these two sites as the visual reference for this project and fu
 - [Workshop](https://warshataltagheer.vercel.app/)
 - [Personal brand](https://mohamedkhattab.vercel.app/)
 
-Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. The personal portfolio is the unified app’s home page `/`; Ta3llam is `/ta3allam` and the workshop is `/7days-freelance`.
+Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. The personal portfolio is the unified app’s home page `/`; Ta3llam is `/ta3allam` and the workshop is `/ta3allam/7days-freelance`.
 
 ## Shared foundation
 
@@ -242,7 +242,7 @@ The revised coming-soon poster takes conceptual inspiration from online typograp
 
 ## Unified application routes
 
-One root `app/` owns every route, layout and API handler. Portfolio `/`, Ta3llam `/ta3allam` and workshop `/7days-freelance` retain their approved page compositions and share the root font/theme/player styles. `/portfolio` and `/workshop` are compatibility redirects. `config/project-navigation.ts` owns main-page destinations and cross-page labels; `modules/config/navigation.ts` derives its home/portfolio/workshop links from that source. Headers keep page-specific section navigation, while the data-driven shared `ProjectNavigation` footer component connects all three pages. Existing source-copy assertions exclude only these user-authorized cross-page links and prior media changes.
+One root `app/` owns every route, layout and API handler. Portfolio `/`, Ta3llam `/ta3allam` and workshop `/ta3allam/7days-freelance` retain their approved page compositions and share the root font/theme/player styles. `/portfolio` and `/workshop` are compatibility redirects. `config/project-navigation.ts` owns main-page destinations and cross-page labels; `modules/config/navigation.ts` derives its home/portfolio/workshop links from that source. Headers keep page-specific section navigation, while the data-driven shared `ProjectNavigation` footer component connects all three pages. Existing source-copy assertions exclude only these user-authorized cross-page links and prior media changes.
 
 The portfolio and LMS layers remain under `modules/` using `@platform/*` imports; workshop layers remain under `app/components`, `app/data` and `app/hooks`. These are feature modules in a single app. Root `public/` is the canonical asset directory, with `modules/public` a compatibility symlink. Build and start from the repository root. There is no iframe or separate app build behind the new pages.
 

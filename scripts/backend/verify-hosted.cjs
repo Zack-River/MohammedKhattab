@@ -13,7 +13,7 @@ const client = new Client({ connectionString: target.toString(), ssl: { rejectUn
     await client.query(fs.readFileSync('supabase/seed.sql','utf8'));
     await client.query('commit');
     const tables = await client.query("select relname, relrowsecurity from pg_class join pg_namespace on pg_namespace.oid=relnamespace where nspname='public' and relkind='r' order by relname");
-    if (tables.rows.length !== 7 || tables.rows.some(row => !row.relrowsecurity)) throw new Error('RLS verification failed');
+    if (tables.rows.length !== 9 || tables.rows.some(row => !row.relrowsecurity)) throw new Error('RLS verification failed');
     const catalog = await client.query("select slug, position, amount from public.courses order by position");
     const leaked = await client.query("select count(*)::int as count from public.courses, jsonb_path_query(metadata, '$.modules[*].lessons[*].videoUrl') as video where video <> '\"\"'::jsonb");
     if (leaked.rows[0].count) throw new Error('Public metadata contains private playback URLs');
