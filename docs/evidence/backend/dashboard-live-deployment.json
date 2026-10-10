@@ -1,0 +1,41 @@
+{
+  "verifiedAt": "2026-10-10T17:19:06.713Z",
+  "origin": "https://mohammed-khattab.vercel.app",
+  "revision": "529ace5b6ee4d696b1ea863df44e55f4194801b1",
+  "deploymentState": "success",
+  "anonymousChecks": [
+    {
+      "path": "/ta3allam/dashboard",
+      "status": 307
+    },
+    {
+      "path": "/ta3allam/dashboard/courses",
+      "status": 307
+    },
+    {
+      "path": "/ta3allam/dashboard/profile",
+      "status": 307
+    },
+    {
+      "path": "/ta3allam/dashboard/resources",
+      "status": 307
+    },
+    {
+      "path": "/ta3allam/dashboard/certificates",
+      "status": 307
+    },
+    {
+      "path": "/ta3allam/dashboard/admin/courses",
+      "status": 307
+    }
+  ],
+  "student": {
+    "email": "student@ta3allam.com",
+    "checks": [
+      "Signed-in student cannot use admin course APIs",
+      "Lost session cannot navigate through a retained dashboard layout",
+      "Back after logout cannot restore cached dashboard content",
+      "Logout removes access before dashboard rendering"
+    ]
+  }
+}
