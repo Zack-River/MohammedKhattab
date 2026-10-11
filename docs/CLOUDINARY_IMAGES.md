@@ -60,4 +60,8 @@ Four unit cases, 36 image-upload integration checks, the existing 190 backend ch
 
 The unit cases cover bounded streaming, invalid paths/scopes/size, MIME spoofing and signed request/error behavior. Integration covers owner isolation, actual Cloudinary folders, profile persistence and refresh, course URL persistence/reload, banned/guest denial, cross-origin protection and responsive widths from 320 to 1920px.
 
+## Hosted acceptance
+
+Application commit `b6c0f98` deployed successfully. The live endpoint rejects guests with HTTP 401. The real-admin smoke test verified the avatar upload control, uploaded one temporary course thumbnail, checked the production folder and editable URL, and compared course metadata before/after to ensure it was unchanged. The temporary image was deleted afterward; zero browser runtime errors were observed. Evidence: `docs/evidence/image-uploads/live.json`. No production account photo was changed. Reproduce with `node tests/backend/image-uploads-live.cjs` using ignored local admin/Cloudinary credentials.
+
 Implementation follows [Cloudinary's signed Upload API and folder options](https://cloudinary.com/documentation/image_upload_api_reference), the installed Next.js Route Handler guide, and [Supabase filtered updates](https://supabase.com/docs/reference/javascript/update).
