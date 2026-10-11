@@ -3,6 +3,8 @@ for (const width of [320, 1440]) {
   test(`navigation separates sections from catalog destinations at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#courses");
+    await expect(page.locator("#courses")).toBeInViewport();
     await page.goto("/");
     const header = page.locator("header.lms-site-header");
     if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
@@ -30,8 +32,10 @@ for (const width of [320, 1440]) {
     if (width === 320) await page.locator("header.lms-site-header").getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const returnToCourses = page.locator("header.lms-site-header").getByRole("link", { name: "الدورات", exact: true });
     await expect(returnToCourses).toHaveAttribute("href", "/#courses");
-    await returnToCourses.click();
-    await expect(page).toHaveURL(/\/#courses$/);
+    await Promise.all([
+      page.waitForURL(/\/#courses$/, { waitUntil: "load" }),
+      returnToCourses.click(),
+    ]);
     await expect(page.locator("#courses")).toBeInViewport();
   });
 }

@@ -7084,13 +7084,14 @@ export default function LandingPage({ model }: { model: LandingModel }) {
 
 ### File: `modules/components/marketing/reveal-content.tsx`
 
-SHA-256: `58090bb23558d41eec09392c1ad2d9c3ee5756e5843ea7001491fcec83e23403`
+SHA-256: `43b987a480c9097229b13335e8e28cf970f250d8c59581da7e5b0417eb3b05b4`
 
 ```tsx
 "use client";
 
 import { useRef } from "react";
 import { useScrollReveals } from "@khatab/design/hooks/use-scroll-reveals";
+import { useFragmentNavigation } from "@khatab/design/hooks/use-fragment-navigation";
 export default function RevealContent({
   children,
   as: Element = "main",
@@ -7107,6 +7108,7 @@ export default function RevealContent({
   motion?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  useFragmentNavigation({ rootRef: ref, enabled: scope === "page" });
   useScrollReveals({ rootRef: ref, options, enabled: motion });
   return (
     <Element ref={ref} className={className} data-reveal-scope={scope}>
@@ -17981,6 +17983,42 @@ export function useExclusivePlayer(reset: () => void) {
   return useCallback(() => {
     document.dispatchEvent(new CustomEvent(activationEvent, { detail: identity.current }));
   }, []);
+}
+```
+
+### File: `packages/design-system/hooks/use-fragment-navigation.ts`
+
+SHA-256: `68112c64697c75a4cc86a1b008dc69d85cd68a8fc61990232e3727d12ab25e93`
+
+```typescript
+"use client";
+import { useEffect, type RefObject } from "react";
+
+/** Align fragments after streamed page content commits, including hash changes. */
+export function useFragmentNavigation({ rootRef, enabled = true }: {
+  rootRef: RefObject<HTMLElement | null>;
+  enabled?: boolean;
+}) {
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    const align = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        let id: string;
+        try { id = decodeURIComponent(window.location.hash.slice(1)); }
+        catch { return; }
+        const target = id && document.getElementById(id);
+        if (target && rootRef.current?.contains(target)) target.scrollIntoView({ block: "start" });
+      });
+    };
+    align();
+    window.addEventListener("hashchange", align);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("hashchange", align);
+    };
+  }, [rootRef, enabled]);
 }
 ```
 
@@ -30332,7 +30370,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/navigation-links.spec.ts`
 
-SHA-256: `829afae75b4ac5fa072e56571cf49f7e64d5c04cd697637b6b0936e7aa17cce5`
+SHA-256: `b7b39cdc71f6dbe1c64d76912a4d4b62f72c765d72adb2c96a8a4105ac34165f`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -30340,6 +30378,8 @@ for (const width of [320, 1440]) {
   test(`navigation separates sections from catalog destinations at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/#courses");
+    await expect(page.locator("#courses")).toBeInViewport();
     await page.goto("/");
     const header = page.locator("header.lms-site-header");
     if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
@@ -30367,8 +30407,10 @@ for (const width of [320, 1440]) {
     if (width === 320) await page.locator("header.lms-site-header").getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const returnToCourses = page.locator("header.lms-site-header").getByRole("link", { name: "الدورات", exact: true });
     await expect(returnToCourses).toHaveAttribute("href", "/#courses");
-    await returnToCourses.click();
-    await expect(page).toHaveURL(/\/#courses$/);
+    await Promise.all([
+      page.waitForURL(/\/#courses$/, { waitUntil: "load" }),
+      returnToCourses.click(),
+    ]);
     await expect(page.locator("#courses")).toBeInViewport();
   });
 }

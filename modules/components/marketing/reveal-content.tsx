@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { useScrollReveals } from "@khatab/design/hooks/use-scroll-reveals";
+import { useFragmentNavigation } from "@khatab/design/hooks/use-fragment-navigation";
 export default function RevealContent({
   children,
   as: Element = "main",
@@ -18,6 +19,7 @@ export default function RevealContent({
   motion?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  useFragmentNavigation({ rootRef: ref, enabled: scope === "page" });
   useScrollReveals({ rootRef: ref, options, enabled: motion });
   return (
     <Element ref={ref} className={className} data-reveal-scope={scope}>
