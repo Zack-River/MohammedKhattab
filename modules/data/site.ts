@@ -49,7 +49,7 @@ export const instructor: InstructorContent = {
   experience: "LEARN. CREATE. GROW.",
   action: { href: routes.portfolio, label: "اعرف أكتر عن محمد خطاب" },
   stats: [
-    { value: "01", label: "خطوة في كل مرة" },
+    { value: "1", label: "خطوة في كل مرة" },
     { value: "100%", label: "تعلّم بالتطبيق" },
     { value: "∞", label: "مساحة للتجربة والتطور" },
   ],

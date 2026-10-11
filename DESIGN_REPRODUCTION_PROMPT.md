@@ -8929,7 +8929,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `c0f9572d1443384503708d9127b18ccee3403e358b3ab0fec21e8e261226a403`
+SHA-256: `6e88dcdb3b7177483d7d8b731e0ce676cbb4ce86e087096fd77668a95880aee7`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -8983,7 +8983,7 @@ export const instructor: InstructorContent = {
   experience: "LEARN. CREATE. GROW.",
   action: { href: routes.portfolio, label: "اعرف أكتر عن محمد خطاب" },
   stats: [
-    { value: "01", label: "خطوة في كل مرة" },
+    { value: "1", label: "خطوة في كل مرة" },
     { value: "100%", label: "تعلّم بالتطبيق" },
     { value: "∞", label: "مساحة للتجربة والتطور" },
   ],

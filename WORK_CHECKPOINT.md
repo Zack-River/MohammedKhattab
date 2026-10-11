@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — instructor statistic display
+
+- Changed the homepage instructor statistic beside “خطوة في كل مرة” from `01` to `1` in its centralized page content. Shared statistic rendering stays unchanged; the design reproduction snapshot is refreshed.
+- Confirmed `config/personal-portfolio.json` remains the active founder content/metadata source, adapted by `config/personal-portfolio-model.ts` for current navigation and destinations.
+- Production build, TypeScript, targeted lint and diff checks passed. Deployment verification pending.
+
 ## Latest checkpoint — mobile account/dashboard access
 
 - Reproduced the live bug: the account link was present in authenticated HTML but explicitly `display: none` at 320px, 390px and 768px. Removed that mobile hiding rule and kept the account link non-wrapping/non-shrinking with the shared 44px touch target beside the menu toggle.
