@@ -1,0 +1,26 @@
+a.action-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--control-target-size);
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--motion-duration-surface) var(--motion-easing);
+}
+a.action-text-link:hover,
+a.action-text-link:focus-visible {
+  color: var(--primary-red);
+  text-decoration: underline;
+}
+a.action-text-link .btn-arrow-icon {
+  display: inline-flex;
+}
+a.action-text-link svg {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  fill: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+  a.action-text-link { transition: none; }
+}

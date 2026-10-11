@@ -1,5 +1,6 @@
 import ComingSoon from "@khatab/design/ui/coming-soon";
 import AssetImage from "@khatab/design/ui/asset-image";
+import ActionLink from "@khatab/design/ui/action-link";
 import type { PortfolioContent } from "@platform/types/portfolio";
 import PortfolioSection from "./section";
 import PortfolioIcon from "./icon";
@@ -51,6 +52,9 @@ export default function PortfolioCourses({
           </a>
         ))}
       </div>
+      {content.action && <div className="personal-courses-action">
+        <ActionLink action={content.action} variant="text" />
+      </div>}
     </PortfolioSection>
   );
 }

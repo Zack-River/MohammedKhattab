@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — founder courses section and catalog text link
+
+- Founder navbar “كورساتي” now scrolls to its own `#courses` section, immediately after “تعلّم”. Section highlighting includes the original courses section again; external destinations are excluded from the section observer.
+- Added centered “شوف كل الدورات” → `/courses` below the original course cards. Shared ActionLink now supports an optional text variant: white text with an arrow, primary red and underline on hover/focus; no button background. Existing primary actions retain their styling. Labels/destinations remain in the page model and shared styles use canonical theme values.
+- Production build, TypeScript, lint, architecture (528 files / zero violations), and all 12 navigation/portfolio browser tests passed. Tests verify 320px/1440px section/catalog clicks, local highlight, default white/hover red/underline/arrow, responsive assets, original text and media behavior. Local build: **s6lWJ8VCPSL2_QsMcpRGd**. Live verification pending. Evidence: `docs/evidence/portfolio-course-navigation/`.
+
 ## Latest checkpoint — founder section before portfolio page
 
 - “تعرّف على مؤسس تعلّم” in the public navbar now targets the homepage `/#instructor` section. Its existing reusable instructor component shows the primary “اعرف أكتر عن محمد خطاب” button linking to `/founder`.

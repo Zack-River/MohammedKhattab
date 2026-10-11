@@ -1,0 +1,31 @@
+[WebServer] (node:15000) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 12 tests using 6 workers
+
+(node:15027) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15046) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15034) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15026) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15030) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 390px (2.7s)
+  ✓   5 [platform] › tests/platform/portfolio.spec.ts:5:5 › portfolio preserves reference sections, copy, links and real media (2.7s)
+  ✓   2 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px (2.9s)
+  ✓   6 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 768px (3.1s)
+  ✓   7 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 1440px (2.2s)
+  ✓  10 [platform] › tests/platform/portfolio.spec.ts:130:5 › original section copy is preserved apart from authorized media and catalog action changes (2.1s)
+  ✓   8 [platform] › tests/platform/portfolio.spec.ts:86:5 › portfolio player remains inline and resets the prior sample (3.3s)
+  ✓   9 [platform] › tests/platform/portfolio.spec.ts:102:5 › portfolio shares smooth hover and progressing timeline with reduced motion support (3.4s)
+  ✓  11 [platform] › tests/platform/portfolio.spec.ts:186:5 › navigation clears the previous section highlight when returning to the original hero (1.8s)
+  ✓  12 [platform] › tests/platform/portfolio.spec.ts:203:5 › reels have no visible captions and the upcoming course uses shared artwork (1.5s)
+  ✓   3 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 320px (7.7s)
+  ✓   4 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 1440px (7.7s)
+
+  12 passed (9.4s)

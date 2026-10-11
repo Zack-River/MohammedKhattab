@@ -13,10 +13,5 @@ export const projectNavigation = {
   ],
 };
 
-export const portfolioPlatformNavigation = [
-  ...projectNavigation.links.filter(link => link.href === projectRoutes.learning),
-  { href: projectRoutes.courses, label: "كورساتي" },
-];
-
 /** Former platform namespaces retained as compatibility redirects. */
 export const legacyLearningNamespaces = ["ta3allam", "ta3llam"] as const;

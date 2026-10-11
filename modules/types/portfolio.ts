@@ -1,5 +1,7 @@
 import type source from "../../config/personal-portfolio.json";
-export type PortfolioContent = Omit<typeof source, "hero" | "collaboration"> & {
+import type { LinkData } from "@khatab/design/types/ui";
+export type PortfolioContent = Omit<typeof source, "hero" | "collaboration" | "courses"> & {
+  courses: typeof source.courses & { action?: LinkData };
   hero: Omit<typeof source.hero, "actions"> & { actions: readonly PortfolioAction[] };
   collaboration: Omit<typeof source.collaboration, "actions"> & { actions: readonly PortfolioAction[] };
 };

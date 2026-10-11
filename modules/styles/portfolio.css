@@ -1001,6 +1001,11 @@
     var(--personal-reference-value-36px)
   );
 }
+.personal-site .personal-courses-action {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
 .personal-site .p-ref-course-yt-card {
   display: flex;
   flex-direction: column;

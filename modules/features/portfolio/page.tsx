@@ -1,5 +1,5 @@
 import { designerCredit } from "../../../config/designer";
-import { projectNavigation, portfolioPlatformNavigation } from "../../../config/project-navigation";
+import { projectNavigation } from "../../../config/project-navigation";
 import { personalPortfolio as content } from "../../../config/personal-portfolio-model";
 import { portfolioSocials } from "../../../config/creator-contacts";
 import { creators, clientReels } from "../../../config/workshop-clients";
@@ -15,7 +15,7 @@ import Collaboration from "@platform/components/portfolio/collaboration";
 import Footer from "@platform/components/portfolio/footer";
 const sectionIds = [
   content.hero.id,
-  ...content.header.navigation.map((link) => link.href.slice(1)),
+  ...content.header.navigation.filter(link => link.href.startsWith("#")).map((link) => link.href.slice(1)),
   content.collaboration.id,
 ];
 export default function PortfolioPage() {
@@ -25,10 +25,7 @@ export default function PortfolioPage() {
       <a className="personal-skip" href={`#${content.accessibility.mainId}`}>
         {content.accessibility.skipLabel}
       </a>
-      <Header heroId={content.hero.id} content={{ ...content.header, navigation: [
-        ...content.header.navigation,
-        ...portfolioPlatformNavigation.map((link) => ({ ...link, ariaLabel: null })),
-      ] }} sectionIds={sectionIds} />
+      <Header heroId={content.hero.id} content={content.header} sectionIds={sectionIds} />
       <RevealContent as="div">
         <main id={content.accessibility.mainId}>
           <Hero content={content.hero} />

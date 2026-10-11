@@ -2750,7 +2750,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `8a757e45cb3631689e5b3522a161df05f64b786d8bb4b05e0e08d48f6018211e`
+SHA-256: `ff91871b7658df1c7d5abd3056c5eb7b80184cdb2142e1b3208b916f52afc027`
 
 ```css
 @import "./styles/theme.css";
@@ -2766,6 +2766,7 @@ SHA-256: `8a757e45cb3631689e5b3522a161df05f64b786d8bb4b05e0e08d48f6018211e`
 @import "../modules/styles/auth.css";
 @import "../modules/styles/admin.css";
 @import "../packages/design-system/styles/form-controls.css";
+@import "../packages/design-system/styles/action-link.css";
 
 @import "../packages/design-system/styles/action-menu.css";
 @import "../modules/styles/account.css";
@@ -3492,10 +3493,10 @@ export const testimonialsContent = {
 
 ### File: `config/personal-portfolio-model.ts`
 
-SHA-256: `856ebab165440dbdc406d6a37e9ffe169b597f9ef81fc58b50e3c973faaa47c5`
+SHA-256: `14da1149f33b03810951e44948eb0333582ad879a7ccdb82d56dee48aa83afc8`
 
 ```typescript
-import { projectRoutes } from "./project-navigation";
+import { projectNavigation, projectRoutes } from "./project-navigation";
 import source from "./personal-portfolio.json";
 import { creatorContacts } from "./creator-contacts";
 import { readPortfolioAction } from "../modules/helpers/portfolio/read-action";
@@ -3503,8 +3504,14 @@ import type { PortfolioContent } from "../modules/types/portfolio";
 /** JSON preserves reference copy/provenance; live identity destinations have canonical owners. */
 export const personalPortfolio: PortfolioContent = {
   ...source,
-  header: { ...source.header, navigation: source.header.navigation.filter(link => link.href !== `#${source.courses.id}`) },
-  courses: { ...source.courses, items: source.courses.items.map(item => ({ ...item, href: item.href === "/7days-freelance" ? projectRoutes.workshop : item.href })) },
+  header: { ...source.header, navigation: [
+    ...source.header.navigation.filter(link => link.href !== `#${source.courses.id}`),
+    ...projectNavigation.links.filter(link => link.href === projectRoutes.learning).map(link => ({ ...link, ariaLabel: null })),
+    ...source.header.navigation.filter(link => link.href === `#${source.courses.id}`),
+  ] },
+  courses: { ...source.courses,
+    action: { href: projectRoutes.courses, label: "شوف كل الدورات" },
+    items: source.courses.items.map(item => ({ ...item, href: item.href === "/7days-freelance" ? projectRoutes.workshop : item.href })) },
   hero: { ...source.hero, actions: source.hero.actions.map(readPortfolioAction) },
   collaboration: { ...source.collaboration, actions: source.collaboration.actions.map((action) =>
     readPortfolioAction({ ...action, href: action.icon === "whatsapp" ? creatorContacts.whatsapp : creatorContacts.portfolioEmail })) },
@@ -3941,7 +3948,7 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `45c9d380e77a5f2c626d3d2137a4a708a1cf87736f9e01f76e6f63fb8273efd4`
+SHA-256: `52f1fa535292113d4260256cc37df27bcea621715a38c34fa27fec2e91ef4925`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
@@ -3958,11 +3965,6 @@ export const projectNavigation = {
     { href: projectRoutes.learning, label: "تعلّم" },
   ],
 };
-
-export const portfolioPlatformNavigation = [
-  ...projectNavigation.links.filter(link => link.href === projectRoutes.learning),
-  { href: projectRoutes.courses, label: "كورساتي" },
-];
 
 /** Former platform namespaces retained as compatibility redirects. */
 export const legacyLearningNamespaces = ["ta3allam", "ta3llam"] as const;
@@ -7312,11 +7314,12 @@ export default function PortfolioCollaboration({
 
 ### File: `modules/components/portfolio/courses.tsx`
 
-SHA-256: `16c62cee3286f6924cec02dd732128567d38564b29ee06de5b59c2147ec05f2c`
+SHA-256: `93e3d7530e654bf3498fa9866a55af1101ad0639d30a8db65a99e995a4a8a4a8`
 
 ```tsx
 import ComingSoon from "@khatab/design/ui/coming-soon";
 import AssetImage from "@khatab/design/ui/asset-image";
+import ActionLink from "@khatab/design/ui/action-link";
 import type { PortfolioContent } from "@platform/types/portfolio";
 import PortfolioSection from "./section";
 import PortfolioIcon from "./icon";
@@ -7368,6 +7371,9 @@ export default function PortfolioCourses({
           </a>
         ))}
       </div>
+      {content.action && <div className="personal-courses-action">
+        <ActionLink action={content.action} variant="text" />
+      </div>}
     </PortfolioSection>
   );
 }
@@ -11262,11 +11268,11 @@ export { default as PortfolioPage } from "./page";
 
 ### File: `modules/features/portfolio/page.tsx`
 
-SHA-256: `b255b508653318cca84d4273f85ff5a71b97d3d810c2218611198f201d1cb267`
+SHA-256: `c12379f8ec35eefbb36f1911cf813dc6fea8a50d9ac68a8439f4d7ab38fd9601`
 
 ```tsx
 import { designerCredit } from "../../../config/designer";
-import { projectNavigation, portfolioPlatformNavigation } from "../../../config/project-navigation";
+import { projectNavigation } from "../../../config/project-navigation";
 import { personalPortfolio as content } from "../../../config/personal-portfolio-model";
 import { portfolioSocials } from "../../../config/creator-contacts";
 import { creators, clientReels } from "../../../config/workshop-clients";
@@ -11282,7 +11288,7 @@ import Collaboration from "@platform/components/portfolio/collaboration";
 import Footer from "@platform/components/portfolio/footer";
 const sectionIds = [
   content.hero.id,
-  ...content.header.navigation.map((link) => link.href.slice(1)),
+  ...content.header.navigation.filter(link => link.href.startsWith("#")).map((link) => link.href.slice(1)),
   content.collaboration.id,
 ];
 export default function PortfolioPage() {
@@ -11292,10 +11298,7 @@ export default function PortfolioPage() {
       <a className="personal-skip" href={`#${content.accessibility.mainId}`}>
         {content.accessibility.skipLabel}
       </a>
-      <Header heroId={content.hero.id} content={{ ...content.header, navigation: [
-        ...content.header.navigation,
-        ...portfolioPlatformNavigation.map((link) => ({ ...link, ariaLabel: null })),
-      ] }} sectionIds={sectionIds} />
+      <Header heroId={content.hero.id} content={content.header} sectionIds={sectionIds} />
       <RevealContent as="div">
         <main id={content.accessibility.mainId}>
           <Hero content={content.hero} />
@@ -14616,7 +14619,7 @@ button:disabled {
 
 ### File: `modules/styles/portfolio.css`
 
-SHA-256: `977f5542cedd2e5ca69c101a0268b390dbf8e5a5ae6368a06f4dc993c42c4485`
+SHA-256: `0ea57d4bf48a818c10e76d6cfc1eefacd22f364770a27f468317f8c0fd8dcee9`
 
 ```css
 /* Generated from the approved reference by scripts/prepare-portfolio-styles.py. */
@@ -15621,6 +15624,11 @@ SHA-256: `977f5542cedd2e5ca69c101a0268b390dbf8e5a5ae6368a06f4dc993c42c4485`
     var(--personal-reference-value-3-5vw),
     var(--personal-reference-value-36px)
   );
+}
+.personal-site .personal-courses-action {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-lg);
 }
 .personal-site .p-ref-course-yt-card {
   display: flex;
@@ -16754,11 +16762,13 @@ export interface NavigationAccount {
 
 ### File: `modules/types/portfolio.ts`
 
-SHA-256: `a0606c99c5166182e827dca683992873f5dbd287f1822f1eb371271dee83f46f`
+SHA-256: `9f36488e6c1aabbe6978a6a1669b4f5158afabaec089efe20682f89b9be3db1b`
 
 ```typescript
 import type source from "../../config/personal-portfolio.json";
-export type PortfolioContent = Omit<typeof source, "hero" | "collaboration"> & {
+import type { LinkData } from "@khatab/design/types/ui";
+export type PortfolioContent = Omit<typeof source, "hero" | "collaboration" | "courses"> & {
+  courses: typeof source.courses & { action?: LinkData };
   hero: Omit<typeof source.hero, "actions"> & { actions: readonly PortfolioAction[] };
   collaboration: Omit<typeof source.collaboration, "actions"> & { actions: readonly PortfolioAction[] };
 };
@@ -18489,6 +18499,39 @@ SHA-256: `f4a0477a045e42ec054d1cac61d5295d304cda07ad295d9e65535e0d88229914`
     "react-dom": "^19.1.1",
     "next": "^16.3.8"
   }
+}
+```
+
+### File: `packages/design-system/styles/action-link.css`
+
+SHA-256: `d9c6bec4ac106b81a47172983eb47458de97f68aac101e95466bc240c457e455`
+
+```css
+a.action-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: var(--control-target-size);
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--motion-duration-surface) var(--motion-easing);
+}
+a.action-text-link:hover,
+a.action-text-link:focus-visible {
+  color: var(--primary-red);
+  text-decoration: underline;
+}
+a.action-text-link .btn-arrow-icon {
+  display: inline-flex;
+}
+a.action-text-link svg {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  fill: currentColor;
+}
+@media (prefers-reduced-motion: reduce) {
+  a.action-text-link { transition: none; }
 }
 ```
 
@@ -23381,7 +23424,7 @@ export interface FaqItem {
 
 ### File: `packages/design-system/ui/action-link.tsx`
 
-SHA-256: `e9006274e5dd6c6262a0da410f1afebb5855e68a8174c4a03e02994c12d9b8cd`
+SHA-256: `5e0671be0b341cf797b0dd9dd5dc87a001e075a18d8ccbb7dc5d7a35c08cba74`
 
 ```tsx
 import type { ComponentPropsWithoutRef } from "react";
@@ -23391,9 +23434,10 @@ import type { LinkData } from "../types/ui";
 export default function ActionLink({
   action,
   arrow = true,
+  variant = "primary",
   className,
   ...props
-}: { action: LinkData; arrow?: boolean } & Omit<
+}: { action: LinkData; arrow?: boolean; variant?: "primary" | "text" } & Omit<
   ComponentPropsWithoutRef<"a">,
   "href" | "children"
 >) {
@@ -23402,7 +23446,7 @@ export default function ActionLink({
       {...props}
       href={action.href}
       title={action.title}
-      className={["btn-primary", className].filter(Boolean).join(" ")}
+      className={[variant === "text" ? "action-text-link" : "btn-primary", className].filter(Boolean).join(" ")}
       target={action.external ? "_blank" : undefined}
       rel={action.external ? "noopener noreferrer" : undefined}
     >
@@ -30371,7 +30415,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/navigation-links.spec.ts`
 
-SHA-256: `5c4044c753bedc82f6d061cd40152fecb8aadd19d51171d3b0bf951dc0602680`
+SHA-256: `337af3033097afa67d1c3c4c8193232fe9da3a861b4cf6044c20c0e530ece9b7`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -30407,10 +30451,22 @@ for (const width of [320, 1440]) {
     expect(labels.indexOf("كورساتي")).toBe(labels.indexOf("تعلّم") + 1);
     await expect(founder.getByRole("link", { name: "تعلّم", exact: true })).toHaveAttribute("href", "/");
     const catalog = founder.getByRole("link", { name: "كورساتي", exact: true });
-    await expect(catalog).toHaveAttribute("href", "/courses");
+    await expect(catalog).toHaveAttribute("href", "#courses");
     await expect(catalog).not.toHaveAttribute("aria-current", "location");
     await expect(founder.getByRole("link", { name: "ورشة التغيير", exact: true })).toHaveCount(0);
     await catalog.click();
+    await expect(page).toHaveURL(/\/founder#courses$/);
+    await expect(page.locator("#courses")).toBeInViewport();
+    await expect(catalog).toHaveAttribute("aria-current", "location");
+    const allCourses = page.locator("#courses").getByRole("link", { name: "شوف كل الدورات", exact: true });
+    await expect(allCourses).toHaveAttribute("href", "/courses");
+    await expect(allCourses).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(allCourses).toHaveCSS("text-decoration-line", "none");
+    await expect(allCourses.locator("svg")).toBeVisible();
+    await allCourses.hover();
+    await expect(allCourses).toHaveCSS("color", "rgb(252, 53, 34)");
+    await expect(allCourses).toHaveCSS("text-decoration-line", "underline");
+    await allCourses.click();
     await expect(page).toHaveURL(/\/courses$/);
     if (width === 320) await page.locator("header.lms-site-header").getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const returnToCourses = page.locator("header.lms-site-header").getByRole("link", { name: "الدورات", exact: true });

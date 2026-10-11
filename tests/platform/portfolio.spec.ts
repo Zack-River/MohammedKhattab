@@ -127,7 +127,7 @@ test("portfolio shares smooth hover and progressing timeline with reduced motion
   );
 });
 
-test("original section copy is preserved apart from authorized reel and upcoming preview changes", async ({
+test("original section copy is preserved apart from authorized media and catalog action changes", async ({
   page,
 }) => {
   const html = readFileSync(
@@ -168,6 +168,8 @@ test("original section copy is preserved apart from authorized reel and upcoming
         .forEach((node) => node.remove());
       section.querySelector('.course-yt-card[href="#collab"] .course-yt-thumb')?.remove();
       actualCopy?.querySelector('.personal-course-upcoming .p-ref-course-yt-thumb')?.remove();
+      // The added catalog link is approved; original course copy must still match.
+      actualCopy?.querySelector(".personal-courses-action")?.remove();
       actualCopy?.querySelectorAll("[data-project-navigation]").forEach((node) => node.remove());
       section.querySelector(".footer-designer-credit")?.remove();
       actualCopy?.querySelector(".p-ref-footer-designer-credit")?.remove();
