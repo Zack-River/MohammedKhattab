@@ -6,7 +6,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 
 - “تعرّف على مؤسس تعلّم” in the public navbar now targets the homepage `/#instructor` section. Its existing reusable instructor component shows the primary “اعرف أكتر عن محمد خطاب” button linking to `/founder`.
 - Existing founder and course navbar destinations remain as approved. No new component, stylesheet, dependency or visual tokens were needed.
-- Build, TypeScript, lint and architecture (527 files / zero violations) passed. Both 320px/1440px navigation tests passed, including the section click and its portfolio button. Local production build: **mHXntNvW-EAFON6XbdLVP**. Live verification is pending. Evidence: `docs/evidence/founder-section/`.
+- Build, TypeScript, lint and architecture (527 files / zero violations) passed. Both 320px/1440px navigation tests passed, including the section click and its portfolio button. Local production build: **mHXntNvW-EAFON6XbdLVP**. Application commit **91ba5ef** deployed successfully. Both live mobile/desktop tests passed at `https://ta3allam.vercel.app`, verifying the navbar reaches the same instructor section and its button opens `/founder`. Evidence: `docs/evidence/founder-section/`.
 
 ## Latest checkpoint — founder and course navigation destinations
 
