@@ -1,5 +1,5 @@
 import { designerCredit } from "../../../config/designer";
-import { projectNavigation, projectRoutes } from "../../../config/project-navigation";
+import { projectNavigation, portfolioPlatformNavigation } from "../../../config/project-navigation";
 import { personalPortfolio as content } from "../../../config/personal-portfolio-model";
 import { portfolioSocials } from "../../../config/creator-contacts";
 import { creators, clientReels } from "../../../config/workshop-clients";
@@ -27,7 +27,7 @@ export default function PortfolioPage() {
       </a>
       <Header heroId={content.hero.id} content={{ ...content.header, navigation: [
         ...content.header.navigation,
-        ...projectNavigation.links.filter((link) => link.href !== projectRoutes.portfolio).map((link) => ({ ...link, ariaLabel: null })),
+        ...portfolioPlatformNavigation.map((link) => ({ ...link, ariaLabel: null })),
       ] }} sectionIds={sectionIds} />
       <RevealContent as="div">
         <main id={content.accessibility.mainId}>

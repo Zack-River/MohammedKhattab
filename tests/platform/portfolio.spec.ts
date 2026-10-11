@@ -185,9 +185,9 @@ test("navigation clears the previous section highlight when returning to the ori
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/founder#courses");
+  await page.goto("/founder#about");
   await expect(
-    page.locator("[id^=personal-navigation-] a[href='#courses']"),
+    page.locator("[id^=personal-navigation-] a[href='#about']"),
   ).toHaveAttribute("aria-current", "location");
   await page.locator(".p-ref-brand-logo").click();
   await expect(page.locator("[id^=personal-navigation-] [aria-current]")).toHaveCount(

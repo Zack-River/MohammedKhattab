@@ -6,6 +6,7 @@ import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { ContentBindings } from "@platform/types/content";
 
 import Link from "next/link";
+import NavigationLink from "@khatab/design/ui/navigation-link";
 import { usePathname } from "next/navigation";
 import { useId } from "react";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
@@ -57,14 +58,14 @@ export default function SiteHeader({
             }}
           >
             {marketingNavigation.map((link) => (
-              <Link
+              <NavigationLink
                 href={link.href}
                 key={link.href}
                 aria-current={pathname === link.href ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >
                 {link.label}
-              </Link>
+              </NavigationLink>
             ))}
           </div>
           <div className="lms-nav-actions">

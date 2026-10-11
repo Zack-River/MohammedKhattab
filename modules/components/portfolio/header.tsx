@@ -29,19 +29,21 @@ export default function PortfolioHeader({
           aria-label={content.navigationLabel}
           className={`p-ref-nav-menu ${open ? "p-ref-is-open" : ""}`}
         >
-          {content.navigation.map((link) => (
+          {content.navigation.map((link) => {
+            const current = link.href.startsWith("#") && active === link.href.slice(1);
+            return (
             <a
-              className={`p-ref-nav-link ${active === link.href.slice(1) ? "p-ref-is-active" : ""}`}
+              className={`p-ref-nav-link ${current ? "p-ref-is-active" : ""}`}
               key={link.href}
               href={link.href}
               aria-current={
-                active === link.href.slice(1) ? "location" : undefined
+                current ? "location" : undefined
               }
               onClick={close}
             >
               {link.label}
             </a>
-          ))}
+          ); })}
         </nav>
         <div className="personal-header-actions">
           <a

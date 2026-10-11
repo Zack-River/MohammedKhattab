@@ -1,9 +1,13 @@
 import { navigationRootMargin } from "./navigation-root-margin";
 export function observeActiveSection(ids: readonly string[], onActive: (id: string) => void) {
+  const visible = new Set<Element>();
   const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.boundingClientRect.top - a.boundingClientRect.top);
-    if (visible[0]) onActive(visible[0].target.id);
+    entries.forEach(entry => {
+      if (entry.isIntersecting) visible.add(entry.target);
+      else visible.delete(entry.target);
+    });
+    const current = [...visible].sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top)[0];
+    onActive(current?.id ?? "");
   }, { rootMargin: navigationRootMargin() });
   ids.forEach((id) => {
     const section = document.getElementById(id);

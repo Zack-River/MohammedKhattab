@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — founder and course navigation destinations
+
+- Public nav: “تعرّف على مؤسس تعلّم” links to `/founder`; “الدورات” links to the homepage `/#courses` section. The existing “كل الدورات” button retains `/courses`.
+- Founder nav: workshop remains removed; “تعلّم” → `/` is immediately followed by “كورساتي” → `/courses`. Original portfolio content and its courses section remain intact. Catalog URL ownership is centralized.
+- Added reusable fragment-aware NavigationLink to correct cross-layout section scrolling. Corrected stale founder section highlighting by tracking all intersecting sections and restricting active styling to local fragment links.
+- TypeScript, ESLint, architecture (**526 files / zero violations**), secret scan and production build passed. All **12 navigation/portfolio browser tests** passed, including 320px/1440px click destinations, cross-page scrolling, menus, section highlighting, reference copy, responsive assets and media behavior. Production build **vDskPbU9Z3n1LqWzhAhCR** is running at `http://localhost:3040`. Deployment verification is in progress.
+
 ## Latest checkpoint — session-aware public navbars
 
 - Removed the workshop link from shared navigation and marketing links, including the founder's navbar. Workshop/course pages remain available.

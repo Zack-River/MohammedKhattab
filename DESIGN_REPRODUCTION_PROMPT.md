@@ -3492,7 +3492,7 @@ export const testimonialsContent = {
 
 ### File: `config/personal-portfolio-model.ts`
 
-SHA-256: `66d472b3837bef5f92b053b7c39796b0ec6d4d1e9d5eb620d732fd0b72198e32`
+SHA-256: `856ebab165440dbdc406d6a37e9ffe169b597f9ef81fc58b50e3c973faaa47c5`
 
 ```typescript
 import { projectRoutes } from "./project-navigation";
@@ -3503,6 +3503,7 @@ import type { PortfolioContent } from "../modules/types/portfolio";
 /** JSON preserves reference copy/provenance; live identity destinations have canonical owners. */
 export const personalPortfolio: PortfolioContent = {
   ...source,
+  header: { ...source.header, navigation: source.header.navigation.filter(link => link.href !== `#${source.courses.id}`) },
   courses: { ...source.courses, items: source.courses.items.map(item => ({ ...item, href: item.href === "/7days-freelance" ? projectRoutes.workshop : item.href })) },
   hero: { ...source.hero, actions: source.hero.actions.map(readPortfolioAction) },
   collaboration: { ...source.collaboration, actions: source.collaboration.actions.map((action) =>
@@ -3940,13 +3941,14 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `04b3a746ac883c21623dc2fe5d7010b9b3b6d37cd33137682e807bf52f656853`
+SHA-256: `45c9d380e77a5f2c626d3d2137a4a708a1cf87736f9e01f76e6f63fb8273efd4`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
 export const projectRoutes = {
   portfolio: "/founder",
   learning: "/",
+  courses: "/courses",
   workshop: `/workshops/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
@@ -3956,6 +3958,11 @@ export const projectNavigation = {
     { href: projectRoutes.learning, label: "تعلّم" },
   ],
 };
+
+export const portfolioPlatformNavigation = [
+  ...projectNavigation.links.filter(link => link.href === projectRoutes.learning),
+  { href: projectRoutes.courses, label: "كورساتي" },
+];
 
 /** Former platform namespaces retained as compatibility redirects. */
 export const legacyLearningNamespaces = ["ta3allam", "ta3llam"] as const;
@@ -6085,7 +6092,7 @@ export default function SiteFooter({
 
 ### File: `modules/components/layout/site-header.tsx`
 
-SHA-256: `0621db8fe6547384c8ca3152f2c3ccf7ab2b13c48cf22d46265bbec2d14744ea`
+SHA-256: `01d84296fa2e959062e883aeaa47aa24815799d16e5fa955c88850d25b7b1d7a`
 
 ```tsx
 "use client";
@@ -6096,6 +6103,7 @@ import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { ContentBindings } from "@platform/types/content";
 
 import Link from "next/link";
+import NavigationLink from "@khatab/design/ui/navigation-link";
 import { usePathname } from "next/navigation";
 import { useId } from "react";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
@@ -6147,14 +6155,14 @@ export default function SiteHeader({
             }}
           >
             {marketingNavigation.map((link) => (
-              <Link
+              <NavigationLink
                 href={link.href}
                 key={link.href}
                 aria-current={pathname === link.href ? "page" : undefined}
                 onClick={() => setOpen(false)}
               >
                 {link.label}
-              </Link>
+              </NavigationLink>
             ))}
           </div>
           <div className="lms-nav-actions">
@@ -7432,7 +7440,7 @@ export default function PortfolioFooter({
 
 ### File: `modules/components/portfolio/header.tsx`
 
-SHA-256: `6fd8eab54fe434d926de959aba89e8d910b8ca136f08a3f51e7da84fb08bfe5a`
+SHA-256: `49da93bf10c3143b2e3bfff9e4cc528a9668854c2f2d5496b4e19e4836bfa666`
 
 ```tsx
 "use client";
@@ -7466,19 +7474,21 @@ export default function PortfolioHeader({
           aria-label={content.navigationLabel}
           className={`p-ref-nav-menu ${open ? "p-ref-is-open" : ""}`}
         >
-          {content.navigation.map((link) => (
+          {content.navigation.map((link) => {
+            const current = link.href.startsWith("#") && active === link.href.slice(1);
+            return (
             <a
-              className={`p-ref-nav-link ${active === link.href.slice(1) ? "p-ref-is-active" : ""}`}
+              className={`p-ref-nav-link ${current ? "p-ref-is-active" : ""}`}
               key={link.href}
               href={link.href}
               aria-current={
-                active === link.href.slice(1) ? "location" : undefined
+                current ? "location" : undefined
               }
               onClick={close}
             >
               {link.label}
             </a>
-          ))}
+          ); })}
         </nav>
         <div className="personal-header-actions">
           <a
@@ -8090,7 +8100,7 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `b35c2449c3c22165425136b9f3ce88f7ad13e9b68a1fda09dc0b31d2e79620ac`
+SHA-256: `262e0f887aa8de8a12b630b9e5f312d9dbc038adc0d00b324fe4633fc493897f`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8115,7 +8125,7 @@ export const routes = {
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
-  courses: `${learningBase}/courses`,
+  courses: projectRoutes.courses,
   dashboard: `${learningBase}/dashboard`,
   login: `${learningBase}/login`,
   signup: `${learningBase}/signup`,
@@ -8910,7 +8920,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `a2187fd89195ae7d8cf25dfbba687157b50c48fe5032929737694a7edd523540`
+SHA-256: `d3c6af07f750347ce8abf56c4abb73beb10fccd201f4687ab7c6477f12bdeb54`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -8929,10 +8939,10 @@ export const site = {
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
-  { href: routes.courses, label: "الدورات" },
+  { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },
-  { href: routes.portfolio, label: "عن المدرب" },
+  { href: routes.portfolio, label: "تعرّف على مؤسس تعلّم" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
@@ -11249,11 +11259,11 @@ export { default as PortfolioPage } from "./page";
 
 ### File: `modules/features/portfolio/page.tsx`
 
-SHA-256: `2ac04e0922c011fcc70f95fb8d970b7145f096ffc838e49454bad46f00abfef7`
+SHA-256: `b255b508653318cca84d4273f85ff5a71b97d3d810c2218611198f201d1cb267`
 
 ```tsx
 import { designerCredit } from "../../../config/designer";
-import { projectNavigation, projectRoutes } from "../../../config/project-navigation";
+import { projectNavigation, portfolioPlatformNavigation } from "../../../config/project-navigation";
 import { personalPortfolio as content } from "../../../config/personal-portfolio-model";
 import { portfolioSocials } from "../../../config/creator-contacts";
 import { creators, clientReels } from "../../../config/workshop-clients";
@@ -11281,7 +11291,7 @@ export default function PortfolioPage() {
       </a>
       <Header heroId={content.hero.id} content={{ ...content.header, navigation: [
         ...content.header.navigation,
-        ...projectNavigation.links.filter((link) => link.href !== projectRoutes.portfolio).map((link) => ({ ...link, ariaLabel: null })),
+        ...portfolioPlatformNavigation.map((link) => ({ ...link, ariaLabel: null })),
       ] }} sectionIds={sectionIds} />
       <RevealContent as="div">
         <main id={content.accessibility.mainId}>
@@ -11487,15 +11497,19 @@ export function navigationRootMargin() {
 
 ### File: `modules/helpers/portfolio/observe-active-section.ts`
 
-SHA-256: `564d7d8c56a2796cba69f1c3faf5cee530264eae058ae27c0f358a0ed3117e73`
+SHA-256: `a952574e5f2fc81391ed9e4a1c34d730c4020d91d8d7eb2d5c3b5645454106dc`
 
 ```typescript
 import { navigationRootMargin } from "./navigation-root-margin";
 export function observeActiveSection(ids: readonly string[], onActive: (id: string) => void) {
+  const visible = new Set<Element>();
   const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.boundingClientRect.top - a.boundingClientRect.top);
-    if (visible[0]) onActive(visible[0].target.id);
+    entries.forEach(entry => {
+      if (entry.isIntersecting) visible.add(entry.target);
+      else visible.delete(entry.target);
+    });
+    const current = [...visible].sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top)[0];
+    onActive(current?.id ?? "");
   }, { rootMargin: navigationRootMargin() });
   ids.forEach((id) => {
     const section = document.getElementById(id);
@@ -24400,6 +24414,20 @@ export default function NativeVideoPlayer({
 }
 ```
 
+### File: `packages/design-system/ui/navigation-link.tsx`
+
+SHA-256: `0a4db1cfeb306bcc32bb54aacdba58823ce6bcef8ccce98b829b9448bae632f7`
+
+```tsx
+import Link from "next/link";
+import type { ComponentProps } from "react";
+type NavigationLinkProps = Omit<ComponentProps<"a">, "href"> & { href: string };
+/** Native fragment navigation waits for the destination document's section. */
+export default function NavigationLink({ href, ...props }: NavigationLinkProps) {
+  return href.includes("#") ? <a href={href} {...props} /> : <Link href={href} {...props} />;
+}
+```
+
 ### File: `packages/design-system/ui/player-icon.tsx`
 
 SHA-256: `8dd2025979dbf6ddb0142935f9e077ff4419823a3f795d4cc8ed6d6ed55245b8`
@@ -30302,9 +30330,53 @@ for (const width of [320, 390, 1440]) {
 }
 ```
 
+### File: `tests/platform/navigation-links.spec.ts`
+
+SHA-256: `829afae75b4ac5fa072e56571cf49f7e64d5c04cd697637b6b0936e7aa17cce5`
+
+```typescript
+import { expect, test } from "@playwright/test";
+for (const width of [320, 1440]) {
+  test(`navigation separates sections from catalog destinations at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const header = page.locator("header.lms-site-header");
+    if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
+    const courses = header.getByRole("link", { name: "الدورات", exact: true });
+    await expect(courses).toHaveAttribute("href", "/#courses");
+    await expect(header.getByRole("link", { name: "تعرّف على مؤسس تعلّم", exact: true })).toHaveAttribute("href", "/founder");
+    await expect(header.getByRole("link", { name: "عن المدرب", exact: true })).toHaveCount(0);
+    await courses.click();
+    await expect(page).toHaveURL(/\/#courses$/);
+    await expect(page.locator("#courses")).toBeInViewport();
+    await expect(page.locator("#courses").getByRole("link", { name: "كل الدورات", exact: true })).toHaveAttribute("href", "/courses");
+    await page.goto("/founder");
+    const founder = page.locator(".personal-header");
+    if (width === 320) await founder.getByRole("button", { name: "فتح القائمة", exact: true }).click();
+    const links = founder.locator("nav a");
+    const labels = await links.allTextContents();
+    expect(labels.indexOf("كورساتي")).toBe(labels.indexOf("تعلّم") + 1);
+    await expect(founder.getByRole("link", { name: "تعلّم", exact: true })).toHaveAttribute("href", "/");
+    const catalog = founder.getByRole("link", { name: "كورساتي", exact: true });
+    await expect(catalog).toHaveAttribute("href", "/courses");
+    await expect(catalog).not.toHaveAttribute("aria-current", "location");
+    await expect(founder.getByRole("link", { name: "ورشة التغيير", exact: true })).toHaveCount(0);
+    await catalog.click();
+    await expect(page).toHaveURL(/\/courses$/);
+    if (width === 320) await page.locator("header.lms-site-header").getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
+    const returnToCourses = page.locator("header.lms-site-header").getByRole("link", { name: "الدورات", exact: true });
+    await expect(returnToCourses).toHaveAttribute("href", "/#courses");
+    await returnToCourses.click();
+    await expect(page).toHaveURL(/\/#courses$/);
+    await expect(page.locator("#courses")).toBeInViewport();
+  });
+}
+```
+
 ### File: `tests/platform/portfolio.spec.ts`
 
-SHA-256: `d1b2f23c647b4393ab378f5423b0b19b30e7bc60002a045fa18cc1e94cab90cf`
+SHA-256: `2bc4bc4c6f255a8669d7a5ea09c9734abeff019ed88f5384c51332f8a7901b99`
 
 ```typescript
 import { readFileSync } from "node:fs";
@@ -30494,9 +30566,9 @@ test("navigation clears the previous section highlight when returning to the ori
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/founder#courses");
+  await page.goto("/founder#about");
   await expect(
-    page.locator("[id^=personal-navigation-] a[href='#courses']"),
+    page.locator("[id^=personal-navigation-] a[href='#about']"),
   ).toHaveAttribute("aria-current", "location");
   await page.locator(".p-ref-brand-logo").click();
   await expect(page.locator("[id^=personal-navigation-] [aria-current]")).toHaveCount(

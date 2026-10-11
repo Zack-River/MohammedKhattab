@@ -14,10 +14,10 @@ export const site = {
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
-  { href: routes.courses, label: "الدورات" },
+  { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },
-  { href: routes.portfolio, label: "عن المدرب" },
+  { href: routes.portfolio, label: "تعرّف على مؤسس تعلّم" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [

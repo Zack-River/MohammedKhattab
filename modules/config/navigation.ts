@@ -20,7 +20,7 @@ export const routes = {
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
-  courses: `${learningBase}/courses`,
+  courses: projectRoutes.courses,
   dashboard: `${learningBase}/dashboard`,
   login: `${learningBase}/login`,
   signup: `${learningBase}/signup`,
