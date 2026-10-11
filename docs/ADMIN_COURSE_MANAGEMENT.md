@@ -39,3 +39,5 @@ Price update `a5703ee` deployed successfully. Nineteen read-only live editor che
 ## Shared creation/editor design
 
 Creation and editing compose `CourseFormLayout`, `CourseFields` and `CourseMediaFields`, retaining one responsive three-card layout. Creation supplies slug/delivery controls and a draft-only save action. Duration, thumbnail URL and intro URL are validated and persisted on initial creation; older API payloads can omit them. Uploading a thumbnail requires saving the draft first, preserving existing upload permissions. Creation request state is in `useCreateCourse`; form decoding and response validation remain separate helpers.
+
+Shared-form update `3c6d25d` is deployed. Five contract tests, 44 price/creation API-browser checks and 96 course-management regression checks passed. Twenty-eight read-only live checks confirmed responsive creation/editor parity and unchanged course data, with zero runtime errors.

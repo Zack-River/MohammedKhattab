@@ -1,7 +1,7 @@
 {
   "origin": "https://ta3allam.vercel.app",
   "slug": "testing-course",
-  "checkedAt": "2026-10-11T23:09:26.251Z",
+  "checkedAt": "2026-10-11T23:20:56.647Z",
   "checks": [
     "Revision present on real course record",
     "Three focused course form cards",
@@ -20,6 +20,15 @@
     "Mobile dialog centered",
     "Dialog restores keyboard focus",
     "Create form reuses text price and explicit free choice",
+    "Creation shares editor cards and overview fields",
+    "Create form fits 320px",
+    "Create form fits 390px",
+    "Create form fits 768px",
+    "Create form fits 1024px",
+    "Create form fits 1440px",
+    "Create card alignment 1440px",
+    "Create form fits 1920px",
+    "Create card alignment 1920px",
     "Course metadata and revision unchanged by verification",
     "Zero browser runtime errors"
   ],
