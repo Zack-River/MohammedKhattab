@@ -12903,7 +12903,7 @@ export const theme = palette;
 
 ### File: `modules/styles/account.css`
 
-SHA-256: `278a1cb1801e1b2395c74b6932460af1709a8ecd4a6079135efee061563bfb38`
+SHA-256: `904e2226693246a1981486659d30c0b1f0a9c6c526bf69518f60bcdcdaf2d686`
 
 ```css
 .lms-account-stack { display: grid; gap: var(--space-lg); }
@@ -12927,7 +12927,7 @@ SHA-256: `278a1cb1801e1b2395c74b6932460af1709a8ecd4a6079135efee061563bfb38`
 
 .lms-settings-layout { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
 .lms-settings-layout > .lms-profile-card { max-width: none; min-width: 0; }
-.lms-settings-identity { grid-row: span 2; }
+.lms-settings-identity { grid-row: span 2; align-self: stretch; }
 .lms-phone-requests { display: grid; gap: var(--space-lg); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .lms-phone-requests .lms-profile-card { max-width: none; min-width: 0; }
 .lms-phone-requests h2 { font-size: var(--size-1_25rem); margin-bottom: var(--space-md); }
@@ -28958,7 +28958,7 @@ module.exports=async function checks({admin,provision,anonymous,verify,url}) {
 
 ### File: `tests/backend/settings-live.cjs`
 
-SHA-256: `99b03dfef269b338b08992aaaf6f3655d902dd5e585a3f862c049becebb89bb9`
+SHA-256: `c9e20e7186411dc5af8f8aadbc4317df1994146e11b468091ad4f4233d43ba9c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only acceptance against the production build. */
@@ -28977,7 +28977,7 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
     await expect(page.getByLabel('رقم الهاتف',{exact:true})).toHaveAttribute('placeholder','+44-7700900123');
     for(const width of [320,390,768,1440,1920]) {
       await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-      if(width>=1440) expect(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top)).toBe(true);
+      if(width>=1440) expect(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top && Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
     }
     await page.goto(url+'/admin/dashboard/phone-confirmations');
     await expect(page.getByRole('heading',{name:'طلبات تأكيد رقم الهاتف',exact:true})).toBeVisible();

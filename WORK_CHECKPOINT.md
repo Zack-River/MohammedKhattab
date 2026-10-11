@@ -2,6 +2,11 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — aligned settings card heights
+
+- Stretched the desktop identity/contact card across its two grid rows, aligning its top with the verification card and its bottom with the password card. Mobile remains stacked.
+- Production build/TypeScript, targeted lint and diff checks passed. Existing responsive acceptance now checks both top and bottom alignment at 1440px and 1920px, in addition to small-screen overflow checks.
+
 ## Latest checkpoint — responsive settings and manual phone-confirmation queue
 
 - Replaced the private phone placeholder with the fictional reserved example `+44-7700900123`. The account's own saved number remains visible to its owner.
