@@ -71,6 +71,17 @@ module.exports = async ({ admin, provision, anonymous, verify, url }) => {
   await require('./admin-course-management-browser.cjs')({manager,verify,url,prefix,slugs});
   verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===200,'Unsubscribed course can be deleted');
   verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===404,'Missing course deletion returns not found');
+  const liveInput={...body(8),delivery:'live'};
+  verify((await manager.api('/api/admin/courses',liveInput)).status===201,'Live draft creation succeeds without duration');slugs.push(liveInput.slug);
+  const liveEndpoint='/api/admin/courses/'+liveInput.slug,liveEdit={...edit,title:liveInput.title,published:true};
+  const missingDuration=await manager.api(liveEndpoint,liveEdit);
+  verify(missingDuration.status===400 && parse(missingDuration).code==='COURSE_DURATION_REQUIRED','Live publication identifies missing duration explicitly');
+  verify((await manager.api(liveEndpoint,{...liveEdit,published:false})).status===200,'Live course remains editable as a draft without duration');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:'x'.repeat(81)})).status===400,'Oversized course duration rejected');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:42})).status===400,'Non-text course duration rejected');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:' ٧ أيام '})).status===200,'Live course publishes after providing duration');
+  verify(parse(await anonymous('/api/courses/'+liveInput.slug)).duration==='٧ أيام','Saved duration is normalized and public');
+  verify((await manager.api(liveEndpoint,liveEdit)).status===200 && parse(await manager.api(liveEndpoint)).course.duration==='٧ أيام','Legacy edits without duration retain existing duration');
   assert.ok(!(await admin.from('admin_users').delete().eq('user_id',manager.id)).error);
   verify((await manager.api('/api/admin/courses')).status===403,'Revoked admin access is immediately denied');
   verify(Boolean((await manager.direct.rpc('search_admin_courses')).error),'RPC rechecks revoked membership');

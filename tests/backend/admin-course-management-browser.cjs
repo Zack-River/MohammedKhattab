@@ -39,11 +39,17 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
   await page.getByLabel('رابط الدورة',{exact:true}).fill(newSlug);
   await page.getByLabel('الوصف',{exact:true}).fill('وصف محفوظ من نموذج إنشاء الدورة');
   await page.getByLabel('السعر (ج.م)',{exact:true}).fill('333');
+  await page.getByRole('combobox',{name:'نوع الدورة',exact:true}).click();await page.getByRole('option',{name:'مباشرة',exact:true}).click();
   await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();
   await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+newSlug);
   await expect(page.getByLabel('اسم الدورة',{exact:true})).toHaveValue('دورة من نموذج الإنشاء');
   await page.reload();await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveValue('333');
   verify(true,'Browser-created draft persists and opens its editor');
+  await page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true}).check();
+  await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('alert')).toHaveText('أدخل مدة الدورة المباشرة قبل النشر.');
+  await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toHaveText('تم حفظ التغييرات');
+  await page.reload();await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('٧ أيام');await expect(page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true})).toBeChecked();
+  verify(true,'Browser can supply required live duration, publish and retain it after refresh');
   await page.setViewportSize({width:320,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Course creation form fits 320px');
   verify(errors.length===0,'Course dashboard has no browser JavaScript errors');
  }finally{await browser.close();}

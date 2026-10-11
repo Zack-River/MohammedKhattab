@@ -1,6 +1,7 @@
 export const adminCopy = {
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", category: "التصنيف",
+  duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو مباشر أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",

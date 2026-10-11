@@ -1,6 +1,7 @@
 export const backendCopy: Record<string, string> = {
   COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
   COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
+  COURSE_DURATION_REQUIRED: "أدخل مدة الدورة المباشرة قبل النشر.",
   INCOMPLETE_COURSE: "أكمل محتوى الدورة وبياناتها قبل النشر.",
   IMAGE_STORAGE_UNAVAILABLE: "خدمة الصور غير متاحة حاليًا. حاول لاحقًا.",
   INVALID_IMAGE: "اختر صورة JPG أو PNG أو WebP صالحة.",

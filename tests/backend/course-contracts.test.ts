@@ -20,3 +20,8 @@ test("Sections reference real lessons and cannot assign a lesson twice",()=>{
 test("Empty named sections are valid and chapter section identifiers stay unique",()=>{
  const course=fixture();course.modules[0].sections!.push({id:"empty",title:"Empty",lessonIds:[]});assert.doesNotThrow(()=>validateSections(course));course.modules[0].sections!.push({id:"intro",title:"Duplicate",lessonIds:[]});assert.throws(()=>validateSections(course));
 });
+test("Live courses require duration but may have no recorded lessons",()=>{
+ const course=draft();course.delivery="live";course.deliveryLabel="ورشة مباشرة";
+ assert.throws(()=>validateCourse(course,new Set()));course.duration="٧ أيام";
+ assert.doesNotThrow(()=>validateCourse(course,new Set()));assert.doesNotThrow(()=>validateLessons(course,[]));
+});

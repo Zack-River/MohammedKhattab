@@ -5257,7 +5257,7 @@ export default function CourseEditor({ course, published, labels, categories, up
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `39d3204a7ed9b4a08f683f9c2742f64c44f2fefa149e03207e202dc941e8368a`
+SHA-256: `783bbe869fa1464c1ed50dd35161ac1f28365c9591a01121983071624b67a060`
 
 ```tsx
 "use client";
@@ -5275,6 +5275,7 @@ export default function CourseFields({ course, published, labels, categories, up
     <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
     <label htmlFor={`${id}-description`}>{labels.descriptionLabel}</label><textarea id={`${id}-description`} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
     <FormField label={labels.price} name="amount" type="number" min={0} max={policy.amountMax} step="0.01" defaultValue={course.offer.amount} required />
+    <FormField label={labels.duration} name="duration" defaultValue={course.duration} maxLength={policy.durationMax} hint={course.delivery === "live" ? labels.durationHint : undefined} />
     <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
     <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
     <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
@@ -8737,10 +8738,10 @@ export const analyticsConfig = {
 
 ### File: `modules/config/admin.ts`
 
-SHA-256: `2e829e3636cbdae1d5037705132489f4f6364055102cf75ff4c2c1d68baceb3d`
+SHA-256: `773670a2f748de763eb4fb5d1ad26b860e27dca87c8782666b94070d044647c3`
 
 ```typescript
-export const adminCoursePolicy = { titleMin: 2, titleMax: 160, descriptionMin: 2, descriptionMax: 2000, amountMax: 1000000, urlMax: 2048 } as const;
+export const adminCoursePolicy = { titleMin: 2, titleMax: 160, descriptionMin: 2, descriptionMax: 2000, amountMax: 1000000, durationMax: 80, urlMax: 2048 } as const;
 ```
 
 ### File: `modules/config/auth.ts`
@@ -9068,12 +9069,13 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `10a4c1d3b77997c5e96649401eaa08e1b629dbdf8e21ab01a86ff852aac4e292`
+SHA-256: `b31192f5ce56b59273103bd237e25a0c23f075768326b7e9d562fa3b1e72036a`
 
 ```typescript
 export const adminCopy = {
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", category: "التصنيف",
+  duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو مباشر أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
@@ -9123,12 +9125,13 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `66c14850b5f782829695ff3daad000fbb97f735bff00d4bd757acecd3fcc4258`
+SHA-256: `716fe4a8f6d8983b81d83b2a4e6b58f27173e7cd13ea62d5221745dc0d766018`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
   COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
   COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
+  COURSE_DURATION_REQUIRED: "أدخل مدة الدورة المباشرة قبل النشر.",
   INCOMPLETE_COURSE: "أكمل محتوى الدورة وبياناتها قبل النشر.",
   IMAGE_STORAGE_UNAVAILABLE: "خدمة الصور غير متاحة حاليًا. حاول لاحقًا.",
   INVALID_IMAGE: "اختر صورة JPG أو PNG أو WebP صالحة.",
@@ -10677,11 +10680,11 @@ export function readAdminPage(value?: string | null) {
 
 ### File: `modules/features/admin/helpers/read-course-edit.ts`
 
-SHA-256: `18c3a904a2bff9b0940a3982eb6de476f0d37c9cb6749e45521cef467147c3d8`
+SHA-256: `f5f9293f1094d76a5c4701824755f148117035252eb31a6a7006023ec778b9d1`
 
 ```typescript
 export function readCourseEdit(form: FormData) {
-  return { title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"),
+  return { title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), duration: form.get("duration"),
     thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
 }
 ```
@@ -10839,7 +10842,7 @@ export function validateCourseCreate(input: Record<string, unknown> | null): Cre
 
 ### File: `modules/features/admin/helpers/validate-course-edit.ts`
 
-SHA-256: `d774968eca916902ee3fa9fb4300eae3147ba225d2413f4eff8f2c741e3a7bde`
+SHA-256: `df5a3177b502bd33c2118a141df2c2ee275674a8fb5e474c98c50bc27fc7a12c`
 
 ```typescript
 import { adminCoursePolicy as policy } from "@platform/config/admin";
@@ -10849,9 +10852,11 @@ export function validateCourseEdit(input: Record<string, unknown> | null) {
   if (!input || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax ||
     typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax ||
     typeof input.amount !== "number" || !Number.isFinite(input.amount) || input.amount < 0 || input.amount > policy.amountMax ||
+    (input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) ||
     !categories.some(category => category.id !== "all" && category.id === input.category) ||
     !validMediaUrl(input.thumbnailUrl) || !validMediaUrl(input.introVideoUrl) || typeof input.published !== "boolean") return null;
   return { title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as Exclude<typeof categories[number]["id"], "all">,
+    ...(typeof input.duration === "string" ? { duration: input.duration.trim() } : {}),
     thumbnailUrl: input.thumbnailUrl, introVideoUrl: input.introVideoUrl, published: input.published };
 }
 ```
@@ -11003,7 +11008,7 @@ export async function moderateUser(id: string, change: UserModeration) {
 
 ### File: `modules/features/admin/repositories/save-course.ts`
 
-SHA-256: `283c53c51bb967b4d64090623706d0a0165f0cdbc521b30c81b4af8811b29248`
+SHA-256: `52ec0dfa95d7a4bd52c73c99859d8d7d2dfbbda3369e17fa431aec00ea3496d8`
 
 ```typescript
 import { validateCourse } from "@platform/features/catalog/helpers/validate-course";
@@ -11019,8 +11024,9 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   const current = (await readAdminCourses(slug))[0];
   if (!current) throw new ApiError(404, "NOT_FOUND");
   const { amount, published, ...metadata } = values;
-  const course = { ...current.course, ...metadata, categoryLabel: categories.find(category => category.id === values.category)!.label,
+  const course = { ...current.course, ...metadata, duration: metadata.duration ?? current.course.duration, categoryLabel: categories.find(category => category.id === values.category)!.label,
     offer: { ...current.course.offer, amount, amountLabel: undefined } };
+  if (published && course.delivery === "live" && !course.duration.trim()) throw new ApiError(400, "COURSE_DURATION_REQUIRED");
   try { validateCourse(course, new Set(), { draft: !published }); validateLessons(course, course.modules.flatMap(module => module.lessons.flatMap(lesson => lesson.resourceIds)), { draft: !published }); } catch { throw new ApiError(400, "INCOMPLETE_COURSE"); }
   const { error, data } = await client.from("courses").update({ metadata: JSON.parse(JSON.stringify(course)) as NonNullable<Json>, amount, published }).eq("slug",slug).select("slug").maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
@@ -29025,7 +29031,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
 
 ### File: `tests/backend/admin-course-management-browser.cjs`
 
-SHA-256: `ec1992676c78100b7210ff24fc23f0d7d84ca421b56010969f51405e661f2c42`
+SHA-256: `636f58f2da626fd8543963d47f6dbb2418e53f517b289a15f7dea48251caef07`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -29069,11 +29075,17 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
   await page.getByLabel('رابط الدورة',{exact:true}).fill(newSlug);
   await page.getByLabel('الوصف',{exact:true}).fill('وصف محفوظ من نموذج إنشاء الدورة');
   await page.getByLabel('السعر (ج.م)',{exact:true}).fill('333');
+  await page.getByRole('combobox',{name:'نوع الدورة',exact:true}).click();await page.getByRole('option',{name:'مباشرة',exact:true}).click();
   await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();
   await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+newSlug);
   await expect(page.getByLabel('اسم الدورة',{exact:true})).toHaveValue('دورة من نموذج الإنشاء');
   await page.reload();await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveValue('333');
   verify(true,'Browser-created draft persists and opens its editor');
+  await page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true}).check();
+  await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('alert')).toHaveText('أدخل مدة الدورة المباشرة قبل النشر.');
+  await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toHaveText('تم حفظ التغييرات');
+  await page.reload();await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('٧ أيام');await expect(page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true})).toBeChecked();
+  verify(true,'Browser can supply required live duration, publish and retain it after refresh');
   await page.setViewportSize({width:320,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Course creation form fits 320px');
   verify(errors.length===0,'Course dashboard has no browser JavaScript errors');
  }finally{await browser.close();}
@@ -29082,7 +29094,7 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
 
 ### File: `tests/backend/admin-course-management.cjs`
 
-SHA-256: `7328a44776f07e383f4264efd002e11f5308c6685a16bd288e1216237f3c9127`
+SHA-256: `b88adbadd3d99dd761d18b54e7340d27b15e24c81a7f9a5992fc6a8b7a85cb0b`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated course-management integration checks. */
@@ -29158,6 +29170,17 @@ module.exports = async ({ admin, provision, anonymous, verify, url }) => {
   await require('./admin-course-management-browser.cjs')({manager,verify,url,prefix,slugs});
   verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===200,'Unsubscribed course can be deleted');
   verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===404,'Missing course deletion returns not found');
+  const liveInput={...body(8),delivery:'live'};
+  verify((await manager.api('/api/admin/courses',liveInput)).status===201,'Live draft creation succeeds without duration');slugs.push(liveInput.slug);
+  const liveEndpoint='/api/admin/courses/'+liveInput.slug,liveEdit={...edit,title:liveInput.title,published:true};
+  const missingDuration=await manager.api(liveEndpoint,liveEdit);
+  verify(missingDuration.status===400 && parse(missingDuration).code==='COURSE_DURATION_REQUIRED','Live publication identifies missing duration explicitly');
+  verify((await manager.api(liveEndpoint,{...liveEdit,published:false})).status===200,'Live course remains editable as a draft without duration');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:'x'.repeat(81)})).status===400,'Oversized course duration rejected');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:42})).status===400,'Non-text course duration rejected');
+  verify((await manager.api(liveEndpoint,{...liveEdit,duration:' ٧ أيام '})).status===200,'Live course publishes after providing duration');
+  verify(parse(await anonymous('/api/courses/'+liveInput.slug)).duration==='٧ أيام','Saved duration is normalized and public');
+  verify((await manager.api(liveEndpoint,liveEdit)).status===200 && parse(await manager.api(liveEndpoint)).course.duration==='٧ أيام','Legacy edits without duration retain existing duration');
   assert.ok(!(await admin.from('admin_users').delete().eq('user_id',manager.id)).error);
   verify((await manager.api('/api/admin/courses')).status===403,'Revoked admin access is immediately denied');
   verify(Boolean((await manager.direct.rpc('search_admin_courses')).error),'RPC rechecks revoked membership');
@@ -29657,7 +29680,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 
 ### File: `tests/backend/course-contracts.test.ts`
 
-SHA-256: `88e343e4cc2bfc0cc45b4cd42de407c9233863449617b31c27590b7674b8515b`
+SHA-256: `e8f7c7630a3c98cf29ab7b1e7be461ae0ad04c34d1bf34816491ecb9ad2d5009`
 
 ```typescript
 import assert from "node:assert/strict";
@@ -29681,6 +29704,11 @@ test("Sections reference real lessons and cannot assign a lesson twice",()=>{
 });
 test("Empty named sections are valid and chapter section identifiers stay unique",()=>{
  const course=fixture();course.modules[0].sections!.push({id:"empty",title:"Empty",lessonIds:[]});assert.doesNotThrow(()=>validateSections(course));course.modules[0].sections!.push({id:"intro",title:"Duplicate",lessonIds:[]});assert.throws(()=>validateSections(course));
+});
+test("Live courses require duration but may have no recorded lessons",()=>{
+ const course=draft();course.delivery="live";course.deliveryLabel="ورشة مباشرة";
+ assert.throws(()=>validateCourse(course,new Set()));course.duration="٧ أيام";
+ assert.doesNotThrow(()=>validateCourse(course,new Set()));assert.doesNotThrow(()=>validateLessons(course,[]));
 });
 ```
 
