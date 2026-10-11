@@ -1,0 +1,25 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "slug": "testing-course",
+  "checkedAt": "2026-10-11T22:41:11.740Z",
+  "checks": [
+    "Revision present on real course record",
+    "Three focused course form cards",
+    "Required duration remains editable",
+    "Editor fits 320px",
+    "Editor fits 390px",
+    "Editor fits 768px",
+    "Editor fits 1024px",
+    "Editor fits 1440px",
+    "Desktop card alignment 1440px",
+    "Editor fits 1920px",
+    "Desktop card alignment 1920px",
+    "Chapter creation dialog available",
+    "Mobile dialog centered",
+    "Dialog restores keyboard focus",
+    "Course metadata and revision unchanged by verification",
+    "Zero browser runtime errors"
+  ],
+  "errors": [],
+  "readOnly": true
+}

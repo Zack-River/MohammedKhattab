@@ -1,6 +1,6 @@
 {
   "origin": "https://ta3allam.vercel.app",
-  "checkedAt": "2026-10-11T21:51:27.501Z",
+  "checkedAt": "2026-10-11T22:41:35.656Z",
   "checks": [
     "Guest list denied",
     "Eight course overview columns",
@@ -17,7 +17,7 @@
     "Overview editor excludes lesson details",
     "Dedicated content route"
   ],
-  "courseTotal": 7,
+  "courseTotal": 8,
   "errors": [],
   "readOnly": true
 }
