@@ -8,7 +8,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 - Initial server-authorized dashboards now render immediately; client navigation and history/BFCache restores still verify sessions. Cached role/student-state reads are request-scoped, and student layout reads run concurrently. Verified claims refresh in Proxy; live server authorization remains in place.
 - Configured London functions, enabled optimized local images/existing instructor WebP, split playback imports until play, and deferred chart plotting near view with reserved height. Extended the existing fade/reduced-motion engine to protected panels and public account screens.
 - Passed 190 isolated backend checks and 11 performance checks, production build/TypeScript, lint and architecture. Local production analytics/settings checks passed. Details and measurement limits: `docs/PERFORMANCE_LOADING.md`.
-- Live deployment comparison is pending the push.
+- Application commit `48b33df` is pushed. Local production probe confirms zero initial session checks across all five admin pages; 6/6 media tests passed. Hosted verification is pending: GitHub/Vercel still records `75ef4df` as the latest deployment, with no new deployment entry. The live probe still sees old behavior, so no live performance improvement is claimed. Asked the user for Vercel deployment status/error.
 
 ## Latest checkpoint — aligned settings card heights
 
