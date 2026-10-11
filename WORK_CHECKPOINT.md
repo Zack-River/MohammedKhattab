@@ -5,7 +5,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 ## Latest checkpoint — Ta3allam navbar section order
 
 - Reordered the marketing navbar to match the homepage: الدورات → كيف تتعلّم؟ → تعرّف على مؤسس تعلّم → الكوتشينج → الأسئلة الشائعة. Section destinations are unchanged.
-- Existing mobile/desktop navigation tests now compare navbar fragment IDs against rendered page section order. Both browser tests passed along with production build, TypeScript, targeted lint, architecture and diff checks. Local build: **r_FaZRVeZeqNm8IJwnP0-**. Deployment verification pending. Evidence: `docs/evidence/navbar-section-order/`.
+- Existing mobile/desktop navigation tests now compare navbar fragment IDs against rendered page section order. Both browser tests passed along with production build, TypeScript, targeted lint, architecture and diff checks. Local build: **r_FaZRVeZeqNm8IJwnP0-**. Application commit **84b4ff5** deployed successfully. Both live mobile/desktop navigation tests passed, including navbar links matching rendered section order. Evidence: `docs/evidence/navbar-section-order/`.
 
 ## Latest checkpoint — instructor statistic display
 
