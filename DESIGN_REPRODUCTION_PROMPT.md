@@ -5152,7 +5152,7 @@ export default function CourseContent({ course, revision, published, lessons, la
 
 ### File: `modules/components/admin/course-create-form.tsx`
 
-SHA-256: `6938b2f4732e0f9f8d50acf722dfdde1525bbc41cc86430aae704dc411afec71`
+SHA-256: `2fb9222a2e758d6ae968b6f5c12809bd3d0e3e03ccb20333c1209f003562d822`
 
 ```tsx
 "use client";
@@ -5163,6 +5163,7 @@ import { endpoints, routes } from "@platform/config/navigation";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { courseAdministration } from "@platform/config/course-administration";
 import FormField from "@platform/components/ui/form-field";
+import CoursePriceField from "./course-price-field";
 import Select from "@khatab/design/ui/select";
 import type { AdminCoursesLabels } from "@platform/types/admin-courses";
 export default function CourseCreateForm({ labels, categories }: { labels: AdminCoursesLabels; categories: readonly { id: string; label: string }[] }) {
@@ -5178,7 +5179,7 @@ export default function CourseCreateForm({ labels, categories }: { labels: Admin
   <fieldset disabled={command.pending}><FormField label={labels.name} name="title" required minLength={policy.titleMin} maxLength={policy.titleMax} />
    <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
    <FormField label={labels.description} name="description" required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} />
-   <FormField label={labels.price} name="amount" type="number" required min={0} max={policy.amountMax} step="0.01" defaultValue={0} />
+   <CoursePriceField labels={labels} />
    <Select name="category" label={labels.category} defaultValue={categories[0].id} options={categories.map(value => ({value:value.id,label:value.label}))} />
    <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={["recorded","live"].map(value => ({value,label:labels[value as "live"]}))} /></fieldset>
   <button type="submit" className="btn-primary" disabled={command.pending}>{command.pending ? labels.creating : labels.create}</button>{command.error && <p className="lms-error" role="alert">{command.error}</p>}
@@ -5259,11 +5260,12 @@ export default function CourseEditor({ course, published, revision, labels, cate
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `d8bb37ab818d9ee529df17cbf2acf517a2ba6c22b71a99fd42cfa1fe084f59f3`
+SHA-256: `96cac1c916b3ea419152123a4ab1b9dade6546c8171189374c7b12aae3378e60`
 
 ```tsx
 "use client";
 import type { CourseEditorProps } from "@platform/types/course-editor";
+import CoursePriceField from "./course-price-field";
 import Select from "@khatab/design/ui/select";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import TextareaField from "@platform/components/ui/textarea-field";
@@ -5272,7 +5274,7 @@ export default function CourseFields({ course, labels, categories }: Pick<Course
   return <>
     <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
     <TextareaField label={labels.descriptionLabel} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
-    <FormField label={labels.price} name="amount" type="number" min={0} max={policy.amountMax} step="0.01" defaultValue={course.offer.amount} required />
+    <CoursePriceField initialAmount={course.offer.amount} labels={labels} />
     <FormField label={labels.duration} name="duration" defaultValue={course.duration} maxLength={policy.durationMax} hint={course.delivery === "live" ? labels.durationHint : undefined} />
     <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
   </>;
@@ -5320,6 +5322,29 @@ export default function CourseMediaFields({ course, labels, uploadLabels }: Pick
     <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
     <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
   </>;
+}
+```
+
+### File: `modules/components/admin/course-price-field.tsx`
+
+SHA-256: `c907a5646eaf34aae63d23133f93cda7f0ee22d202741da48aa811b18b286494`
+
+```tsx
+"use client";
+import FormField from "@platform/components/ui/form-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import { useCoursePrice } from "@platform/hooks/use-course-price";
+export default function CoursePriceField({ initialAmount, labels }: {
+  initialAmount?: number; labels: { price: string; free: string; priceHint: string };
+}) {
+  const price = useCoursePrice(initialAmount);
+  return <div className="lms-course-price-field">
+    <FormField label={labels.price} type="text" name={price.free ? undefined : "amount"} dir="ltr" inputMode="numeric" pattern="[1-9][0-9]*"
+      value={price.free ? "" : price.value} required={!price.free} disabled={price.free} placeholder={price.free ? labels.free : undefined}
+      onChange={event => price.change(event.target.value)} hint={labels.priceHint} />
+    <Checkbox label={labels.free} checked={price.free} onChange={event => price.setFree(event.target.checked)} />
+    {price.free && <input type="hidden" name="amount" value="0" />}
+  </div>;
 }
 ```
 
@@ -9244,7 +9269,7 @@ export const analyticsCopy = {
 
 ### File: `modules/data/admin-courses.ts`
 
-SHA-256: `82be60478fdcf10f502c9a7836a8631f0fe9390bfc0527e0d1510b9a32b60daa`
+SHA-256: `0f13bb5ee141058773db66fed73455d5c097144d73e99819182eafd27d98ae4d`
 
 ```typescript
 export const adminCoursesCopy = {
@@ -9253,7 +9278,7 @@ export const adminCoursesCopy = {
  order: "ترتيب حسب", created: "تاريخ الإنشاء", updated: "آخر تحديث", direction: "اتجاه الترتيب", asc: "تصاعدي", desc: "تنازلي", apply: "تطبيق", clear: "مسح الفلاتر", results: "النتائج", empty: "لا توجد دورات تطابق البحث والفلاتر.",
  previous: "السابق", next: "التالي", page: "صفحة", unknownDate: "غير مسجل", edit: "تعديل", remove: "حذف", create: "إنشاء دورة", creating: "جارٍ الإنشاء…", createTitle: "إنشاء دورة جديدة", createHint: "تُحفظ الدورة كمسودة. أضف محتواها وصورتها قبل نشرها.",
  slug: "رابط الدورة", slugHint: "حروف إنجليزية صغيرة وأرقام وشرطة، مثل video-editing.", confirmTitle: "حذف الدورة", confirmRemove: "سيُحذف محتوى هذه الدورة نهائيًا. لا يمكن التراجع عن الحذف.", confirm: "تأكيد الحذف", cancel: "إلغاء", close: "إغلاق", pending: "جارٍ الحذف…", error: "تعذّر إكمال الطلب. حاول مرة أخرى.",
- protectedCourse: "لا يمكن حذف دورة لها اشتراكات. يمكنك إلغاء نشرها من بيانات الدورة.", overview: "بيانات الدورة", content: "الفصول والأقسام والدروس", noContent: "لم يُضف محتوى لهذه الدورة بعد.", noVideo: "لم يُضف فيديو لهذا الدرس بعد.", ungrouped: "دروس بدون قسم", description: "الوصف", price: "السعر (ج.م)",
+ protectedCourse: "لا يمكن حذف دورة لها اشتراكات. يمكنك إلغاء نشرها من بيانات الدورة.", overview: "بيانات الدورة", content: "الفصول والأقسام والدروس", noContent: "لم يُضف محتوى لهذه الدورة بعد.", noVideo: "لم يُضف فيديو لهذا الدرس بعد.", ungrouped: "دروس بدون قسم", description: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.",
 } as const;
 ```
 
@@ -9287,13 +9312,13 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `f1b725b48ed0340e9cc858c6eb36dd2308771f095aaabaa4d69713aa91e9f073`
+SHA-256: `e88b89280d6e6d66d61e9703bbfc613d4c477ea8cbf88396f58558f57c44eff5`
 
 ```typescript
 export const adminCopy = {
   detailsHeading: "بيانات الدورة", mediaHeading: "الصورة والفيديو", publicationHeading: "النشر والحفظ",
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
-  edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", category: "التصنيف",
+  edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.", category: "التصنيف",
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
@@ -10935,6 +10960,23 @@ export function courseContentGroups(chapter: CourseModule, ungroupedLabel: strin
 }
 ```
 
+### File: `modules/features/admin/helpers/course-price.ts`
+
+SHA-256: `b1d1bd597ea5253200619e56d2ddc1abc9690d3dff5f511b1a32e0f1113e0608`
+
+```typescript
+import { adminCoursePolicy } from "@platform/config/admin";
+export function validCourseAmount(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 && value <= adminCoursePolicy.amountMax;
+}
+export function normalizeCoursePrice(value: string) {
+  return value.replace(/[٠-٩۰-۹]/g, digit => String(digit.charCodeAt(0) - (digit >= "۰" ? 1776 : 1632)));
+}
+export function validPaidPriceInput(value: string) {
+  return value === "" || (/^[1-9][0-9]*$/.test(value) && validCourseAmount(Number(value)));
+}
+```
+
 ### File: `modules/features/admin/helpers/course-query-url.ts`
 
 SHA-256: `ac376e7e55b5815d32258f1a160b603655051e146d11d33eb031969251eb2020`
@@ -11292,31 +11334,33 @@ export function userQueryUrl(query: AdminUserQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/validate-course-create.ts`
 
-SHA-256: `2ebe06398ec4f60bd26a45e95562605b96055b1087468f3f7f11d6879660aa51`
+SHA-256: `e0626cbcaf239a747679794b91225c3c032f272370a0ca8e835da86f461ec7a9`
 
 ```typescript
+import { validCourseAmount } from "./course-price";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { courseAdministration } from "@platform/config/course-administration";
 import { categories } from "@platform/config/catalog";
 import type { CreateCourseInput } from "@platform/types/admin-courses";
 export function validateCourseCreate(input: Record<string, unknown> | null): CreateCourseInput | null {
- if (!input || typeof input.slug !== "string" || input.slug === "new" || input.slug.length > courseAdministration.slugMaxLength || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax || typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax || typeof input.amount !== "number" || !Number.isFinite(input.amount) || input.amount < 0 || input.amount > policy.amountMax || !categories.some(category => category.id !== "all" && category.id === input.category) || !["live","recorded"].includes(String(input.delivery))) return null;
+ if (!input || typeof input.slug !== "string" || input.slug === "new" || input.slug.length > courseAdministration.slugMaxLength || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax || typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax || !validCourseAmount(input.amount) || !categories.some(category => category.id !== "all" && category.id === input.category) || !["live","recorded"].includes(String(input.delivery))) return null;
  return { slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
 }
 ```
 
 ### File: `modules/features/admin/helpers/validate-course-edit.ts`
 
-SHA-256: `7ad3f0e88cc2fdacd40790b12fe4b9576e842e7c45617e37e5d9335e9a4ab77f`
+SHA-256: `67be1c3a618cf7768004bc48a8b7a15e78346e59acdda0ba7a06c080e484e0ef`
 
 ```typescript
+import { validCourseAmount } from "./course-price";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { categories } from "@platform/config/catalog";
 import { validMediaUrl } from "./validate-media-url";
 export function validateCourseEdit(input: Record<string, unknown> | null) {
   if (!input || (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || Number(input.revision) < 0)) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax ||
     typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax ||
-    typeof input.amount !== "number" || !Number.isFinite(input.amount) || input.amount < 0 || input.amount > policy.amountMax ||
+    !validCourseAmount(input.amount) ||
     (input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) ||
     !categories.some(category => category.id !== "all" && category.id === input.category) ||
     !validMediaUrl(input.thumbnailUrl) || !validMediaUrl(input.introVideoUrl) || typeof input.published !== "boolean") return null;
@@ -13757,6 +13801,25 @@ export function useCourseEnrollment({ slug, firstLesson, enrolled, errorLabel }:
 }
 ```
 
+### File: `modules/hooks/use-course-price.ts`
+
+SHA-256: `78ee1a3128454aa02a90745624dbb83958a715e56dbda3a6869a085322a4026e`
+
+```typescript
+"use client";
+import { useState } from "react";
+import { normalizeCoursePrice, validPaidPriceInput } from "@platform/features/admin/helpers/course-price";
+export function useCoursePrice(initialAmount?: number) {
+  const [free, setFree] = useState(initialAmount === 0);
+  const [value, setValue] = useState(initialAmount ? String(initialAmount) : "");
+  const change = (input: string) => {
+    const normalized = normalizeCoursePrice(input);
+    if (validPaidPriceInput(normalized)) setValue(normalized);
+  };
+  return { free, setFree, value, change };
+}
+```
+
 ### File: `modules/hooks/use-current-time.ts`
 
 SHA-256: `51e621adcf031b51f5ed09f84d5c2feb165c2c6c0469199727f105c123ce5d26`
@@ -14334,7 +14397,7 @@ SHA-256: `e9b88c82469e171452b48182347dd8aa9c7d26d19abba52070eabed534f179aa`
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `94117b923abea4d13978a8fcde8de521914c4ff83657c6fa99ff3411f6415f00`
+SHA-256: `eacb22382a95703a96fefa158a6cf79818e28916ccfecf29e5d8d3d8b560b3bb`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -14482,6 +14545,8 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 .lms-curriculum-dialog .lms-profile-form { gap: var(--space-md); }
 @media (max-width: 1024px) { .lms-course-editor-layout { grid-template-columns: minmax(0,1fr); } .lms-course-details { grid-row: auto; } }
 @media (max-width: 480px) { .lms-curriculum-heading, .lms-curriculum-row { align-items: stretch; } .lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { width: 100%; } }
+
+.lms-course-price-field { display: grid; gap: var(--space-sm); min-width: 0; }
 ```
 
 ### File: `modules/styles/analytics.css`
@@ -30301,6 +30366,69 @@ test("Live courses require duration but may have no recorded lessons",()=>{
 });
 ```
 
+### File: `tests/backend/course-price.cjs`
+
+SHA-256: `f5a0042d8825af8aef23087e20ebcbed78a89d50d0862b9deb230536d5c8c6d6`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated course price API and browser acceptance. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto'),{chromium,expect}=require('@playwright/test');
+module.exports=async({admin,provision,verify,url})=>{
+ const manager=await provision('Price Manager');assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='price-'+randomUUID(),created=slug+'-browser',base='/api/admin/courses/'+slug;
+ const input={slug,title:'Price test course',description:'Integer price test',amount:500,category:'editing',delivery:'recorded'};
+ const edit=amount=>({title:input.title,description:input.description,amount,category:input.category,thumbnailUrl:'',introVideoUrl:'',published:false});
+ let browser;
+ try{
+  verify((await manager.api('/api/admin/courses',input)).status===201,'Create integer-priced draft');
+  for(const amount of [-1,0.5,1200.99,1000001,'500',null]){
+   verify((await manager.api('/api/admin/courses',{...input,slug:slug+'-invalid',amount})).status===400,'Creation rejects invalid amount');
+   verify((await manager.api(base,edit(amount))).status===400,'Editing rejects invalid amount');
+  }
+  verify((await manager.api(base,edit(1))).status===200,'Smallest positive integer accepted');
+  verify((await manager.api(base,edit(0))).status===200,'Canonical free price accepted');
+  verify((await manager.api(base,edit(500))).status===200,'Free course may become paid');
+  browser=await chromium.launch();const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  await page.goto(url+'/admin/dashboard/courses/'+slug);let price=page.getByLabel('السعر (ج.م)',{exact:true});const free=page.getByRole('checkbox',{name:'مجاني',exact:true});
+  await expect(price).toHaveAttribute('type','text');await expect(price).toHaveAttribute('inputmode','numeric');verify(true,'Price is a normal text field with numeric mobile keyboard');
+  for(const value of ['0','-10','1.5','1e3','abc','1000001']){await price.fill('');await price.fill(value);await expect(price).toHaveValue('');verify(true,'Invalid text cannot become a paid amount');}
+  await price.fill('١٢٥٠');await expect(price).toHaveValue('1250');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===1250,'Arabic-digit integer persists');
+  await free.check();await expect(price).toBeDisabled();await expect(page.locator('input[type=hidden][name=amount]')).toHaveValue('0');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();await page.reload();await expect(free).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===0,'Free toggle persists through refresh');
+  await free.uncheck();await expect(price).toBeEnabled();await expect(price).toHaveValue('');let requests=0;page.on('request',request=>{if(request.url().endsWith(base)&&request.method()==='POST')requests++;});await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();verify(requests===0&&await price.evaluate(input=>input.validity.valueMissing),'Paid empty value is required and cannot silently save as free');
+  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Price field and free choice fit ${width}px`);}
+  await page.goto(url+'/admin/dashboard/courses/new');price=page.getByLabel('السعر (ج.م)',{exact:true});await expect(price).toHaveAttribute('type','text');await expect(price).toBeEnabled();await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).not.toBeChecked();verify(true,'Creation reuses paid text/free choice with explicit selection');
+  await page.getByLabel('اسم الدورة',{exact:true}).fill('Free browser course');await page.getByLabel('رابط الدورة',{exact:true}).fill(created);await page.getByLabel('الوصف',{exact:true}).fill('Free creation test');await page.getByRole('checkbox',{name:'مجاني',exact:true}).check();await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+created);await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',created).single()).data.amount===0,'Free creation persists to database');verify(errors.length===0,'No price-editor runtime errors');
+ }finally{await browser?.close();await admin.from('courses').delete().in('slug',[slug,created,slug+'-invalid']);}
+};
+```
+
+### File: `tests/backend/course-price.test.ts`
+
+SHA-256: `c9fb06768f0e5b5bfe0e939ddd9b7933e1f5240b6e216013c75ad88145f69a7d`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { validCourseAmount, validPaidPriceInput, normalizeCoursePrice } from "../../modules/features/admin/helpers/course-price";
+import { validateCourseEdit } from "../../modules/features/admin/helpers/validate-course-edit";
+import { validateCourseCreate } from "../../modules/features/admin/helpers/validate-course-create";
+test("Paid text prices accept positive integers and exclude zero, signs, decimals and exponents", () => {
+  for (const value of ["1","499","1000000"]) assert.equal(validPaidPriceInput(value),true);
+  for (const value of ["0","00","01","-1","+1","1.5","1e3","NaN","1000001"," 5 "]) assert.equal(validPaidPriceInput(value),false);
+  assert.equal(validPaidPriceInput(""),true); // Editing may be empty; the required field blocks submission.
+});
+test("Arabic and Persian digits normalize without accepting malformed prices", () => {
+  assert.equal(normalizeCoursePrice("١٢٣٤"),"1234");assert.equal(normalizeCoursePrice("۱۲۳۴"),"1234");
+  assert.equal(validPaidPriceInput(normalizeCoursePrice("١٫٥")),false);
+});
+test("Creation and editing enforce integer amounts; zero remains the canonical free-course value", () => {
+  const base={slug:"price-test",title:"Price test",description:"Course description",amount:1,category:"editing",delivery:"recorded",thumbnailUrl:"",introVideoUrl:"",published:false};
+  for(const amount of [0,1,1000000]) { assert.equal(validCourseAmount(amount),true);assert.ok(validateCourseCreate({...base,amount}));assert.ok(validateCourseEdit({...base,amount})); }
+  for(const amount of [-1,0.5,1200.99,1000001,Infinity,NaN,"10",null]) { assert.equal(validCourseAmount(amount),false);assert.equal(validateCourseCreate({...base,amount}),null);assert.equal(validateCourseEdit({...base,amount}),null); }
+});
+```
+
 ### File: `tests/backend/curriculum-authoring-browser.cjs`
 
 SHA-256: `104ba934a79af31317fadc99ed02f1a2a8843bec99b5688fe145245fce35b925`
@@ -30460,7 +30588,7 @@ test("A real section named ungrouped remains distinguishable from unassigned les
 
 ### File: `tests/backend/curriculum-live.cjs`
 
-SHA-256: `4766895a1eede3c92866799bbbab2c160636ec86bb3bb9eaa59b74c3dfe2d361`
+SHA-256: `db89765ab19320cd1671d9dde6b38e79540337da8a85c723c6ced89ed9442e6d`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only production course-editor verification. */
@@ -30474,6 +30602,8 @@ const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');proces
   const endpoint=origin+'/api/admin/courses/'+slug;let response=await page.request.get(endpoint);expect(response.status()).toBe(200);const before=await response.json();expect(Number.isSafeInteger(before.revision)).toBe(true);checks.push('Revision present on real course record');
   await page.goto(origin+'/admin/dashboard/courses/'+slug);await expect(page.locator('.lms-course-editor-layout > section')).toHaveCount(3);checks.push('Three focused course form cards');
   await expect(page.getByLabel('مدة الدورة',{exact:true})).toBeVisible();checks.push('Required duration remains editable');
+  await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveAttribute('type','text');checks.push('Price uses a plain text input');
+  const free=page.getByRole('checkbox',{name:'مجاني',exact:true});expect(await free.isChecked()).toBe(before.course.offer.amount===0);checks.push('Explicit free choice reflects stored price');
   for(const width of [320,390,768,1024,1440,1920]){
    await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);checks.push(`Editor fits ${width}px`);
    if(width>1024){const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(2);expect(Math.abs(boxes[0].bottom-boxes[2].bottom)).toBeLessThan(2);checks.push(`Desktop card alignment ${width}px`);}
@@ -30481,6 +30611,7 @@ const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');proces
   }
   await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();let dialog=page.getByRole('dialog');await expect(dialog.getByLabel('الاسم',{exact:true})).toBeVisible();checks.push('Chapter creation dialog available');await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
   await page.setViewportSize({width:390,height:900});await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();dialog=page.getByRole('dialog');const box=await dialog.boundingBox();expect(Math.abs(box.x+box.width/2-195)).toBeLessThan(2);expect(Math.abs(box.y+box.height/2-450)).toBeLessThan(2);checks.push('Mobile dialog centered');await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'إضافة فصل',exact:true})).toBeFocused();checks.push('Dialog restores keyboard focus');
+  await page.goto(origin+'/admin/dashboard/courses/new');await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveAttribute('type','text');await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).not.toBeChecked();checks.push('Create form reuses text price and explicit free choice');
   response=await page.request.get(endpoint);expect(await response.json()).toEqual(before);checks.push('Course metadata and revision unchanged by verification');expect(errors).toEqual([]);checks.push('Zero browser runtime errors');
   fs.writeFileSync('docs/evidence/backend/curriculum-live.json',JSON.stringify({origin,slug,checkedAt:new Date().toISOString(),checks,errors,readOnly:true},null,2));console.log(`${checks.length} read-only hosted course-editor checks passed.`);
  }finally{await browser.close();}
@@ -30809,7 +30940,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `bdd094ec5d4af6b29f79dd2c8fbfcd92c7227ebd0e9a686c5b75155b38939397`
+SHA-256: `a68f4f0cbd9394cdfe7a5ba34aa6fb6c1621bc3f8c5a353db353ad400bdf2a57`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -30861,6 +30992,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'course-price') {
+    await require('./course-price.cjs')({admin,provision,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'curriculum-authoring') {
     await require('./curriculum-authoring.cjs')({admin,provision,anonymous,verify,url});
     return;

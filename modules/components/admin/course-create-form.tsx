@@ -6,6 +6,7 @@ import { endpoints, routes } from "@platform/config/navigation";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { courseAdministration } from "@platform/config/course-administration";
 import FormField from "@platform/components/ui/form-field";
+import CoursePriceField from "./course-price-field";
 import Select from "@khatab/design/ui/select";
 import type { AdminCoursesLabels } from "@platform/types/admin-courses";
 export default function CourseCreateForm({ labels, categories }: { labels: AdminCoursesLabels; categories: readonly { id: string; label: string }[] }) {
@@ -21,7 +22,7 @@ export default function CourseCreateForm({ labels, categories }: { labels: Admin
   <fieldset disabled={command.pending}><FormField label={labels.name} name="title" required minLength={policy.titleMin} maxLength={policy.titleMax} />
    <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
    <FormField label={labels.description} name="description" required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} />
-   <FormField label={labels.price} name="amount" type="number" required min={0} max={policy.amountMax} step="0.01" defaultValue={0} />
+   <CoursePriceField labels={labels} />
    <Select name="category" label={labels.category} defaultValue={categories[0].id} options={categories.map(value => ({value:value.id,label:value.label}))} />
    <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={["recorded","live"].map(value => ({value,label:labels[value as "live"]}))} /></fieldset>
   <button type="submit" className="btn-primary" disabled={command.pending}>{command.pending ? labels.creating : labels.create}</button>{command.error && <p className="lms-error" role="alert">{command.error}</p>}

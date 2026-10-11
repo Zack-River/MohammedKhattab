@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — positive integer prices and explicit free option
+
+- Replaced price number/spinner inputs in both create/edit forms with one reusable text-price component and focused state hook. Paid prices accept only positive whole digits, including Arabic/Persian digits normalized to Latin; empty paid values are required, and zero/negative/fractional/exponent/letter values are rejected. Existing amount limits remain enforced.
+- Added the shared-design `مجاني` checkbox. Selecting it disables the price field and submits the existing canonical free amount (zero). Paid/free changes persist; choosing paid again restores the previous positive value or requires a new one. No existing course amounts or database schema were changed.
+- Shared API validation now accepts only bounded integer amounts; zero still represents a free course. Three price contract tests and 34 isolated API/browser checks passed, including paid/free persistence, Arabic digits, invalid values, explicit free creation and 320/390/768/1440px layout. All 96 course-management regression checks passed, along with TypeScript, lint, architecture (649 files / no violations), production build and diff checks. Source reproduction snapshot refreshed. Application deployment/live verification pending.
+
 ## Latest checkpoint — responsive course editor and curriculum authoring
 
 - Reorganized the overview into details/media/publication cards, using the settings layout: aligned desktop columns and a readable single column at 1024px and below. Added a reusable accessible textarea field and typed editor props; retained duration and existing thumbnail upload/video inputs.
