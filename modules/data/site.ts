@@ -16,8 +16,8 @@ export const site = {
 export const marketingNavigation = [
   { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
-  { href: routes.section("coaching"), label: "الكوتشينج" },
   { href: routes.section("instructor"), label: "تعرّف على مؤسس تعلّم" },
+  { href: routes.section("coaching"), label: "الكوتشينج" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [

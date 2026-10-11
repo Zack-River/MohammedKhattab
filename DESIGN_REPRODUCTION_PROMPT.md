@@ -8929,7 +8929,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `6e88dcdb3b7177483d7d8b731e0ce676cbb4ce86e087096fd77668a95880aee7`
+SHA-256: `733bb66f3288023534692391a87686af731e42df25b43a214bb5dc384ecdd3c3`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -8950,8 +8950,8 @@ export const site = {
 export const marketingNavigation = [
   { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
-  { href: routes.section("coaching"), label: "الكوتشينج" },
   { href: routes.section("instructor"), label: "تعرّف على مؤسس تعلّم" },
+  { href: routes.section("coaching"), label: "الكوتشينج" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
@@ -30422,7 +30422,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/navigation-links.spec.ts`
 
-SHA-256: `9b7417794199c94363b3ec083fd43c0011c8adadb47ece689d92b3fb38c9f832`
+SHA-256: `e58b49e0c4d5bf760226296bcf00f2b03c0f6a3b41769af7d8a7f112fcfa0ba1`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -30434,6 +30434,9 @@ for (const width of [320, 1440]) {
     await expect(page.locator("#courses")).toBeInViewport();
     await page.goto("/");
     const header = page.locator("header.lms-site-header");
+    const navigationIds = await header.locator(".lms-marketing-links a").evaluateAll(links => links.map(link => new URL((link as HTMLAnchorElement).href).hash.slice(1)));
+    const sectionOrder = await page.locator("main section[id]").evaluateAll((sections, ids) => sections.map(section => section.id).filter(id => ids.includes(id)), navigationIds);
+    expect(navigationIds).toEqual(sectionOrder);
     if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const courses = header.getByRole("link", { name: "الدورات", exact: true });
     await expect(courses).toHaveAttribute("href", "/#courses");

@@ -1,0 +1,13 @@
+[WebServer] (node:27759) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:27800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27801) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 1440px (4.3s)
+  ✓  1 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 320px (4.5s)
+
+  2 passed (5.9s)

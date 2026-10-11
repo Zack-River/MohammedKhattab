@@ -7,6 +7,9 @@ for (const width of [320, 1440]) {
     await expect(page.locator("#courses")).toBeInViewport();
     await page.goto("/");
     const header = page.locator("header.lms-site-header");
+    const navigationIds = await header.locator(".lms-marketing-links a").evaluateAll(links => links.map(link => new URL((link as HTMLAnchorElement).href).hash.slice(1)));
+    const sectionOrder = await page.locator("main section[id]").evaluateAll((sections, ids) => sections.map(section => section.id).filter(id => ids.includes(id)), navigationIds);
+    expect(navigationIds).toEqual(sectionOrder);
     if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const courses = header.getByRole("link", { name: "الدورات", exact: true });
     await expect(courses).toHaveAttribute("href", "/#courses");
