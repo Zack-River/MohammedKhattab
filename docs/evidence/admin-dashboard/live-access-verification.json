@@ -1,0 +1,7 @@
+{
+  "checkedAt": "2026-10-11T01:30:30.781Z",
+  "studentLogin": true,
+  "studentUsersApiStatus": 403,
+  "studentAdminPageRedirect": true,
+  "anonymousUsersApiStatus": 401
+}
