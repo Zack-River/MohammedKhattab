@@ -3,6 +3,7 @@ import type { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
+  sessionEndpoint?: string;
 } & {
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],

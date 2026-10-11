@@ -3,17 +3,20 @@ export default function PageHeading({
   title,
   description,
   children,
+  level = 1,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children?: React.ReactNode;
+  level?: 1 | 2;
 }) {
+  const Heading = level === 2 ? "h2" : "h1";
   return (
     <div className="lms-page-heading">
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
-        <h1>{title}</h1>
+        <Heading>{title}</Heading>
         {description && <p className="body-regular">{description}</p>}
       </div>
       {children}

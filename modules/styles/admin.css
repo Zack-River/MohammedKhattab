@@ -1,0 +1,31 @@
+.lms-admin-table-wrap { overflow-x: auto; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.lms-admin-table { width: 100%; border-collapse: collapse; text-align: start; }
+.lms-admin-table th, .lms-admin-table td { padding: var(--space-md); vertical-align: top; border-bottom: var(--size-1px) solid var(--border-subtle); }
+.lms-admin-table thead { background: var(--bg-section-alt); }
+.lms-admin-table tbody tr { transition: background-color var(--transition-smooth); }
+.lms-admin-table tbody tr:hover { background: var(--primary-red-subtle); }
+.lms-admin-table small, .lms-admin-status small { display: block; color: var(--text-muted); margin-top: var(--space-xs); }
+.lms-admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin-top: var(--space-sm); }
+.lms-admin-actions .btn-secondary, .lms-admin-actions .btn-primary { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-body); }
+.lms-admin-actions select { background: var(--bg-main); color: var(--text-primary); padding: var(--space-sm); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); font: inherit; }
+.lms-admin-danger { border: 0; background: transparent; color: var(--primary-red); font: inherit; cursor: pointer; padding: var(--space-sm); transition: color var(--transition-smooth); }
+.lms-admin-danger:hover { color: var(--text-primary); }
+.lms-admin-status[data-blocked] strong { color: var(--primary-red); }
+.lms-admin-pagination { display: flex; justify-content: center; align-items: center; gap: var(--space-md); margin-block: var(--space-lg); }
+.lms-admin-avatar { width: var(--size-80px); height: var(--size-80px); border-radius: var(--radius-full); overflow: hidden; background: var(--primary-red-subtle); display: grid; place-items: center; font-size: var(--size-2rem); }
+.lms-admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.lms-admin-user-details { display: grid; gap: var(--space-lg); }
+.lms-admin-user-details dl { display: grid; gap: var(--space-md); margin: 0; }
+.lms-admin-user-details dt { color: var(--text-muted); }
+.lms-admin-user-details dd { margin: 0; overflow-wrap: anywhere; }
+.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-xl); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); max-width: min(var(--lms-size-560px), calc(100% - var(--space-xl))); }
+.lms-admin-dialog::backdrop { background: var(--color-rgba-0-0-0-0-8); }
+.lms-admin-dialog p { margin-block: var(--space-md); }
+.lms-admin-actions button:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+.lms-visually-hidden { position: absolute; width: var(--size-1px); height: var(--size-1px); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lms-admin-table { min-width: var(--size-980px); }
+.lms-admin-table-wrap { min-width: 0; max-width: 100%; }
+.lms-admin-table td:last-child { min-width: var(--lms-size-320px); }
+.lms-admin-table-wrap { position: relative; }
+.lms-admin-table-hint { display: none; margin-bottom: var(--space-sm); color: var(--text-muted); }
+@media (max-width: 768px) { .lms-admin-table-hint { display: block; } }

@@ -1,0 +1,116 @@
+[WebServer] (node:55837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 47 tests using 6 workers
+
+(node:55914) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55906) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55920) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55907) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:55926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   5 [site] › tests/auth.spec.ts:12:5 › shared validation normalizes identity, preserves passwords and rejects malformed values (52ms)
+  ✓   6 [site] › tests/auth.spec.ts:21:5 › auth APIs reject invalid payloads and cross-origin writes (595ms)
+  ✓   2 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 320px (2.3s)
+  ✓   7 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 768px (2.5s)
+  ✓   4 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 390px (3.0s)
+  ✓   8 [site] › tests/auth.spec.ts:82:48 › auth layouts remain readable without overflow at 1440px (3.8s)
+  ✓   3 [site] › tests/auth.spec.ts:56:5 › login provides pending feedback, recovers from errors and links to signup (5.5s)
+  ✓   9 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for network failures (3.3s)
+  ✓  10 [site] › tests/auth.spec.ts:97:53 › login displays an Arabic retry message for malformed failures (3.2s)
+  ✓  11 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /dashboard (3.2s)
+  ✓  12 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /dashboard/courses (2.4s)
+  ✓   1 [site] › tests/auth.spec.ts:31:5 › signup errors, field focus, blur, confirmation and password visibility (7.1s)
+  ✓  18 [site] › tests/dashboard-access.spec.ts:16:5 › forged session and old demo cookies cannot unlock the dashboard (190ms)
+  ✓  13 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /dashboard/profile (1.7s)
+  ✓  14 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /dashboard/resources (2.0s)
+  ✓  15 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /dashboard/certificates (1.9s)
+  ✓  16 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /admin/dashboard/courses (1.7s)
+  ✓  17 [site] › tests/dashboard-access.spec.ts:4:40 › logged-out requests cannot render /admin/dashboard/courses/7days-freelance (1.7s)
+  ✓  21 [site] › tests/reference-copy.spec.ts:42:5 › reference blur treatments survive CSS compilation (3.1s)
+  ✓  19 [site] › tests/reference-copy.spec.ts:4:5 › all unchanged sections retain original wording after portfolio population (6.8s)
+  ✓  23 [site] › tests/unified-project.spec.ts:24:38 › platform, founder and workshop links connect at 390px (7.1s)
+  ✓  20 [site] › tests/reference-copy.spec.ts:31:5 › reference signup popup appears and its close button works (8.1s)
+  ✓  22 [site] › tests/unified-project.spec.ts:7:5 › one Next.js router serves the new platform, founder and workshop URLs (8.1s)
+  ✓  29 [site] › tests/workshop-course.spec.ts:30:5 › admin inputs reject malformed values and seeds preserve existing edits (34ms)
+  ✓  25 [site] › tests/unified-project.spec.ts:45:5 › legacy namespaces redirect once and preserve queries and anchors (5.8s)
+  ✓  24 [site] › tests/unified-project.spec.ts:24:38 › platform, founder and workshop links connect at 1440px (8.3s)
+  ✓  26 [site] › tests/unified-project.spec.ts:69:5 › course pages are root routes, workshop type is enforced and user profiles are absent (3.6s)
+(node:56873) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  28 [site] › tests/workshop-course.spec.ts:23:5 › legacy workshop links redirect without losing section anchors or query strings (2.7s)
+  ✓  30 [platform] › tests/platform/domain.spec.ts:23:5 › T11 T12 explicit selections and associated resources survive reorder (34ms)
+  ✓  31 [platform] › tests/platform/domain.spec.ts:96:5 › T17 T32 progress is finite, deduplicated and total-completion safe (48ms)
+  ✓  27 [site] › tests/workshop-course.spec.ts:8:5 › workshop is a live database course with the approved landing and working card (3.5s)
+  ✓  32 [platform] › tests/platform/domain.spec.ts:127:5 › T14 T32 public projection strips playback and validates published records (18ms)
+(node:56909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56921) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  34 [platform] › tests/platform/domain.spec.ts:36:5 › T13 route builders reject path injection and preserve query values (42ms)
+  ✓  35 [platform] › tests/platform/domain.spec.ts:52:5 › T14 shared profile boundary validation (36ms)
+(node:56976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  38 [platform] › tests/platform/domain.spec.ts:78:5 › T15 note scopes and lessons are isolated (37ms)
+(node:57007) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:57015) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  40 [platform] › tests/platform/domain.spec.ts:87:5 › T16 course summaries have one numeric source and numbering handles ten (80ms)
+  ✓  42 [platform] › tests/platform/domain.spec.ts:161:5 › T11 preview identity and configured lesson order survive module reordering (39ms)
+  ✓  33 [platform] › tests/platform/portfolio.spec.ts:5:5 › portfolio preserves reference sections, copy, links and real media (3.0s)
+  ✓  36 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 390px (3.4s)
+  ✓  41 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 1440px (2.6s)
+  ✓  39 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 768px (3.8s)
+  ✓  45 [platform] › tests/platform/portfolio.spec.ts:130:5 › original section copy is preserved apart from authorized reel and upcoming preview changes (1.4s)
+  ✓  43 [platform] › tests/platform/portfolio.spec.ts:86:5 › portfolio player remains inline and resets the prior sample (3.2s)
+  ✓  44 [platform] › tests/platform/portfolio.spec.ts:102:5 › portfolio shares smooth hover and progressing timeline with reduced motion support (3.1s)
+  ✓  46 [platform] › tests/platform/portfolio.spec.ts:184:5 › navigation clears the previous section highlight when returning to the original hero (1.7s)
+  ✓  47 [platform] › tests/platform/portfolio.spec.ts:201:5 › reels have no visible captions and the upcoming course uses shared artwork (1.6s)
+  ✘  37 [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px (6.5s)
+
+
+  1) [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px 
+
+    Error: expect(locator).toBeInViewport() failed
+
+    Locator:  locator('#courses')
+    Expected: in viewport
+    Received: viewport ratio 0
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toBeInViewport" locator('#courses') with timeout 5000ms
+      - waiting for locator('#courses')
+        13 × locator resolved to <section id="courses" aria-labelledby="courses-title" class="personal-section p-ref-courses-section">…</section>
+           - unexpected value "viewport ratio 0"
+
+
+      46 |     await page.emulateMedia({ reducedMotion: "reduce" });
+      47 |     await page.goto("/founder#courses");
+    > 48 |     await expect(page.locator("#courses")).toBeInViewport();
+         |                                            ^
+      49 |     expect(
+      50 |       await page.evaluate(
+      51 |         () => document.documentElement.scrollWidth <= innerWidth,
+        at /home/zack-river/Documents/Projects/02-OnGoing/Khatab/tests/platform/portfolio.spec.ts:48:44
+
+    Error Context: test-results/portfolio-portfolio-responsive-layout-and-assets-at-320px-platform/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/portfolio-portfolio-responsive-layout-and-assets-at-320px-platform/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/portfolio-portfolio-responsive-layout-and-assets-at-320px-platform/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [platform] › tests/platform/portfolio.spec.ts:42:7 › portfolio responsive layout and assets at 320px 
+  46 passed (28.8s)

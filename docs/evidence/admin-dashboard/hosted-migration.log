@@ -1,0 +1,12 @@
+
+> khatab-platform@1.0.0 backend:migrate:hosted
+> node scripts/backend/migrate-hosted.cjs
+
+{"upToDate":false,"dryRun":false,"migrations":["20261011011243_admin_user_management.sql"],"seeds":[],"roles":[],"message":"Finished supabase db push."}
+npm warn allow-scripts .npmrc allow-scripts setting is being ignored because --allow-scripts was passed on the command line
+Connecting to remote database...
+Do you want to push these migrations to the remote database?
+ • 20261011011243_admin_user_management.sql
+ [Y/n] y
+Applying migration 20261011011243_admin_user_management.sql...
+Seed files are up to date.

@@ -5,7 +5,10 @@ import { ApiError } from "@platform/lib/api/error";
 export const currentIdentity = cache(async () => {
   const client = await createDatabaseClient();
   const { data, error } = await client.auth.getUser();
-  return error || !data.user ? null : { client, user: data.user };
+  if (error || !data.user) return null;
+  const access = await client.rpc("account_access_allowed");
+  if (access.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return access.data ? { client, user: data.user } : null;
 });
 export async function requireIdentity() {
   const identity = await currentIdentity();

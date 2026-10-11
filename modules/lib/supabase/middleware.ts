@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
-  if (request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
+  if (request.nextUrl.pathname.startsWith("/admin/") || request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
     const { data, error } = await client.auth.getUser();
     if (error || !data.user) {
       const target = request.nextUrl.clone();

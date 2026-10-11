@@ -1,0 +1,15 @@
+export const adminUsersCopy = {
+  heading: "إدارة المستخدمين", description: "الحسابات والاشتراكات وإدارة صلاحيات الوصول.",
+  users: "المستخدمون", courses: "الدورات", dashboard: "لوحة الإدارة", name: "الاسم", username: "اسم المستخدم",
+  email: "البريد الإلكتروني", status: "الحالة", actions: "الإجراءات", view: "عرض المستخدم", admin: "مدير", student: "طالب",
+  suspend: "تعليق الحساب", period: "مدة التعليق", ban: "حظر دائم", restore: "استعادة الوصول", remove: "حذف المستخدم",
+  promote: "ترقية إلى مدير", active: "نشط", banned: "محظور", suspended: "معلّق", ends: "ينتهي التعليق", remaining: "المتبقي",
+  empty: "لا توجد حسابات في هذه الصفحة.", subscriptions: "الدورات المشترك بها", noSubscriptions: "لم يشترك في أي دورة بعد.",
+  error: "تعذّر تنفيذ الإجراء. حاول مرة أخرى.", saved: "تم تحديث الحساب", pending: "جارٍ التنفيذ…",
+  previous: "السابق", next: "التالي", back: "كل المستخدمين", profileImage: "الصورة الشخصية", role: "الصلاحية",
+  unconfirmed: "البريد غير مؤكّد", days: "يوم", hours: "ساعة", minutes: "دقيقة", expired: "انتهت مدة التعليق",
+  confirmTitle: "تأكيد الإجراء", confirm: "تأكيد", cancel: "إلغاء", confirmRemove: "سيُحذف الحساب واشتراكاته وتقدمه نهائيًا.",
+  confirmPromote: "سيتمكّن هذا المستخدم من إدارة المستخدمين والدورات.", confirmRestriction: "سيتوقف وصول هذا المستخدم إلى حسابه ودوراته.",
+  protectedAdmin: "حسابات المديرين محمية من الحظر والحذف.",
+  tableHint: "اسحب الجدول أفقيًا لعرض بيانات الحساب والإجراءات.",
+} as const;

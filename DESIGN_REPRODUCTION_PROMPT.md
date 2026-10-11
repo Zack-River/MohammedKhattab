@@ -484,6 +484,130 @@ export const metadata = { title: authPages.signup.title };
 export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
 ```
 
+### File: `app/admin/dashboard/courses/[slug]/page.tsx`
+
+SHA-256: `ff9f3473d1f351673a980318dc0f547b1d2e283d7ec5b90938e64978337d9362`
+
+```tsx
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
+import { courseLessons } from "@platform/features/catalog/helpers";
+import CourseEditor from "@platform/components/admin/course-editor";
+import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
+import PageHeading from "@platform/components/ui/page-heading";
+import { adminCopy } from "@platform/data/admin";
+import { categories } from "@platform/config/catalog";
+import { routes } from "@platform/config/navigation";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+export default async function EditCoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  await requireAdminPage();
+  const { slug } = await params;
+  const record = (await readAdminCourses(slug))[0];
+  if (!record) notFound();
+  const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
+  return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
+    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} categories={categories.filter(category => category.id !== "all")} /></section>
+    {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
+  </>;
+}
+```
+
+### File: `app/admin/dashboard/courses/page.tsx`
+
+SHA-256: `32000c8c9aa2df0c727a1938aaa22b33aa3b6a6e475f3226526a0d77514145be`
+
+```tsx
+import Link from "next/link";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { routes } from "@platform/config/navigation";
+import { adminCopy } from "@platform/data/admin";
+import PageHeading from "@platform/components/ui/page-heading";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+export default async function AdminCoursesPage() {
+  await requireAdminPage();
+  const records = await readAdminCourses();
+  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
+    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
+  )}</div></>;
+}
+```
+
+### File: `app/admin/dashboard/layout.tsx`
+
+SHA-256: `c198d82a116aa2dc05c575dfcf77099e4b685d8e3b1c984abc6853f636fbdb40`
+
+```tsx
+import type { Metadata } from "next";
+import DashboardShell from "@platform/components/layout/dashboard-shell";
+import { dashboardShellContent } from "@platform/config/dashboard-shell";
+import { endpoints, routes } from "@platform/config/navigation";
+import { adminUsersCopy as labels } from "@platform/data/admin-users";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user } = await requireAdminPage();
+  return <DashboardShell {...dashboardShellContent} name={user.user_metadata.name ?? labels.admin}
+    sessionEndpoint={endpoints.adminUsers + "/session"}
+    site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
+    copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
+    interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
+    dashboardNavigation={[{ href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }]}>
+    {children}
+  </DashboardShell>;
+}
+```
+
+### File: `app/admin/dashboard/page.tsx`
+
+SHA-256: `c69434b0444bd148608fcd6cce0c5dd659b9f3f9b5f3e5aab2e31e394a4213b0`
+
+```tsx
+import PageHeading from "@platform/components/ui/page-heading";
+import UsersTable from "@platform/components/admin/users-table";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import { readAdminUsers } from "@platform/features/admin/repositories/users";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readAdminPage } from "@platform/features/admin/helpers/read-admin-page";
+import { adminUsersCopy as labels } from "@platform/data/admin-users";
+export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  await requireAdminPage();
+  const records = await readAdminUsers(readAdminPage((await searchParams).page));
+  return <><PageHeading title={labels.heading} description={labels.description} />
+    <UsersTable labels={labels} users={records.users} /><AdminPagination labels={labels} page={records.page} hasNext={records.hasNext} />
+  </>;
+}
+```
+
+### File: `app/admin/dashboard/users/[id]/page.tsx`
+
+SHA-256: `15cd719f2f83ef6cb276c7dffddef2d1fcefd38b82a8e360dcc9adbcad97ede4`
+
+```tsx
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import PageHeading from "@platform/components/ui/page-heading";
+import UserDetails from "@platform/components/admin/user-details";
+import UserSubscriptions from "@platform/components/admin/user-subscriptions";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readAdminUser } from "@platform/features/admin/repositories/users";
+import { readUserSubscriptions } from "@platform/features/admin/repositories/user-subscriptions";
+import { validUserId } from "@platform/features/admin/helpers/read-moderation";
+import { routes } from "@platform/config/navigation";
+import { adminUsersCopy as labels } from "@platform/data/admin-users";
+import { ApiError } from "@platform/lib/api/error";
+export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdminPage();
+  const { id } = await params;
+  if (!validUserId(id)) notFound();
+  const user = await readAdminUser(id).catch(error => { if (error instanceof ApiError && error.status === 404) notFound(); throw error; });
+  const subscriptions = await readUserSubscriptions(id);
+  return <><PageHeading title={user.name}><Link className="lms-text-link" href={routes.adminUsers}>{labels.back}</Link></PageHeading>
+    <UserDetails labels={labels} user={user} /><UserSubscriptions labels={labels} subscriptions={subscriptions} />
+  </>;
+}
+```
+
 ### File: `app/api/admin/courses/[slug]/lessons/[lessonId]/route.ts`
 
 SHA-256: `2cd4e50f3b3db16dbbee6f1b2b1b8e826ce70c5370e24de0b793f6438210f34e`
@@ -505,6 +629,40 @@ import { handleAdminCourse } from "@platform/features/admin/handle-course";
 type Context = { params: Promise<{ slug: string }> };
 export async function GET(_request: Request, { params }: Context) { return handleAdminCourse((await params).slug); }
 export async function POST(request: Request, { params }: Context) { return handleAdminCourse((await params).slug, request); }
+```
+
+### File: `app/api/admin/users/[id]/route.ts`
+
+SHA-256: `b3b9afb3e732b81876042c2054322ca9db07ee0732fd93e6f9ccd9d70525deb9`
+
+```typescript
+import { handleAdminUser } from "@platform/features/admin/handle-user";
+type Context = { params: Promise<{ id: string }> };
+export async function GET(_: Request, context: Context) { return handleAdminUser((await context.params).id); }
+export async function POST(request: Request, context: Context) { return handleAdminUser((await context.params).id, request); }
+```
+
+### File: `app/api/admin/users/route.ts`
+
+SHA-256: `8a1753af672148af9f0a38bd2d5e2b02a01f2b6f2c7db7c5dae7efedd4497b40`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { readAdminUsers } from "@platform/features/admin/repositories/users";
+import { readAdminPage } from "@platform/features/admin/helpers/read-admin-page";
+export async function GET(request: Request) {
+  return apiResponse(async () => Response.json(await readAdminUsers(readAdminPage(new URL(request.url).searchParams.get("page")))));
+}
+```
+
+### File: `app/api/admin/users/session/route.ts`
+
+SHA-256: `ad2f87cd9e61ab0e20b005fa82cf83a9e17f931fc598dda30f6aea8baf81e0ae`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { requireAdmin } from "@platform/features/admin/identity";
+export async function GET() { return apiResponse(async () => { await requireAdmin(); return Response.json({ status: "authenticated" }); }); }
 ```
 
 ### File: `app/api/auth/callback/route.ts`
@@ -1615,47 +1773,22 @@ export const workshopMetadata: Metadata = {
 
 ### File: `app/dashboard/admin/courses/[slug]/page.tsx`
 
-SHA-256: `1bc3d8661a54dbfe643bea1b1a7aa36b8d7e9ec82e1516861598709d2cd7cfb1`
+SHA-256: `dbedb1cdae37fddfe59c46035610af8109b8619a06c6a61d65b572460b2cf692`
 
 ```tsx
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
-import { courseLessons } from "@platform/features/catalog/helpers";
-import CourseEditor from "@platform/components/admin/course-editor";
-import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
-import PageHeading from "@platform/components/ui/page-heading";
-import { adminCopy } from "@platform/data/admin";
-import { categories } from "@platform/config/catalog";
+import { redirect } from "next/navigation";
 import { routes } from "@platform/config/navigation";
-export default async function EditCoursePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const record = (await readAdminCourses(slug))[0];
-  if (!record) notFound();
-  const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
-  return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
-    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} categories={categories.filter(category => category.id !== "all")} /></section>
-    {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
-  </>;
-}
+export default async function LegacyAdminCourse({ params }: { params: Promise<{ slug: string }> }) { redirect(routes.adminCourse((await params).slug)); }
 ```
 
 ### File: `app/dashboard/admin/courses/page.tsx`
 
-SHA-256: `068b923d8db40fe8230e2a5caeab078e90d0c4131b1fa1708494c3e25120aab6`
+SHA-256: `c63d874036a48d0dab4aba748c14b99d7cd92bbdf7485d19ad5ac9a8c70a3afc`
 
 ```tsx
-import Link from "next/link";
-import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { redirect } from "next/navigation";
 import { routes } from "@platform/config/navigation";
-import { adminCopy } from "@platform/data/admin";
-import PageHeading from "@platform/components/ui/page-heading";
-export default async function AdminCoursesPage() {
-  const records = await readAdminCourses();
-  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
-    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
-  )}</div></>;
-}
+export default function LegacyAdminCourses() { redirect(routes.admin); }
 ```
 
 ### File: `app/dashboard/admin/layout.tsx`
@@ -1791,53 +1924,22 @@ export default async function MyCourses() {
 
 ### File: `app/dashboard/layout.tsx`
 
-SHA-256: `b143a1d70dda69dafddb81b8dfbfc1440b85e63d6c69b6866cb7b82284994070`
+SHA-256: `0d70fb6e599ccc0a68c278187790ab4815ff4becf21481f3e0610ddc6c29f23e`
 
 ```tsx
 import { hasAdminAccess } from "@platform/features/admin/identity";
 import { adminCopy } from "@platform/data/admin";
 import { routes } from "@platform/config/navigation";
-import { backendCopy } from "@platform/data/backend-copy";
-import { interfaceCopy } from "@platform/data/interface-copy";
+import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { dashboardNavigation } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import { copy } from "@platform/data/site";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { readStudentState } from "@platform/features/learning";
-export default async function StudentLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const state = await readStudentState();
-  const admin = await hasAdminAccess();
-  return (
-    <DashboardShell
-      interfaceCopy={{
-        studentNavigationLabel: interfaceCopy.studentNavigationLabel,
-        sidebarTitle: interfaceCopy.sidebarTitle,
-        sidebarDescription: interfaceCopy.sidebarDescription,
-        homeLabel: interfaceCopy.homeLabel,
-      }}
-      dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.admin, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}
-      site={{
-        demoLabel: backendCopy.ACCOUNT_LABEL,
-        name: site.name,
-        englishName: site.englishName,
-      }}
-      copy={{
-        logout: backendCopy.LOGOUT,
-        error: backendCopy.INTERNAL_ERROR,
-        browse: copy.browse,
-        profileTitle: copy.profileTitle,
-        menu: copy.menu,
-        demoAccount: backendCopy.ACCOUNT_LABEL,
-      }}
-      name={state.profile.name}
-    >
-      {children}
-    </DashboardShell>
-  );
+export default async function StudentLayout({ children }: { children: React.ReactNode }) {
+  const state = await readStudentState(), admin = await hasAdminAccess();
+  return <DashboardShell {...dashboardShellContent} name={state.profile.name}
+    dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.adminDashboard, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}>
+    {children}
+  </DashboardShell>;
 }
 ```
 
@@ -2521,7 +2623,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `df1f48a07cfec9bedb4ee79f4862886c30c59d2b4a2c9589d7b152a537a1f87e`
+SHA-256: `b0dfa053de98e14751012bf60ae87b38051e3583f916162b9a61e81846bbf5b9`
 
 ```css
 @import "./styles/theme.css";
@@ -2535,6 +2637,7 @@ SHA-256: `df1f48a07cfec9bedb4ee79f4862886c30c59d2b4a2c9589d7b152a537a1f87e`
 @import "../packages/design-system/styles/project-navigation.css";
 @import "../packages/design-system/styles/designer-credit.css";
 @import "../modules/styles/auth.css";
+@import "../modules/styles/admin.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -4167,6 +4270,22 @@ export default function ProfileForm({
 }
 ```
 
+### File: `modules/components/admin/admin-pagination.tsx`
+
+SHA-256: `ec52c66111afa4b7b40fdef50b13c4feeee9064297a2ca1049fdaf2468b02c75`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+export default function AdminPagination({ page, hasNext, labels }: { page: number; hasNext: boolean; labels: AdminUsersLabels }) {
+  return <nav className="lms-admin-pagination" aria-label={labels.users}>
+    {page > 1 && <Link href={`${routes.adminUsers}?page=${page - 1}`} className="btn-secondary">{labels.previous}</Link>}
+    <span>{page}</span>{hasNext && <Link href={`${routes.adminUsers}?page=${page + 1}`} className="btn-secondary">{labels.next}</Link>}
+  </nav>;
+}
+```
+
 ### File: `modules/components/admin/course-editor.tsx`
 
 SHA-256: `8e416a6b4fbfc67b04e2383a4e256b2937abb98f33a7920bdef47d43ba93afdc`
@@ -4232,6 +4351,32 @@ export default function LessonVideoEditor({ slug, lesson, labels }: { slug: stri
 }
 ```
 
+### File: `modules/components/admin/moderation-confirmation.tsx`
+
+SHA-256: `c643ef4918d52aac32193d76978af929e61f90cb83f391b2bcb207763bb48eec`
+
+```tsx
+"use client";
+import { useEffect, useRef, useId } from "react";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+import { suspensionPeriods } from "@platform/config/user-moderation";
+import type { UserModeration } from "@platform/types/admin-users";
+export default function ModerationConfirmation({ change, name, labels, pending, error, onConfirm, onCancel }: {
+  change: UserModeration; name: string; labels: AdminUsersLabels; pending: boolean; error: string | null;
+  onConfirm: () => void; onCancel: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null), titleId = useId();
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  const description = change.action === "remove" ? labels.confirmRemove : change.action === "promote" ? labels.confirmPromote : labels.confirmRestriction;
+  return <dialog ref={dialog} className="lms-admin-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (!pending) onCancel(); }}>
+    <h2 id={titleId}>{labels.confirmTitle}</h2><p>{name}</p><p><strong>{labels[change.action]}</strong>{change.action === "suspend" && ` · ${suspensionPeriods.find(item => item.id === change.period)?.label}`}</p><p>{description}</p>
+    {error && <p role="alert" className="lms-error">{error}</p>}
+    <div className="lms-admin-actions"><button className="btn-primary" onClick={onConfirm} disabled={pending}>{pending ? labels.pending : labels.confirm}</button>
+      <button className="btn-secondary" onClick={onCancel} disabled={pending}>{labels.cancel}</button></div>
+  </dialog>;
+}
+```
+
 ### File: `modules/components/admin/save-feedback.tsx`
 
 SHA-256: `f8bc2c5119c9e54e24fe2e6e9f9bfb9df160bcebabe3ae8d023d6d7bac0da09c`
@@ -4241,6 +4386,145 @@ import Action from "@khatab/design/ui/action";
 export default function SaveFeedback({ pending, saved, error, labels }: { pending: boolean; saved: boolean; error: string; labels: { save: string; saving: string; saved: string } }) {
   return <><Action kind="button" type="submit" className="btn-primary" disabled={pending}>{pending ? labels.saving : labels.save}</Action>
     {error && <p className="lms-error" role="alert">{error}</p>}{saved && <p className="lms-success" role="status">{labels.saved}</p>}</>;
+}
+```
+
+### File: `modules/components/admin/user-actions.tsx`
+
+SHA-256: `3e6a4e7b1f994bbe9d02ad9e278c40ed809246453e09de29f10fb84d74689269`
+
+```tsx
+"use client";
+import { useId, useState } from "react";
+import type { AdminUser, SuspensionPeriod, UserModeration } from "@platform/types/admin-users";
+import { suspensionPeriods } from "@platform/config/user-moderation";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+import { useUserModeration } from "@platform/hooks/use-user-moderation";
+import ModerationConfirmation from "./moderation-confirmation";
+export default function UserActions({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
+  const periodId = useId();
+  const [period, setPeriod] = useState<SuspensionPeriod>("day"), [change, setChange] = useState<UserModeration | null>(null);
+  const command = useUserModeration(user.id, labels.error);
+  const confirm = async () => { if (change && await command.execute(change)) setChange(null); };
+  if (user.admin) return <small>{labels.protectedAdmin}</small>;
+  return <div className="lms-admin-actions">
+    <label className="lms-visually-hidden" htmlFor={periodId}>{labels.period}: {user.name}</label>
+    <select id={periodId} value={period} onChange={event => setPeriod(event.target.value as SuspensionPeriod)} disabled={command.pending}>
+      {suspensionPeriods.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+    </select>
+    <button className="btn-secondary" disabled={command.pending} onClick={() => setChange({ action: "suspend", period })}>{labels.suspend}</button>
+    <button className="btn-secondary" disabled={command.pending} onClick={() => setChange({ action: "ban" })}>{labels.ban}</button>
+    {user.suspendedUntil && <button className="btn-secondary" onClick={() => void command.execute({ action: "restore" })} disabled={command.pending}>{labels.restore}</button>}
+    <button className="btn-secondary" disabled={command.pending || !user.confirmed} onClick={() => setChange({ action: "promote" })}>{labels.promote}</button>
+    <button className="lms-admin-danger" disabled={command.pending} onClick={() => setChange({ action: "remove" })}>{labels.remove}</button>
+    {command.error && !change && <p role="alert" className="lms-error">{command.error}</p>}
+    {change && <ModerationConfirmation labels={labels} change={change} name={`${user.name} · ${user.email}`} pending={command.pending} error={command.error} onConfirm={() => void confirm()} onCancel={() => setChange(null)} />}
+  </div>;
+}
+```
+
+### File: `modules/components/admin/user-avatar.tsx`
+
+SHA-256: `3962f658998d1e520962adda85370d675ffcfe6d8fc123e1d95ce4f7d4577524`
+
+```tsx
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+export default function UserAvatar({ name, url, labels }: { name: string; url: string | null; labels: AdminUsersLabels }) {
+  return <div className="lms-admin-avatar">{url
+    // Remote profile URLs come from account data, rather than the static asset pipeline.
+    // eslint-disable-next-line @next/next/no-img-element
+    ? <img src={url} alt={`${labels.profileImage}: ${name}`} referrerPolicy="no-referrer" />
+    : <span aria-label={`${labels.profileImage}: ${name}`}>{name.slice(0, 1)}</span>}
+  </div>;
+}
+```
+
+### File: `modules/components/admin/user-details.tsx`
+
+SHA-256: `b8b2f81d0abab411a03c683ec92ed6d28590dcc21a29dd0b21ef8eec2e10eba5`
+
+```tsx
+import type { AdminUser } from "@platform/types/admin-users";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+import UserAvatar from "./user-avatar";
+import UserStatus from "./user-status";
+import UserActions from "./user-actions";
+export default function UserDetails({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
+  return <section className="lms-profile-card lms-admin-user-details">
+    <UserAvatar name={user.name} url={user.avatarUrl} labels={labels} />
+    <dl>{[[labels.name, user.name], [labels.username, user.username], [labels.email, user.email], [labels.role, user.admin ? labels.admin : labels.student]].map(([label, value]) =>
+      <div key={label}><dt>{label}</dt><dd dir={label === labels.name ? undefined : "auto"}>{value}</dd></div>)}</dl>
+    <UserStatus user={user} labels={labels} /><UserActions user={user} labels={labels} />
+  </section>;
+}
+```
+
+### File: `modules/components/admin/user-status.tsx`
+
+SHA-256: `a6e1518d9e3b2ff7270c9fde9f6250b2a7c18951100813bb9ad34017e3e23adb`
+
+```tsx
+"use client";
+import type { AdminUser } from "@platform/types/admin-users";
+import { useCurrentTime } from "@platform/hooks/use-current-time";
+import { userAdministration } from "@platform/config/user-moderation";
+import { suspensionRemaining } from "@platform/features/admin/helpers/suspension-remaining";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+export default function UserStatus({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
+  const now = useCurrentTime(userAdministration.refreshMs);
+  const remaining = user.suspendedUntil && now ? suspensionRemaining(user.suspendedUntil, now) : null;
+  const blocked = user.permanentlyBanned || Boolean(remaining && !remaining.expired);
+  return <div className="lms-admin-status" data-blocked={blocked || undefined}>
+    <strong>{user.permanentlyBanned ? labels.banned : remaining && !remaining.expired ? labels.suspended : user.suspendedUntil && !now ? "…" : labels.active}</strong>
+    {user.suspendedUntil && !user.permanentlyBanned && <>
+      <small>{labels.ends}: <time dateTime={user.suspendedUntil}>{new Date(user.suspendedUntil).toISOString().replace("T", " ").slice(0, 16)} UTC</time></small>
+      {remaining && <small>{remaining.expired ? labels.expired : `${labels.remaining}: ${remaining.days} ${labels.days} · ${remaining.hours} ${labels.hours} · ${remaining.minutes} ${labels.minutes}`}</small>}
+    </>}
+  </div>;
+}
+```
+
+### File: `modules/components/admin/user-subscriptions.tsx`
+
+SHA-256: `09357eb44484d96a3cdcc79122a02f021eb76d1c98c22cacf5e16530e4ee4246`
+
+```tsx
+import Link from "next/link";
+import PageHeading from "@platform/components/ui/page-heading";
+import { routes } from "@platform/config/navigation";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+import type { UserSubscription } from "@platform/types/admin-users";
+export default function UserSubscriptions({ subscriptions, labels }: { subscriptions: UserSubscription[]; labels: AdminUsersLabels }) {
+  return <><PageHeading level={2} title={labels.subscriptions} /><div className="lms-resource-grid">
+    {subscriptions.map(course => <section className="lms-resource-card" key={course.slug}>
+      <h2><Link href={routes.course(course.slug, course.delivery)} className="lms-text-link">{course.title}</Link></h2>
+      <time dateTime={course.enrolledAt}>{course.enrolledAt.slice(0, 10)}</time>
+    </section>)}{!subscriptions.length && <p>{labels.noSubscriptions}</p>}
+  </div></>;
+}
+```
+
+### File: `modules/components/admin/users-table.tsx`
+
+SHA-256: `283c5f2cb5f40e67933d730ffc9b2512759e2485eb31f20cc83bcea6c9be1021`
+
+```tsx
+import Link from "next/link";
+import type { AdminUser } from "@platform/types/admin-users";
+import { routes } from "@platform/config/navigation";
+import type { AdminUsersLabels } from "@platform/types/admin-users";
+import UserStatus from "./user-status";
+import UserActions from "./user-actions";
+export default function UsersTable({ users, labels }: { users: AdminUser[]; labels: AdminUsersLabels }) {
+  return <><p className="lms-admin-table-hint">{labels.tableHint}</p><div className="lms-admin-table-wrap" role="region" aria-label={labels.heading} tabIndex={0}><table className="lms-admin-table">
+    <caption className="lms-visually-hidden">{labels.heading}</caption>
+    <thead><tr>{[labels.name, labels.username, labels.email, labels.status, labels.actions].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+    <tbody>{users.map(user => <tr key={user.id}>
+      <th scope="row"><Link href={routes.adminUser(user.id)} className="lms-text-link">{user.name}</Link><small>{user.admin ? labels.admin : labels.student}</small></th>
+      <td dir="ltr">{user.username}</td><td><span dir="ltr">{user.email}</span>{!user.confirmed && <small>{labels.unconfirmed}</small>}</td>
+      <td><UserStatus user={user} labels={labels} /></td><td><Link href={routes.adminUser(user.id)} className="lms-text-link">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
+    </tr>)}</tbody>
+  </table>{!users.length && <p>{labels.empty}</p>}</div></>;
 }
 ```
 
@@ -5141,7 +5425,7 @@ return (<header className="lms-app-header">
 
 ### File: `modules/components/layout/dashboard-shell.tsx`
 
-SHA-256: `2d458a05977e47bcf6201d5a0e8a811025d0f873af8d52b6c34f79c78a12728b`
+SHA-256: `73d4e03c64b924e5cda436edb59056143a56f361a37c1068fd43011f015133cd`
 
 ```tsx
 "use client";
@@ -5162,10 +5446,11 @@ export default function DashboardShell({
   dashboardNavigation,
   site,
   copy,
+  sessionEndpoint = endpoints.auth.session,
 }: DashboardShellProps) {
   const navigationId = useId();
   const pathname = usePathname();
-  const verified = useProtectedSession(pathname, endpoints.auth.session, routes.login);
+  const verified = useProtectedSession(pathname, sessionEndpoint, routes.login);
   const menu = useMobileMenu({ breakpointToken: "--breakpoint-mobile" });
   if (!verified) return null;
   return (
@@ -7071,7 +7356,7 @@ export default function FormField({ label, error, hint, control, ...input }: For
 
 ### File: `modules/components/ui/page-heading.tsx`
 
-SHA-256: `5212a11451415d0e985794dde80260a66e721f325a7a88fcf3bd314a57075021`
+SHA-256: `d8737c41f2226917a2891229336d35ec1d1e93f88a5d0986249152a3df1142f4`
 
 ```tsx
 export default function PageHeading({
@@ -7079,17 +7364,20 @@ export default function PageHeading({
   title,
   description,
   children,
+  level = 1,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children?: React.ReactNode;
+  level?: 1 | 2;
 }) {
+  const Heading = level === 2 ? "h2" : "h1";
   return (
     <div className="lms-page-heading">
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
-        <h1>{title}</h1>
+        <Heading>{title}</Heading>
         {description && <p className="body-regular">{description}</p>}
       </div>
       {children}
@@ -7269,9 +7557,26 @@ export const artworkKinds = [
 export type ArtworkKind = (typeof artworkKinds)[number];
 ```
 
+### File: `modules/config/dashboard-shell.ts`
+
+SHA-256: `8ae6c5e8ec8aeb3d41a8954f7803f93bc7bad6e55660b90166660b653457368f`
+
+```typescript
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { backendCopy } from "@platform/data/backend-copy";
+import { site, copy } from "@platform/data/site";
+export const dashboardShellContent = {
+  interfaceCopy: { studentNavigationLabel: interfaceCopy.studentNavigationLabel, sidebarTitle: interfaceCopy.sidebarTitle,
+    sidebarDescription: interfaceCopy.sidebarDescription, homeLabel: interfaceCopy.homeLabel },
+  site: { demoLabel: backendCopy.ACCOUNT_LABEL, name: site.name, englishName: site.englishName },
+  copy: { logout: backendCopy.LOGOUT, error: backendCopy.INTERNAL_ERROR, browse: copy.browse,
+    profileTitle: copy.profileTitle, menu: copy.menu, demoAccount: backendCopy.ACCOUNT_LABEL },
+};
+```
+
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `455da27f56abbe7a77d040aeb89ae4198de0264498607ca068cb214968dce61c`
+SHA-256: `c03452b577369d2d128422db8b954df2a94ae7127545546e6e7307095ba8b222`
 
 ```typescript
 import { workshopCourseConfig } from "../../config/workshop-course";
@@ -7303,7 +7608,10 @@ export const routes = {
   resources: `${learningBase}/dashboard/resources`,
   certificates: `${learningBase}/dashboard/certificates`,
   profile: `${learningBase}/dashboard/profile`,
-  admin: `${learningBase}/dashboard/admin/courses`,
+  admin: "/admin/dashboard/courses",
+  adminDashboard: "/admin/dashboard",
+  adminUsers: "/admin/dashboard",
+  adminUser: (id: string) => `/admin/dashboard/users/${segment(id)}`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
@@ -7320,6 +7628,8 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminUsers: "/api/admin/users",
+  adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
@@ -7354,6 +7664,42 @@ SHA-256: `c83605b83cd1b1d26e30d32b67e09be13df357bb1ffe7ae5206d2bb0673f7144`
 
 ```typescript
 export const requestPolicy = { maxJsonBytes: 16 * 1024 } as const;
+```
+
+### File: `modules/config/user-moderation.ts`
+
+SHA-256: `d69034abd9eaad7e31c726571437dc550eddd253c67664ae57a8f89eea579346`
+
+```typescript
+export const suspensionPeriods = [
+  { id: "day", hours: 24, label: "يوم واحد" },
+  { id: "week", hours: 168, label: "أسبوع" },
+  { id: "month", hours: 720, label: "شهر (٣٠ يومًا)" },
+  { id: "year", hours: 8760, label: "سنة (٣٦٥ يومًا)" },
+] as const;
+export const userAdministration = { pageSize: 20, permanentBanHours: 876000, refreshMs: 60000 } as const;
+```
+
+### File: `modules/data/admin-users.ts`
+
+SHA-256: `24f113a3cbac5c148dfbfbe0e8a099f3bac1bc5642dcd9ea85fd19cc954d24b6`
+
+```typescript
+export const adminUsersCopy = {
+  heading: "إدارة المستخدمين", description: "الحسابات والاشتراكات وإدارة صلاحيات الوصول.",
+  users: "المستخدمون", courses: "الدورات", dashboard: "لوحة الإدارة", name: "الاسم", username: "اسم المستخدم",
+  email: "البريد الإلكتروني", status: "الحالة", actions: "الإجراءات", view: "عرض المستخدم", admin: "مدير", student: "طالب",
+  suspend: "تعليق الحساب", period: "مدة التعليق", ban: "حظر دائم", restore: "استعادة الوصول", remove: "حذف المستخدم",
+  promote: "ترقية إلى مدير", active: "نشط", banned: "محظور", suspended: "معلّق", ends: "ينتهي التعليق", remaining: "المتبقي",
+  empty: "لا توجد حسابات في هذه الصفحة.", subscriptions: "الدورات المشترك بها", noSubscriptions: "لم يشترك في أي دورة بعد.",
+  error: "تعذّر تنفيذ الإجراء. حاول مرة أخرى.", saved: "تم تحديث الحساب", pending: "جارٍ التنفيذ…",
+  previous: "السابق", next: "التالي", back: "كل المستخدمين", profileImage: "الصورة الشخصية", role: "الصلاحية",
+  unconfirmed: "البريد غير مؤكّد", days: "يوم", hours: "ساعة", minutes: "دقيقة", expired: "انتهت مدة التعليق",
+  confirmTitle: "تأكيد الإجراء", confirm: "تأكيد", cancel: "إلغاء", confirmRemove: "سيُحذف الحساب واشتراكاته وتقدمه نهائيًا.",
+  confirmPromote: "سيتمكّن هذا المستخدم من إدارة المستخدمين والدورات.", confirmRestriction: "سيتوقف وصول هذا المستخدم إلى حسابه ودوراته.",
+  protectedAdmin: "حسابات المديرين محمية من الحظر والحذف.",
+  tableHint: "اسحب الجدول أفقيًا لعرض بيانات الحساب والإجراءات.",
+} as const;
 ```
 
 ### File: `modules/data/admin.ts`
@@ -7412,10 +7758,11 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `f501ba195d19b4d276de5b8083fc099ddcc3b886fc82a8dfa798672107181c3a`
+SHA-256: `1ad3550ac11fa6a7703fae0f476fa6f919192e13db3b6093350fcdb2b6124feb`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  PROTECTED_ADMIN: "حسابات المديرين محمية من الحظر والحذف.",
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
   UNAUTHENTICATED: "سجّل الدخول للمتابعة.", FORBIDDEN: "غير مسموح بهذا الطلب.",
   NOT_FOUND: "المحتوى غير موجود أو غير متاح لك.", INVALID_INPUT: "راجع البيانات وحاول مرة أخرى.",
@@ -8265,6 +8612,66 @@ export async function handleAdminLesson(slug: string, id: string, request: Reque
 }
 ```
 
+### File: `modules/features/admin/handle-user.ts`
+
+SHA-256: `6fae92db917d19822c37c2c6f24e1c6a3334daa6dc4fced51a1850041c409e23`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { requireAdmin } from "./identity";
+import { readModeration, validUserId } from "./helpers/read-moderation";
+import { moderateUser } from "./repositories/moderate-user";
+import { readAdminUser } from "./repositories/users";
+import { readUserSubscriptions } from "./repositories/user-subscriptions";
+export async function handleAdminUser(id: string, request?: Request) {
+  return apiResponse(async () => {
+    await requireAdmin();
+    if (!validUserId(id)) throw new ApiError(400, "INVALID_INPUT");
+    if (!request) return Response.json({ user: await readAdminUser(id), subscriptions: await readUserSubscriptions(id) });
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const change = readModeration(await readJson(request));
+    if (!change) throw new ApiError(400, "INVALID_INPUT");
+    return Response.json(await moderateUser(id, change));
+  });
+}
+```
+
+### File: `modules/features/admin/helpers/admin-user-record.ts`
+
+SHA-256: `9a1db8b8438b76efa36a4ab25afac1cb3f3b1304a2afab4a3842ae7699cb1e35`
+
+```typescript
+import type { User } from "@supabase/supabase-js";
+import type { AdminUser } from "@platform/types/admin-users";
+import type { Database } from "@platform/types/database";
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export function adminUserRecord(user: User, profile: Profile | undefined, admin: boolean): AdminUser {
+  const until = (user as User & { banned_until?: string }).banned_until ?? null;
+  const avatar = profile?.avatar_url ?? user.user_metadata?.avatar_url;
+  const name = profile?.name ?? user.user_metadata?.name;
+  return { id: user.id, name: typeof name === "string" ? name : "—",
+    username: profile?.username ?? `user-${user.id.replaceAll("-", "")}`, email: user.email ?? "—",
+    avatarUrl: typeof avatar === "string" && /^https:\/\//.test(avatar) ? avatar : null,
+    admin, confirmed: Boolean(user.email_confirmed_at), suspendedUntil: until,
+    permanentlyBanned: Boolean(until && Date.parse(until) - Date.now() > 3650 * 86400000) };
+}
+```
+
+### File: `modules/features/admin/helpers/read-admin-page.ts`
+
+SHA-256: `61da744f4fd12d38d517b1f3f67e709340ff3acff72c78397f0a27b392d54922`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+export function readAdminPage(value?: string | null) {
+  if (value == null) return 1;
+  if (!/^[1-9][0-9]{0,5}$/.test(value)) throw new ApiError(400, "INVALID_INPUT");
+  return Number(value);
+}
+```
+
 ### File: `modules/features/admin/helpers/read-course-edit.ts`
 
 SHA-256: `18c3a904a2bff9b0940a3982eb6de476f0d37c9cb6749e45521cef467147c3d8`
@@ -8273,6 +8680,36 @@ SHA-256: `18c3a904a2bff9b0940a3982eb6de476f0d37c9cb6749e45521cef467147c3d8`
 export function readCourseEdit(form: FormData) {
   return { title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"),
     thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
+}
+```
+
+### File: `modules/features/admin/helpers/read-moderation.ts`
+
+SHA-256: `3dcfd406fa0b8d750930c1acb99acc89c858f5b7c209515d7b991a9ed80715f4`
+
+```typescript
+import { suspensionPeriods } from "@platform/config/user-moderation";
+import type { UserModeration } from "@platform/types/admin-users";
+export function readModeration(value: unknown): UserModeration | null {
+  if (!value || typeof value !== "object" || !("action" in value)) return null;
+  if (value.action === "suspend" && "period" in value) {
+    const period = suspensionPeriods.find(item => item.id === value.period);
+    return period ? { action: "suspend", period: period.id } : null;
+  }
+  if (value.action === "ban" || value.action === "restore" || value.action === "remove" || value.action === "promote") return { action: value.action };
+  return null;
+}
+export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
+```
+
+### File: `modules/features/admin/helpers/suspension-remaining.ts`
+
+SHA-256: `e085b00b4062a33f298bdda5cd3ea3c8419d846caf43004f76a8667ea9fc9a90`
+
+```typescript
+export function suspensionRemaining(until: string, now: number) {
+  const minutes = Math.max(0, Math.ceil((Date.parse(until) - now) / 60000));
+  return { days: Math.floor(minutes / 1440), hours: Math.floor(minutes % 1440 / 60), minutes: minutes % 60, expired: minutes === 0 };
 }
 ```
 
@@ -8331,6 +8768,22 @@ export async function requireAdmin() {
 }
 ```
 
+### File: `modules/features/admin/page-identity.ts`
+
+SHA-256: `98b8bd8db72df5e289c34dd509e482e6f911f2cfe50f7a5f6893824caa195c40`
+
+```typescript
+import { redirect } from "next/navigation";
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { hasAdminAccess } from "./identity";
+import { routes } from "@platform/config/navigation";
+export async function requireAdminPage() {
+  const identity = await requirePageIdentity();
+  if (!await hasAdminAccess()) redirect(routes.dashboard);
+  return identity;
+}
+```
+
 ### File: `modules/features/admin/repositories/courses.ts`
 
 SHA-256: `328b7a9ea96b9666051caf2d31a6f31aa93554c21a0320b070a3e9441080ddf1`
@@ -8352,6 +8805,35 @@ export async function readAdminLessons(slug: string) {
   const { data, error } = await client.from("lessons").select("id,video_url").eq("course_slug",slug).order("id");
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   return data ?? [];
+}
+```
+
+### File: `modules/features/admin/repositories/moderate-user.ts`
+
+SHA-256: `6773f4112e683ef65708981160560aaee63e7f4c08f7de1b25c11ecff98d7037`
+
+```typescript
+import { requireAdmin } from "../identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { readAdminUser } from "./users";
+import { suspensionPeriods, userAdministration } from "@platform/config/user-moderation";
+import type { UserModeration } from "@platform/types/admin-users";
+export async function moderateUser(id: string, change: UserModeration) {
+  const { client, user: actor } = await requireAdmin();
+  const target = await readAdminUser(id);
+  if (target.admin || actor.id === id) throw new ApiError(403, "PROTECTED_ADMIN");
+  if (change.action === "promote") {
+    const result = await client.rpc("promote_admin_user", { target_id: id });
+    if (result.error) throw new ApiError(result.error.code === "22023" ? 400 : 503, "INVALID_INPUT");
+  } else {
+    const administrator = createAuthAdministrator();
+    const result = change.action === "remove" ? await administrator.auth.admin.deleteUser(id)
+      : await administrator.auth.admin.updateUserById(id, { ban_duration: change.action === "restore" ? "none"
+        : `${change.action === "ban" ? userAdministration.permanentBanHours : (change.action === "suspend" ? suspensionPeriods.find(item => item.id === change.period)!.hours : 0)}h` });
+    if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  }
+  return { saved: true };
 }
 ```
 
@@ -8377,6 +8859,70 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) throw new ApiError(404, "NOT_FOUND");
   return { saved: true };
+}
+```
+
+### File: `modules/features/admin/repositories/user-subscriptions.ts`
+
+SHA-256: `c2bfc6af5476f384fd76c3eb36997bebe01f2578aeb99cf53b2a23676ae8467c`
+
+```typescript
+import { requireAdmin } from "../identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { publicCourse } from "@platform/features/catalog/helpers/public-course";
+export async function readUserSubscriptions(id: string) {
+  await requireAdmin();
+  const client = createAuthAdministrator();
+  const enrollments = await client.from("enrollments").select("course_slug,created_at").eq("user_id", id).order("created_at", { ascending: false });
+  if (enrollments.error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!enrollments.data.length) return [];
+  const courses = await client.from("courses").select("slug,metadata,amount").in("slug", enrollments.data.map(row => row.course_slug));
+  if (courses.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return enrollments.data.flatMap(row => {
+    const record = courses.data.find(course => course.slug === row.course_slug);
+    if (!record) return [];
+    const course = publicCourse(record.metadata, record.slug, record.amount);
+    return [{ slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at }];
+  });
+}
+```
+
+### File: `modules/features/admin/repositories/users.ts`
+
+SHA-256: `40150caada5b3dd918c7c4785553c487408ade18d0db70661a455e5339ea6c27`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { userAdministration } from "@platform/config/user-moderation";
+import { adminUserRecord } from "../helpers/admin-user-record";
+export async function readAdminUsers(page = 1) {
+  await requireAdmin();
+  const client = createAuthAdministrator();
+  const result = await client.auth.admin.listUsers({ page, perPage: userAdministration.pageSize });
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const users = result.data.users, ids = users.map(user => user.id);
+  if (!ids.length) return { users: [], page, hasNext: false };
+  const [profiles, roles] = await Promise.all([
+    client.from("profiles").select("*").in("id", ids), client.from("admin_users").select("user_id").in("user_id", ids),
+  ]);
+  if (profiles.error || roles.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return { users: users.map(user => adminUserRecord(user, profiles.data.find(row => row.id === user.id), roles.data.some(row => row.user_id === user.id))),
+    page, hasNext: Boolean(result.data.nextPage) };
+}
+export async function readAdminUser(id: string) {
+  await requireAdmin();
+  const client = createAuthAdministrator();
+  const [identity, profile, role] = await Promise.all([
+    client.auth.admin.getUserById(id), client.from("profiles").select("*").eq("id", id).maybeSingle(),
+    client.from("admin_users").select("user_id").eq("user_id", id).maybeSingle(),
+  ]);
+  if (identity.error?.status === 404 || !identity.data.user) throw new ApiError(404, "NOT_FOUND");
+  if (identity.error || profile.error || role.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return adminUserRecord(identity.data.user, profile.data ?? undefined, Boolean(role.data));
 }
 ```
 
@@ -8507,7 +9053,7 @@ export async function authenticate(values: AuthValues, mode: AuthMode) {
 
 ### File: `modules/features/auth/server/identity.ts`
 
-SHA-256: `6602534fa4da7177f9c30b90f9bda350d7d0806a967c905d617341f446a70af6`
+SHA-256: `46e1053f6c46ce89d4cebbc581ad058b0d7038cead60813a79054c4855887c2e`
 
 ```typescript
 import "server-only";
@@ -8517,7 +9063,10 @@ import { ApiError } from "@platform/lib/api/error";
 export const currentIdentity = cache(async () => {
   const client = await createDatabaseClient();
   const { data, error } = await client.auth.getUser();
-  return error || !data.user ? null : { client, user: data.user };
+  if (error || !data.user) return null;
+  const access = await client.rpc("account_access_allowed");
+  if (access.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return access.data ? { client, user: data.user } : null;
 });
 export async function requireIdentity() {
   const identity = await currentIdentity();
@@ -10095,7 +10644,7 @@ export function useTimelineProgress(ref: RefObject<HTMLDivElement | null>) {
 
 ### File: `modules/hooks/use-admin-save.ts`
 
-SHA-256: `2b224ab1e977ab95c3b63a5b4aac535990b0387cc3c0de06f830f2669f8953fa`
+SHA-256: `a5bdb58b2270d5cf7b7a68c2eaa45df900bff23daceb2ec90a2c7bea40c71f89`
 
 ```typescript
 "use client";
@@ -10103,7 +10652,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { httpRequest } from "@platform/lib/http-request";
 import { useAsyncCommand } from "./use-async-command";
-export function useAdminSave(path: string, errorLabel: string) {
+export function useAdminSave(path: string, errorLabel: string, options: { refresh?: boolean } = {}) {
   const router = useRouter(), command = useAsyncCommand(errorLabel);
   const [saved, setSaved] = useState(false);
   const save = async (body: unknown) => {
@@ -10112,7 +10661,8 @@ export function useAdminSave(path: string, errorLabel: string) {
       if (!value || typeof value !== "object" || !("saved" in value) || value.saved !== true) throw new Error(errorLabel);
       return true;
     } }));
-    if (result) { setSaved(true); router.refresh(); }
+    if (result) { setSaved(true); if (options.refresh !== false) router.refresh(); }
+    return Boolean(result);
   };
   return { save, pending: command.pending, error: command.error, saved };
 }
@@ -10226,6 +10776,25 @@ export function useCourseEnrollment({ slug, firstLesson, enrolled, errorLabel }:
     }
   });
   return { start, pending: command.pending, error: command.error };
+}
+```
+
+### File: `modules/hooks/use-current-time.ts`
+
+SHA-256: `51e621adcf031b51f5ed09f84d5c2feb165c2c6c0469199727f105c123ce5d26`
+
+```typescript
+"use client";
+import { useEffect, useState } from "react";
+export function useCurrentTime(interval: number) {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    update();
+    const timer = window.setInterval(update, interval);
+    return () => window.clearInterval(timer);
+  }, [interval]);
+  return now;
 }
 ```
 
@@ -10392,6 +10961,27 @@ export function useProtectedSession(pathname: string, endpoint: string, login: s
 }
 ```
 
+### File: `modules/hooks/use-user-moderation.ts`
+
+SHA-256: `1079d19e8f968472c12d148305c3c386a7af2b870c16c3998cc64b07283103ac`
+
+```typescript
+"use client";
+import { useRouter } from "next/navigation";
+import { useAdminSave } from "./use-admin-save";
+import { endpoints, routes } from "@platform/config/navigation";
+import type { UserModeration } from "@platform/types/admin-users";
+export function useUserModeration(id: string, errorLabel: string) {
+  const router = useRouter(), command = useAdminSave(endpoints.adminUser(id), errorLabel, { refresh: false });
+  const execute = async (change: UserModeration) => {
+    const saved = await command.save(change);
+    if (saved) { if (change.action === "remove") router.push(routes.adminUsers); router.refresh(); }
+    return saved;
+  };
+  return { execute, pending: command.pending, error: command.error };
+}
+```
+
 ### File: `modules/lib/api/error.ts`
 
 SHA-256: `e4f448f3eff4d65617ed4bae4705d20b45ca924ca4210de36c099cec151c2707`
@@ -10515,6 +11105,25 @@ export function sameOrigin(request: Request) {
 }
 ```
 
+### File: `modules/lib/supabase/admin.ts`
+
+SHA-256: `2f4f6c01b3fe62fc3db1857dbc55575da4194a5b8c7d5350c7a54877079d51d2`
+
+```typescript
+import "server-only";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@platform/types/database";
+import { supabaseEnvironment } from "./environment";
+import { ApiError } from "@platform/lib/api/error";
+/** Never exports the secret or shares a cookie-bound authenticated client. */
+export function createAuthAdministrator() {
+  const { url } = supabaseEnvironment();
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!key) throw new ApiError(503, "SUPABASE_NOT_CONFIGURED");
+  return createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+```
+
 ### File: `modules/lib/supabase/client.ts`
 
 SHA-256: `ab40ed4cf0f74a4f9da5d3d84dc0631a3d7e26c58a0b6149bb2c966bd1eda4b2`
@@ -10545,7 +11154,7 @@ export function supabaseEnvironment() {
 
 ### File: `modules/lib/supabase/middleware.ts`
 
-SHA-256: `de47dab091f610222e47c304a1795190bb98237c11b7c5e7e9e8e65bb0fc4179`
+SHA-256: `0539e5b42c077e6d1e93e420a74eb46921161a51e19f794d8a5511d8508b1142`
 
 ```typescript
 import { createServerClient } from "@supabase/ssr";
@@ -10565,7 +11174,7 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
-  if (request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
+  if (request.nextUrl.pathname.startsWith("/admin/") || request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
     const { data, error } = await client.auth.getUser();
     if (error || !data.user) {
       const target = request.nextUrl.clone();
@@ -10635,6 +11244,44 @@ import palette from "../styles/theme-server.json";
 export const theme = palette;
 ```
 
+### File: `modules/styles/admin.css`
+
+SHA-256: `2b0261e54345e959c44963a335fe19747683cf979f1dca4c45dc44c10ca3cffb`
+
+```css
+.lms-admin-table-wrap { overflow-x: auto; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.lms-admin-table { width: 100%; border-collapse: collapse; text-align: start; }
+.lms-admin-table th, .lms-admin-table td { padding: var(--space-md); vertical-align: top; border-bottom: var(--size-1px) solid var(--border-subtle); }
+.lms-admin-table thead { background: var(--bg-section-alt); }
+.lms-admin-table tbody tr { transition: background-color var(--transition-smooth); }
+.lms-admin-table tbody tr:hover { background: var(--primary-red-subtle); }
+.lms-admin-table small, .lms-admin-status small { display: block; color: var(--text-muted); margin-top: var(--space-xs); }
+.lms-admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin-top: var(--space-sm); }
+.lms-admin-actions .btn-secondary, .lms-admin-actions .btn-primary { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-body); }
+.lms-admin-actions select { background: var(--bg-main); color: var(--text-primary); padding: var(--space-sm); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); font: inherit; }
+.lms-admin-danger { border: 0; background: transparent; color: var(--primary-red); font: inherit; cursor: pointer; padding: var(--space-sm); transition: color var(--transition-smooth); }
+.lms-admin-danger:hover { color: var(--text-primary); }
+.lms-admin-status[data-blocked] strong { color: var(--primary-red); }
+.lms-admin-pagination { display: flex; justify-content: center; align-items: center; gap: var(--space-md); margin-block: var(--space-lg); }
+.lms-admin-avatar { width: var(--size-80px); height: var(--size-80px); border-radius: var(--radius-full); overflow: hidden; background: var(--primary-red-subtle); display: grid; place-items: center; font-size: var(--size-2rem); }
+.lms-admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.lms-admin-user-details { display: grid; gap: var(--space-lg); }
+.lms-admin-user-details dl { display: grid; gap: var(--space-md); margin: 0; }
+.lms-admin-user-details dt { color: var(--text-muted); }
+.lms-admin-user-details dd { margin: 0; overflow-wrap: anywhere; }
+.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-xl); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); max-width: min(var(--lms-size-560px), calc(100% - var(--space-xl))); }
+.lms-admin-dialog::backdrop { background: var(--color-rgba-0-0-0-0-8); }
+.lms-admin-dialog p { margin-block: var(--space-md); }
+.lms-admin-actions button:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+.lms-visually-hidden { position: absolute; width: var(--size-1px); height: var(--size-1px); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lms-admin-table { min-width: var(--size-980px); }
+.lms-admin-table-wrap { min-width: 0; max-width: 100%; }
+.lms-admin-table td:last-child { min-width: var(--lms-size-320px); }
+.lms-admin-table-wrap { position: relative; }
+.lms-admin-table-hint { display: none; margin-bottom: var(--space-sm); color: var(--text-muted); }
+@media (max-width: 768px) { .lms-admin-table-hint { display: block; } }
+```
+
 ### File: `modules/styles/auth.css`
 
 SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
@@ -10666,7 +11313,7 @@ SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
 
 ### File: `modules/styles/lms.css`
 
-SHA-256: `f47f32f66930f20c5f25b71fbe4a8caa1b0291b08017d4b6e142752d81c42cbe`
+SHA-256: `1c426f6b36a6fa2771dfb16ffdd5b4403002f06b3d1c4d9153dcaf00b0ed1cb4`
 
 ```css
 .lms-icon {
@@ -11086,7 +11733,7 @@ button:disabled {
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
 }
-.lms-page-heading h1 {
+.lms-page-heading :is(h1, h2) {
   font-size: clamp(
     var(--lms-size-1_7rem),
     var(--lms-size-3vw),
@@ -11498,7 +12145,7 @@ button:disabled {
   min-width: 0;
   min-height: calc(var(--size-100vh) - var(--size-80px));
 }
-.lms-app-main .lms-page-heading h1 {
+.lms-app-main .lms-page-heading :is(h1, h2) {
   font-size: var(--size-2rem);
 }
 .lms-stat-grid {
@@ -12465,8 +13112,8 @@ button:disabled {
   .lms-stat-card span {
     font-size: var(--font-size-caption);
   }
-  .lms-page-heading h1,
-  .lms-app-main .lms-page-heading h1 {
+  .lms-page-heading :is(h1, h2),
+  .lms-app-main .lms-page-heading :is(h1, h2) {
     font-size: var(--size-1_6rem);
   }
   .lms-footer-bottom {
@@ -14282,6 +14929,25 @@ SHA-256: `daa5378e3319f1c86b480af2ed93eb4d15b23e79bf07361931888dfe7e9e1364`
 }
 ```
 
+### File: `modules/types/admin-users.ts`
+
+SHA-256: `7d78c3b42d2ac929a29a1fa88f11686329cccf3be50a0e7605ea774ae14b0161`
+
+```typescript
+import type { suspensionPeriods } from "@platform/config/user-moderation";
+export type SuspensionPeriod = typeof suspensionPeriods[number]["id"];
+export type UserModeration = { action: "suspend"; period: SuspensionPeriod } | { action: "ban" | "restore" | "remove" | "promote" };
+export interface AdminUser {
+  id: string; name: string; username: string; email: string; avatarUrl: string | null;
+  admin: boolean; confirmed: boolean; suspendedUntil: string | null; permanentlyBanned: boolean;
+}
+export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: boolean; }
+export interface UserSubscription { slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
+
+import type { adminUsersCopy } from "@platform/data/admin-users";
+export type AdminUsersLabels = { [K in keyof typeof adminUsersCopy]: string };
+```
+
 ### File: `modules/types/auth.ts`
 
 SHA-256: `f14f228412690df767aa9cf53e66158ee2eb039eac95baabb3b1b576ed0c447e`
@@ -14328,7 +14994,7 @@ export interface ContentBindings {
 
 ### File: `modules/types/dashboard-shell.ts`
 
-SHA-256: `412deeb7361160f010fe9db20313b510f98b3cc2dae7e936aa1b736f45486cb4`
+SHA-256: `0c2cec5498a25a84c1569b488f4f82adf8e847cdbc28c677852042ac3d457707`
 
 ```typescript
 import type { ContentBindings } from "./content";
@@ -14336,6 +15002,7 @@ import type { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
+  sessionEndpoint?: string;
 } & {
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],
@@ -14366,7 +15033,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `cc6fb220f548e7823672ea342f992b28e70c15d94934222e1808b960e4fc3a51`
+SHA-256: `f708d528598e59318c4a2cf611659894f7daaa17ac10a88768e3157523a7c746`
 
 ```typescript
 
@@ -14530,14 +15197,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "id": string,"name": string
+                    "avatar_url": string | null,"id": string,"name": string,"username": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "id": string,"name": string
+                    "avatar_url"?: string | null,"id": string,"name": string,"username"?: string
                   }
                   Update: {
-                    "id"?: string,"name"?: string
+                    "avatar_url"?: string | null,"id"?: string,"name"?: string,"username"?: string
                   }
                   Relationships: [
                     
@@ -14562,7 +15229,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "account_access_allowed":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"promote_admin_user":
+{ Args: { "target_id": string }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never
@@ -24356,6 +25028,123 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 });
 ```
 
+### File: `tests/backend/admin-users-browser.cjs`
+
+SHA-256: `f6cc50eb35ef049c9b08b260d94ba443c7c837de27a77f70645d203585fedf12`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
+const { chromium, expect } = require('@playwright/test');
+module.exports = async function userManagementBrowser({ manager, target, verify, url }) {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const errors = []; page.on('pageerror', error => errors.push(error.message));
+    await page.goto(url + '/login');
+    await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
+    await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
+    await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+    await page.waitForURL('**/dashboard');
+    await page.goto(url + '/admin/dashboard');
+    await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
+    const row = page.getByRole('row').filter({ hasText: target.email });
+    await expect(row).toContainText('Moderation Student');
+    await row.getByRole('combobox').selectOption('week');
+    await row.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('button', { name: 'تأكيد', exact: true }).click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await expect(row).toContainText('المتبقي:');
+    await row.getByRole('link', { name: 'عرض المستخدم', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'الدورات المشترك بها', exact: true })).toBeVisible();
+    await expect(page.getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
+    await expect(page.getByText('المتبقي:', { exact: false })).toBeVisible();
+    await page.getByRole('button', { name: 'استعادة الوصول', exact: true }).click();
+    await expect(page.getByText('نشط', { exact: true })).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 900 });
+    verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'User detail fits mobile viewport');
+    await page.goto(url + '/admin/dashboard');
+    await expect(page.getByRole('table')).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: target.email })).toBeVisible();
+    const viewport = await page.evaluate(() => ({ root: document.documentElement.scrollWidth, body: document.body.scrollWidth, width: innerWidth }));
+    verify(Math.max(viewport.root, viewport.body) <= viewport.width, `User table scrolls within mobile viewport (${JSON.stringify(viewport)})`);
+    await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
+    verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
+  } finally { await browser.close(); }
+};
+```
+
+### File: `tests/backend/admin-users.cjs`
+
+SHA-256: `a1a635dcb3d8120ff0bdf24cf63a195539535272ed1210ad1083987097b4e6d1`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated real Auth, API, RLS and browser acceptance tests. */
+module.exports = async function userManagementChecks({ admin, provision, anonymous, student, verify, url }) {
+  const manager = await provision('User Manager'), target = await provision('Moderation Student');
+  await admin.from('admin_users').insert({ user_id: manager.id });
+  const base = '/api/admin/users', endpoint = `${base}/${target.id}`;
+  const json = response => JSON.parse(response.data);
+  verify((await anonymous(base)).status === 401, 'Anonymous cannot list private users');
+  verify((await anonymous('/admin/dashboard')).headers.get('location')?.includes('/login'), 'Anonymous admin dashboard redirects to login');
+  verify((await student.api(base)).status === 403, 'Student cannot list private users');
+  const deniedPage = await student.api('/admin/dashboard');
+  verify(deniedPage.headers.get('location')?.endsWith('/dashboard') || (deniedPage.data.includes('NEXT_REDIRECT') && deniedPage.data.includes('/dashboard')), 'Student admin page redirects to private student dashboard');
+  verify((await student.api(endpoint)).status === 403, 'Student cannot read another user detail');
+  verify((await student.api(endpoint,{ action: 'promote' })).status === 403, 'Student cannot promote users');
+  verify(Boolean((await student.direct.rpc('promote_admin_user',{ target_id: student.id })).error), 'Database rejects direct student role promotion');
+  const list = await manager.api(base);
+  verify(list.status === 200 && json(list).users.some(user => user.id === target.id && user.email === target.email), 'Admin sees names usernames and emails');
+  verify(!list.data.includes('encrypted_password') && !list.data.includes('access_token'), 'User listing exposes only selected public account fields');
+  verify(/no-store/.test(list.headers.get('cache-control')), 'User data is never cached');
+  verify((await manager.api(base + '?page=-1')).status === 400, 'Invalid pagination rejected');
+  verify((await manager.api(base + '?page=99999')).status === 200 && json(await manager.api(base + '?page=99999')).users.length === 0, 'Empty pagination is handled');
+  verify((await manager.api(`${base}/not-an-id`)).status === 400, 'Malformed user ID rejected');
+  verify((await manager.api(`${base}/00000000-0000-0000-0000-000000000000`)).status === 404, 'Unknown user returns 404');
+  verify((await manager.api(endpoint, { action: 'suspend', period: 'forever' })).status === 400, 'Unsupported suspension duration rejected');
+  verify((await manager.api(endpoint, { action: 'remove' }, { headers: { Origin: 'https://attacker.example' } })).status === 403, 'Cross-origin user deletion rejected');
+  verify((await manager.api(`${base}/${manager.id}`, { action: 'remove' })).status === 403, 'Admin cannot delete self');
+  verify((await manager.api(`${base}/${manager.id}`, { action: 'ban' })).status === 403, 'Admin cannot ban self');
+  verify(Boolean((await admin.auth.admin.updateUserById(manager.id,{ ban_duration: '24h' })).error), 'Database prevents administrator ban races');
+  await admin.from('enrollments').insert({ user_id: target.id, course_slug: 'editing-foundations' });
+  const detail = json(await manager.api(endpoint));
+  verify(detail.user.name === 'Moderation Student' && detail.user.username.startsWith('user-'), 'User detail contains real profile and username');
+  verify(detail.subscriptions.some(course => course.slug === 'editing-foundations'), 'User detail reads actual subscribed courses');
+  for (const [period, hours] of [['day',24],['week',168],['month',720],['year',8760]]) {
+    verify((await manager.api(endpoint,{ action: 'suspend', period })).status === 200, `${period} suspension succeeds`);
+    const until = json(await manager.api(endpoint)).user.suspendedUntil;
+    verify(Math.abs((Date.parse(until)-Date.now())/3600000-hours) < 0.01, `${period} suspension has correct expiry`);
+    verify((await target.api('/api/auth/session')).status === 401, 'Suspension blocks previously issued API session');
+    verify((await target.direct.from('enrollments').select('*')).data.length === 0, 'Suspension blocks direct Data API with existing JWT');
+    verify((await target.direct.from('lessons').select('*').eq('course_slug','editing-foundations')).data.length === 0, 'Suspension blocks direct course playback retrieval');
+    verify((await manager.api(endpoint,{ action: 'restore' })).status === 200, 'Admin restores access before expiry');
+    verify((await target.api('/api/auth/session')).status === 200, 'Restored account regains authorized session access');
+  }
+  verify((await manager.api(endpoint,{ action: 'ban' })).status === 200, 'Permanent ban succeeds');
+  verify(json(await manager.api(endpoint)).user.permanentlyBanned, 'Permanent ban has separate status from suspension');
+  const denied = await target.direct.auth.signInWithPassword({ email: target.email, password: target.password });
+  verify(Boolean(denied.error), 'Banned account cannot sign in');
+  await manager.api(endpoint,{ action: 'restore' });
+  await admin.auth.admin.updateUserById(target.id,{ ban_duration: '1s' });
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  verify((await target.api('/api/auth/session')).status === 200, 'Expired suspension automatically restores access');
+  await require('./admin-users-browser.cjs')({ manager, target, verify, url });
+  verify((await manager.api(endpoint,{ action: 'remove' })).status === 200, 'Admin can delete student account');
+  verify((await manager.api(endpoint)).status === 404, 'Deleted user disappears from private detail');
+  verify((await admin.from('enrollments').select('*').eq('user_id',target.id)).data.length === 0, 'Delete cascades subscribed courses');
+  verify((await target.api('/api/auth/session')).status === 401, 'Deleted user existing session is denied');
+  verify((await target.direct.rpc('account_access_allowed')).data !== true, 'Deleted user old JWT cannot pass database access check');
+  const promoted = await provision('Promoted User');
+  try {
+    verify((await manager.api(`${base}/${promoted.id}`,{ action: 'promote' })).status === 200, 'Admin promotes confirmed student');
+    verify((await promoted.api(base)).status === 200, 'Promoted user gains admin access');
+    await admin.auth.admin.updateUserById(promoted.id,{ email_confirm: true });
+    verify((await promoted.api(base)).status === 200, 'Promotion persists after provider email confirmation updates');
+    verify((await manager.api(`${base}/${promoted.id}`,{ action: 'ban' })).status === 403, 'Other administrators are protected');
+  } finally { await admin.from('admin_allowlist').delete().eq('email',promoted.email); }
+};
+```
+
 ### File: `tests/backend/admin.cjs`
 
 SHA-256: `d76539f6bde40325d29852a56df0b501e7d9b2c3f60a677f84e2bac1a2455e4f`
@@ -24555,7 +25344,7 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `352f9148765644813106db419ab83ba589fc8fe4629ff78484a7b3c99f72d291`
+SHA-256: `cbcfd7165a415dec21ad1655fe293335a1eed18d36417ea41d5e58d54e7d9e3c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -24566,7 +25355,7 @@ const { createClient } = require('@supabase/supabase-js');
 const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'utf8'));
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
 const url = 'http://localhost:3045';
-const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url };
+const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
 const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -24602,6 +25391,18 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-users-browser') {
+    const manager = await provision('User Manager'), target = await provision('Moderation Student');
+    await admin.from('admin_users').insert({ user_id: manager.id });
+    await admin.from('enrollments').insert({ user_id: target.id, course_slug: 'editing-foundations' });
+    await require('./admin-users-browser.cjs')({ manager, target, verify, url });
+    return;
+  }
+  if (process.env.BACKEND_SUITE === 'admin-users') {
+    const student = await provision('API Student');
+    await require('./admin-users.cjs')({ admin, provision, anonymous, student, verify, url });
+    return;
+  }
   const catalog = await anonymous('/api/courses');
   verify(catalog.status === 200, 'Anonymous catalog is database-backed');
   const courses = parse(catalog).courses, course = courses[0];
@@ -24624,6 +25425,7 @@ async function run() {
   await require('./browser.cjs')({ url, config, admin, identities, verify, student: a });
   await require('./dashboard-access.cjs')({ url, student: a, verify });
   await require('./admin.cjs')({ admin, provision, anonymous, student: b, verify, url, config });
+  await require('./admin-users.cjs')({ admin, provision, anonymous, student: b, verify, url });
   verify((await a.api('/api/enrollments', { courseSlug: course.slug })).status === 403, 'Paid course cannot self-enroll through API');
   verify(Boolean((await a.direct.from('enrollments').insert({ user_id: a.id, course_slug: course.slug })).error), 'RLS blocks direct paid enrollment');
   verify(Boolean((await a.direct.from('profiles').upsert({ id: b.id, name: 'Impersonation' })).error), 'RLS blocks profile ownership forgery');
@@ -24668,7 +25470,10 @@ async function run() {
 (async () => {
   try { await run(); console.log(`Backend integration: ${checks} checks passed`); }
   finally {
-    for (const id of identities) await admin.auth.admin.deleteUser(id);
+    for (const id of identities) {
+      await admin.from("admin_users").delete().eq("user_id", id);
+      await admin.auth.admin.deleteUser(id);
+    }
     await admin.from('courses').delete().eq('slug','backend-test-free');
     server.kill('SIGTERM'); fs.closeSync(log);
   }

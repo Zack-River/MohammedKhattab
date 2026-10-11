@@ -1,4 +1,4 @@
 import type { NextRequest } from "next/server";
 import { updateSession } from "@platform/lib/supabase/middleware";
 export async function proxy(request: NextRequest) { return updateSession(request); }
-export const config = { matcher: ["/dashboard/:path*", "/learn/:path*", "/courses/:path*", "/workshops/:path*", "/login", "/signup", "/api/:path*"] };
+export const config = { matcher: ["/admin/:path*", "/dashboard/:path*", "/learn/:path*", "/courses/:path*", "/workshops/:path*", "/login", "/signup", "/api/:path*"] };

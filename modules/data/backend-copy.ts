@@ -1,4 +1,5 @@
 export const backendCopy: Record<string, string> = {
+  PROTECTED_ADMIN: "حسابات المديرين محمية من الحظر والحذف.",
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
   UNAUTHENTICATED: "سجّل الدخول للمتابعة.", FORBIDDEN: "غير مسموح بهذا الطلب.",
   NOT_FOUND: "المحتوى غير موجود أو غير متاح لك.", INVALID_INPUT: "راجع البيانات وحاول مرة أخرى.",

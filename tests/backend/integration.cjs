@@ -6,7 +6,7 @@ const { createClient } = require('@supabase/supabase-js');
 const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'utf8'));
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
 const url = 'http://localhost:3045';
-const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url };
+const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
 const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -42,6 +42,18 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-users-browser') {
+    const manager = await provision('User Manager'), target = await provision('Moderation Student');
+    await admin.from('admin_users').insert({ user_id: manager.id });
+    await admin.from('enrollments').insert({ user_id: target.id, course_slug: 'editing-foundations' });
+    await require('./admin-users-browser.cjs')({ manager, target, verify, url });
+    return;
+  }
+  if (process.env.BACKEND_SUITE === 'admin-users') {
+    const student = await provision('API Student');
+    await require('./admin-users.cjs')({ admin, provision, anonymous, student, verify, url });
+    return;
+  }
   const catalog = await anonymous('/api/courses');
   verify(catalog.status === 200, 'Anonymous catalog is database-backed');
   const courses = parse(catalog).courses, course = courses[0];
@@ -64,6 +76,7 @@ async function run() {
   await require('./browser.cjs')({ url, config, admin, identities, verify, student: a });
   await require('./dashboard-access.cjs')({ url, student: a, verify });
   await require('./admin.cjs')({ admin, provision, anonymous, student: b, verify, url, config });
+  await require('./admin-users.cjs')({ admin, provision, anonymous, student: b, verify, url });
   verify((await a.api('/api/enrollments', { courseSlug: course.slug })).status === 403, 'Paid course cannot self-enroll through API');
   verify(Boolean((await a.direct.from('enrollments').insert({ user_id: a.id, course_slug: course.slug })).error), 'RLS blocks direct paid enrollment');
   verify(Boolean((await a.direct.from('profiles').upsert({ id: b.id, name: 'Impersonation' })).error), 'RLS blocks profile ownership forgery');
@@ -108,7 +121,10 @@ async function run() {
 (async () => {
   try { await run(); console.log(`Backend integration: ${checks} checks passed`); }
   finally {
-    for (const id of identities) await admin.auth.admin.deleteUser(id);
+    for (const id of identities) {
+      await admin.from("admin_users").delete().eq("user_id", id);
+      await admin.auth.admin.deleteUser(id);
+    }
     await admin.from('courses').delete().eq('slug','backend-test-free');
     server.kill('SIGTERM'); fs.closeSync(log);
   }

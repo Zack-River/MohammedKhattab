@@ -1,0 +1,6 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: User Manager: real login
+PASS 2: Moderation Student: real login

@@ -415,7 +415,7 @@ button:disabled {
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
 }
-.lms-page-heading h1 {
+.lms-page-heading :is(h1, h2) {
   font-size: clamp(
     var(--lms-size-1_7rem),
     var(--lms-size-3vw),
@@ -827,7 +827,7 @@ button:disabled {
   min-width: 0;
   min-height: calc(var(--size-100vh) - var(--size-80px));
 }
-.lms-app-main .lms-page-heading h1 {
+.lms-app-main .lms-page-heading :is(h1, h2) {
   font-size: var(--size-2rem);
 }
 .lms-stat-grid {
@@ -1794,8 +1794,8 @@ button:disabled {
   .lms-stat-card span {
     font-size: var(--font-size-caption);
   }
-  .lms-page-heading h1,
-  .lms-app-main .lms-page-heading h1 {
+  .lms-page-heading :is(h1, h2),
+  .lms-app-main .lms-page-heading :is(h1, h2) {
     font-size: var(--size-1_6rem);
   }
   .lms-footer-bottom {

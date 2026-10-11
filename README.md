@@ -18,7 +18,9 @@ Open **http://localhost:3040**. For production, run `npm run build` followed by 
 | `/` | Ta3allam landing |
 | `/founder` | Mohammed Khattab portfolio |
 | `/workshops/7days-freelance` | Seven-day live freelance workshop |
-| `/dashboard/admin/courses` | Admin course editor |
+| `/admin/dashboard` | Administrator users table and moderation |
+| `/admin/dashboard/users/[id]` | Private user details and subscriptions |
+| `/admin/dashboard/courses` | Administrator course editor |
 | `/courses`, `/courses/[slug]` | Catalog and course details |
 | `/dashboard/*` | Student account |
 | `/learn/[slug]/[lessonId]` | Learning player |
@@ -76,8 +78,10 @@ For isolated backend tests, start local Supabase using `npx supabase start -x re
 
 See [backend plan and acceptance](docs/architecture/BACKEND_PLAN.md) and [backend verification](docs/evidence/backend/VERIFICATION.md). Legacy LMS browser cases written for anonymous demo-cookie access require authenticated fixtures; they are not evidence that the new authorization rules failed, and are not reported as a passing full regression gate.
 
-Admin membership is server-controlled through the private email allowlist and verified account identity. Supabase Auth stores bcrypt password hashes. `scripts/backend/provision-admins.cjs` is a one-time operational tool using `SUPABASE_SECRET_KEY` and password environment variables named in `config/admin-accounts.json`; keep these in ignored `.env.local`. They are not required by the deployed app and must never use a public prefix. The workshop starts at 499 ج.م and retains WhatsApp booking; a catalog entry does not grant enrollment. Public Google Drive video links can be streamed through the shared player; private Drive permissions remain the file owner’s responsibility.
+Admin membership is server-controlled through the private email allowlist and verified account identity. Supabase Auth stores bcrypt password hashes. `scripts/backend/provision-admins.cjs` is a one-time operational tool using `SUPABASE_SECRET_KEY` and password environment variables named in `config/admin-accounts.json`; keep these in ignored `.env.local`. Password environment variables remain operational only. `SUPABASE_SECRET_KEY` is also required by the deployed administrator users dashboard and must never use a public prefix. The workshop starts at 499 ج.م and retains WhatsApp booking; a catalog entry does not grant enrollment. Public Google Drive video links can be streamed through the shared player; private Drive permissions remain the file owner’s responsibility.
 
 Dashboard access is enforced before rendering in the session proxy and authenticated student data reader. The client dashboard also verifies the server session on navigation and browser restoration so cached UI cannot survive logout. Login/logout use document navigation to discard route caches. Public course previews remain accessible; admin membership remains server-controlled.
 
 Public `/users/[username]` pages are deferred. Account details remain private under `/dashboard/profile`. Live courses link to `/workshops/[slug]`; recorded courses link to `/courses/[slug]`.
+
+Administrator user-management routes, moderation and authorization details are documented in [ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).

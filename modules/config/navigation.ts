@@ -27,7 +27,10 @@ export const routes = {
   resources: `${learningBase}/dashboard/resources`,
   certificates: `${learningBase}/dashboard/certificates`,
   profile: `${learningBase}/dashboard/profile`,
-  admin: `${learningBase}/dashboard/admin/courses`,
+  admin: "/admin/dashboard/courses",
+  adminDashboard: "/admin/dashboard",
+  adminUsers: "/admin/dashboard",
+  adminUser: (id: string) => `/admin/dashboard/users/${segment(id)}`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
@@ -44,6 +47,8 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminUsers: "/api/admin/users",
+  adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,

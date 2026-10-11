@@ -1,0 +1,13 @@
+{
+  "origin": "http://localhost:3040",
+  "checkedAt": "2026-10-11T01:27:26.581Z",
+  "checks": [
+    "Real administrator opens users table",
+    "Server-only secret works; user data is private and uncached",
+    "Administrator-only student details and actual subscriptions render",
+    "Mobile table stays inside viewport",
+    "Courses tab retains editor",
+    "Logged-out administrator cannot reopen dashboard"
+  ],
+  "javascriptErrors": []
+}

@@ -16,10 +16,11 @@ export default function DashboardShell({
   dashboardNavigation,
   site,
   copy,
+  sessionEndpoint = endpoints.auth.session,
 }: DashboardShellProps) {
   const navigationId = useId();
   const pathname = usePathname();
-  const verified = useProtectedSession(pathname, endpoints.auth.session, routes.login);
+  const verified = useProtectedSession(pathname, sessionEndpoint, routes.login);
   const menu = useMobileMenu({ breakpointToken: "--breakpoint-mobile" });
   if (!verified) return null;
   return (

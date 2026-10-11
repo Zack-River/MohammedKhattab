@@ -159,14 +159,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "id": string,"name": string
+                    "avatar_url": string | null,"id": string,"name": string,"username": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "id": string,"name": string
+                    "avatar_url"?: string | null,"id": string,"name": string,"username"?: string
                   }
                   Update: {
-                    "id"?: string,"name"?: string
+                    "avatar_url"?: string | null,"id"?: string,"name"?: string,"username"?: string
                   }
                   Relationships: [
                     
@@ -191,7 +191,12 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "account_access_allowed":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"promote_admin_user":
+{ Args: { "target_id": string }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never

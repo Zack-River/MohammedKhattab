@@ -1,0 +1,74 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: API Student: real login
+PASS 2: User Manager: real login
+PASS 3: Moderation Student: real login
+PASS 4: Anonymous cannot list private users
+PASS 5: Anonymous admin dashboard redirects to login
+PASS 6: Student cannot list private users
+PASS 7: Student admin page redirects to private student dashboard
+PASS 8: Student cannot read another user detail
+PASS 9: Student cannot promote users
+PASS 10: Database rejects direct student role promotion
+PASS 11: Admin sees names usernames and emails
+PASS 12: User listing exposes only selected public account fields
+PASS 13: User data is never cached
+PASS 14: Invalid pagination rejected
+PASS 15: Empty pagination is handled
+PASS 16: Malformed user ID rejected
+PASS 17: Unknown user returns 404
+PASS 18: Unsupported suspension duration rejected
+PASS 19: Cross-origin user deletion rejected
+PASS 20: Admin cannot delete self
+PASS 21: Admin cannot ban self
+PASS 22: Database prevents administrator ban races
+PASS 23: User detail contains real profile and username
+PASS 24: User detail reads actual subscribed courses
+PASS 25: day suspension succeeds
+PASS 26: day suspension has correct expiry
+PASS 27: Suspension blocks previously issued API session
+PASS 28: Suspension blocks direct Data API with existing JWT
+PASS 29: Suspension blocks direct course playback retrieval
+PASS 30: Admin restores access before expiry
+PASS 31: Restored account regains authorized session access
+PASS 32: week suspension succeeds
+PASS 33: week suspension has correct expiry
+PASS 34: Suspension blocks previously issued API session
+PASS 35: Suspension blocks direct Data API with existing JWT
+PASS 36: Suspension blocks direct course playback retrieval
+PASS 37: Admin restores access before expiry
+PASS 38: Restored account regains authorized session access
+PASS 39: month suspension succeeds
+PASS 40: month suspension has correct expiry
+PASS 41: Suspension blocks previously issued API session
+PASS 42: Suspension blocks direct Data API with existing JWT
+PASS 43: Suspension blocks direct course playback retrieval
+PASS 44: Admin restores access before expiry
+PASS 45: Restored account regains authorized session access
+PASS 46: year suspension succeeds
+PASS 47: year suspension has correct expiry
+PASS 48: Suspension blocks previously issued API session
+PASS 49: Suspension blocks direct Data API with existing JWT
+PASS 50: Suspension blocks direct course playback retrieval
+PASS 51: Admin restores access before expiry
+PASS 52: Restored account regains authorized session access
+PASS 53: Permanent ban succeeds
+PASS 54: Permanent ban has separate status from suspension
+PASS 55: Banned account cannot sign in
+PASS 56: Expired suspension automatically restores access
+PASS 57: User detail fits mobile viewport
+PASS 58: User table scrolls within mobile viewport ({"root":390,"body":390,"width":390})
+PASS 59: Admin users dashboard has no browser JavaScript errors
+PASS 60: Admin can delete student account
+PASS 61: Deleted user disappears from private detail
+PASS 62: Delete cascades subscribed courses
+PASS 63: Deleted user existing session is denied
+PASS 64: Deleted user old JWT cannot pass database access check
+PASS 65: Promoted User: real login
+PASS 66: Admin promotes confirmed student
+PASS 67: Promoted user gains admin access
+PASS 68: Promotion persists after provider email confirmation updates
+PASS 69: Other administrators are protected
+Backend integration: 69 checks passed
