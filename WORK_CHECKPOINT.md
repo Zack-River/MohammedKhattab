@@ -5,7 +5,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 ## Latest checkpoint — shared interactive cursors
 
 - Removed the universal cursor-default reset that blocked cursor inheritance on clickable children. Added shared `interactions.css` for links, buttons, semantic interactive roles, disclosure summaries and action/choice inputs. Nested logos, images, text and icons inherit the interactive target's cursor; disabled/pending controls retain their disabled cursor.
-- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Browser audit across home, founder, workshop, catalog, login and signup at 320px/1440px checked **1,175 interactive elements/descendants**, with zero cursor mismatches and disabled-control checks passing. Local build: **lYWONWQIXklno7_Df_Dig**. Live verification pending. Evidence: `docs/evidence/interactive-cursors/`.
+- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Browser audit across home, founder, workshop, catalog, login and signup at 320px/1440px checked **1,175 interactive elements/descendants**, with zero cursor mismatches and disabled-control checks passing. Local build: **lYWONWQIXklno7_Df_Dig**. Application commit **8b9fa41** deployed successfully. Live browser audit passed at `https://ta3allam.vercel.app`: **1,190 interactive elements/descendants**, six pages at mobile/desktop widths, zero mismatches, with disabled-control checks passing. Evidence: `docs/evidence/interactive-cursors/`.
 
 ## Latest checkpoint — founder courses section and catalog text link
 

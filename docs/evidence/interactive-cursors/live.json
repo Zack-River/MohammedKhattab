@@ -1,0 +1,74 @@
+[
+  {
+    "width": 320,
+    "route": "/",
+    "checked": 155,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "route": "/founder",
+    "checked": 123,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "route": "/workshops/7days-freelance",
+    "checked": 128,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "route": "/courses",
+    "checked": 131,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "route": "/login",
+    "checked": 30,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "route": "/signup",
+    "checked": 31,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/",
+    "checked": 154,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/founder",
+    "checked": 126,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/workshops/7days-freelance",
+    "checked": 123,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/courses",
+    "checked": 130,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/login",
+    "checked": 29,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "route": "/signup",
+    "checked": 30,
+    "errors": []
+  }
+]
