@@ -1,0 +1,18 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "checkedAt": "2026-10-11T02:10:35.841Z",
+  "checks": [
+    "Real administrator sees search and filters",
+    "Search matches hosted account and returns total",
+    "Search intersects with admin filter",
+    "Admin and newcomer filters combine and clear correctly",
+    "Multiple status filters combine with role and join date",
+    "Pagination preserves search and combined filters",
+    "Filters and five-record limit fit 320px",
+    "Filters and five-record limit fit 390px",
+    "Filters and five-record limit fit 768px",
+    "Filters and five-record limit fit 1024px",
+    "Filters and five-record limit fit 1440px"
+  ],
+  "javascriptErrors": []
+}
