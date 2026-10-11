@@ -11,8 +11,3 @@ export function readUserQuery(params: URLSearchParams): AdminUserQuery {
   return { searchMode: searchMode as AdminUserQuery["searchMode"], page: readAdminPage(params.get("page")), search, statuses: statuses as AdminUserQuery["statuses"],
     adminsOnly: params.get("admins") === "1", newcomers: params.get("newcomers") === "1" };
 }
-export function userQueryParams(values: Record<string, string | string[] | undefined>) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(values)) for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) params.append(key, item);
-  return params;
-}

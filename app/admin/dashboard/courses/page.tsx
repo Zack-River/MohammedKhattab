@@ -1,13 +1,21 @@
+import { courseQueryUrl } from "@platform/features/admin/helpers/course-query-url";
+import { searchParams as toParams } from "@platform/helpers/search-params";
 import Link from "next/link";
-import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { readCourseList } from "@platform/features/admin/repositories/course-list";
+import { readCourseQuery } from "@platform/features/admin/helpers/read-course-query";
 import { routes } from "@platform/config/navigation";
-import { adminCopy } from "@platform/data/admin";
+import { adminCoursesCopy as labels } from "@platform/data/admin-courses";
+import { categories } from "@platform/config/catalog";
 import PageHeading from "@platform/components/ui/page-heading";
+import CourseFilters from "@platform/components/admin/course-filters";
+import CourseTable from "@platform/components/admin/course-table";
+import AdminPagination from "@platform/components/admin/admin-pagination";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-export default async function AdminCoursesPage() {
-  await requireAdminPage();
-  const records = await readAdminCourses();
-  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
-    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
-  )}</div></>;
+export default async function AdminCoursesPage({ searchParams }: { searchParams: Promise<Record<string,string|string[]|undefined>> }) {
+ await requireAdminPage();
+ const query = readCourseQuery(toParams(await searchParams)), records = await readCourseList(query);
+ return <><PageHeading title={labels.heading} actionsFirst><Link href={routes.adminCourseCreate} className="btn-primary">{labels.create}</Link></PageHeading>
+  <CourseFilters query={query} total={records.total} labels={labels} categories={categories} /><CourseTable courses={records.courses} labels={labels} />
+  <AdminPagination page={query.page} previousHref={query.page > 1 ? courseQueryUrl(query,query.page-1) : undefined} nextHref={records.hasNext ? courseQueryUrl(query,query.page+1) : undefined} labels={{ ...labels, heading: labels.heading }} />
+ </>;
 }

@@ -42,6 +42,8 @@ export const routes = {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
   },
+  adminCourseCreate: "/admin/dashboard/courses/new",
+  adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
@@ -58,6 +60,8 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminCourses: "/api/admin/courses",
+  adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",

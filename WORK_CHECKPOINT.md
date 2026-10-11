@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — course management table and separate content page
+
+- Replaced course cards with the Users-style table/cards: name/status, creation/update dates, student/lesson/chapter/section counts and edit/delete actions. Added combined search, publication/category/delivery filters and creation/update/student sorting; five records per page with persistent filter pagination. Added top-right Create Course action and a validated draft form.
+- Kept course metadata/media editing on its overview and moved chapter/section/lesson details and video editing to the content tab. Optional sections group canonical lesson IDs; they are distinct from chapters. Curriculum creation/reordering remains a future authoring stage. Shared pagination now serves Users, Courses and phone requests; generic search-parameter conversion is shared.
+- Added guarded admin RPCs, insert RLS, search/date indexes and actual new-course/update timestamps. Legacy historical dates remain unknown. Same-origin confirmed deletion is blocked for courses with subscriptions. Hosted migration applied without seeds, price or content changes.
+- Verified three contract unit cases, 87 isolated management API/browser checks, 190 existing backend regression checks, responsive layouts/dialogs at 320–1920px, lint, architecture (618 files / no violations), production build/TypeScript and secret scan. Local database lint/advisors passed. Deployment and read-only hosted acceptance are pending. Documentation: `docs/ADMIN_COURSE_MANAGEMENT.md`; focused screenshots: `docs/evidence/backend/admin-courses-390.png` and `admin-courses-1440.png`.
+
 ## Latest checkpoint — Cloudinary avatars and course thumbnails
 
 - Added authenticated, same-origin `POST /api/media/images`, accepting bounded JPEG/PNG/WebP images only. Destination folders derive from the environment and verified user ID or admin-authorized course slug. Videos remain on Drive; reference assets remain local. Credentials are ignored locally and server-only; the user confirmed saving them in Vercel Production.

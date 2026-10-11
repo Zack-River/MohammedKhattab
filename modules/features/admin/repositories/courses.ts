@@ -7,7 +7,7 @@ export async function readAdminCourses(slug?: string) {
   if (slug) query = query.eq("slug", slug);
   const { data, error } = await query;
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount)), published: row.published }));
+  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount), { draft: !row.published }), published: row.published }));
 }
 export async function readAdminLessons(slug: string) {
   const { client } = await requireAdmin();

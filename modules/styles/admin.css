@@ -106,3 +106,15 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
   .lms-admin-filter-footer .lms-admin-actions { width: 100%; }
   .lms-admin-filter-footer .lms-admin-actions > * { flex: 1; white-space: normal; }
 }
+
+.lms-course-filter-selects { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-md); margin-top: var(--space-md); }
+.lms-course-table thead th:nth-child(n) { width: auto; }
+.lms-course-table thead th:first-child { width: 22%; }
+.lms-course-table th, .lms-course-table td { overflow-wrap: anywhere; padding-inline: var(--space-sm); }
+.lms-course-table .lms-admin-row-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.lms-course-table .lms-secondary-button { padding: var(--space-sm); }
+.lms-course-editor-tabs { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-lg); }
+@media (max-width: 1024px) { .lms-course-filter-selects { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 480px) { .lms-course-filter-selects { grid-template-columns: minmax(0,1fr); } }
+
+.lms-course-delete > button { width: 100%; }

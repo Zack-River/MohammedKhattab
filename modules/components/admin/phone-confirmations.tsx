@@ -1,3 +1,4 @@
+import AdminPagination from "./admin-pagination";
 import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
@@ -19,8 +20,6 @@ export default function PhoneConfirmations({ requests, total, page, labels, acco
       <div className="lms-phone-request-actions"><Link className="lms-text-link" href={routes.adminUser(request.username)}>{labels.view}</Link>
         <ConfirmPhoneButton userId={request.user_id} phone={request.phone_e164} label={labels.confirm} pendingLabel={accountLabels.saving} errorLabel={accountLabels.error} /></div>
     </article>) : <p>{labels.empty}</p>}</div>
-    <nav className="lms-admin-pagination" aria-label={labels.title}>
-      {page > 1 && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page - 1}`}>{labels.previous}</Link>}
-      <span>{labels.page} {page}</span>{page * phoneConfirmationConfig.pageSize < total && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page + 1}`}>{labels.next}</Link>}
-    </nav></>;
+    <AdminPagination page={page} previousHref={page > 1 ? `${routes.adminPhoneConfirmations}?page=${page - 1}` : undefined}
+      nextHref={page * phoneConfirmationConfig.pageSize < total ? `${routes.adminPhoneConfirmations}?page=${page + 1}` : undefined} labels={{ ...labels, heading: labels.title }} /></>;
 }

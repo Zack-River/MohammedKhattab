@@ -539,17 +539,38 @@ export const metadata = { title: authPages.signup.title };
 export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
 ```
 
+### File: `app/admin/dashboard/courses/[slug]/content/page.tsx`
+
+SHA-256: `6fc2e9b96c00dec8635debe32cf674df7fbc18c8beeac3a26f5194f01de63987`
+
+```tsx
+import { notFound } from "next/navigation";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
+import { adminCoursesCopy } from "@platform/data/admin-courses";
+import { adminCopy } from "@platform/data/admin";
+import PageHeading from "@platform/components/ui/page-heading";
+import CourseEditorTabs from "@platform/components/admin/course-editor-tabs";
+import CourseContent from "@platform/components/admin/course-content";
+export default async function CourseContentPage({ params }: { params: Promise<{ slug:string }> }) {
+ await requireAdminPage();const {slug}=await params;
+ const [records,lessons]=await Promise.all([readAdminCourses(slug),readAdminLessons(slug)]),record=records[0];
+ if (!record) notFound();
+ return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} /><CourseContent course={record.course} lessons={lessons} labels={adminCoursesCopy} editorLabels={adminCopy} /></>;
+}
+```
+
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `4d3278f08318698c8637e070707c4a0eb55685c8d58301c40e5b93504c7a5bd2`
+SHA-256: `de9a8ab6cc6cf72a019c044cf3c5c77ea1b14e6545a60c483502167bee74d544`
 
 ```tsx
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
-import { courseLessons } from "@platform/features/catalog/helpers";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
 import CourseEditor from "@platform/components/admin/course-editor";
-import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
+import CourseEditorTabs from "@platform/components/admin/course-editor-tabs";
+import { adminCoursesCopy } from "@platform/data/admin-courses";
 import PageHeading from "@platform/components/ui/page-heading";
 import { thumbnailUploadCopy } from "@platform/data/image-upload";
 import { adminCopy } from "@platform/data/admin";
@@ -561,31 +582,53 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
-  const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
-  return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
-    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
-    {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
+  return <><PageHeading title={record.course.title} description={adminCopy.description}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
+    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
   </>;
+}
+```
+
+### File: `app/admin/dashboard/courses/new/page.tsx`
+
+SHA-256: `5e703c1629b0e2d23da15e547a2cfe6bd34d7bf2631b7debd202174151d5c53f`
+
+```tsx
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import PageHeading from "@platform/components/ui/page-heading";
+import CourseCreateForm from "@platform/components/admin/course-create-form";
+import { adminCoursesCopy } from "@platform/data/admin-courses";
+import { categories } from "@platform/config/catalog";
+export default async function CreateCoursePage() {
+ await requireAdminPage();
+ return <><PageHeading title={adminCoursesCopy.createTitle} description={adminCoursesCopy.createHint} /><section className="lms-profile-card" data-reveal><CourseCreateForm labels={adminCoursesCopy} categories={categories.filter(category => category.id !== "all")} /></section></>;
 }
 ```
 
 ### File: `app/admin/dashboard/courses/page.tsx`
 
-SHA-256: `32000c8c9aa2df0c727a1938aaa22b33aa3b6a6e475f3226526a0d77514145be`
+SHA-256: `8d6dd52a5ae7102ab271475aefab801d0e833202620210365802a0b71f39b128`
 
 ```tsx
+import { courseQueryUrl } from "@platform/features/admin/helpers/course-query-url";
+import { searchParams as toParams } from "@platform/helpers/search-params";
 import Link from "next/link";
-import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { readCourseList } from "@platform/features/admin/repositories/course-list";
+import { readCourseQuery } from "@platform/features/admin/helpers/read-course-query";
 import { routes } from "@platform/config/navigation";
-import { adminCopy } from "@platform/data/admin";
+import { adminCoursesCopy as labels } from "@platform/data/admin-courses";
+import { categories } from "@platform/config/catalog";
 import PageHeading from "@platform/components/ui/page-heading";
+import CourseFilters from "@platform/components/admin/course-filters";
+import CourseTable from "@platform/components/admin/course-table";
+import AdminPagination from "@platform/components/admin/admin-pagination";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-export default async function AdminCoursesPage() {
-  await requireAdminPage();
-  const records = await readAdminCourses();
-  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
-    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
-  )}</div></>;
+export default async function AdminCoursesPage({ searchParams }: { searchParams: Promise<Record<string,string|string[]|undefined>> }) {
+ await requireAdminPage();
+ const query = readCourseQuery(toParams(await searchParams)), records = await readCourseList(query);
+ return <><PageHeading title={labels.heading} actionsFirst><Link href={routes.adminCourseCreate} className="btn-primary">{labels.create}</Link></PageHeading>
+  <CourseFilters query={query} total={records.total} labels={labels} categories={categories} /><CourseTable courses={records.courses} labels={labels} />
+  <AdminPagination page={query.page} previousHref={query.page > 1 ? courseQueryUrl(query,query.page-1) : undefined} nextHref={records.hasNext ? courseQueryUrl(query,query.page+1) : undefined} labels={{ ...labels, heading: labels.heading }} />
+ </>;
 }
 ```
 
@@ -738,23 +781,25 @@ export default async function AdminUserPage({ params }: { params: Promise<{ user
 
 ### File: `app/admin/dashboard/users/page.tsx`
 
-SHA-256: `a543a97fd80b7c15a7bcecf2ea69d0b86ae3301a15d758b30921add68e69e2a0`
+SHA-256: `cdc7f298feee05b738812248e0ff0e503b24cfeeb673bb2aea52a5b287c7cd4f`
 
 ```tsx
+import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
+import { searchParams as toParams } from "@platform/helpers/search-params";
 import PageHeading from "@platform/components/ui/page-heading";
 import UsersTable from "@platform/components/admin/users-table";
 import AdminPagination from "@platform/components/admin/admin-pagination";
 import UserFilters from "@platform/components/admin/user-filters";
 import { readAdminUsers } from "@platform/features/admin/repositories/users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-import { readUserQuery, userQueryParams } from "@platform/features/admin/helpers/read-user-query";
+import { readUserQuery } from "@platform/features/admin/helpers/read-user-query";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
-  const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
+  const query = readUserQuery(toParams(await searchParams)), records = await readAdminUsers(query);
   return <><PageHeading title={labels.heading} />
     <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
-    <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
+    <AdminPagination page={query.page} previousHref={query.page > 1 ? userQueryUrl(query,query.page-1) : undefined} nextHref={records.hasNext ? userQueryUrl(query,query.page+1) : undefined} labels={{ ...labels, heading: labels.users }} />
   </>;
 }
 ```
@@ -799,6 +844,15 @@ export async function GET() {
 }
 ```
 
+### File: `app/api/admin/courses/[slug]/delete/route.ts`
+
+SHA-256: `ef2666ee22d857688cc97f9386d2b579770edf087cf8d1dd3ceb2a4820a30e90`
+
+```typescript
+import { handleCourseDelete } from "@platform/features/admin/handle-course-delete";
+export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) { return handleCourseDelete((await params).slug, request); }
+```
+
 ### File: `app/api/admin/courses/[slug]/lessons/[lessonId]/route.ts`
 
 SHA-256: `2cd4e50f3b3db16dbbee6f1b2b1b8e826ce70c5370e24de0b793f6438210f34e`
@@ -820,6 +874,16 @@ import { handleAdminCourse } from "@platform/features/admin/handle-course";
 type Context = { params: Promise<{ slug: string }> };
 export async function GET(_request: Request, { params }: Context) { return handleAdminCourse((await params).slug); }
 export async function POST(request: Request, { params }: Context) { return handleAdminCourse((await params).slug, request); }
+```
+
+### File: `app/api/admin/courses/route.ts`
+
+SHA-256: `db709471695b15b96ca5d02187ec7a0f69a67a9039303f1543297e5b9704f1b3`
+
+```typescript
+import { handleCourseList } from "@platform/features/admin/handle-course-list";
+export function GET(request: Request) { return handleCourseList(request); }
+export function POST(request: Request) { return handleCourseList(request, true); }
 ```
 
 ### File: `app/api/admin/users/[id]/route.ts`
@@ -4852,17 +4916,18 @@ export default function AdminDialog({ title, closeLabel, pending = false, onClos
 
 ### File: `modules/components/admin/admin-pagination.tsx`
 
-SHA-256: `483e91c6885f897a547e0520baa144cab6ceb63b8e5f10d56e9874443fd2e59e`
+SHA-256: `18b1857652f3e320653a083d93aafcb2c6441e38a5816d5664fe3c5c0d719fbc`
 
 ```tsx
 import Link from "next/link";
-import type { AdminUserQuery, AdminUsersLabels } from "@platform/types/admin-users";
-import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
-export default function AdminPagination({ query, hasNext, labels }: { query: AdminUserQuery; hasNext: boolean; labels: AdminUsersLabels }) {
-  const page = query.page;
-  return <nav className="lms-admin-pagination" aria-label={labels.users}>
-    {page > 1 && <Link href={userQueryUrl(query, page - 1)} className="lms-secondary-button">{labels.previous}</Link>}
-    <span>{labels.page} {page}</span>{hasNext && <Link href={userQueryUrl(query, page + 1)} className="lms-secondary-button">{labels.next}</Link>}
+export default function AdminPagination({ page, previousHref, nextHref, labels }: {
+  page: number; previousHref?: string; nextHref?: string;
+  labels: { heading: string; previous: string; next: string; page: string };
+}) {
+  return <nav className="lms-admin-pagination" aria-label={labels.heading}>
+    {previousHref && <Link href={previousHref} className="lms-secondary-button">{labels.previous}</Link>}
+    <span>{labels.page} {page}</span>
+    {nextHref && <Link href={nextHref} className="lms-secondary-button">{labels.next}</Link>}
   </nav>;
 }
 ```
@@ -5055,6 +5120,119 @@ export default function TrendingCourses({ courses, period, labels }: { courses: 
 }
 ```
 
+### File: `modules/components/admin/course-content.tsx`
+
+SHA-256: `d4b55d4e751b4531121789180c2ab401df6b401f74d5cf008e5fd8e42f774137`
+
+```tsx
+import type { Course } from "@platform/types/lms";
+import type { AdminCoursesLabels } from "@platform/types/admin-courses";
+import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
+import LessonVideoEditor from "./lesson-video-editor";
+export default function CourseContent({ course, lessons, labels, editorLabels }: {
+  course: Course; lessons: { id: string; video_url: string }[]; labels: AdminCoursesLabels;
+  editorLabels: Record<string, string> & { save: string; saving: string; saved: string };
+}) {
+  const records = new Map(lessons.map(lesson => [lesson.id, lesson]));
+  return <>
+    {!course.modules.length && <p className="lms-admin-empty">{labels.noContent}</p>}
+    {course.modules.map((chapter, index) => <section className="lms-profile-card" key={`${index}-${chapter.title}`} data-reveal>
+      <h2>{chapter.title}</h2>
+      {courseContentGroups(chapter, labels.ungrouped).map((group, groupIndex) => <div key={`${groupIndex}-${group.id}`}>
+        {group.title && <h3>{group.title}</h3>}
+        {group.lessons.map(lesson => {
+          const record = records.get(lesson.id);
+          return record ? <LessonVideoEditor key={lesson.id} slug={course.slug} lesson={{ ...record, title: lesson.title }} labels={editorLabels} />
+            : <div key={lesson.id}><h4>{lesson.title}</h4><p>{labels.noVideo}</p></div>;
+        })}
+      </div>)}
+    </section>)}
+  </>;
+}
+```
+
+### File: `modules/components/admin/course-create-form.tsx`
+
+SHA-256: `6938b2f4732e0f9f8d50acf722dfdde1525bbc41cc86430aae704dc411afec71`
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+import { endpoints, routes } from "@platform/config/navigation";
+import { adminCoursePolicy as policy } from "@platform/config/admin";
+import { courseAdministration } from "@platform/config/course-administration";
+import FormField from "@platform/components/ui/form-field";
+import Select from "@khatab/design/ui/select";
+import type { AdminCoursesLabels } from "@platform/types/admin-courses";
+export default function CourseCreateForm({ labels, categories }: { labels: AdminCoursesLabels; categories: readonly { id: string; label: string }[] }) {
+ const router = useRouter(), command = useAsyncCommand(labels.error);
+ return <form className="lms-profile-form" onSubmit={async event => {
+  event.preventDefault(); const form = new FormData(event.currentTarget), body = { ...Object.fromEntries(form), amount: Number(form.get("amount")) };
+  const slug = await command.run(() => httpRequest({ path: endpoints.adminCourses, body, failureLabel: labels.error, decode: value => {
+   if (!value || typeof value !== "object" || !("slug" in value) || typeof value.slug !== "string") throw new Error(labels.error);
+   return value.slug;
+  } }));
+  if (slug) router.push(routes.adminCourse(slug));
+ }}>
+  <fieldset disabled={command.pending}><FormField label={labels.name} name="title" required minLength={policy.titleMin} maxLength={policy.titleMax} />
+   <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
+   <FormField label={labels.description} name="description" required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} />
+   <FormField label={labels.price} name="amount" type="number" required min={0} max={policy.amountMax} step="0.01" defaultValue={0} />
+   <Select name="category" label={labels.category} defaultValue={categories[0].id} options={categories.map(value => ({value:value.id,label:value.label}))} />
+   <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={["recorded","live"].map(value => ({value,label:labels[value as "live"]}))} /></fieldset>
+  <button type="submit" className="btn-primary" disabled={command.pending}>{command.pending ? labels.creating : labels.create}</button>{command.error && <p className="lms-error" role="alert">{command.error}</p>}
+ </form>;
+}
+```
+
+### File: `modules/components/admin/course-delete-button.tsx`
+
+SHA-256: `9f1874835155b0ba307609f9f0164125895c8c5af31f3d75c0562ae25c04116a`
+
+```tsx
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+import { endpoints } from "@platform/config/navigation";
+import type { AdminCourseRow, AdminCoursesLabels } from "@platform/types/admin-courses";
+import AdminDialog from "./admin-dialog";
+export default function CourseDeleteButton({ course, labels }: { course: AdminCourseRow; labels: AdminCoursesLabels }) {
+ const [open,setOpen] = useState(false), router = useRouter(), command = useAsyncCommand(labels.error);
+ async function remove() {
+  const deleted = await command.run(() => httpRequest({ path: endpoints.adminCourseDelete(course.slug), body: { confirmSlug: course.slug }, failureLabel: labels.error, decode: value => {
+   if (!value || typeof value !== "object" || !("deleted" in value) || value.deleted !== true) throw new Error(labels.error);
+   return true;
+  } }));
+  if (deleted) { setOpen(false); router.refresh(); }
+ }
+ return <div className="lms-course-delete"><button type="button" className="lms-admin-danger" aria-haspopup="dialog" onClick={() => setOpen(true)}>{labels.remove}</button>
+  {open && <AdminDialog title={labels.confirmTitle} closeLabel={labels.close} pending={command.pending} onClose={() => setOpen(false)}>
+   <p><strong>{course.title}</strong></p><p>{course.students ? labels.protectedCourse : labels.confirmRemove}</p>
+   {command.error && <p className="lms-error" role="alert">{command.error}</p>}
+   <div className="lms-admin-actions">{!course.students && <button type="button" className="btn-primary" disabled={command.pending} onClick={() => void remove()}>{command.pending ? labels.pending : labels.confirm}</button>}
+    <button type="button" className="lms-secondary-button" disabled={command.pending} onClick={() => setOpen(false)}>{labels.cancel}</button></div>
+  </AdminDialog>}
+ </div>;
+}
+```
+
+### File: `modules/components/admin/course-editor-tabs.tsx`
+
+SHA-256: `b28ff1e34c05c888f85a775a88076c59f71e2c9ccfd65d86903e8deed80212eb`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import type { AdminCoursesLabels } from "@platform/types/admin-courses";
+export default function CourseEditorTabs({ slug, active, labels }: { slug: string; active: "overview" | "content"; labels: AdminCoursesLabels }) {
+ return <nav className="lms-course-editor-tabs" aria-label={labels.heading}><Link className="lms-secondary-button" aria-current={active === "overview" ? "page" : undefined} href={routes.adminCourse(slug)}>{labels.overview}</Link><Link className="lms-secondary-button" aria-current={active === "content" ? "page" : undefined} href={routes.adminCourseContent(slug)}>{labels.content}</Link></nav>;
+}
+```
+
 ### File: `modules/components/admin/course-editor.tsx`
 
 SHA-256: `eecc7863799d0ebb712c749c0f0f1138f5bf49bc7be74e35cdd70c687b0e37bc`
@@ -5102,6 +5280,68 @@ export default function CourseFields({ course, published, labels, categories, up
     <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
     <Checkbox label={labels.published} name="published" defaultChecked={published} />
   </>;
+}
+```
+
+### File: `modules/components/admin/course-filters.tsx`
+
+SHA-256: `90a3019c01a44ed6472095cc6ecedbb8cc03ede8a947ad9eeeab8bb2591b9ad0`
+
+```tsx
+import Form from "next/form";
+import Link from "next/link";
+import Select from "@khatab/design/ui/select";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import { routes } from "@platform/config/navigation";
+import { courseAdministration, courseStatuses, courseSorts, courseDeliveries } from "@platform/config/course-administration";
+import { courseQueryUrl } from "@platform/features/admin/helpers/course-query-url";
+import type { AdminCourseQuery, AdminCoursesLabels } from "@platform/types/admin-courses";
+export default function CourseFilters({ query, total, labels, categories }: { query: AdminCourseQuery; total: number; labels: AdminCoursesLabels; categories: readonly { id: string; label: string }[] }) {
+ return <Form key={courseQueryUrl(query)} action={routes.admin} className="lms-admin-filters" role="search" aria-label={labels.search}>
+  <div className="lms-admin-search"><label htmlFor="admin-course-search">{labels.search}</label><input type="search" id="admin-course-search" name="q" defaultValue={query.search} placeholder={labels.searchHint} maxLength={courseAdministration.searchMaxLength} /></div>
+  <fieldset><legend>{labels.filters}</legend><div className="lms-admin-filter-options">{courseStatuses.map(status => <Checkbox key={status} name="status" value={status} label={labels[status]} defaultChecked={query.statuses.includes(status)} />)}</div></fieldset>
+  <div className="lms-course-filter-selects"><Select name="category" label={labels.category} defaultValue={query.category} options={categories.map(category => ({value:category.id,label:category.label}))} />
+   <Select name="delivery" label={labels.delivery} defaultValue={query.delivery} options={courseDeliveries.map(value => ({value,label:labels[value]}))} />
+   <Select name="sort" label={labels.order} defaultValue={query.sort} options={courseSorts.map(value => ({value,label:labels[value]}))} />
+   <Select name="direction" label={labels.direction} defaultValue={query.direction} options={["desc","asc"].map(value => ({value,label:labels[value as "desc"]}))} /></div>
+  <div className="lms-admin-filter-footer"><div className="lms-admin-actions"><button type="submit" className="btn-primary">{labels.apply}</button><Link href={routes.admin} className="lms-secondary-button">{labels.clear}</Link></div><p className="lms-admin-result-count">{labels.results}: <strong>{total}</strong></p></div>
+ </Form>;
+}
+```
+
+### File: `modules/components/admin/course-table.tsx`
+
+SHA-256: `30ad44fcfdff1b94f54d53c3e97c1f9d23d92a34cd3e50e8bf8e2cfb8115962e`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import { formatCourseDate } from "@platform/helpers/format-course-date";
+import type { AdminCourseRow, AdminCoursesLabels } from "@platform/types/admin-courses";
+import CourseDeleteButton from "./course-delete-button";
+export default function CourseTable({ courses, labels }: { courses: AdminCourseRow[]; labels: AdminCoursesLabels }) {
+  const columns = ["name", "createdAt", "updatedAt", "students", "lessons", "chapters", "sections", "actions"] as const;
+  const counts = ["students", "lessons", "chapters", "sections"] as const;
+  return <div className="lms-admin-table-wrap" data-reveal>
+    <table className="lms-admin-table lms-course-table" role="table">
+      <caption className="lms-visually-hidden">{labels.heading}</caption>
+      <thead><tr>{columns.map(column => <th key={column} scope="col">{labels[column]}</th>)}</tr></thead>
+      <tbody role="rowgroup">{courses.map(course => <tr key={course.slug} role="row">
+        <th scope="row" role="rowheader">
+          <Link className="lms-admin-name" href={routes.adminCourse(course.slug)}>{course.title}</Link>
+          <small className="lms-admin-role">{labels[course.published ? "published" : "draft"]}</small>
+        </th>
+        <td role="cell" data-label={labels.createdAt}>{formatCourseDate(course.createdAt, labels.unknownDate)}</td>
+        <td role="cell" data-label={labels.updatedAt}>{formatCourseDate(course.updatedAt, labels.unknownDate)}</td>
+        {counts.map(key => <td role="cell" key={key} data-label={labels[key]} className="numeral">{course[key]}</td>)}
+        <td role="cell" className="lms-admin-row-actions">
+          <Link href={routes.adminCourse(course.slug)} className="lms-secondary-button">{labels.edit}</Link>
+          <CourseDeleteButton course={course} labels={labels} />
+        </td>
+      </tr>)}</tbody>
+    </table>
+    {!courses.length && <p className="lms-admin-empty">{labels.empty}</p>}
+  </div>;
 }
 ```
 
@@ -5202,9 +5442,10 @@ export default function ModerationControls({ user, labels, period, pending, onPe
 
 ### File: `modules/components/admin/phone-confirmations.tsx`
 
-SHA-256: `adc4ce035e9372aefb89b031976c230a61d8fd42ea6fbd65af5b111e9443cdde`
+SHA-256: `7bded484d4e3ee01dc147c61cfa489a6ff0711ca8c5418555c16b2443e168000`
 
 ```tsx
+import AdminPagination from "./admin-pagination";
 import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
@@ -5226,10 +5467,8 @@ export default function PhoneConfirmations({ requests, total, page, labels, acco
       <div className="lms-phone-request-actions"><Link className="lms-text-link" href={routes.adminUser(request.username)}>{labels.view}</Link>
         <ConfirmPhoneButton userId={request.user_id} phone={request.phone_e164} label={labels.confirm} pendingLabel={accountLabels.saving} errorLabel={accountLabels.error} /></div>
     </article>) : <p>{labels.empty}</p>}</div>
-    <nav className="lms-admin-pagination" aria-label={labels.title}>
-      {page > 1 && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page - 1}`}>{labels.previous}</Link>}
-      <span>{labels.page} {page}</span>{page * phoneConfirmationConfig.pageSize < total && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page + 1}`}>{labels.next}</Link>}
-    </nav></>;
+    <AdminPagination page={page} previousHref={page > 1 ? `${routes.adminPhoneConfirmations}?page=${page - 1}` : undefined}
+      nextHref={page * phoneConfirmationConfig.pageSize < total ? `${routes.adminPhoneConfirmations}?page=${page + 1}` : undefined} labels={{ ...labels, heading: labels.title }} /></>;
 }
 ```
 
@@ -8305,7 +8544,7 @@ export default function ImageUpload({ target, labels, onUploaded }: { target: Im
 
 ### File: `modules/components/ui/page-heading.tsx`
 
-SHA-256: `c779ac0edd0f358d95440da6899cce90f319b90257b513f40e7923fede8ca065`
+SHA-256: `01ad36f6441f8468294aace971dff22a47a6ad9c91bc1df31c8b620a62ae6b12`
 
 ```tsx
 export default function PageHeading({
@@ -8314,22 +8553,25 @@ export default function PageHeading({
   description,
   children,
   level = 1,
+  actionsFirst = false,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children?: React.ReactNode;
   level?: 1 | 2;
+  actionsFirst?: boolean;
 }) {
   const Heading = level === 2 ? "h2" : "h1";
   return (
     <div className="lms-page-heading" data-reveal>
+      {actionsFirst && children}
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
         <Heading>{title}</Heading>
         {description && <p className="body-regular">{description}</p>}
       </div>
-      {children}
+      {!actionsFirst && children}
     </div>
   );
 }
@@ -8539,6 +8781,17 @@ export const artworkKinds = [
 export type ArtworkKind = (typeof artworkKinds)[number];
 ```
 
+### File: `modules/config/course-administration.ts`
+
+SHA-256: `068f4e52d726af133625216b37c7f9b7c7bf6d1909a69ed73e58c001fb7b0e96`
+
+```typescript
+export const courseAdministration = { pageSize: 5, searchMaxLength: 100, slugMaxLength: 100, locale: "ar-EG-u-nu-latn", timezone: "Africa/Cairo" } as const;
+export const courseSorts = ["created", "updated", "students"] as const;
+export const courseStatuses = ["published", "draft"] as const;
+export const courseDeliveries = ["all", "recorded", "live"] as const;
+```
+
 ### File: `modules/config/dashboard-shell.ts`
 
 SHA-256: `20f982922031a45a8395b39953a361ddbdc4e1ad7180f648e423d25bfc2fbc78`
@@ -8575,7 +8828,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `524537d39491b4af7e599cb51b532a95845989503c2815b1a131cfd4b6abc832`
+SHA-256: `5be48d373887765c7899cd8dc25ebb26ae2d2f181de22c869b84fd09fead2f6d`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8622,6 +8875,8 @@ export const routes = {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
   },
+  adminCourseCreate: "/admin/dashboard/courses/new",
+  adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
@@ -8638,6 +8893,8 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminCourses: "/api/admin/courses",
+  adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
@@ -8766,6 +9023,21 @@ export const analyticsCopy = {
 };
 ```
 
+### File: `modules/data/admin-courses.ts`
+
+SHA-256: `82be60478fdcf10f502c9a7836a8631f0fe9390bfc0527e0d1510b9a32b60daa`
+
+```typescript
+export const adminCoursesCopy = {
+ heading: "إدارة الدورات", name: "اسم الدورة", createdAt: "تاريخ الإنشاء", updatedAt: "آخر تحديث", students: "الطلاب", lessons: "الدروس", chapters: "الفصول", sections: "الأقسام", actions: "الإجراءات",
+ search: "البحث عن دورة", searchHint: "اسم الدورة أو رابطها", filters: "حالة الدورة", category: "التصنيف", delivery: "نوع الدورة", all: "الكل", recorded: "مسجلة", live: "مباشرة", published: "منشورة", draft: "مسودة",
+ order: "ترتيب حسب", created: "تاريخ الإنشاء", updated: "آخر تحديث", direction: "اتجاه الترتيب", asc: "تصاعدي", desc: "تنازلي", apply: "تطبيق", clear: "مسح الفلاتر", results: "النتائج", empty: "لا توجد دورات تطابق البحث والفلاتر.",
+ previous: "السابق", next: "التالي", page: "صفحة", unknownDate: "غير مسجل", edit: "تعديل", remove: "حذف", create: "إنشاء دورة", creating: "جارٍ الإنشاء…", createTitle: "إنشاء دورة جديدة", createHint: "تُحفظ الدورة كمسودة. أضف محتواها وصورتها قبل نشرها.",
+ slug: "رابط الدورة", slugHint: "حروف إنجليزية صغيرة وأرقام وشرطة، مثل video-editing.", confirmTitle: "حذف الدورة", confirmRemove: "سيُحذف محتوى هذه الدورة نهائيًا. لا يمكن التراجع عن الحذف.", confirm: "تأكيد الحذف", cancel: "إلغاء", close: "إغلاق", pending: "جارٍ الحذف…", error: "تعذّر إكمال الطلب. حاول مرة أخرى.",
+ protectedCourse: "لا يمكن حذف دورة لها اشتراكات. يمكنك إلغاء نشرها من بيانات الدورة.", overview: "بيانات الدورة", content: "الفصول والأقسام والدروس", noContent: "لم يُضف محتوى لهذه الدورة بعد.", noVideo: "لم يُضف فيديو لهذا الدرس بعد.", ungrouped: "دروس بدون قسم", description: "الوصف", price: "السعر (ج.م)",
+} as const;
+```
+
 ### File: `modules/data/admin-users.ts`
 
 SHA-256: `6e5a74cff61ea7245d4e03c9ddcb7ae5db3f6cb84334052fa0a336b9a115ce79`
@@ -8851,10 +9123,13 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `935c8aa5c5a796f0c96f51b81e00f7a5a7f7180773e271f51bb680238374d927`
+SHA-256: `66c14850b5f782829695ff3daad000fbb97f735bff00d4bd757acecd3fcc4258`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
+  COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
+  INCOMPLETE_COURSE: "أكمل محتوى الدورة وبياناتها قبل النشر.",
   IMAGE_STORAGE_UNAVAILABLE: "خدمة الصور غير متاحة حاليًا. حاول لاحقًا.",
   INVALID_IMAGE: "اختر صورة JPG أو PNG أو WebP صالحة.",
   IMAGE_TOO_LARGE: "حجم الصورة يجب ألا يتجاوز ٣ ميجابايت.",
@@ -8904,6 +9179,14 @@ export const lessonResources: Record<string, readonly string[]> = {
   "editing-foundations/editor-mindset": ["creative-brief"],
   "first-client/portfolio": ["portfolio-plan"],
 };
+```
+
+### File: `modules/data/course-draft.ts`
+
+SHA-256: `589c4d60ef7f8126d01d45925927b77de35df978e4d149842cc7d56137ca50a0`
+
+```typescript
+export const courseDraftDefaults = { currency: "ج.م", action: "اشترك الآن", liveLabel: "ورشة مباشرة" };
 ```
 
 ### File: `modules/data/courses.ts`
@@ -10188,6 +10471,52 @@ export async function readAdminAnalytics() {
 }
 ```
 
+### File: `modules/features/admin/handle-course-delete.ts`
+
+SHA-256: `303ff78a00768b668544b79505e3c0bf9b0df1698ec2aa9b01181dffb42630b8`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { sameOrigin, readJson } from "@platform/lib/server-request";
+import { ApiError } from "@platform/lib/api/error";
+import { requireAdmin } from "./identity";
+export function handleCourseDelete(slug: string, request: Request) {
+ return apiResponse(async () => {
+  if (!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const { client } = await requireAdmin(), input = await readJson(request);
+  if (input?.confirmSlug !== slug) throw new ApiError(400,"INVALID_INPUT");
+  const { error } = await client.rpc("delete_admin_course", { p_slug: slug });
+  if (error) throw new ApiError(error.message.includes("COURSE_HAS_STUDENTS") ? 409 : error.code === "P0002" ? 404 : 503, error.message.includes("COURSE_HAS_STUDENTS") ? "COURSE_HAS_STUDENTS" : error.code === "P0002" ? "NOT_FOUND" : "INTERNAL_ERROR");
+  return Response.json({ deleted: true });
+ });
+}
+```
+
+### File: `modules/features/admin/handle-course-list.ts`
+
+SHA-256: `c425e63db21d8b3fb2904a6a13387157e001549a2230f90961bf2e06678e39f1`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { ApiError } from "@platform/lib/api/error";
+import { requireAdmin } from "./identity";
+import { readCourseQuery } from "./helpers/read-course-query";
+import { readCourseList } from "./repositories/course-list";
+import { validateCourseCreate } from "./helpers/validate-course-create";
+import { createCourse } from "./repositories/create-course";
+export function handleCourseList(request: Request, create = false) {
+ return apiResponse(async () => {
+  await requireAdmin();
+  if (!create) return Response.json(await readCourseList(readCourseQuery(new URL(request.url).searchParams)));
+  if (!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const input = validateCourseCreate(await readJson(request));
+  if (!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await createCourse(input), { status: 201 });
+ });
+}
+```
+
 ### File: `modules/features/admin/handle-course.ts`
 
 SHA-256: `adcbbc94b32bbdcb992d16e5936331eca024d29c287e13f45e661ac29ff81a4b`
@@ -10283,6 +10612,56 @@ export function adminUserRecord(user: User, profile: Profile | undefined, admin:
 }
 ```
 
+### File: `modules/features/admin/helpers/course-content-groups.ts`
+
+SHA-256: `54502029548e1ffc13471b34e3afd430127b255722c0e5ede399c9c0fa340ae8`
+
+```typescript
+import type { CourseModule } from "@platform/types/lms";
+export function courseContentGroups(chapter: CourseModule, ungroupedLabel: string) {
+  const grouped = new Set(chapter.sections?.flatMap(section => section.lessonIds));
+  const groups = (chapter.sections ?? []).map(section => ({
+    id: section.id, title: section.title,
+    lessons: chapter.lessons.filter(lesson => section.lessonIds.includes(lesson.id)),
+  }));
+  const ungrouped = chapter.lessons.filter(lesson => !grouped.has(lesson.id));
+  if (ungrouped.length) groups.push({ id: "ungrouped", title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
+  return groups;
+}
+```
+
+### File: `modules/features/admin/helpers/course-query-url.ts`
+
+SHA-256: `ac376e7e55b5815d32258f1a160b603655051e146d11d33eb031969251eb2020`
+
+```typescript
+import { routes } from "@platform/config/navigation";
+import type { AdminCourseQuery } from "@platform/types/admin-courses";
+export function courseQueryUrl(query: AdminCourseQuery, page = query.page) {
+ const params = new URLSearchParams({ page: String(page), sort: query.sort, direction: query.direction });
+ if (query.search) params.set("q", query.search);
+ if (query.category !== "all") params.set("category", query.category);
+ if (query.delivery !== "all") params.set("delivery", query.delivery);
+ for (const status of query.statuses) params.append("status", status);
+ return `${routes.admin}?${params}`;
+}
+```
+
+### File: `modules/features/admin/helpers/create-course-metadata.ts`
+
+SHA-256: `cff58cbf296a4e683fac4f4b012046601a575fcb4b578c773cf9b6b6a14a457c`
+
+```typescript
+import { categories } from "@platform/config/catalog";
+import type { Course } from "@platform/types/lms";
+import type { CreateCourseInput } from "@platform/types/admin-courses";
+const artworks = { editing: "timeline", motion: "motion", design: "design", business: "business" } as const;
+export function createCourseMetadata(input: CreateCourseInput, defaults: { currency: string; action: string; liveLabel: string }): Course {
+ return { slug: input.slug, title: input.title, description: input.description, category: input.category, categoryLabel: categories.find(category => category.id === input.category)!.label, delivery: input.delivery,
+  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
+}
+```
+
 ### File: `modules/features/admin/helpers/read-admin-page.ts`
 
 SHA-256: `61da744f4fd12d38d517b1f3f67e709340ff3acff72c78397f0a27b392d54922`
@@ -10307,6 +10686,48 @@ export function readCourseEdit(form: FormData) {
 }
 ```
 
+### File: `modules/features/admin/helpers/read-course-query.ts`
+
+SHA-256: `52bfa33c2c5e62310e8efa28c085fb0f49a2c9a9119cb0de4b1eeae92e29396f`
+
+```typescript
+import { categories } from "@platform/config/catalog";
+import { courseAdministration, courseSorts, courseStatuses, courseDeliveries } from "@platform/config/course-administration";
+import { ApiError } from "@platform/lib/api/error";
+import { readAdminPage } from "./read-admin-page";
+import type { AdminCourseQuery } from "@platform/types/admin-courses";
+export function readCourseQuery(params: URLSearchParams): AdminCourseQuery {
+ const search = (params.get("q") ?? "").trim(), category = params.get("category") ?? "all", statuses = [...new Set(params.getAll("status"))];
+ const delivery = params.get("delivery") ?? "all", sort = params.get("sort") ?? "created", direction = params.get("direction") ?? "desc";
+ if (search.length > courseAdministration.searchMaxLength || !categories.some(value => value.id === category) || statuses.some(value => !courseStatuses.includes(value as "draft" | "published")) || !courseDeliveries.includes(delivery as AdminCourseQuery["delivery"]) || !courseSorts.includes(sort as AdminCourseQuery["sort"]) || !["asc", "desc"].includes(direction)) throw new ApiError(400, "INVALID_INPUT");
+ return { search, category: category as AdminCourseQuery["category"], statuses: statuses as AdminCourseQuery["statuses"], delivery: delivery as AdminCourseQuery["delivery"], sort: sort as AdminCourseQuery["sort"], direction: direction as AdminCourseQuery["direction"], page: readAdminPage(params.get("page")) };
+}
+```
+
+### File: `modules/features/admin/helpers/read-course-results.ts`
+
+SHA-256: `9ec34993ec10d8d4b4a3c0f71c9ce36465e075e9fb5d0b6fcd5f7dc47ea0ca76`
+
+```typescript
+import { categories } from "@platform/config/catalog";
+import type { AdminCourseResults } from "@platform/types/admin-courses";
+export function readCourseResults(value: unknown): AdminCourseResults {
+  const result = value as AdminCourseResults | null;
+  if (!result || !Array.isArray(result.courses) || !Number.isSafeInteger(result.total) || result.total < 0 ||
+      !Number.isSafeInteger(result.page) || result.page < 1 || typeof result.hasNext !== "boolean") throw new Error("Invalid course results");
+  for (const course of result.courses) {
+    const validDates = course && [course.createdAt, course.updatedAt].every(date =>
+      date === null || (typeof date === "string" && Number.isFinite(Date.parse(date))));
+    if (!course || !validDates || typeof course.slug !== "string" || typeof course.title !== "string" ||
+        typeof course.published !== "boolean" || !["live", "recorded"].includes(course.delivery) ||
+        !categories.some(category => category.id !== "all" && category.id === course.category) ||
+        ![course.students, course.lessons, course.chapters, course.sections].every(count => Number.isSafeInteger(count) && count >= 0))
+      throw new Error("Invalid course result");
+  }
+  return result;
+}
+```
+
 ### File: `modules/features/admin/helpers/read-moderation.ts`
 
 SHA-256: `3dcfd406fa0b8d750930c1acb99acc89c858f5b7c209515d7b991a9ed80715f4`
@@ -10328,7 +10749,7 @@ export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a
 
 ### File: `modules/features/admin/helpers/read-user-query.ts`
 
-SHA-256: `1e45c5877aa496e0b7fa23ff15fde4e6bdf8c9945abf402b25d38e58b93c11ea`
+SHA-256: `189a14c5b33379b60905b13f472968c5ecf2cd42c08573d9f559b909ed19f5eb`
 
 ```typescript
 import { userAdministration, userStatusFilters, userSearchModes } from "@platform/config/user-moderation";
@@ -10343,11 +10764,6 @@ export function readUserQuery(params: URLSearchParams): AdminUserQuery {
   if (!userSearchModes.includes(searchMode as AdminUserQuery["searchMode"])) throw new ApiError(400, "INVALID_INPUT");
   return { searchMode: searchMode as AdminUserQuery["searchMode"], page: readAdminPage(params.get("page")), search, statuses: statuses as AdminUserQuery["statuses"],
     adminsOnly: params.get("admins") === "1", newcomers: params.get("newcomers") === "1" };
-}
-export function userQueryParams(values: Record<string, string | string[] | undefined>) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(values)) for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) params.append(key, item);
-  return params;
 }
 ```
 
@@ -10403,6 +10819,21 @@ export function userQueryUrl(query: AdminUserQuery, page = query.page) {
   if (query.adminsOnly) params.set("admins", "1");
   if (query.newcomers) params.set("newcomers", "1");
   return `${routes.adminUsers}?${params}`;
+}
+```
+
+### File: `modules/features/admin/helpers/validate-course-create.ts`
+
+SHA-256: `2ebe06398ec4f60bd26a45e95562605b96055b1087468f3f7f11d6879660aa51`
+
+```typescript
+import { adminCoursePolicy as policy } from "@platform/config/admin";
+import { courseAdministration } from "@platform/config/course-administration";
+import { categories } from "@platform/config/catalog";
+import type { CreateCourseInput } from "@platform/types/admin-courses";
+export function validateCourseCreate(input: Record<string, unknown> | null): CreateCourseInput | null {
+ if (!input || typeof input.slug !== "string" || input.slug === "new" || input.slug.length > courseAdministration.slugMaxLength || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax || typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax || typeof input.amount !== "number" || !Number.isFinite(input.amount) || input.amount < 0 || input.amount > policy.amountMax || !categories.some(category => category.id !== "all" && category.id === input.category) || !["live","recorded"].includes(String(input.delivery))) return null;
+ return { slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
 }
 ```
 
@@ -10478,9 +10909,28 @@ export async function requireAdminPage() {
 }
 ```
 
+### File: `modules/features/admin/repositories/course-list.ts`
+
+SHA-256: `f6edac59f0473e925b496f47b619a600c200764b127411e37f9ddae20357d3a0`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../identity";
+import { ApiError } from "@platform/lib/api/error";
+import { courseAdministration } from "@platform/config/course-administration";
+import { readCourseResults } from "../helpers/read-course-results";
+import type { AdminCourseQuery } from "@platform/types/admin-courses";
+export async function readCourseList(query: AdminCourseQuery) {
+ const { client } = await requireAdmin();
+ const { data, error } = await client.rpc("search_admin_courses", { p_search: query.search, p_category: query.category, p_statuses: query.statuses, p_delivery: query.delivery, p_sort: query.sort, p_direction: query.direction, p_page: query.page, p_limit: courseAdministration.pageSize });
+ if (error) throw new ApiError(503,"INTERNAL_ERROR");
+ return readCourseResults(data);
+}
+```
+
 ### File: `modules/features/admin/repositories/courses.ts`
 
-SHA-256: `328b7a9ea96b9666051caf2d31a6f31aa93554c21a0320b070a3e9441080ddf1`
+SHA-256: `d17e60631b8bef5af5db5d639baedf329a7cab544a99155d87bd5c10b73664da`
 
 ```typescript
 import { requireAdmin } from "../identity";
@@ -10492,13 +10942,33 @@ export async function readAdminCourses(slug?: string) {
   if (slug) query = query.eq("slug", slug);
   const { data, error } = await query;
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount)), published: row.published }));
+  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount), { draft: !row.published }), published: row.published }));
 }
 export async function readAdminLessons(slug: string) {
   const { client } = await requireAdmin();
   const { data, error } = await client.from("lessons").select("id,video_url").eq("course_slug",slug).order("id");
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   return data ?? [];
+}
+```
+
+### File: `modules/features/admin/repositories/create-course.ts`
+
+SHA-256: `e91b8ba8088ca96891181a3bb20ee645e30648a6676a87778d38b0b34880bd05`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../identity";
+import { createCourseMetadata } from "../helpers/create-course-metadata";
+import { courseDraftDefaults } from "@platform/data/course-draft";
+import { ApiError } from "@platform/lib/api/error";
+import type { CreateCourseInput } from "@platform/types/admin-courses";
+import type { Json } from "@platform/types/database";
+export async function createCourse(input: CreateCourseInput) {
+ const { client } = await requireAdmin(), metadata = createCourseMetadata(input, courseDraftDefaults);
+ const { error } = await client.from("courses").insert({ slug: input.slug, metadata: JSON.parse(JSON.stringify(metadata)) as NonNullable<Json>, amount: input.amount, published: false });
+ if (error) throw new ApiError(error.code === "23505" ? 409 : 503, error.code === "23505" ? "COURSE_SLUG_TAKEN" : "INTERNAL_ERROR");
+ return { slug: input.slug };
 }
 ```
 
@@ -10533,9 +11003,11 @@ export async function moderateUser(id: string, change: UserModeration) {
 
 ### File: `modules/features/admin/repositories/save-course.ts`
 
-SHA-256: `55ee85b8fba36a5150de3ee8772936a773653e85e249fd354037f9a6b9e7e3b2`
+SHA-256: `283c53c51bb967b4d64090623706d0a0165f0cdbc521b30c81b4af8811b29248`
 
 ```typescript
+import { validateCourse } from "@platform/features/catalog/helpers/validate-course";
+import { validateLessons } from "@platform/features/catalog/helpers/validate-lessons";
 import { requireAdmin } from "../identity";
 import { readAdminCourses } from "./courses";
 import { categories } from "@platform/config/catalog";
@@ -10549,6 +11021,7 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   const { amount, published, ...metadata } = values;
   const course = { ...current.course, ...metadata, categoryLabel: categories.find(category => category.id === values.category)!.label,
     offer: { ...current.course.offer, amount, amountLabel: undefined } };
+  try { validateCourse(course, new Set(), { draft: !published }); validateLessons(course, course.modules.flatMap(module => module.lessons.flatMap(lesson => lesson.resourceIds)), { draft: !published }); } catch { throw new ApiError(400, "INCOMPLETE_COURSE"); }
   const { error, data } = await client.from("courses").update({ metadata: JSON.parse(JSON.stringify(course)) as NonNullable<Json>, amount, published }).eq("slug",slug).select("slug").maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) throw new ApiError(404, "NOT_FOUND");
@@ -10933,17 +11406,17 @@ export function parseLessonTime(value: string) {
 
 ### File: `modules/features/catalog/helpers/public-course.ts`
 
-SHA-256: `55a3b1eb5d2d8f89d3bf54996c8f1c6b51dfd3420810e93197123638f2c86b4f`
+SHA-256: `70d41a52cf167f6f2b95801591012a9e6c3895c6e1354fc981463c472a2e644f`
 
 ```typescript
 import type { Course } from "@platform/types/lms";
 import { validateCourse } from "./validate-course";
 import { validateLessons } from "./validate-lessons";
-export function publicCourse(metadata: unknown, slug: string, amount: number): Course {
+export function publicCourse(metadata: unknown, slug: string, amount: number, options: { draft?: boolean } = {}): Course {
   const course = metadata as Course;
   const result = { ...course, slug, offer: { ...course.offer, amount } };
-  validateCourse(result, new Set());
-  validateLessons(result, result.modules.flatMap(section => section.lessons.flatMap(lesson => lesson.resourceIds)));
+  validateCourse(result, new Set(), options);
+  validateLessons(result, result.modules.flatMap(section => section.lessons.flatMap(lesson => lesson.resourceIds)), options);
   return { ...result, modules: result.modules.map(section => ({ ...section,
     lessons: section.lessons.map(lesson => ({ ...lesson, videoUrl: "" })),
   })) };
@@ -11013,34 +11486,36 @@ export function validateCatalog(catalog: readonly Course[], resourceIds: readonl
 
 ### File: `modules/features/catalog/helpers/validate-course.ts`
 
-SHA-256: `4f412f910119f496b9632e539e84b87593a3908bfa6d9f2c8b5615878b74f919`
+SHA-256: `4ea89b411a26b0861ce023913d34d490d1a40903a57f7d06df4a39758c8bac37`
 
 ```typescript
 import { artworkKinds, categories } from "@platform/config/catalog";
 import type { Course } from "@platform/types/lms";
-export function validateCourse(course: Course, slugs: Set<string>) {
+export function validateCourse(course: Course, slugs: Set<string>, { draft = false }: { draft?: boolean } = {}) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(course.slug) || slugs.has(course.slug) ||
-      !course.title.trim() || (!course.modules.length && course.delivery !== "live") ||
+      !course.title.trim() || (!draft && !course.modules.length && course.delivery !== "live") ||
       !categories.some((category) => category.id === course.category) ||
       !artworkKinds.includes(course.artwork) || !Number.isFinite(course.offer.amount) ||
       course.offer.amount < 0 || !course.offer.actionLabel.trim())
     throw new Error(`Invalid course: ${course.slug}`);
-  if (course.delivery === "live" && (!course.deliveryLabel?.trim() || !course.duration.trim())) throw new Error(`Invalid live course: ${course.slug}`);
-  if (course.modules.some((module) => !module.title.trim() || !module.lessons.length))
+  if (!draft && course.delivery === "live" && (!course.deliveryLabel?.trim() || !course.duration.trim())) throw new Error(`Invalid live course: ${course.slug}`);
+  if (!draft && course.modules.some((module) => !module.title.trim() || !module.lessons.length))
     throw new Error(`Empty published module: ${course.slug}`);
 }
 ```
 
 ### File: `modules/features/catalog/helpers/validate-lessons.ts`
 
-SHA-256: `6d44c87d39be9b052d5bbf3b361b0c77e8d37bfd83e6527e5b168207ebe16588`
+SHA-256: `023fa76f410611de6696cf7e8542af23e6ca4fce8300f776bfeeb5e57b186896`
 
 ```typescript
+import { validateSections } from "./validate-sections";
 import type { Course } from "@platform/types/lms";
 import { courseLessons } from "./course-lessons";
-export function validateLessons(course: Course, resourceIds: readonly string[]) {
+export function validateLessons(course: Course, resourceIds: readonly string[], { draft = false }: { draft?: boolean } = {}) {
+  validateSections(course);
   const ids = new Set<string>(), lessons = courseLessons(course);
-  if (!lessons.length && course.delivery !== "live") throw new Error(`Empty published course: ${course.slug}`);
+  if (!draft && !lessons.length && course.delivery !== "live") throw new Error(`Empty published course: ${course.slug}`);
   for (const lesson of lessons) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(lesson.id) || !lesson.title.trim() ||
         ids.has(lesson.id) || !Number.isFinite(lesson.durationSeconds) || lesson.durationSeconds <= 0)
@@ -11048,6 +11523,28 @@ export function validateLessons(course: Course, resourceIds: readonly string[]) 
     ids.add(lesson.id);
     if (lesson.resourceIds.some((id) => !resourceIds.includes(id)))
       throw new Error(`Unknown lesson resource: ${lesson.id}`);
+  }
+}
+```
+
+### File: `modules/features/catalog/helpers/validate-sections.ts`
+
+SHA-256: `8e35bd79601e6f4c8ef2182a34dc00d417d1cd94063e924a9276eb21cdbb93ca`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+export function validateSections(course: Course) {
+  for (const chapter of course.modules) {
+    const ids = new Set<string>(), assigned = new Set<string>();
+    const lessons = new Set(chapter.lessons.map(lesson => lesson.id));
+    for (const section of chapter.sections ?? []) {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(section.id) || !section.title.trim() || ids.has(section.id) ||
+          new Set(section.lessonIds).size !== section.lessonIds.length ||
+          section.lessonIds.some(id => !lessons.has(id) || assigned.has(id)))
+        throw new Error(`Invalid course section: ${course.slug}`);
+      ids.add(section.id);
+      section.lessonIds.forEach(id => assigned.add(id));
+    }
   }
 }
 ```
@@ -12223,6 +12720,17 @@ export async function readResource(id: string) {
 }
 ```
 
+### File: `modules/helpers/format-course-date.ts`
+
+SHA-256: `37e5df2cc7f10a27d5ea371ccf2fa860d2b1263893fdedca970ca0c3b5ed6a10`
+
+```typescript
+import { courseAdministration } from "@platform/config/course-administration";
+export function formatCourseDate(value: string | null, fallback: string) {
+ return value ? new Intl.DateTimeFormat(courseAdministration.locale, { timeZone: courseAdministration.timezone, year: "numeric", month: "short", day: "numeric" }).format(new Date(value)) : fallback;
+}
+```
+
 ### File: `modules/helpers/media/drive-file-id.ts`
 
 SHA-256: `71ddab98d633cd37cc7a474ce8f0b1408597d4dee155016b4d778f0d3892e2f4`
@@ -12385,6 +12893,19 @@ export function readProfileResponse(input: unknown) {
   const profile = validateProfile(input);
   if (!profile) throw new Error("Invalid profile response");
   return profile;
+}
+```
+
+### File: `modules/helpers/search-params.ts`
+
+SHA-256: `87bf1bc6f9e34e6fa3ff92a4652b4e6030799bcb8fad27677241b3315936ad12`
+
+```typescript
+export function searchParams(values: Record<string, string | string[] | undefined>) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(values))
+    for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) params.append(key, item);
+  return params;
 }
 ```
 
@@ -13276,7 +13797,7 @@ SHA-256: `e9b88c82469e171452b48182347dd8aa9c7d26d19abba52070eabed534f179aa`
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `fa8aba86f9070c90f081e4683e2651908fc868230268e14e8df60708909aaafc`
+SHA-256: `7c644ca5678166b23b216851868951980a41cffaedac1c4bb672a174244db2f0`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -13387,6 +13908,18 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
   .lms-admin-filter-footer .lms-admin-actions { width: 100%; }
   .lms-admin-filter-footer .lms-admin-actions > * { flex: 1; white-space: normal; }
 }
+
+.lms-course-filter-selects { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-md); margin-top: var(--space-md); }
+.lms-course-table thead th:nth-child(n) { width: auto; }
+.lms-course-table thead th:first-child { width: 22%; }
+.lms-course-table th, .lms-course-table td { overflow-wrap: anywhere; padding-inline: var(--space-sm); }
+.lms-course-table .lms-admin-row-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.lms-course-table .lms-secondary-button { padding: var(--space-sm); }
+.lms-course-editor-tabs { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-lg); }
+@media (max-width: 1024px) { .lms-course-filter-selects { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 480px) { .lms-course-filter-selects { grid-template-columns: minmax(0,1fr); } }
+
+.lms-course-delete > button { width: 100%; }
 ```
 
 ### File: `modules/styles/analytics.css`
@@ -17195,6 +17728,21 @@ import type { analyticsCopy } from "@platform/data/admin-analytics";
 export type AnalyticsLabels = { [K in keyof typeof analyticsCopy]: K extends "sourceNames" ? Record<keyof typeof analyticsCopy.sourceNames, string> : string };
 ```
 
+### File: `modules/types/admin-courses.ts`
+
+SHA-256: `728d027da98157c79292e3ceb9db7eafcc32f9d0c99dfd817674c133e0894473`
+
+```typescript
+import type { courseSorts, courseStatuses, courseDeliveries } from "@platform/config/course-administration";
+import type { Category } from "@platform/types/lms";
+import type { adminCoursesCopy } from "@platform/data/admin-courses";
+export type AdminCoursesLabels = { [K in keyof typeof adminCoursesCopy]: string };
+export interface AdminCourseQuery { page: number; search: string; category: Category; statuses: typeof courseStatuses[number][]; delivery: typeof courseDeliveries[number]; sort: typeof courseSorts[number]; direction: "asc" | "desc"; }
+export interface AdminCourseRow { slug: string; title: string; category: Exclude<Category,"all">; delivery: "recorded" | "live"; published: boolean; createdAt: string | null; updatedAt: string | null; students: number; lessons: number; chapters: number; sections: number; }
+export interface AdminCourseResults { courses: AdminCourseRow[]; page: number; total: number; hasNext: boolean; }
+export interface CreateCourseInput { slug: string; title: string; description: string; amount: number; category: Exclude<Category,"all">; delivery: "recorded" | "live"; }
+```
+
 ### File: `modules/types/admin-users.ts`
 
 SHA-256: `23d789211f981ca568a734c456788b4e844c24404c004421c6d0397c66c0be21`
@@ -17308,7 +17856,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `f9050631a63927ed05e180b0cb2c8fa5bb4dc90c4e109649184ff02500186659`
+SHA-256: `0a50e96bee7a1c4bf4d89a76b79be9c0ee14e68ed312f5b7b359fbeeafb49ea6`
 
 ```typescript
 
@@ -17390,14 +17938,14 @@ export type Database = {
                   ]
                 },"courses": {
                   Row: {
-                    "amount": number,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string
+                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string,"updated_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string
+                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string,"updated_at"?: string | null
                   }
                   Update: {
-                    "amount"?: number,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string
+                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
 
@@ -17540,11 +18088,17 @@ isOneToOne: false
 "contacts_verified":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"delete_admin_course":
+{ Args: { "p_slug": string }; Returns: undefined
+                           },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
                            },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
+                           },
+"search_admin_courses":
+{ Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
@@ -17720,7 +18274,7 @@ export type LandingHeroProps = {
 
 ### File: `modules/types/lms.ts`
 
-SHA-256: `dea1d43c9db4c2419e6843662fe763028ca38d39d78936cfa61c37b16ca4d6e2`
+SHA-256: `bc141e9914d630ce3892d8e30f53013146ab5ed0d30c63fb108a3da2e314d185`
 
 ```typescript
 import type { Category, ArtworkKind } from "@platform/config/catalog";
@@ -17736,7 +18290,9 @@ export interface Lesson {
   preview?: boolean;
   takeaway: string[];
 }
+export interface CourseSection { id: string; title: string; lessonIds: string[]; }
 export interface CourseModule {
+  sections?: CourseSection[];
   title: string;
   lessons: Lesson[];
 }
@@ -28460,6 +29016,177 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
 };
 ```
 
+### File: `tests/backend/admin-course-management-browser.cjs`
+
+SHA-256: `9241eb0e07e446389d3496342f95370aa5e45a016ab71e3628fbbc81a0d43e0b`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
+const { chromium, expect } = require('@playwright/test');
+module.exports=async({manager,verify,url,prefix,slugs})=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  await page.goto(url+'/admin/dashboard/courses?q='+prefix);
+  await expect(page.getByRole('heading',{name:'إدارة الدورات',exact:true})).toBeVisible();
+  verify(await page.locator('thead th').count()===8,'Course table has eight overview columns');
+  verify(await page.locator('tbody tr').count()===5,'Five course records rendered per page');
+  await page.getByRole('link',{name:'التالي',exact:true}).click();await expect(page).toHaveURL(/page=2/);await expect(page.locator('tbody tr')).toHaveCount(2);
+  verify(new URL(page.url()).searchParams.get('q')===prefix,'Pagination preserves search');
+  await page.getByRole('checkbox',{name:'منشورة',exact:true}).check();
+  await page.getByRole('combobox',{name:'ترتيب حسب',exact:true}).click();await page.getByRole('option',{name:'الطلاب',exact:true}).click();
+  await page.getByRole('button',{name:'تطبيق',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);
+  verify(!new URL(page.url()).searchParams.has('page') && new URL(page.url()).searchParams.get('sort')==='students','Changing filters resets pagination and retains ordering');
+  await page.goto(url+'/admin/dashboard/courses?q='+prefix);
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Course dashboard fits ${width}px without overflow`);
+   verify(await page.locator('tbody tr').count()<=5,`At most five course cards on ${width}px page`);
+   const row=page.locator('tbody tr').filter({hasText:`${prefix} دورة 6`});
+   await row.getByRole('button',{name:'حذف',exact:true}).click();const dialog=page.getByRole('dialog',{name:'حذف الدورة',exact:true});await expect(dialog).toBeVisible();
+   const box=await dialog.boundingBox();verify(Math.abs(box.x+box.width/2-width/2)<2 && Math.abs(box.y+box.height/2-500)<2,`Course delete dialog centered at ${width}px (${JSON.stringify(box)})`);
+   await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(row.getByRole('button',{name:'حذف',exact:true})).toBeFocused();
+   if(width===390||width===1440){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/admin-courses-${width}.png`,fullPage:true});}
+  }
+  await page.setViewportSize({width:1440,height:1000});
+  await page.goto(url+'/admin/dashboard/courses/'+slugs[0]);
+  await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();verify(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()===0,'Course overview does not contain lesson editors');
+  await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await expect(page.getByRole('heading',{name:'قسم تجريبي',exact:true})).toBeVisible();
+  verify(await page.locator('form').count()>0,'Lesson editing appears on separate content page');
+  await page.goto(url+'/admin/dashboard/courses?q='+prefix);const row=page.locator('tbody tr').filter({hasText:`${prefix} دورة 6`});await row.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('button',{name:'تأكيد الحذف',exact:true}).click();await expect(row).toHaveCount(0);verify(true,'Confirmed deletion refreshes course table');
+  await page.getByRole('link',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/new');
+  await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();
+  const newSlug=prefix+'-browser';slugs.push(newSlug);
+  await page.getByLabel('اسم الدورة',{exact:true}).fill('دورة من نموذج الإنشاء');
+  await page.getByLabel('رابط الدورة',{exact:true}).fill(newSlug);
+  await page.getByLabel('الوصف',{exact:true}).fill('وصف محفوظ من نموذج إنشاء الدورة');
+  await page.getByLabel('السعر (ج.م)',{exact:true}).fill('333');
+  await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();
+  await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+newSlug);
+  await expect(page.getByLabel('اسم الدورة',{exact:true})).toHaveValue('دورة من نموذج الإنشاء');
+  await page.reload();await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveValue('333');
+  verify(true,'Browser-created draft persists and opens its editor');
+  await page.setViewportSize({width:320,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Course creation form fits 320px');
+  verify(errors.length===0,'Course dashboard has no browser JavaScript errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/admin-course-management.cjs`
+
+SHA-256: `7328a44776f07e383f4264efd002e11f5308c6685a16bd288e1216237f3c9127`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated course-management integration checks. */
+const assert = require('node:assert/strict');
+const { randomUUID } = require('node:crypto');
+module.exports = async ({ admin, provision, anonymous, verify, url }) => {
+ const manager = await provision('Catalog Manager'), student = await provision('Catalog Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const prefix = 'catalog-' + randomUUID().slice(0,8), slugs = [];
+ const body = index => ({slug:`${prefix}-${index}`,title:`${prefix} دورة ${index}`,description:'وصف دورة تجريبية للاختبار',amount:100+index,category:'editing',delivery:'recorded'});
+ const parse = response => JSON.parse(response.data);
+ const list = query => manager.api('/api/admin/courses?' + new URLSearchParams(query));
+ try {
+  verify((await anonymous('/api/admin/courses')).status === 401,'Guest cannot read course management');
+  verify((await student.api('/api/admin/courses')).status === 403,'Student cannot read course management');
+  verify(Boolean((await student.direct.rpc('search_admin_courses')).error),'Direct student RPC cannot read course management');
+  verify((await student.api('/api/admin/courses',body(0))).status === 403,'Student cannot create course');
+  verify((await manager.api('/api/admin/courses',body(0),{headers:{Origin:'https://attacker.example'}})).status === 403,'Cross-origin course creation blocked');
+  for (const value of [{slug:'Bad Slug'}, {slug:'new'}, {amount:-1}, {category:'all'}, {delivery:'unknown'}, {title:''}]) {
+   // "new" is reserved by the create-page route.
+   verify((await manager.api('/api/admin/courses',{...body(0),...value})).status === 400,`Invalid course creation blocked: ${Object.keys(value)[0]}=${Object.values(value)[0]}`);
+  }
+  for (let index=0;index<7;index++) {
+   const response=await manager.api('/api/admin/courses',body(index));
+   verify(response.status===201,`Course draft ${index} created`);slugs.push(body(index).slug);
+  }
+  verify((await manager.api('/api/admin/courses',body(0))).status===409,'Duplicate course slug rejected');
+  let result=parse(await list({q:prefix}));
+  verify(result.total===7 && result.courses.length===5 && result.hasNext,'Five courses per page with total and next page');
+  verify(result.courses.every(course=>!course.published && course.lessons===0 && course.chapters===0 && course.sections===0 && course.students===0 && course.createdAt && course.updatedAt),'Empty drafts have real timestamps and zero separate counts');
+  verify(parse(await list({q:prefix,page:'2'})).courses.length===2,'Second page returns remaining courses');
+  verify(parse(await list({q:prefix,page:'3'})).courses.length===0,'Out-of-range page is empty');
+  verify((await anonymous('/api/courses/'+slugs[0])).status===404,'Draft is hidden from public catalog');
+  const draft=parse(await manager.api('/api/admin/courses/'+slugs[0])).course;
+  const edit={title:draft.title,description:draft.description,amount:200,category:'editing',thumbnailUrl:'',introVideoUrl:'',published:false};
+  verify((await manager.api('/api/admin/courses/'+slugs[0],edit)).status===200,'Empty draft can be edited');
+  verify((await manager.api('/api/admin/courses/'+slugs[0],{...edit,published:true})).status===400,'Empty recorded draft cannot be published');
+  const timestamps=(await admin.from('courses').select('created_at,updated_at').eq('slug',slugs[0]).single()).data;
+  const seed=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata;
+  const metadata={...seed,slug:slugs[0],title:body(0).title,modules:seed.modules.map((chapter,index)=>({...chapter,sections:index===0?[{id:'first-section',title:'قسم تجريبي',lessonIds:[chapter.lessons[0].id]}]:[]}))};
+  assert.ok(!(await admin.from('courses').update({metadata,published:true}).eq('slug',slugs[0])).error);
+  const lesson=metadata.modules[0].lessons[0];
+  assert.ok(!(await admin.from('lessons').insert({id:lesson.id,course_slug:slugs[0],video_url:'/assets/video/workshop-intro.mp4'})).error);
+  result=parse(await list({q:slugs[0]})).courses[0];
+  verify(result.lessons===1 && result.chapters===metadata.modules.length && result.sections===1,'Chapter, section and actual lesson counts are distinct');
+  let stored=(await admin.from('courses').select('created_at,updated_at').eq('slug',slugs[0]).single()).data;
+  verify(stored.created_at===timestamps.created_at && new Date(stored.updated_at)>new Date(timestamps.updated_at),'Curriculum changes update date without changing creation date');
+  const previous=stored.updated_at;
+  assert.ok(!(await admin.from('lessons').delete().eq('course_slug',slugs[0])).error);
+  stored=(await admin.from('courses').select('updated_at').eq('slug',slugs[0]).single()).data;
+  verify(new Date(stored.updated_at)>new Date(previous),'Lesson deletion updates course timestamp');
+  assert.ok(!(await admin.from('lessons').insert({id:lesson.id,course_slug:slugs[0],video_url:'/assets/video/workshop-intro.mp4'})).error);
+  assert.ok(!(await admin.from('enrollments').insert({user_id:student.id,course_slug:slugs[0]})).error);
+  verify(parse(await list({q:prefix,sort:'students',direction:'desc'})).courses[0].students===1,'Sort by students places subscribed course first');
+  verify(parse(await list({q:prefix,sort:'students',direction:'asc'})).courses[0].students===0,'Ascending student sort reverses order');
+  verify(parse(await list({q:prefix,sort:'created',direction:'asc'})).courses[0].slug===slugs[0],'Creation sorting ascending');
+  verify(parse(await list({q:prefix,sort:'created',direction:'desc'})).courses[0].slug===slugs[6],'Creation sorting descending');
+  verify(parse(await list({q:prefix,sort:'updated',direction:'desc'})).courses[0].slug===slugs[0],'Updated sorting reflects latest real edit');
+  verify(parse(await list({q:prefix,status:'published',category:'editing',delivery:'recorded'})).total===1,'Search, publication, category and delivery filters combine');
+  verify(parse(await list({q:prefix,status:'draft'})).total===6,'Draft filter excludes published course');
+  verify(parse(await manager.api('/api/admin/courses?q='+prefix+'&status=draft&status=published')).total===7,'Publication statuses combine without dropping either group');
+  verify(parse(await list({q:'editing-foundations'})).courses[0].createdAt===null,'Unknown legacy creation dates remain unknown');
+  verify(parse(await list({q:prefix,category:'motion'})).total===0,'Category filter combines with search');
+  for (const q of ['%','_']) verify(parse(await list({q})).total===0,`Search treats ${q} literally`);
+  for (const query of [{sort:'price'},{direction:'bad'},{status:'bad'},{page:'0'},{page:'-1'},{q:'x'.repeat(101)}]) verify((await list(query)).status===400,'Invalid course query rejected');
+  verify(Boolean((await manager.direct.rpc('search_admin_courses',{p_limit:6})).error),'RPC caps page size at five');
+  const remove=slug=>'/api/admin/courses/'+slug+'/delete';
+  verify((await student.api(remove(slugs[1]),{confirmSlug:slugs[1]})).status===403,'Student cannot delete course');
+  verify(Boolean((await student.direct.rpc('delete_admin_course',{p_slug:slugs[1]})).error),'Direct student deletion RPC denied');
+  verify((await manager.api(remove(slugs[1]),{confirmSlug:slugs[1]},{headers:{Origin:'https://attacker.example'}})).status===403,'Cross-origin deletion blocked');
+  verify((await manager.api(remove(slugs[1]),{confirmSlug:'wrong'})).status===400,'Delete confirmation must match course');
+  verify((await manager.api(remove(slugs[0]),{confirmSlug:slugs[0]})).status===409,'Subscribed course deletion blocked');
+  await require('./admin-course-management-browser.cjs')({manager,verify,url,prefix,slugs});
+  verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===200,'Unsubscribed course can be deleted');
+  verify((await manager.api(remove(slugs[2]),{confirmSlug:slugs[2]})).status===404,'Missing course deletion returns not found');
+  assert.ok(!(await admin.from('admin_users').delete().eq('user_id',manager.id)).error);
+  verify((await manager.api('/api/admin/courses')).status===403,'Revoked admin access is immediately denied');
+  verify(Boolean((await manager.direct.rpc('search_admin_courses')).error),'RPC rechecks revoked membership');
+ } finally { await admin.from('enrollments').delete().in('course_slug',slugs);await admin.from('courses').delete().in('slug',slugs); }
+};
+```
+
+### File: `tests/backend/admin-courses-live.cjs`
+
+SHA-256: `aaccfe2e948a1bb92c64c253f555261be296082b58c6fee2c73c9ea7b38d72c7`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only production acceptance. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');process.loadEnvFile('.env.local');
+(async()=>{
+ const origin=process.env.TARGET_URL||'https://ta3allam.vercel.app',browser=await chromium.launch(),errors=[],checks=[];
+ try{
+  const page=await browser.newPage();page.on('pageerror',error=>errors.push(error.message));
+  expect((await page.request.get(origin+'/api/admin/courses')).status()).toBe(401);checks.push('Guest list denied');
+  await page.goto(origin+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard',{timeout:60000});
+  await page.goto(origin+'/admin/dashboard/courses');await expect(page.getByRole('table')).toBeVisible();
+  expect(await page.locator('thead th').count()).toBe(8);checks.push('Eight course overview columns');
+  const response=await page.request.get(origin+'/api/admin/courses');expect(response.status()).toBe(200);const records=await response.json();expect(records.courses.length).toBeLessThanOrEqual(5);expect(records.total).toBeGreaterThan(0);checks.push('Authenticated database counts with bounded pagination');
+  await page.getByRole('searchbox',{name:'البحث عن دورة',exact:true}).fill(records.courses[0].title);await page.getByRole('button',{name:'تطبيق',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);checks.push('Search finds exact course');
+  for(const width of [320,390,768,1440,1920]){
+   await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(await page.locator('tbody tr').count()).toBeLessThanOrEqual(5);checks.push(`Responsive ${width}px`);
+   await page.evaluate(()=>window.scrollTo(0,0));if(width===390||width===1440)await page.screenshot({path:`docs/evidence/backend/admin-courses-live-${width}.png`,fullPage:true});
+  }
+  await page.goto(origin+'/admin/dashboard/courses/new');await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();checks.push('Create draft screen accessible');
+  await page.goto(origin+'/admin/dashboard/courses/'+records.courses[0].slug);await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();expect(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()).toBe(0);checks.push('Overview editor excludes lesson details');
+  await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);checks.push('Dedicated content route');
+  expect(errors).toEqual([]);fs.writeFileSync('docs/evidence/backend/admin-courses-live.json',JSON.stringify({origin,checkedAt:new Date().toISOString(),checks,courseTotal:records.total,errors,readOnly:true},null,2));console.log(`${checks.length} read-only hosted course-management checks passed; zero runtime errors.`);
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
+```
+
 ### File: `tests/backend/admin-user-search.cjs`
 
 SHA-256: `20d1bb5966a0d4edab715c5efe454f5020f23367fa8f1c4ded0612c4f38b3188`
@@ -28920,6 +29647,35 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 };
 ```
 
+### File: `tests/backend/course-contracts.test.ts`
+
+SHA-256: `88e343e4cc2bfc0cc45b4cd42de407c9233863449617b31c27590b7674b8515b`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { validateSections } from "../../modules/features/catalog/helpers/validate-sections";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+import { validateCourse } from "../../modules/features/catalog/helpers/validate-course";
+import { validateLessons } from "../../modules/features/catalog/helpers/validate-lessons";
+import type { Course } from "../../modules/types/lms";
+const draft = () => createCourseMetadata({slug:"test-course",title:"دورة اختبار",description:"وصف دورة",amount:0,category:"editing",delivery:"recorded"},{currency:"ج.م",action:"اشتراك",liveLabel:"مباشرة"});
+function fixture(): Course {
+ const course=draft();course.modules=[{title:"Chapter",lessons:[{id:"first",title:"Lesson",duration:"1:00",durationSeconds:60,resourceIds:[],description:"",videoUrl:"",takeaway:[]}],sections:[{id:"intro",title:"Intro",lessonIds:["first"]}]}];return course;
+}
+test("Drafts are editable but cannot be published without curriculum",()=>{
+ const course=draft();assert.doesNotThrow(()=>validateCourse(course,new Set(),{draft:true}));assert.doesNotThrow(()=>validateLessons(course,[],{draft:true}));assert.throws(()=>validateCourse(course,new Set()));assert.throws(()=>validateLessons(course,[]));
+});
+test("Sections reference real lessons and cannot assign a lesson twice",()=>{
+ const course=fixture();assert.doesNotThrow(()=>validateSections(course));course.modules[0].sections![0].lessonIds.push("first");assert.throws(()=>validateSections(course));
+ course.modules[0].sections![0].lessonIds=["missing"];assert.throws(()=>validateSections(course));
+ course.modules[0].sections![0].lessonIds=["first"];course.modules[0].sections!.push({id:"second",title:"Second",lessonIds:["first"]});assert.throws(()=>validateSections(course));
+});
+test("Empty named sections are valid and chapter section identifiers stay unique",()=>{
+ const course=fixture();course.modules[0].sections!.push({id:"empty",title:"Empty",lessonIds:[]});assert.doesNotThrow(()=>validateSections(course));course.modules[0].sections!.push({id:"intro",title:"Duplicate",lessonIds:[]});assert.throws(()=>validateSections(course));
+});
+```
+
 ### File: `tests/backend/dashboard-access.cjs`
 
 SHA-256: `94231e33b94a2e21a0a0d7c1e45f77e600b57caf216f32b0800ac9a0116a5bfe`
@@ -29242,7 +29998,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `0cb2b014b629ecbb4879d5255c8809a51b723f8d3fdd39e9297690de8521e6b8`
+SHA-256: `ba58cd49c12699f0f24550a542f995f179da5c383f196893ea006c5525ce2db7`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -29294,6 +30050,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-course-management') {
+    await require('./admin-course-management.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'image-uploads') {
     await require('./image-uploads.cjs')({admin,provision,anonymous,verify,url});
     return;

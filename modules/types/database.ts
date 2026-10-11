@@ -77,14 +77,14 @@ export type Database = {
                   ]
                 },"courses": {
                   Row: {
-                    "amount": number,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string
+                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string,"updated_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string
+                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string,"updated_at"?: string | null
                   }
                   Update: {
-                    "amount"?: number,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string
+                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
 
@@ -227,11 +227,17 @@ isOneToOne: false
 "contacts_verified":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"delete_admin_course":
+{ Args: { "p_slug": string }; Returns: undefined
+                           },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
                            },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
+                           },
+"search_admin_courses":
+{ Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json

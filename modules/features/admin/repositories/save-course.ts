@@ -1,3 +1,5 @@
+import { validateCourse } from "@platform/features/catalog/helpers/validate-course";
+import { validateLessons } from "@platform/features/catalog/helpers/validate-lessons";
 import { requireAdmin } from "../identity";
 import { readAdminCourses } from "./courses";
 import { categories } from "@platform/config/catalog";
@@ -11,6 +13,7 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   const { amount, published, ...metadata } = values;
   const course = { ...current.course, ...metadata, categoryLabel: categories.find(category => category.id === values.category)!.label,
     offer: { ...current.course.offer, amount, amountLabel: undefined } };
+  try { validateCourse(course, new Set(), { draft: !published }); validateLessons(course, course.modules.flatMap(module => module.lessons.flatMap(lesson => lesson.resourceIds)), { draft: !published }); } catch { throw new ApiError(400, "INCOMPLETE_COURSE"); }
   const { error, data } = await client.from("courses").update({ metadata: JSON.parse(JSON.stringify(course)) as NonNullable<Json>, amount, published }).eq("slug",slug).select("slug").maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) throw new ApiError(404, "NOT_FOUND");

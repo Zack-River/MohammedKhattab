@@ -11,7 +11,9 @@ export interface Lesson {
   preview?: boolean;
   takeaway: string[];
 }
+export interface CourseSection { id: string; title: string; lessonIds: string[]; }
 export interface CourseModule {
+  sections?: CourseSection[];
   title: string;
   lessons: Lesson[];
 }
