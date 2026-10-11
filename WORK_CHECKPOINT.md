@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — mobile account/dashboard access
+
+- Reproduced the live bug: the account link was present in authenticated HTML but explicitly `display: none` at 320px, 390px and 768px. Removed that mobile hiding rule and kept the account link non-wrapping/non-shrinking with the shared 44px touch target beside the menu toggle.
+- Added mobile visibility/in-viewport assertions for guest/student/admin actions to the existing navigation regression. No authorization or session logic changed.
+- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Real-account browser checks passed for admin/student/guest at 320/390/768/1440px: all 12 action links visible and clickable, correct destination, no navbar overflow; mobile account targets are 44px high. Local build: **KVgXVWyfzQMz-C57c1V5q**. Live verification pending. Evidence: `docs/evidence/mobile-dashboard-access/`.
+
 ## Latest checkpoint — shared interactive cursors
 
 - Removed the universal cursor-default reset that blocked cursor inheritance on clickable children. Added shared `interactions.css` for links, buttons, semantic interactive roles, disclosure summaries and action/choice inputs. Nested logos, images, text and icons inherit the interactive target's cursor; disabled/pending controls retain their disabled cursor.

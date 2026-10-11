@@ -12526,7 +12526,7 @@ SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
 
 ### File: `modules/styles/lms.css`
 
-SHA-256: `1c426f6b36a6fa2771dfb16ffdd5b4403002f06b3d1c4d9153dcaf00b0ed1cb4`
+SHA-256: `05a37de50cd4251eb20991a3821a43144bedc7dc17e92867a089708d54bb065c`
 
 ```css
 .lms-icon {
@@ -14029,7 +14029,9 @@ button:disabled {
     gap: var(--space-control);
   }
   .lms-nav-actions > .lms-text-link {
-    display: none;
+    min-height: var(--control-target-size);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .lms-nav-button {
     padding: var(--space-unit) var(--space-control) !important;
@@ -27655,7 +27657,7 @@ async function run() {
 
 ### File: `tests/backend/navigation-browser.cjs`
 
-SHA-256: `a2ab3edf4d110afeae034204f37ff650cc838654733fa443cbdc76e274f5f508`
+SHA-256: `1b0f58bb3ced65adda7d70d431c64c967aaa2d2a10719362edb18cd20e5d6582`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Session-aware navigation with isolated accounts. */
@@ -27690,6 +27692,9 @@ module.exports=async function navigation({url,manager,student,verify}) {
      verify(true,'guest '+path+': learning action visible without dashboard action');
     }
     await page.setViewportSize({width:320,height:844});
+    const mobileAction=header.getByRole('link',{name:identity?(identity.admin?'لوحة الإدارة':'لوحة التعلّم'):'ابدأ التعلّم',exact:true});
+    await expect(mobileAction).toBeVisible();await expect(mobileAction).toBeInViewport();
+    verify(true,role+' '+path+': mobile account or learning action is visible and reachable');
     verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),role+' '+path+': navbar fits 320px');
     await page.setViewportSize({width:1440,height:900});
    }

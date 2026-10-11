@@ -30,6 +30,9 @@ module.exports=async function navigation({url,manager,student,verify}) {
      verify(true,'guest '+path+': learning action visible without dashboard action');
     }
     await page.setViewportSize({width:320,height:844});
+    const mobileAction=header.getByRole('link',{name:identity?(identity.admin?'لوحة الإدارة':'لوحة التعلّم'):'ابدأ التعلّم',exact:true});
+    await expect(mobileAction).toBeVisible();await expect(mobileAction).toBeInViewport();
+    verify(true,role+' '+path+': mobile account or learning action is visible and reachable');
     verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),role+' '+path+': navbar fits 320px');
     await page.setViewportSize({width:1440,height:900});
    }

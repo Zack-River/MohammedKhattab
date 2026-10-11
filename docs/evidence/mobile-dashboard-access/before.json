@@ -1,0 +1,70 @@
+[
+  {
+    "width": 320,
+    "label": "لوحة الإدارة",
+    "display": "none",
+    "visible": false,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "label": "لوحة الإدارة",
+    "display": "none",
+    "visible": false,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "overflow": false
+  },
+  {
+    "width": 768,
+    "label": "لوحة الإدارة",
+    "display": "none",
+    "visible": false,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    },
+    "overflow": false
+  },
+  {
+    "width": 1440,
+    "label": "لوحة الإدارة",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 144,
+      "y": 19.25,
+      "width": 60,
+      "height": 24.484375,
+      "top": 19.25,
+      "right": 204,
+      "bottom": 43.734375,
+      "left": 144
+    },
+    "overflow": false
+  }
+]

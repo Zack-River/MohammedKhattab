@@ -317,3 +317,7 @@ Shared `NavigationLink` uses native anchors for fragment destinations; ordinary 
 ## Interactive cursors
 
 `packages/design-system/styles/interactions.css` owns shared cursor behavior. Links with destinations, buttons, clickable semantic roles, disclosure summaries and action/choice inputs use a pointer. Their nested labels, logos, images and icons inherit it. Do not reset the cursor on every element: that breaks inheritance inside clickable components. Disabled controls retain their disabled or pending cursor. Static images and editable text fields keep their normal cursor. This stylesheet is imported globally after product styles.
+
+## Mobile dashboard access
+
+The public navbar keeps the authenticated account destination visible beside the mobile menu toggle at every viewport width. Administrators see “لوحة الإدارة” and students see “لوحة التعلّم”; the guest sees “ابدأ التعلّم”. Mobile account links use the shared touch-target token and do not wrap or shrink. Never hide the only account/dashboard destination in a responsive rule.

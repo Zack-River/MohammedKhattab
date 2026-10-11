@@ -1498,7 +1498,9 @@ button:disabled {
     gap: var(--space-control);
   }
   .lms-nav-actions > .lms-text-link {
-    display: none;
+    min-height: var(--control-target-size);
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .lms-nav-button {
     padding: var(--space-unit) var(--space-control) !important;
