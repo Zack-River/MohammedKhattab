@@ -2,6 +2,14 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — Admin Home hierarchy and source-caption cleanup
+
+- Removed every technical data-source caption from Home cards and panels, including the Supabase Auth, subscriptions, learning and payment-source lines. Removed their unused props and content keys from the shared panel/product card contracts.
+- Simplified KPI cards, widened the primary chart, enlarged the plotting area, and added a prominent selected monthly total with an equal-duration comparison. Metric selection updates both the chart and summary. Course tabs/ranking accents and quieter revenue cards retain the approved dark/red identity; calculation details live in the expandable explanation.
+- Revenue remains unavailable; referral sources remain actual account attribution rather than visitor counts. No backend aggregation, permissions, payments, or dependency changes.
+- Production build, TypeScript, lint and architecture checks passed. The isolated analytics suite passed 27 checks, including source-copy removal, selected totals, permissions and four responsive widths. Updated screenshots are in `docs/evidence/admin-analytics/`. Local production runtime refreshed on port 3040.
+- Production deployment verification will be recorded after pushing this change.
+
 ## Latest checkpoint — hosted email templates saved
 
 - The user confirmed that all custom email templates were pasted and saved in hosted Supabase after the common-placeholder update.

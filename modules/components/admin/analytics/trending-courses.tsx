@@ -7,7 +7,7 @@ import type { AnalyticsLabels } from "@platform/types/admin-analytics";
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
 import MetricChange from "./metric-change";
 export default function TrendingCourses({ courses, period, labels }: { courses: TrendingCourse[]; period: AnalyticsPeriod; labels: AnalyticsLabels }) {
-  return <AnalyticsPanel title={labels.trendTitle} description={labels.trendDescription} source={labels.courseSource} sourceLabel={labels.source}>
+  return <AnalyticsPanel title={labels.trendTitle} description={labels.trendDescription}>
     <nav className="analytics-periods" aria-label={labels.periodLabel}>{analyticsConfig.periods.map(value =>
       <Link key={value} href={`${routes.adminDashboard}?period=${value}`} aria-current={period === value ? "page" : undefined}>{labels[value]}</Link>)}</nav>
     {courses.length === 0 ? <p className="analytics-empty-note">{labels.trendEmpty}</p> : <ol className="analytics-course-ranking">

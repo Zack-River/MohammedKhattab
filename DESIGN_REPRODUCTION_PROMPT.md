@@ -4796,7 +4796,7 @@ export default function AdminPagination({ query, hasNext, labels }: { query: Adm
 
 ### File: `modules/components/admin/analytics/acquisition-sources.tsx`
 
-SHA-256: `ad88e5c0267bae9eee9f4a3013635052dcb64f7fbb8fac834a09f86a2bab5fd0`
+SHA-256: `9ccbc68c7ca322bd09db9439ed1d03123eb13760bac7ae9482ab4fc04e79ef38`
 
 ```tsx
 import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
@@ -4806,7 +4806,7 @@ import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helper
 export default function AcquisitionSources({ sources, labels }: { sources: AnalyticsSource[]; labels: AnalyticsLabels }) {
   const total = sources.reduce((sum, source) => sum + source.count, 0);
   const known = sources.some(source => source.source !== "unknown");
-  return <AnalyticsPanel title={labels.sourcesTitle} description={labels.sourcesDescription} source={labels.attributionSource} sourceLabel={labels.source}>
+  return <AnalyticsPanel title={labels.sourcesTitle} description={labels.sourcesDescription}>
     {!known && <p className="analytics-empty-note">{total ? labels.sourcesUnavailable : labels.sourcesEmpty}</p>}
     <ul className="analytics-sources-list">{sources.map(source => <li key={source.source}>
       <div><span>{labels.sourceNames[source.source]}</span><strong>{formatAnalyticsNumber(source.count)}</strong></div>
@@ -4819,7 +4819,7 @@ export default function AcquisitionSources({ sources, labels }: { sources: Analy
 
 ### File: `modules/components/admin/analytics/learning-summary.tsx`
 
-SHA-256: `583d766f0d5a60b7cd3d24d24ccc4d01754cd1be5a7ba300ed38f9b5d81cb1b7`
+SHA-256: `d9e58863bfce6e855ce81889e65c3ddf5599b2adcce6b3f09a598b041793ac18`
 
 ```tsx
 import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
@@ -4827,7 +4827,7 @@ import type { AnalyticsMetrics } from "@platform/types/admin-analytics";
 import type { AnalyticsLabels } from "@platform/types/admin-analytics";
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
 export default function LearningSummary({ metrics, labels }: { metrics: AnalyticsMetrics; labels: AnalyticsLabels }) {
-  return <AnalyticsPanel title={labels.learningTitle} source={labels.learningSource} sourceLabel={labels.source}>
+  return <AnalyticsPanel title={labels.learningTitle}>
     <dl className="analytics-learning">{(["totalEnrollments", "studentsEnrolled", "completedLessons"] as const).map(key =>
       <div key={key}><dt>{key === "totalEnrollments" ? labels.totalSubscriptions : key === "studentsEnrolled" ? labels.enrolledStudents : labels.completedLessons}</dt>
         <dd className="numeral">{formatAnalyticsNumber(metrics[key])}</dd></div>)}</dl>
@@ -4837,20 +4837,20 @@ export default function LearningSummary({ metrics, labels }: { metrics: Analytic
 
 ### File: `modules/components/admin/analytics/metric-card.tsx`
 
-SHA-256: `a1862a5f702bf0d2124002dcd7e3c54f7119a76d97ee33b0d719447f2263cc4a`
+SHA-256: `8c6c6680129869c568cb341f9fac17fce9cb825d02a3aaa6d6918009eab170af`
 
 ```tsx
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
 import type { AnalyticsLabels } from "@platform/types/admin-analytics";
 import MetricChange from "./metric-change";
-export default function MetricCard({ title, value, previous, note, source, labels }: {
-  labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note: string; source: string;
+export default function MetricCard({ title, value, previous, note, labels }: {
+  labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note?: string;
 }) {
   return <article className="analytics-metric" aria-label={title}>
     <h2>{title}</h2><strong className="analytics-value numeral">{value === null ? "—" : formatAnalyticsNumber(value)}</strong>
     {value !== null && previous !== undefined && <MetricChange labels={labels} current={value} previous={previous} />}
     {value === null && <span className="analytics-unavailable">{labels.unavailable}</span>}
-    <p>{note}</p><small><span>{labels.source}: </span>{source}</small>
+    {note && <p>{note}</p>}
   </article>;
 }
 ```
@@ -4876,7 +4876,7 @@ export default function MetricChange({ current, previous, labels }: { current: n
 
 ### File: `modules/components/admin/analytics/overview.tsx`
 
-SHA-256: `17730fefd2935c355a94386ec0ffa89dedc9dbfd6ab962eca762f0c58be1e52c`
+SHA-256: `74df0d77907e16e24464248827faba1c7bc862fcdd39af5cc72e421ca10cace1`
 
 ```tsx
 import RefreshButton from "@khatab/design/ui/refresh-button";
@@ -4895,27 +4895,26 @@ export default function AnalyticsOverview({ data, period, labels }: { data: Admi
     <header className="analytics-overview-header"><PageHeading title={labels.title} description={labels.description} />
       <div><p>{labels.refreshed}: <time dateTime={data.generatedAt}>{formatAnalyticsDate(data.generatedAt, { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</time> · {labels.timezone}</p>
         <RefreshButton label={labels.refresh} pendingLabel={labels.loading} className="lms-secondary-button" /></div></header>
-    <p className="analytics-period-note">{labels.periodNote}</p>
     <div className="analytics-metrics-grid">
-      <MetricCard labels={labels} title={labels.studentsWeek} value={m.studentsWeek} previous={m.studentsPreviousWeek} note={labels.comparison} source={labels.studentsSource} />
-      <MetricCard labels={labels} title={labels.enrollmentsWeek} value={m.enrollmentsWeek} previous={m.enrollmentsPreviousWeek} note={labels.recordedSubscriptions} source={labels.enrollmentsSource} />
-      <MetricCard labels={labels} title={labels.totalStudents} value={m.totalStudents} note={labels.studentsOnly} source={labels.studentsSource} />
-      <MetricCard labels={labels} title={labels.publishedCourses} value={m.publishedCourses} note={labels.availableCourses} source={labels.courseSource} />
+      <MetricCard labels={labels} title={labels.studentsWeek} value={m.studentsWeek} previous={m.studentsPreviousWeek} />
+      <MetricCard labels={labels} title={labels.enrollmentsWeek} value={m.enrollmentsWeek} previous={m.enrollmentsPreviousWeek} />
+      <MetricCard labels={labels} title={labels.totalStudents} value={m.totalStudents} />
+      <MetricCard labels={labels} title={labels.publishedCourses} value={m.publishedCourses} />
     </div>
-    <div className="analytics-primary-grid"><SignupChart labels={labels} daily={data.daily} /><TrendingCourses labels={labels} courses={data.courses[period]} period={period} /></div>
+    <div className="analytics-primary-grid"><SignupChart labels={labels} daily={data.daily} metrics={m} /><TrendingCourses labels={labels} courses={data.courses[period]} period={period} /></div>
     <div className="analytics-secondary-grid"><AcquisitionSources labels={labels} sources={data.sources} /><LearningSummary labels={labels} metrics={m} /></div>
     <div className="analytics-revenue-grid">
-      <MetricCard labels={labels} title={labels.revenueWeek} value={null} note={labels.revenueNote} source={labels.paymentSource} />
-      <MetricCard labels={labels} title={labels.revenueMonth} value={null} note={labels.revenueNote} source={labels.paymentSource} />
+      <MetricCard labels={labels} title={labels.revenueWeek} value={null} note={labels.revenueNote} />
+      <MetricCard labels={labels} title={labels.revenueMonth} value={null} note={labels.revenueNote} />
     </div>
-    <details className="analytics-definitions"><summary>{labels.definitions}</summary><p>{labels.definitionsText}</p></details>
+    <details className="analytics-definitions"><summary>{labels.definitions}</summary><p>{labels.periodNote}</p><p>{labels.definitionsText}</p></details>
   </div>;
 }
 ```
 
 ### File: `modules/components/admin/analytics/signup-chart.tsx`
 
-SHA-256: `a350adcc7a64d2d4914506da83dbc018a49239e3814b7e40faf5bc45a1b26baf`
+SHA-256: `bdbfcc7f2d2d21179a66608c75553e14cfc35c3e11e04928a32a9ac393557f71`
 
 ```tsx
 "use client";
@@ -4923,18 +4922,25 @@ import { useState } from "react";
 import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
 import TimeSeriesChart from "@khatab/design/ui/time-series-chart";
 import { Radio } from "@khatab/design/ui/choice-controls";
-import type { AnalyticsDay, AnalyticsMetric } from "@platform/types/admin-analytics";
+import type { AnalyticsDay, AnalyticsMetric, AnalyticsMetrics } from "@platform/types/admin-analytics";
 import type { AnalyticsLabels } from "@platform/types/admin-analytics";
-import { formatAnalyticsDate, formatChartDay } from "@platform/features/admin/analytics/helpers/format";
-export default function SignupChart({ daily, labels }: { daily: AnalyticsDay[]; labels: AnalyticsLabels }) {
+import MetricChange from "./metric-change";
+import { formatAnalyticsNumber, formatAnalyticsDate, formatChartDay } from "@platform/features/admin/analytics/helpers/format";
+export default function SignupChart({ daily, metrics, labels }: { daily: AnalyticsDay[]; metrics: AnalyticsMetrics; labels: AnalyticsLabels }) {
   const [metric, setMetric] = useState<AnalyticsMetric>("students");
+  const total = metric === "students" ? metrics.studentsMonth : metrics.enrollmentsMonth;
+  const previous = metric === "students" ? metrics.studentsPreviousMonth : metrics.enrollmentsPreviousMonth;
   const data = daily.map(day => ({ tick: formatChartDay(day.day), label: formatAnalyticsDate(day.day, { day: "numeric", month: "long" }),
     current: day[metric], previous: metric === "students" ? day.previousStudents : day.previousEnrollments }));
-  return <AnalyticsPanel title={labels.chartTitle} description={labels.chartDescription} source={labels.chartSource} sourceLabel={labels.source}>
+  return <AnalyticsPanel title={labels.chartTitle} description={labels.chartDescription} className="analytics-signup-panel">
+    <div className="analytics-chart-toolbar"><div className="analytics-chart-summary">
+      <span>{labels[metric]} · {labels.month}</span><strong className="numeral">{formatAnalyticsNumber(total)}</strong>
+      <MetricChange labels={labels} current={total} previous={previous} />
+    </div>
     <fieldset className="analytics-chart-controls"><legend>{labels.metric}</legend>
       <Radio name="analytics-metric" label={labels.students} value="students" checked={metric === "students"} onChange={() => setMetric("students")} />
       <Radio name="analytics-metric" label={labels.enrollments} value="enrollments" checked={metric === "enrollments"} onChange={() => setMetric("enrollments")} />
-    </fieldset>
+    </fieldset></div>
     <div className="analytics-legend"><span data-series="current">{labels.current}</span><span data-series="previous">{labels.previous}</span></div>
     {!data.some(point => point.current > 0) && <p className="analytics-empty-note">{labels.chartEmpty}</p>}
     <TimeSeriesChart data={data} title={labels.chartTitle} labels={{ current: labels.current, previous: labels.previous, value: labels[metric] }} />
@@ -4948,7 +4954,7 @@ export default function SignupChart({ daily, labels }: { daily: AnalyticsDay[]; 
 
 ### File: `modules/components/admin/analytics/trending-courses.tsx`
 
-SHA-256: `0fdb609318f262cf5cba57ed430b2ab407eec2e6ab67a18954fafe5af47ec873`
+SHA-256: `bbe53395561813653792760d2692ddb4a06baf6b8fa828cbda25b2c089f1ec65`
 
 ```tsx
 import Link from "next/link";
@@ -4960,7 +4966,7 @@ import type { AnalyticsLabels } from "@platform/types/admin-analytics";
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
 import MetricChange from "./metric-change";
 export default function TrendingCourses({ courses, period, labels }: { courses: TrendingCourse[]; period: AnalyticsPeriod; labels: AnalyticsLabels }) {
-  return <AnalyticsPanel title={labels.trendTitle} description={labels.trendDescription} source={labels.courseSource} sourceLabel={labels.source}>
+  return <AnalyticsPanel title={labels.trendTitle} description={labels.trendDescription}>
     <nav className="analytics-periods" aria-label={labels.periodLabel}>{analyticsConfig.periods.map(value =>
       <Link key={value} href={`${routes.adminDashboard}?period=${value}`} aria-current={period === value ? "page" : undefined}>{labels[value]}</Link>)}</nav>
     {courses.length === 0 ? <p className="analytics-empty-note">{labels.trendEmpty}</p> : <ol className="analytics-course-ranking">
@@ -8549,7 +8555,7 @@ export const accountCopy = {
 
 ### File: `modules/data/admin-analytics.ts`
 
-SHA-256: `a9241f1528f555ee76faf82d5d574da583b60f5e170ef6609c5b67bfc3576573`
+SHA-256: `e144164fec12e751953ef1ed6c157616de07408fa5009a33975c1e9d012efd83`
 
 ```typescript
 export const analyticsCopy = {
@@ -8563,16 +8569,14 @@ export const analyticsCopy = {
   dailyTable: "عرض الأرقام اليومية", day: "اليوم", chartEmpty: "لم يُسجّل نشاط خلال هذا الشهر بعد.",
   trendTitle: "الدورات الأكثر إقبالاً", trendDescription: "الترتيب حسب عدد الاشتراكات الفعلية في الفترة المختارة.",
   trendEmpty: "لا توجد اشتراكات في هذه الفترة حتى الآن.", periodLabel: "فترة ترتيب الدورات", subscriptions: "اشتراك", draft: "غير منشورة", course: "الدورة",
-  source: "مصدر البيانات", studentsSource: "Supabase Auth · تاريخ إنشاء حساب الطالب", enrollmentsSource: "Supabase · سجل الاشتراكات",
-  chartSource: "Supabase Auth + الاشتراكات · تجميع يومي بتوقيت القاهرة", courseSource: "Supabase · الاشتراكات وتفاصيل الدورات",
-  paymentSource: "لا يوجد سجل مدفوعات متصل بعد", revenueWeek: "إيرادات الأسبوع", revenueMonth: "إيرادات الشهر", unavailable: "غير متاح",
-  revenueNote: "تظهر هنا المبالغ المحصّلة بعد إضافة المدفوعات. الاشتراك أو سعر الدورة لا يُحتسب كإيراد.",
+  revenueWeek: "إيرادات الأسبوع", revenueMonth: "إيرادات الشهر", unavailable: "غير متاح",
+  revenueNote: "تتوفر بعد تفعيل المدفوعات.",
   sourcesTitle: "من أين انضم الطلاب؟", sourcesDescription: "مصادر الانضمام المسجلة لحسابات الطلاب الجدد هذا الشهر، وليست زيارات الموقع.",
   sourcesUnavailable: "لم تُسجّل مصادر الانضمام بعد. لا يمكن اعتبار البيانات المفقودة زيارات مباشرة.",
-  sourcesEmpty: "لا يوجد طلاب جدد هذا الشهر لعرض مصادر انضمامهم.", attributionSource: "Supabase Auth · المصدر المسجل مع حساب الطالب، إن توفر",
+  sourcesEmpty: "لا يوجد طلاب جدد هذا الشهر لعرض مصادر انضمامهم.",
   sourceNames: { youtube: "YouTube", facebook: "Facebook", instagram: "Instagram", tiktok: "TikTok", google: "Google", direct: "مباشر", unknown: "غير مسجل" },
   totalSubscriptions: "إجمالي الاشتراكات", enrolledStudents: "طلاب مشتركون", completedLessons: "دروس مكتملة", learningTitle: "نشاط التعلّم",
-  learningSource: "Supabase · الاشتراكات وتقدّم الدروس", error: "تعذّر تحميل الأرقام الآن.", retry: "حاول مرة أخرى", loading: "جارٍ تحميل إحصاءات المنصة…",
+  error: "تعذّر تحميل الأرقام الآن.", retry: "حاول مرة أخرى", loading: "جارٍ تحميل إحصاءات المنصة…",
   periodNote: "الأسبوع يبدأ يوم الإثنين. المقارنة تستخدم نفس المدة المنقضية من الأسبوع أو الشهر السابق.",
   definitions: "كيف تُحسب الأرقام؟", definitionsText: "تعكس الإحصاءات الحسابات والاشتراكات الحالية؛ الحسابات المحذوفة والمديرون مستبعدون. مصادر الانضمام لا تقيس زيارات الموقع. بيانات الإيرادات غير متاحة حتى تسجيل مدفوعات فعلية.",
 };
@@ -12917,40 +12921,40 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 
 ### File: `modules/styles/analytics.css`
 
-SHA-256: `34e4e55539d8d5f888d88272fccab183412aa52e29692582a6e71c1236b8f2ee`
+SHA-256: `0c49c8087882256aeccf2d6052d291853da399266e3b12b98a4a8f23db730b3d`
 
 ```css
-.analytics-overview { display: grid; gap: var(--space-lg); min-width: 0; }
+.analytics-overview { display: grid; gap: var(--space-xl); min-width: 0; }
 .analytics-overview-header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-lg); }
 .analytics-overview-header p, .analytics-period-note { color: var(--text-secondary); font-size: var(--font-size-caption); margin: 0; }
 .analytics-overview-header > div:last-child { display: grid; gap: var(--space-sm); justify-items: end; }
 .analytics-overview-header .lms-secondary-button { min-height: var(--control-target-size); }
 .analytics-metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); }
-.analytics-primary-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-lg); }
+.analytics-primary-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-lg); }
 .analytics-secondary-grid, .analytics-revenue-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); }
 .analytics-metric { padding: var(--space-lg); min-width: 0; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
 .analytics-metric h2 { margin: 0; color: var(--text-secondary); font-size: var(--font-size-body); font-weight: var(--font-weight-label); }
-.analytics-value { display: block; font-size: var(--size-2rem); margin-block: var(--space-sm); color: var(--text-primary); }
+.analytics-value { display: block; font-size: var(--size-2rem); margin-block: var(--space-md); color: var(--text-primary); line-height: var(--analytics-number-leading); font-variant-numeric: tabular-nums; }
 .analytics-metric > p { margin: var(--space-sm) 0; font-size: var(--font-size-caption); color: var(--text-secondary); }
-.analytics-metric > small { display: block; color: var(--text-muted); font-size: var(--font-size-caption); }
 .analytics-change { display: inline-flex; gap: var(--space-xs); font-size: var(--font-size-caption); color: var(--text-secondary); }
 .analytics-change[data-direction="up"], .analytics-change[data-direction="new"] { color: var(--text-primary); }
 .analytics-change[data-direction="down"] { color: var(--text-accent-readable); }
 .analytics-unavailable { color: var(--text-secondary); }
-.analytics-chart-controls { display: flex; flex-wrap: wrap; gap: var(--space-md); border: 0; padding: 0; margin: 0 0 var(--space-md); min-width: 0; }
+.analytics-chart-controls { display: flex; flex-wrap: wrap; gap: var(--space-md); border: 0; padding: 0; margin: 0; min-width: 0; }
 .analytics-chart-controls legend { margin-bottom: var(--space-sm); font-size: var(--font-size-caption); color: var(--text-secondary); }
 .analytics-legend { display: flex; flex-wrap: wrap; gap: var(--space-md); color: var(--text-secondary); font-size: var(--font-size-caption); }
 .analytics-legend span { display: inline-flex; align-items: center; gap: var(--space-sm); }
 .analytics-legend span::before { content: ''; width: var(--space-md); border-top: var(--size-2px) solid var(--analytics-chart-current); }
 .analytics-legend [data-series="previous"]::before { border-color: var(--analytics-chart-previous); border-top-style: dashed; }
 .analytics-empty-note { color: var(--text-secondary); font-size: var(--font-size-caption); padding-block: var(--space-md); }
-.analytics-periods { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-md); }
+.analytics-periods { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-md); border-bottom: var(--size-1px) solid var(--border-subtle); }
 .analytics-periods a { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control-target-size); padding-inline: var(--space-md); border-bottom: var(--size-2px) solid transparent; color: var(--text-secondary); transition: color var(--transition-fast), border-color var(--transition-fast); }
 .analytics-periods a[aria-current], .analytics-periods a:hover { color: var(--text-primary); border-color: var(--primary-red); }
 .analytics-course-ranking, .analytics-sources-list { list-style: none; margin: 0; padding: 0; }
 .analytics-course-ranking > li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-md); padding-block: var(--space-md); border-bottom: var(--size-1px) solid var(--border-subtle); }
 .analytics-course-ranking > li:last-child { border: 0; }
-.analytics-rank { color: var(--text-muted); }
+.analytics-rank { color: var(--text-secondary); font-weight: var(--font-weight-action); }
+.analytics-course-ranking > li:first-child .analytics-rank { color: var(--text-accent-readable); }
 .analytics-course-ranking a { color: var(--text-primary); transition: color var(--transition-fast); }
 .analytics-course-ranking a:hover { color: var(--text-accent-readable); }
 .analytics-course-ranking small { display: block; font-size: var(--font-size-caption); color: var(--text-secondary); font-weight: var(--font-weight-body); }
@@ -12965,7 +12969,7 @@ SHA-256: `34e4e55539d8d5f888d88272fccab183412aa52e29692582a6e71c1236b8f2ee`
 .analytics-sources-list small { color: var(--text-secondary); }
 .analytics-learning { display: grid; gap: var(--space-lg); margin: 0; }
 .analytics-learning > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); border-bottom: var(--size-1px) solid var(--border-subtle); padding-bottom: var(--space-md); }
-.analytics-learning dd { margin: 0; font-size: var(--size-2rem); font-weight: var(--font-weight-action); }
+.analytics-learning dd { margin: 0; font-size: var(--size-2rem); font-weight: var(--font-weight-action); font-variant-numeric: tabular-nums; }
 .analytics-learning dt { color: var(--text-secondary); }
 .analytics-definitions, .analytics-data-table { font-size: var(--font-size-caption); color: var(--text-secondary); }
 .analytics-definitions summary, .analytics-data-table summary { min-height: var(--control-target-size); padding-block: var(--space-sm); }
@@ -12992,6 +12996,22 @@ SHA-256: `34e4e55539d8d5f888d88272fccab183412aa52e29692582a6e71c1236b8f2ee`
 .analytics-skeleton { min-height: var(--space-5xl); background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); }
 .analytics-skeleton-chart { min-height: var(--analytics-chart-height); }
 .analytics-error { display: grid; gap: var(--space-lg); justify-items: start; }
+
+/* A single focal chart and quieter supporting figures preserve the platform identity. */
+.analytics-chart-toolbar { display: flex; align-items: start; justify-content: space-between; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.analytics-chart-summary { display: grid; gap: var(--space-xs); }
+.analytics-chart-summary > span:first-child { color: var(--text-secondary); font-size: var(--font-size-caption); }
+.analytics-chart-summary > strong { font-size: var(--size-2rem); line-height: var(--analytics-number-leading); font-variant-numeric: tabular-nums; }
+.analytics-chart-controls { justify-content: end; }
+.analytics-legend { margin-bottom: var(--space-md); }
+.analytics-revenue-grid .analytics-metric { background: transparent; }
+.analytics-revenue-grid .analytics-value { display: none; }
+.analytics-revenue-grid .analytics-unavailable { display: inline-block; margin-top: var(--space-sm); font-size: var(--font-size-caption); }
+.analytics-definitions { padding-top: var(--space-md); border-top: var(--size-1px) solid var(--border-subtle); }
+@media (max-width: 768px) {
+  .analytics-chart-toolbar { flex-direction: column; }
+  .analytics-chart-controls { justify-content: start; }
+}
 ```
 
 ### File: `modules/styles/auth.css`
@@ -19199,19 +19219,16 @@ SHA-256: `87c66f082b8fc6a28401b9d3b063a0f99a8daa4c6d7b03e3016897d04e8cd242`
 
 ### File: `packages/design-system/styles/analytics.css`
 
-SHA-256: `7ceb1f38d13881e1eecfec42de6dc333678be1200daccb5aaf9c8a4f9c6d0e60`
+SHA-256: `1edfc7a95427e10d0b536ba35a26bdf9bdca83fc30cef12e6884d7915947c98c`
 
 ```css
 /* Portable chart and panel presentation; all visual roles come from the theme. */
 .analytics-panel { min-width: 0; display: flex; flex-direction: column; background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; }
 .analytics-panel-heading, .analytics-panel-body { padding: var(--space-lg); }
 .analytics-panel-heading { padding-bottom: var(--space-md); }
-.analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--font-size-body); }
+.analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--analytics-heading-size); }
 .analytics-panel-heading p { margin: var(--space-sm) 0 0; color: var(--text-secondary); font-size: var(--font-size-caption); }
 .analytics-panel-body { flex: 1; padding-top: 0; }
-.analytics-source { padding: var(--space-md) var(--space-lg); border-top: var(--size-1px) solid var(--border-subtle); font-size: var(--font-size-caption); color: var(--text-muted); }
-.analytics-source span { color: var(--text-secondary); }
-.analytics-source p { margin: var(--space-xs) 0 0; overflow-wrap: anywhere; }
 .analytics-chart { width: 100%; height: var(--analytics-chart-height); min-width: 0; font-size: var(--font-size-caption); }
 .analytics-tooltip { border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-md); background: var(--bg-section-alt); color: var(--text-primary); }
 .analytics-tooltip dl { margin: var(--space-sm) 0 0; }
@@ -19453,7 +19470,7 @@ SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
 
 ### File: `packages/design-system/styles/theme.css`
 
-SHA-256: `1fa741b8c7d00e2041f29fdb65d282874b22bec894da7565baae7e4f21794e4f`
+SHA-256: `d00e6e5377e0417c85cb3dc42b4272c2d54dd58c134a780584c374d4fb822cb3`
 
 ```css
 /* Shared visual foundation of the two client-approved reference sites.
@@ -19468,7 +19485,9 @@ SHA-256: `1fa741b8c7d00e2041f29fdb65d282874b22bec894da7565baae7e4f21794e4f`
   --email-heading-size: 28px;
   --email-caption-size: 14px;
 
-  --analytics-chart-height: 280px;
+  --analytics-chart-height: 320px;
+  --analytics-heading-size: var(--size-1_25rem);
+  --analytics-number-leading: var(--leading-compact);
   --analytics-chart-current: var(--primary-red);
   --analytics-chart-previous: var(--text-secondary);
   --analytics-chart-grid: var(--border-subtle);
@@ -24220,17 +24239,16 @@ export default function Action(props: ActionProps) {
 
 ### File: `packages/design-system/ui/analytics-panel.tsx`
 
-SHA-256: `acb6e468e141e0dc0f30a7810a65f225c5f1b50a7452d016c63fc601c599278e`
+SHA-256: `d4a5f57107ceb49f33492bcbe6f9fa1c2a6ffb8720c9096580bb685c84386a44`
 
 ```tsx
 import type { ReactNode } from "react";
-export default function AnalyticsPanel({ title, description, source, sourceLabel, children, className = "" }: {
-  title: string; description?: string; source: string; sourceLabel: string; children: ReactNode; className?: string;
+export default function AnalyticsPanel({ title, description, children, className = "" }: {
+  title: string; description?: string; children: ReactNode; className?: string;
 }) {
   return <section className={`analytics-panel ${className}`} aria-label={title}>
     <header className="analytics-panel-heading"><h2>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="analytics-panel-body">{children}</div>
-    <footer className="analytics-source"><span>{sourceLabel}</span><p>{source}</p></footer>
   </section>;
 }
 ```
@@ -27792,7 +27810,7 @@ verify(Boolean((await student.direct.from('account_contacts').update({phone_veri
 
 ### File: `tests/backend/admin-analytics.cjs`
 
-SHA-256: `cd9b546f1c1eda9bce5b31ca2cd998de468197326a2fcbea6af82979980484e9`
+SHA-256: `8706860e47318926be3b052aa71ee979497949238ebe94e0999ae970454021f9`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated analytics database and responsive browser acceptance. */
@@ -27833,6 +27851,8 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
       await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);
       await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
       await expect(page).toHaveURL(url+'/admin/dashboard');await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible();
+      verify(!/Supabase|مصدر البيانات/.test(await page.locator('.analytics-overview').innerText()),'Technical data-source copy removed from Home');
+      await expect(page.locator('.analytics-chart-summary strong')).toHaveText(String(data.metrics.studentsMonth));
       fs.mkdirSync('docs/evidence/admin-analytics',{recursive:true});
       for(const width of [320,390,768,1440]) {
         await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
@@ -27840,6 +27860,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
         await page.screenshot({path:`docs/evidence/admin-analytics/home-${width}.png`,fullPage:true});
       }
       await page.getByLabel('اشتراكات',{exact:true}).check();await expect(page.getByLabel('اشتراكات',{exact:true})).toBeChecked();
+      await expect(page.locator('.analytics-chart-summary strong')).toHaveText(String(data.metrics.enrollmentsMonth));
       await page.getByText('عرض الأرقام اليومية',{exact:true}).click();await expect(page.locator('.analytics-data-table table')).toBeVisible();
       await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
       await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);
@@ -28218,7 +28239,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
 
 ### File: `tests/backend/analytics-live.cjs`
 
-SHA-256: `41aeabc78eb6bf311fbe1e2cf69620f887305d630f0068ddeacc7cd7ef54a548`
+SHA-256: `56dbd8e336b2796b3a135b19ffb217be7f7c8c70fc5ec9ebe15139757ab352a7`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only deployed analytics acceptance, credentials from ignored env. */
@@ -28235,7 +28256,12 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
   await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible({timeout:30000});
   const response=await page.request.get(url+'/api/admin/analytics');expect(response.status()).toBe(200);
   const data=await response.json();expect(data.timezone).toBe('Africa/Cairo');
-  for(const width of [390,1440]) {
+  expect(await page.locator(".analytics-overview").innerText()).not.toMatch(/Supabase|مصدر البيانات/);
+  await expect(page.locator(".analytics-chart-summary strong")).toHaveText(String(data.metrics.studentsMonth));
+  await page.getByLabel("اشتراكات",{exact:true}).check();
+  await expect(page.locator(".analytics-chart-summary strong")).toHaveText(String(data.metrics.enrollmentsMonth));
+  expect(await page.getByText("غير متاح",{exact:true}).count()).toBe(2);
+  for(const width of [320,390,768,1440]) {
    await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await page.screenshot({path:`docs/evidence/admin-analytics/${url.startsWith('https')?'live':'production'}-${width}.png`,fullPage:true});

@@ -12,7 +12,12 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
   await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible({timeout:30000});
   const response=await page.request.get(url+'/api/admin/analytics');expect(response.status()).toBe(200);
   const data=await response.json();expect(data.timezone).toBe('Africa/Cairo');
-  for(const width of [390,1440]) {
+  expect(await page.locator(".analytics-overview").innerText()).not.toMatch(/Supabase|مصدر البيانات/);
+  await expect(page.locator(".analytics-chart-summary strong")).toHaveText(String(data.metrics.studentsMonth));
+  await page.getByLabel("اشتراكات",{exact:true}).check();
+  await expect(page.locator(".analytics-chart-summary strong")).toHaveText(String(data.metrics.enrollmentsMonth));
+  expect(await page.getByText("غير متاح",{exact:true}).count()).toBe(2);
+  for(const width of [320,390,768,1440]) {
    await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await page.screenshot({path:`docs/evidence/admin-analytics/${url.startsWith('https')?'live':'production'}-${width}.png`,fullPage:true});

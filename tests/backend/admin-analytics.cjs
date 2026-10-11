@@ -36,6 +36,8 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
       await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);
       await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
       await expect(page).toHaveURL(url+'/admin/dashboard');await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible();
+      verify(!/Supabase|مصدر البيانات/.test(await page.locator('.analytics-overview').innerText()),'Technical data-source copy removed from Home');
+      await expect(page.locator('.analytics-chart-summary strong')).toHaveText(String(data.metrics.studentsMonth));
       fs.mkdirSync('docs/evidence/admin-analytics',{recursive:true});
       for(const width of [320,390,768,1440]) {
         await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
@@ -43,6 +45,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
         await page.screenshot({path:`docs/evidence/admin-analytics/home-${width}.png`,fullPage:true});
       }
       await page.getByLabel('اشتراكات',{exact:true}).check();await expect(page.getByLabel('اشتراكات',{exact:true})).toBeChecked();
+      await expect(page.locator('.analytics-chart-summary strong')).toHaveText(String(data.metrics.enrollmentsMonth));
       await page.getByText('عرض الأرقام اليومية',{exact:true}).click();await expect(page.locator('.analytics-data-table table')).toBeVisible();
       await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
       await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);

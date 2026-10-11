@@ -10,7 +10,9 @@
   --email-heading-size: 28px;
   --email-caption-size: 14px;
 
-  --analytics-chart-height: 280px;
+  --analytics-chart-height: 320px;
+  --analytics-heading-size: var(--size-1_25rem);
+  --analytics-number-leading: var(--leading-compact);
   --analytics-chart-current: var(--primary-red);
   --analytics-chart-previous: var(--text-secondary);
   --analytics-chart-grid: var(--border-subtle);
