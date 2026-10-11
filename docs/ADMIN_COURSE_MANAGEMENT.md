@@ -33,3 +33,5 @@ Application commit `1faf406` deployed successfully. Hosted migration and advisor
 ## Course price input
 
 Both create/edit forms reuse `CoursePriceField` and `useCoursePrice`. Paid prices use a plain text input with a numeric mobile keyboard, accepting only positive whole digits; Arabic/Persian digits normalize to Latin. A separate `مجاني` choice disables the field and posts canonical amount zero. An empty paid input is required and cannot silently become a free course. Creation defaults to an empty paid input, so free creation requires an explicit choice. The shared `validCourseAmount` helper validates bounded integers in both create/edit APIs, preserving zero as the existing free representation. No schema or existing-price migration is needed. Tests: `tests/backend/course-price.test.ts` and `BACKEND_SUITE=course-price npm run backend:test`.
+
+Price update `a5703ee` deployed successfully. Nineteen read-only live editor checks passed, including text price fields in create/edit, explicit free creation, responsive layout and unchanged existing course data.
