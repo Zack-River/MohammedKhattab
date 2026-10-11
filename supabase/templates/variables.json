@@ -1,0 +1,44 @@
+{
+  "confirmation": [
+    "{{ .SiteURL }}",
+    "{{ .ConfirmationURL }}",
+    "{{ .Email }}"
+  ],
+  "recovery": [
+    "{{ .SiteURL }}",
+    "{{ .ConfirmationURL }}",
+    "{{ .Email }}"
+  ],
+  "email_change": [
+    "{{ .SiteURL }}",
+    "{{ .ConfirmationURL }}",
+    "{{ .Email }}"
+  ],
+  "invite": [
+    "{{ .SiteURL }}",
+    "{{ .ConfirmationURL }}",
+    "{{ .Email }}"
+  ],
+  "magic_link": [
+    "{{ .SiteURL }}",
+    "{{ .ConfirmationURL }}",
+    "{{ .Email }}"
+  ],
+  "reauthentication": [
+    "{{ .SiteURL }}",
+    "{{ .Token }}",
+    "{{ .Email }}"
+  ],
+  "phone_changed_notification": [
+    "{{ .SiteURL }}",
+    "{{ .Email }}"
+  ],
+  "password_changed_notification": [
+    "{{ .SiteURL }}",
+    "{{ .Email }}"
+  ],
+  "email_changed_notification": [
+    "{{ .SiteURL }}",
+    "{{ .Email }}"
+  ]
+}

@@ -3440,9 +3440,10 @@ export const designerCredit: LinkData = {
 
 ### File: `config/email/content.ts`
 
-SHA-256: `518261d9669370c70f11cdee970f83d05bac23ef28b22a9da2f98424a9b8dbd2`
+SHA-256: `87955e86db096b90c99684fa7773d2beed9884eaa23a5c96dae546a212219f5b`
 
 ```typescript
+import { emailVariables } from "../../packages/design-system/email/variables";
 import { creatorIdentity, learningIdentity } from "../identity";
 export const emailBrand = {
   name: learningIdentity.name, englishName: learningIdentity.englishName, supportEmail: creatorIdentity.email,
@@ -3454,15 +3455,15 @@ export const emailBrand = {
 export const authEmails = [
   { id: "confirmation", label: "Confirm sign up", subject: "أهلاً بيك في تعلّم — أكّد بريدك الإلكتروني", title: "خطوتك الأولى تبدأ هنا", message: "أهلاً بيك في تعلّم. أكّد بريدك الإلكتروني عشان تكمّل إعداد حسابك وتبدأ رحلة التعلّم.", action: "تأكيد البريد الإلكتروني", notice: "لو ما أنشأتش حساب على تعلّم، تجاهل الرسالة دي." },
   { id: "recovery", label: "Reset password", subject: "تعلّم — إعادة تعيين كلمة المرور", title: "نرجّعك لحسابك", message: "وصلنا طلب لإعادة تعيين كلمة مرور حسابك. اضغط على الزر واختر كلمة مرور جديدة.", action: "تعيين كلمة مرور جديدة", notice: "لو ما طلبتش تغيير كلمة المرور، تجاهل الرسالة دي. كلمة مرورك الحالية هتفضل زي ما هي." },
-  { id: "email_change", label: "Change email address", subject: "تعلّم — تأكيد تغيير البريد الإلكتروني", title: "أكّد بريدك الجديد", message: "وصلنا طلب لتغيير البريد الإلكتروني المرتبط بحسابك. أكّد التغيير من الزر التالي. قد تحتاج تأكيده من البريدين حسب إعدادات الأمان.", action: "تأكيد تغيير البريد", detail: "{{ .NewEmail }}", notice: "لو ما طلبتش التغيير، ما تضغطش على الرابط وتواصل مع الدعم." },
+  { id: "email_change", label: "Change email address", subject: "تعلّم — تأكيد تغيير البريد الإلكتروني", title: "أكّد بريدك الجديد", message: "وصلنا طلب لتغيير البريد الإلكتروني المرتبط بحسابك. أكّد التغيير من الزر التالي. قد تحتاج تأكيده من البريدين حسب إعدادات الأمان.", action: "تأكيد تغيير البريد", notice: "لو ما طلبتش التغيير، ما تضغطش على الرابط وتواصل مع الدعم." },
   { id: "invite", label: "Invite user", subject: "دعوتك للانضمام إلى تعلّم", title: "مكانك معانا جاهز", message: "تمت دعوتك للانضمام إلى تعلّم. اقبل الدعوة لإعداد حسابك والبدء في التعلّم.", action: "قبول الدعوة", notice: "لو ما كنتش متوقع الدعوة، تقدر تتجاهل الرسالة دي." },
   { id: "magic_link", label: "Magic link or OTP", subject: "تعلّم — رابط تسجيل الدخول", title: "ادخل لحسابك بسهولة", message: "استخدم الرابط التالي لتسجيل الدخول إلى حسابك على تعلّم. الرابط للاستخدام مرة واحدة؛ ما تشاركهش مع أي شخص.", action: "تسجيل الدخول", notice: "لو ما طلبتش تسجيل الدخول، تجاهل الرسالة دي." },
-  { id: "reauthentication", label: "Reauthentication", subject: "تعلّم — رمز تأكيد هويتك", title: "نتأكد إن ده أنت", message: "استخدم رمز التأكيد التالي لإتمام الإجراء على حسابك. الرمز مؤقت؛ ما تشاركهش مع أي شخص، حتى الدعم.", code: "{{ .Token }}", notice: "لو ما طلبتش الرمز، تجاهل الرسالة دي." },
+  { id: "reauthentication", label: "Reauthentication", subject: "تعلّم — رمز تأكيد هويتك", title: "نتأكد إن ده أنت", message: "استخدم رمز التأكيد التالي لإتمام الإجراء على حسابك. الرمز مؤقت؛ ما تشاركهش مع أي شخص، حتى الدعم.", code: emailVariables.token, notice: "لو ما طلبتش الرمز، تجاهل الرسالة دي." },
 ] as const;
 export const securityEmails = [
-  { id: "phone_changed_notification", label: "Phone number changed", subject: "تعلّم — تم تغيير رقم الهاتف", title: "رقم هاتفك اتغيّر", message: "تم تغيير رقم الهاتف المرتبط بحسابك على تعلّم.", detail: "{{ .OldPhone }} → {{ .Phone }}", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
-  { id: "password_changed_notification", label: "Password changed", subject: "تعلّم — تم تغيير كلمة المرور", title: "كلمة مرورك اتغيّرت", message: "تم تغيير كلمة المرور لحسابك على تعلّم.", notice: "لو مش أنت اللي غيّرتها، أعد تعيين كلمة المرور فوراً وتواصل مع الدعم.", action: "استعادة الحساب", actionUrl: "{{ .SiteURL }}/forgot-password" },
-  { id: "email_changed_notification", label: "Email address changed", subject: "تعلّم — تم تغيير البريد الإلكتروني", title: "بريد حسابك اتغيّر", message: "تم تغيير البريد الإلكتروني المرتبط بحسابك على تعلّم.", detail: "{{ .OldEmail }} → {{ .Email }}", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
+  { id: "phone_changed_notification", label: "Phone number changed", subject: "تعلّم — تم تغيير رقم الهاتف", title: "رقم هاتفك اتغيّر", message: "تم تغيير رقم الهاتف المرتبط بحسابك على تعلّم.", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
+  { id: "password_changed_notification", label: "Password changed", subject: "تعلّم — تم تغيير كلمة المرور", title: "كلمة مرورك اتغيّرت", message: "تم تغيير كلمة المرور لحسابك على تعلّم.", notice: "لو مش أنت اللي غيّرتها، أعد تعيين كلمة المرور فوراً وتواصل مع الدعم.", action: "استعادة الحساب", actionUrl: `${emailVariables.siteUrl}/forgot-password` },
+  { id: "email_changed_notification", label: "Email address changed", subject: "تعلّم — تم تغيير البريد الإلكتروني", title: "بريد حسابك اتغيّر", message: "تم تغيير البريد الإلكتروني المرتبط بحسابك على تعلّم.", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
 ] as const;
 ```
 
@@ -17451,9 +17452,10 @@ export const youtubePlayerPolicy = {
 
 ### File: `packages/design-system/email/fragments.ts`
 
-SHA-256: `bd010c3aa65931380d5b40be4556d416063b77f2336e950f18f68a559d277cd7`
+SHA-256: `9bbacaf5c977d0ae631df287cce89cc2197a4e0bd4a1d48f69307f1375be3370`
 
 ```typescript
+import { emailVariables } from "./variables";
 import type { EmailBrand, EmailContent, EmailTheme } from "./types";
 export function escapeEmailText(value: string) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
@@ -17461,7 +17463,7 @@ export function escapeEmailText(value: string) {
 export function emailAction(content: EmailContent, theme: EmailTheme, brand: EmailBrand) {
   if (content.code) return `<p dir="ltr" style="font-size:${theme.headingSize};font-weight:700;text-align:center;padding:${theme.gap};border:1px solid ${theme.border};border-radius:${theme.radius}">${content.code}</p>`;
   if (!content.action) return "";
-  const url = content.actionUrl ?? "{{ .ConfirmationURL }}";
+  const url = content.actionUrl ?? emailVariables.confirmationUrl;
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:${theme.padding} 0"><tr><td bgcolor="${theme.primary}" style="border-radius:${theme.radius};text-align:center"><a href="${url}" style="display:inline-block;padding:${theme.gap} ${theme.padding};font-family:${escapeEmailText(theme.font)};font-size:${theme.buttonSize};font-weight:700;color:${theme.text};text-decoration:none">${escapeEmailText(content.action)}</a></td></tr></table>
 <p style="font-size:${theme.smallSize};color:${theme.secondary}">${escapeEmailText(brand.fallback)}</p><p dir="ltr" style="font-size:${theme.smallSize};word-break:break-all;overflow-wrap:anywhere"><a href="${url}" style="color:${theme.secondary}">${url}</a></p>`;
 }
@@ -17469,9 +17471,10 @@ export function emailAction(content: EmailContent, theme: EmailTheme, brand: Ema
 
 ### File: `packages/design-system/email/render.ts`
 
-SHA-256: `2a090a292944da1e8b5db0ee4bc6c45a104330b550d8d458f97efad3bd2cfc0a`
+SHA-256: `effda7ee6efc5846e8269758d2f940a509e2bfba690d16b2cfa88a31080b2dd3`
 
 ```typescript
+import { emailVariables } from "./variables";
 import type { EmailBrand, EmailContent, EmailTheme } from "./types";
 import { emailAction, escapeEmailText as esc } from "./fragments";
 export function renderEmail(content: EmailContent, brand: EmailBrand, t: EmailTheme) {
@@ -17482,7 +17485,7 @@ export function renderEmail(content: EmailContent, brand: EmailBrand, t: EmailTh
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${t.background}"><tr><td align="center" style="padding:${t.padding} ${t.gap}">
 <!--[if mso]><table role="presentation" width="${parseInt(t.width)}" align="center"><tr><td><![endif]-->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:${t.width};text-align:right" dir="rtl">
-<tr><td style="padding:0 0 ${t.padding}"><a href="{{ .SiteURL }}" style="color:${t.text};text-decoration:none;font-size:${t.headingSize};font-weight:700">${esc(brand.name)} <span style="color:${t.primary}">▲</span></a><br><span dir="ltr" style="font-size:${t.smallSize};color:${t.secondary}">${esc(brand.englishName)}</span></td></tr>
+<tr><td style="padding:0 0 ${t.padding}"><a href="${emailVariables.siteUrl}" style="color:${t.text};text-decoration:none;font-size:${t.headingSize};font-weight:700">${esc(brand.name)} <span style="color:${t.primary}">▲</span></a><br><span dir="ltr" style="font-size:${t.smallSize};color:${t.secondary}">${esc(brand.englishName)}</span></td></tr>
 <tr><td bgcolor="${t.surface}" style="background-color:${t.surface};padding:${t.padding};border:1px solid ${t.border};border-top:3px solid ${t.primary};border-radius:${t.radius}">
 <p style="margin:0 0 ${t.gap};color:${t.secondary};font-size:${t.smallSize}">${esc(brand.context)}</p>
 <h1 style="margin:0 0 ${t.gap};font-size:${t.headingSize};line-height:1.5;color:${t.text}">${esc(content.title)}</h1>
@@ -17490,7 +17493,7 @@ export function renderEmail(content: EmailContent, brand: EmailBrand, t: EmailTh
 ${content.detail ? `<p dir="ltr" style="overflow-wrap:anywhere;word-break:break-all;color:${t.text}">${esc(content.detail)}</p>` : ""}
 ${emailAction(content, t, brand)}
 <p style="margin:${t.padding} 0 0;padding-top:${t.gap};border-top:1px solid ${t.border};font-size:${t.smallSize};color:${t.secondary}">${esc(content.notice)}</p>
-<p style="margin:${t.gap} 0 0;color:${t.secondary};font-size:${t.smallSize}">${esc(brand.recipient)}<br><span dir="ltr" style="display:inline-block;overflow-wrap:anywhere;word-break:break-all">{{ .Email }}</span></p>
+<p style="margin:${t.gap} 0 0;color:${t.secondary};font-size:${t.smallSize}">${esc(brand.recipient)}<br><span dir="ltr" style="display:inline-block;overflow-wrap:anywhere;word-break:break-all">${emailVariables.email}</span></p>
 </td></tr><tr><td style="padding:${t.padding} 0;color:${t.secondary};font-size:${t.smallSize}">
 <p style="margin:0 0 ${t.gap}">${esc(brand.help)} <a href="${brand.supportUrl}" style="color:${t.text};text-decoration:underline">${esc(brand.support)}</a></p>
 <p style="margin:0 0 ${t.gap}">${esc(brand.footer)}</p><a href="mailto:${brand.supportEmail}" style="color:${t.secondary}" dir="ltr">${brand.supportEmail}</a>
@@ -17513,6 +17516,28 @@ export interface EmailBrand {
   recipient: string; help: string; support: string; footer: string; fallback: string;
 }
 export type EmailTheme = Record<"background" | "surface" | "primary" | "text" | "secondary" | "border" | "font" | "width" | "padding" | "gap" | "radius" | "bodySize" | "headingSize" | "buttonSize" | "smallSize", string>;
+```
+
+### File: `packages/design-system/email/variables.ts`
+
+SHA-256: `0d08e2ef7305fbd38066bd453d0ad9f3fb607b39a4638fc4b241ec1b53564d59`
+
+```typescript
+/** Dashboard-compatible placeholders; product templates use only this contract. */
+export const emailVariables = {
+  confirmationUrl: "{{ .ConfirmationURL }}", token: "{{ .Token }}", tokenHash: "{{ .TokenHash }}",
+  siteUrl: "{{ .SiteURL }}", email: "{{ .Email }}", data: "{{ .Data }}", redirectTo: "{{ .RedirectTo }}",
+} as const;
+export function validateEmailVariables(source: string) {
+  const allowed = new Set<string>(Object.values(emailVariables));
+  const variables = [...source.matchAll(/{{[\s\S]*?}}/g)].map(match => match[0]);
+  for (const variable of variables) {
+    const expression = variable.match(/^{{\s*(\.\w+)\s*}}$/)?.[1];
+    if (!expression || !allowed.has(`{{ ${expression} }}`)) throw new Error(`Unsupported email placeholder: ${variable}`);
+  }
+  if (/{{|}}/.test(source.replace(/{{[\s\S]*?}}/g, ""))) throw new Error("Malformed email placeholder");
+  return [...new Set(variables)];
+}
 ```
 
 ### File: `packages/design-system/helpers/browser/animation-frame.ts`
@@ -26681,9 +26706,10 @@ const {chromium}=require('@playwright/test'),fs=require('node:fs');
 
 ### File: `scripts/email/generate.ts`
 
-SHA-256: `51a817daef4087e234232047e416874408a903f4dc4f07ae817af4804bce4b7a`
+SHA-256: `8ad798aaf78ff75e57abbcf363778dd2ebdae9aad74f6999860ef971ec159b20`
 
 ```typescript
+import { validateEmailVariables } from "../../packages/design-system/email/variables";
 import fs from "node:fs";
 import path from "node:path";
 import { parseTokens, resolveToken } from "../../packages/design-system/lib/theme.cjs";
@@ -26695,8 +26721,14 @@ const roles = { background: "--bg-main", surface: "--bg-surface", primary: "--pr
 const theme = Object.fromEntries(Object.entries(roles).map(([key, token]) => [key, resolveToken(tokens, token)])) as EmailTheme;
 fs.mkdirSync("supabase/templates", { recursive: true });
 const templates = [...authEmails, ...securityEmails];
-for (const content of templates) fs.writeFileSync(path.join("supabase/templates", content.id + ".html"), renderEmail(content, emailBrand, theme));
-const payload = Object.fromEntries(templates.flatMap(content => [[`mailer_subjects_${content.id}`, content.subject], [`mailer_templates_${content.id}_content`, renderEmail(content, emailBrand, theme)]]));
+const exports = templates.map(content => {
+  const html = renderEmail(content, emailBrand, theme);
+  const variables = validateEmailVariables(content.subject + html);
+  return { content, html, variables };
+});
+for (const { content, html } of exports) fs.writeFileSync(path.join("supabase/templates", content.id + ".html"), html);
+fs.writeFileSync("supabase/templates/variables.json", JSON.stringify(Object.fromEntries(exports.map(({ content, variables }) => [content.id, variables])), null, 2) + "\n");
+const payload = Object.fromEntries(exports.flatMap(({ content, html }) => [[`mailer_subjects_${content.id}`, content.subject], [`mailer_templates_${content.id}_content`, html]]));
 fs.writeFileSync("supabase/templates/hosted-config.json", JSON.stringify(payload, null, 2) + "\n");
 const localConfigPath = "supabase/config.toml";
 const localTemplates = authEmails.map(content => `[auth.email.template.${content.id}]\nsubject = ${JSON.stringify(content.subject)}\ncontent_path = "./supabase/templates/${content.id}.html"`).join("\n\n");
@@ -28325,12 +28357,14 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/email-design.cjs`
 
-SHA-256: `c2828766b449922ba34de788d3b1c73bfbfbb2606be52614f6338bb1a49d5577`
+SHA-256: `42be9cbe0716bac66ad5f93dda6013515ac346dbd745a02aa532d070d26d72a0`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Generated email design, placeholders and rendering checks. */
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const {chromium}=require('@playwright/test');
+const allowed=new Set(['ConfirmationURL','Token','TokenHash','SiteURL','Email','Data','RedirectTo']);
+const manifest=JSON.parse(fs.readFileSync('supabase/templates/variables.json','utf8'));
 const config=JSON.parse(fs.readFileSync('supabase/templates/hosted-config.json','utf8'));
 (async()=>{
  const browser=await chromium.launch({headless:true});let checks=0;
@@ -28338,11 +28372,15 @@ const config=JSON.parse(fs.readFileSync('supabase/templates/hosted-config.json',
   fs.mkdirSync('docs/evidence/email-design',{recursive:true});
   for(const file of fs.readdirSync('supabase/templates').filter(file=>file.endsWith('.html'))) {
    const id=file.replace('.html',''),html=fs.readFileSync('supabase/templates/'+file,'utf8');
+   const variables=[...new Set([...html.matchAll(/{{([\s\S]*?)}}/g)].map(match=>match[0]))];
+   assert.deepEqual(manifest[id],variables);
+   for(const variable of variables)assert.ok(allowed.has(variable.slice(2,-2).trim().slice(1)),`${id}: unexpected placeholder ${variable}`);
+   assert.doesNotMatch(html,/{{ \.(?:NewEmail|OldEmail|Phone|OldPhone) }}/);
+   if(id.endsWith('_notification'))assert.doesNotMatch(html,/{{ \.(?:ConfirmationURL|Token|TokenHash|RedirectTo) }}/);
    assert.equal(config[`mailer_templates_${id}_content`],html);assert.match(html,/lang="ar" dir="rtl"/);
    assert.match(html,/#101317/);assert.match(html,/#fc3522/);assert.doesNotMatch(html,/<script|var\(--|localhost|sb_secret_|SMTP_PASSWORD/);
    if(['confirmation','recovery','email_change','invite','magic_link'].includes(id))assert.equal((html.match(/href="{{ \.ConfirmationURL }}"/g)||[]).length,2);
    if(id==='reauthentication'){assert.match(html,/{{ \.Token }}/);assert.doesNotMatch(html,/ConfirmationURL/);}
-   if(id==='email_change')assert.match(html,/{{ \.NewEmail }}/);
    const page=await browser.newPage();
    const preview=html.replaceAll('{{ .ConfirmationURL }}','https://ta3allam.vercel.app/api/auth/callback?token_hash='+'x'.repeat(90)).replaceAll('{{ .SiteURL }}','https://ta3allam.vercel.app').replaceAll('{{ .Email }}','student@ta3allam.com').replaceAll('{{ .NewEmail }}','newstudent@ta3allam.com').replaceAll('{{ .OldEmail }}','student@ta3allam.com').replaceAll('{{ .Token }}','12345678').replaceAll('{{ .Phone }}','+201201024880').replaceAll('{{ .OldPhone }}','+201055555555');
    for(const width of [320,390,768]) {
@@ -28361,6 +28399,21 @@ const config=JSON.parse(fs.readFileSync('supabase/templates/hosted-config.json',
   console.log(`Email design: ${checks} responsive renders passed; placeholders, canonical colors and generated payload verified.`);
  } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
+```
+
+### File: `tests/backend/email-variables.ts`
+
+SHA-256: `839ae4e391b81b57b09d57a0412475658a6f64977cd194312eb6feaad8a9417e`
+
+```typescript
+import assert from "node:assert/strict";
+import { emailVariables, validateEmailVariables } from "../../packages/design-system/email/variables";
+assert.deepEqual(validateEmailVariables(Object.values(emailVariables).join(" ")), Object.values(emailVariables));
+assert.deepEqual(validateEmailVariables("{{.Email}} {{  .SiteURL  }}"), ["{{.Email}}", "{{  .SiteURL  }}"]);
+for (const input of ["{{ .NewEmail }}", "{{ .OldEmail }}", "{{ .Phone }}", "{{ .OldPhone }}", "{{ .Password }}", "{{ .Email typo }}", "{{ . Email }}", "{{ .Email }", "{ .Email }}"])
+  assert.throws(() => validateEmailVariables(input), /Unsupported|Malformed/);
+assert.deepEqual(validateEmailVariables("Plain Arabic text — تعلّم"), []);
+console.log("Email placeholder contract passed: seven allowed variables, whitespace variants, scoped/unknown/malformed rejection.");
 ```
 
 ### File: `tests/backend/form-controls-browser.cjs`

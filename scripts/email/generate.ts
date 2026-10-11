@@ -1,3 +1,4 @@
+import { validateEmailVariables } from "../../packages/design-system/email/variables";
 import fs from "node:fs";
 import path from "node:path";
 import { parseTokens, resolveToken } from "../../packages/design-system/lib/theme.cjs";
@@ -9,8 +10,14 @@ const roles = { background: "--bg-main", surface: "--bg-surface", primary: "--pr
 const theme = Object.fromEntries(Object.entries(roles).map(([key, token]) => [key, resolveToken(tokens, token)])) as EmailTheme;
 fs.mkdirSync("supabase/templates", { recursive: true });
 const templates = [...authEmails, ...securityEmails];
-for (const content of templates) fs.writeFileSync(path.join("supabase/templates", content.id + ".html"), renderEmail(content, emailBrand, theme));
-const payload = Object.fromEntries(templates.flatMap(content => [[`mailer_subjects_${content.id}`, content.subject], [`mailer_templates_${content.id}_content`, renderEmail(content, emailBrand, theme)]]));
+const exports = templates.map(content => {
+  const html = renderEmail(content, emailBrand, theme);
+  const variables = validateEmailVariables(content.subject + html);
+  return { content, html, variables };
+});
+for (const { content, html } of exports) fs.writeFileSync(path.join("supabase/templates", content.id + ".html"), html);
+fs.writeFileSync("supabase/templates/variables.json", JSON.stringify(Object.fromEntries(exports.map(({ content, variables }) => [content.id, variables])), null, 2) + "\n");
+const payload = Object.fromEntries(exports.flatMap(({ content, html }) => [[`mailer_subjects_${content.id}`, content.subject], [`mailer_templates_${content.id}_content`, html]]));
 fs.writeFileSync("supabase/templates/hosted-config.json", JSON.stringify(payload, null, 2) + "\n");
 const localConfigPath = "supabase/config.toml";
 const localTemplates = authEmails.map(content => `[auth.email.template.${content.id}]\nsubject = ${JSON.stringify(content.subject)}\ncontent_path = "./supabase/templates/${content.id}.html"`).join("\n\n");

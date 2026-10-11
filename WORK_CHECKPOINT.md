@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — email placeholder contract
+
+- Audited and regenerated all nine Supabase email templates and the hosted payload using only the seven variables supplied by the user. Removed NewEmail/OldEmail/Phone/OldPhone details; notifications now use generic copy. Existing confirmation URLs, reauthentication tokens, site links and account email placeholders remain intact.
+- Added shared `packages/design-system/email/variables.ts` and generated `supabase/templates/variables.json`. The generator rejects unknown and malformed placeholders; harmless whitespace variants are accepted. Product content and the shared renderer consume the same constants.
+- Passed the placeholder contract tests, all 27 responsive email renders, targeted lint, TypeScript, architecture (562 files / zero violations), and production build. Updated manual installation guidance. Hosted templates still require the user to paste and save the regenerated HTML in Supabase; no hosted Auth settings were changed by this task.
+
 ## Latest checkpoint — admin Home analytics and themed auth emails
 
 - Added Home at `/admin/dashboard`; moved user management to `/admin/dashboard/users`, preserving username detail routes. Added real Cairo-time signup/enrollment metrics, a Recharts daily chart with previous-month comparison and accessible table, week/month/all-time enrollment rankings, signup attribution, learning summary and explicit source labels. Revenue remains unavailable until actual payments exist.
