@@ -6,7 +6,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 
 - Removed the administrator sidebar callout (title, description and explore-courses action), removed the same description below the users heading, and removed Explore Courses from the administrator header.
 - Shared dashboard shell exposes `showSidebarHelp` and `showBrowseLink`, enabled by default for students and disabled only by the administrator layout. User/course navigation, profile access and logout remain available.
-- TypeScript, targeted ESLint, architecture (471 files / zero violations) and production build passed. Read-only real-admin browser checks verify all three admin views plus the mobile menu. Deployment verification follows the code push.
+- TypeScript, targeted ESLint, architecture (471 files / zero violations) and production build passed. Read-only real-admin browser checks passed all **16 assertions locally and 16 live**, covering users, course list/editor and the mobile menu with zero JavaScript errors. Application commit **3f81148** deployed successfully to `https://ta3allam.vercel.app`. Final local build: `GU3sGtPnV5MI_cd9efZlo`.
 
 ## Latest checkpoint — usernames, indexed name search and shared form controls
 
