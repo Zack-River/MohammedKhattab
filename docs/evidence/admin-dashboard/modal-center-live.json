@@ -1,0 +1,235 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "centered": true,
+  "checks": [
+    {
+      "width": 1440,
+      "height": 900,
+      "name": "management",
+      "box": {
+        "x": 440,
+        "y": 29.609375,
+        "width": 560,
+        "height": 840.765625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "29.6094px 440px 29.625px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "name": "confirmation",
+      "box": {
+        "x": 440,
+        "y": 321.296875,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "321.297px 440px 321.312px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "name": "management",
+      "box": {
+        "x": 360,
+        "y": 16,
+        "width": 560,
+        "height": 688
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "16px 360px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "name": "confirmation",
+      "box": {
+        "x": 360,
+        "y": 231.296875,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "231.297px 360px 231.312px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "name": "management",
+      "box": {
+        "x": 104,
+        "y": 89.921875,
+        "width": 560,
+        "height": 844.15625
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "89.9219px 104px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "name": "confirmation",
+      "box": {
+        "x": 104,
+        "y": 357.296875,
+        "width": 560,
+        "height": 309.390625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "357.297px 104px 357.312px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "name": "management",
+      "box": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 812
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "16px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "name": "confirmation",
+      "box": {
+        "x": 16,
+        "y": 267.296875,
+        "width": 358,
+        "height": 309.390625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "267.297px 16px 267.312px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "name": "management",
+      "box": {
+        "x": 16,
+        "y": 16,
+        "width": 288,
+        "height": 536
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "16px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "name": "confirmation",
+      "box": {
+        "x": 16,
+        "y": 117.40625,
+        "width": 288,
+        "height": 333.1875
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "117.406px 16px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "name": "management",
+      "box": {
+        "x": 142,
+        "y": 16,
+        "width": 560,
+        "height": 358
+      },
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "style": {
+        "margin": "16px 142px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "name": "confirmation",
+      "box": {
+        "x": 142,
+        "y": 66.296875,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 0,
+        "y": -0.0078125
+      },
+      "style": {
+        "margin": "66.2969px 142px 66.3125px",
+        "position": "fixed"
+      }
+    }
+  ],
+  "javascriptErrors": []
+}

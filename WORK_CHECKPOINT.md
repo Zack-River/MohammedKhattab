@@ -7,7 +7,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 - Reproduced the offset in the previous production build. The global zero-margin reset overrides native dialog auto margins; at 1440px the management and confirmation dialogs were displaced 440px horizontally from the viewport center.
 - Shared `.lms-admin-dialog` now sets `position: fixed`, `inset: 0`, and `margin: auto`, centering both management and confirmation dialogs. Existing viewport bounds, internal scrolling, backdrop, Escape handling and focus restoration remain.
 - Read-only real-admin production-build verification passed for both dialogs at 1440×900, 1280×720, 768×1024, 390×844, 320×568 and 844×390: both center offsets are within one pixel, dialogs fit each viewport, cancel restores focus, and zero browser JavaScript errors. No production moderation actions were submitted. Added an exact center assertion to the existing responsive browser regression. Build/TypeScript, targeted ESLint and architecture (461 files, zero violations) passed. Final local build: `4WzLwRSo85fb7AKTu3V6j`.
-- Deployment verification is pending. Evidence: `docs/evidence/admin-dashboard/modal-center-*`.
+- Application commit **79354cd** deployed successfully. Fresh live checks verified both dialogs centered within one pixel at all six screen sizes, fitting the viewport with working Escape/focus return and zero JavaScript errors. Evidence: `docs/evidence/admin-dashboard/modal-center-*`.
 
 ## Latest checkpoint — account search, filters and five-card pagination
 
