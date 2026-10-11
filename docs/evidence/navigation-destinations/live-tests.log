@@ -1,0 +1,16 @@
+[WebServer] (node:74449) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 3 tests using 3 workers
+
+(node:74474) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74473) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [platform] › tests/platform/portfolio.spec.ts:184:5 › navigation clears the previous section highlight when returning to the original hero (2.2s)
+  ✓  3 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 320px (6.7s)
+  ✓  1 [platform] › tests/platform/navigation-links.spec.ts:3:7 › navigation separates sections from catalog destinations at 1440px (7.1s)
+
+  3 passed (8.4s)
