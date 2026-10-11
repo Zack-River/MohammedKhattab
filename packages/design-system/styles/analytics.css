@@ -1,0 +1,16 @@
+/* Portable chart and panel presentation; all visual roles come from the theme. */
+.analytics-panel { min-width: 0; display: flex; flex-direction: column; background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; }
+.analytics-panel-heading, .analytics-panel-body { padding: var(--space-lg); }
+.analytics-panel-heading { padding-bottom: var(--space-md); }
+.analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--font-size-body); }
+.analytics-panel-heading p { margin: var(--space-sm) 0 0; color: var(--text-secondary); font-size: var(--font-size-caption); }
+.analytics-panel-body { flex: 1; padding-top: 0; }
+.analytics-source { padding: var(--space-md) var(--space-lg); border-top: var(--size-1px) solid var(--border-subtle); font-size: var(--font-size-caption); color: var(--text-muted); }
+.analytics-source span { color: var(--text-secondary); }
+.analytics-source p { margin: var(--space-xs) 0 0; overflow-wrap: anywhere; }
+.analytics-chart { width: 100%; height: var(--analytics-chart-height); min-width: 0; font-size: var(--font-size-caption); }
+.analytics-tooltip { border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-md); background: var(--bg-section-alt); color: var(--text-primary); }
+.analytics-tooltip dl { margin: var(--space-sm) 0 0; }
+.analytics-tooltip dl > div { display: flex; gap: var(--space-md); justify-content: space-between; }
+.analytics-tooltip dt { color: var(--text-secondary); }
+.analytics-tooltip dd { margin: 0; }

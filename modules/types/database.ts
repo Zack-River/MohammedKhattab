@@ -218,6 +218,9 @@ isOneToOne: false
             "account_access_allowed":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"admin_dashboard_snapshot":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
                            },

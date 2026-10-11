@@ -52,6 +52,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
     await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
     await expect(page).toHaveURL(url + '/admin/dashboard');
+    await page.goto(url + '/admin/dashboard/users');
     await page.getByRole('searchbox').fill(prefix);
     await page.getByRole('button', { name: 'تطبيق البحث والفلاتر' }).click();
     await expect(page).toHaveURL(new RegExp('q=' + prefix));
@@ -78,7 +79,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
       verify(await page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) <= innerWidth), `Search/filter UI fits ${width}px`);
     }
     await page.getByRole('link', { name: 'مسح الفلاتر', exact: true }).click();
-    await expect(page).toHaveURL(url + '/admin/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard/users');
     await expect(page.getByRole('searchbox')).toHaveValue('');
     verify((await page.locator('.lms-admin-table tbody tr').count()) <= 5, 'Clear filters keeps five-record page limit');
     verify(errors.length === 0, 'Search/filter browser has no JavaScript errors');

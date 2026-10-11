@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from "react";
 const paths = {
+  home: "m3 10 9-7 9 7v11h-6v-7H9v7H3V10z",
   grid: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
   book: "M4 3h6a3 3 0 0 1 3 3v15a4 4 0 0 0-4-2H4V3zm16 0h-4a3 3 0 0 0-3 3v15a4 4 0 0 1 4-2h3V3z",
   folder: "M3 7V4h6l3 3h9v13H3V7z",

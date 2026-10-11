@@ -16,3 +16,6 @@
 @import "../packages/design-system/styles/action-menu.css";
 @import "../modules/styles/account.css";
 @import "../packages/design-system/styles/interactions.css";
+
+@import "../packages/design-system/styles/analytics.css";
+@import "../modules/styles/analytics.css";

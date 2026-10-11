@@ -17,16 +17,16 @@ A server-only `save_account_settings` RPC saves identity and phone atomically, s
 
 Initial missing phones are unverified. Phone edits clear their timestamp automatically; pending email edits immediately clear email verification. Both contacts must be verified before any new enrollment, including trusted inserts. A database trigger enforces this and serializes with contact edits. Existing enrollment/progress/resource/playback access does not depend on these contact flags. Moderation still applies. Direct Supabase Auth email edits also invalidate enrollment eligibility while pending, even if attempted outside the app.
 
-## Gmail delivery setup — credentials pending
+## Gmail delivery setup — verified 2026-10-11
 
 Configure **Supabase → Authentication → Email → SMTP Settings**. Gmail sends the messages; Supabase generates and verifies the signup, email-change and recovery links. No email library or duplicate password/token database is necessary.
 
 - Enable Custom SMTP.
-- Sender email: the Gmail account being used.
-- Sender name: Ta3allam.
+- Sender email: `mohamedkhattab494@gmail.com`.
+- Sender name: تعلّم.
 - Host: `smtp.gmail.com`.
 - Port: `465` (TLS), or `587` if your SMTP configuration uses STARTTLS.
-- Username: the full Gmail address.
+- Username: `mohamedkhattab494@gmail.com`.
 - Password: a Google **App Password**, not the Gmail account password. Enable Google 2-Step Verification first.
 - Enable email confirmations and secure/double email-change confirmation. Keep password minimum at least eight.
 - Site URL: `https://ta3allam.vercel.app`.
@@ -39,4 +39,4 @@ Sources: [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [Goog
 
 ## Acceptance
 
-Run `BACKEND_SUITE=account-settings npm run backend:test` against isolated local Supabase. It covers validation/reauthentication, RLS/role enforcement, contact invalidation, audit, indexed lookup, new-versus-existing enrollment access, responsive menus/settings and an actual local-inbox password recovery link. `BACKEND_SUITE=account-settings-browser` reruns just the browser/email flow. Production Gmail inbox delivery remains pending until credentials and SMTP configuration are provided.
+Run `BACKEND_SUITE=account-settings npm run backend:test` against isolated local Supabase. It covers validation/reauthentication, RLS/role enforcement, contact invalidation, audit, indexed lookup, new-versus-existing enrollment access, responsive menus/settings and an actual local-inbox password recovery link. `BACKEND_SUITE=account-settings-browser` reruns just the browser/email flow. Production Gmail SMTP authentication passed. The live `/api/auth/forgot-password` request for the registered administrator returned HTTP 200, and the user confirmed the recovery email arrived in Inbox. This test did not change the password. The App Password is excluded from Git and public environment variables.

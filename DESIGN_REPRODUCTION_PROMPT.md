@@ -199,7 +199,7 @@ The source `package.json` is included exactly. Preserve the companion `package-l
 | `eslint-config-next` | `^16.3.8` | `16.3.8` |
 | `typescript` | `^5.9.2` | `5.9.3` |
 
-Companion `package-lock.json`: **252957 bytes**; SHA-256 `bd7f87b7da45927c3370653162f06d81bbece0786604defbc0eb746cef1f99e8`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
+Companion `package-lock.json`: **268508 bytes**; SHA-256 `58907976565059872f4358b14af0fcf379aff2cd280be7ca3697f054bf6f6654`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
 ## 13. Original asset manifest
 
 Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompression, different flags, transparent padding, image cropping, and alternative font builds can change pixels. Unused alternative assets remain listed to preserve the available theme/media inventory. Names, alt text, rendered dimensions, and class treatment are defined by the embedded data/components; dimensions in a binary are not a substitute for the rendered dimensions. Font licenses/provenance remain in the original asset folder.
@@ -587,9 +587,21 @@ export default async function AdminCoursesPage() {
 }
 ```
 
+### File: `app/admin/dashboard/error.tsx`
+
+SHA-256: `36947cd0446542bc34706852e6a9ed9ce00a52490599e8d1afbdb20295a98135`
+
+```tsx
+"use client";
+import { analyticsCopy as labels } from "@platform/data/admin-analytics";
+export default function ErrorPage({ reset }: { reset: () => void }) {
+  return <div className="analytics-error" role="alert"><h1>{labels.error}</h1><button type="button" className="btn-primary" onClick={reset}>{labels.retry}</button></div>;
+}
+```
+
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `4caa57b4edd3396c5afec3279d6f6a538996615549f1032c3039239573377e6f`
+SHA-256: `b06fd0191810a27c1c72a60d68f7eadaeb1b592019fbe65a9afc945bad60239a`
 
 ```tsx
 import { adminAccountMenuContent } from "@platform/config/account-menu";
@@ -598,6 +610,7 @@ import type { Metadata } from "next";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { endpoints, routes } from "@platform/config/navigation";
+import { analyticsCopy } from "@platform/data/admin-analytics";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -610,32 +623,40 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }]}>
     {children}
   </DashboardShell>;
 }
 ```
 
-### File: `app/admin/dashboard/page.tsx`
+### File: `app/admin/dashboard/loading.tsx`
 
-SHA-256: `a543a97fd80b7c15a7bcecf2ea69d0b86ae3301a15d758b30921add68e69e2a0`
+SHA-256: `5e3d1ee78b4fb8e60503008300a962b218e2cc0624b77ce552f1c2bd39861cf0`
 
 ```tsx
-import PageHeading from "@platform/components/ui/page-heading";
-import UsersTable from "@platform/components/admin/users-table";
-import AdminPagination from "@platform/components/admin/admin-pagination";
-import UserFilters from "@platform/components/admin/user-filters";
-import { readAdminUsers } from "@platform/features/admin/repositories/users";
+import { analyticsCopy as labels } from "@platform/data/admin-analytics";
+export default function Loading() {
+  return <div className="analytics-loading" role="status" aria-busy="true"><p>{labels.loading}</p>
+    <div className="analytics-metrics-grid">{[1, 2, 3, 4].map(key => <div className="analytics-skeleton" key={key} />)}</div>
+    <div className="analytics-skeleton analytics-skeleton-chart" />
+  </div>;
+}
+```
+
+### File: `app/admin/dashboard/page.tsx`
+
+SHA-256: `adecf9a3ba412332015d98c4243fa19e271f0234a84dab27285896b4064854e0`
+
+```tsx
+import { analyticsCopy } from "@platform/data/admin-analytics";
+import AnalyticsOverview from "@platform/components/admin/analytics/overview";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-import { readUserQuery, userQueryParams } from "@platform/features/admin/helpers/read-user-query";
-import { adminUsersCopy as labels } from "@platform/data/admin-users";
-export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { readAdminAnalytics } from "@platform/features/admin/analytics/repositories/read-analytics";
+import { readAnalyticsPeriod } from "@platform/features/admin/analytics/helpers/read-period";
+export default async function AdminHomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
-  const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
-  return <><PageHeading title={labels.heading} />
-    <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
-    <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
-  </>;
+  const period = readAnalyticsPeriod((await searchParams).period);
+  return <AnalyticsOverview labels={analyticsCopy} data={await readAdminAnalytics()} period={period} />;
 }
 ```
 
@@ -693,6 +714,29 @@ export default async function AdminUserPage({ params }: { params: Promise<{ user
 }
 ```
 
+### File: `app/admin/dashboard/users/page.tsx`
+
+SHA-256: `a543a97fd80b7c15a7bcecf2ea69d0b86ae3301a15d758b30921add68e69e2a0`
+
+```tsx
+import PageHeading from "@platform/components/ui/page-heading";
+import UsersTable from "@platform/components/admin/users-table";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import UserFilters from "@platform/components/admin/user-filters";
+import { readAdminUsers } from "@platform/features/admin/repositories/users";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readUserQuery, userQueryParams } from "@platform/features/admin/helpers/read-user-query";
+import { adminUsersCopy as labels } from "@platform/data/admin-users";
+export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await requireAdminPage();
+  const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
+  return <><PageHeading title={labels.heading} />
+    <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
+    <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
+  </>;
+}
+```
+
 ### File: `app/api/account/password/route.ts`
 
 SHA-256: `608b6518da10b2ac0dc0b4d696b15f64cd086637a04fed9d5153c13d54c7781f`
@@ -719,6 +763,18 @@ SHA-256: `a833ecdea6d6888ef9532bc9ab6d0e21342a475d6ff6bd6851d333ec69bd3619`
 ```typescript
 import { handleEmailConfirmation } from "@platform/features/account/handle-email-confirmation";
 export function POST(request: Request) { return handleEmailConfirmation(request); }
+```
+
+### File: `app/api/admin/analytics/route.ts`
+
+SHA-256: `307ac6c133bb2042ab384f9fed15a666469fa9e6456a8d898446509589d93eee`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { readAdminAnalytics } from "@platform/features/admin/analytics/repositories/read-analytics";
+export async function GET() {
+  return apiResponse(async () => Response.json(await readAdminAnalytics()));
+}
 ```
 
 ### File: `app/api/admin/courses/[slug]/lessons/[lessonId]/route.ts`
@@ -2750,7 +2806,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `971b504af1b29fac54ffffaae49442279b52f414f961ac2accf8547c089efd05`
+SHA-256: `4d55547f3b66560b3e56b99b81a963be4377bdba77a13e74b5bd4691965357d3`
 
 ```css
 @import "./styles/theme.css";
@@ -2771,6 +2827,9 @@ SHA-256: `971b504af1b29fac54ffffaae49442279b52f414f961ac2accf8547c089efd05`
 @import "../packages/design-system/styles/action-menu.css";
 @import "../modules/styles/account.css";
 @import "../packages/design-system/styles/interactions.css";
+
+@import "../packages/design-system/styles/analytics.css";
+@import "../modules/styles/analytics.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -3377,6 +3436,34 @@ export const designerCredit: LinkData = {
   label: "Designed By Zack River",
   href: "https://zackriver.com",
 };
+```
+
+### File: `config/email/content.ts`
+
+SHA-256: `518261d9669370c70f11cdee970f83d05bac23ef28b22a9da2f98424a9b8dbd2`
+
+```typescript
+import { creatorIdentity, learningIdentity } from "../identity";
+export const emailBrand = {
+  name: learningIdentity.name, englishName: learningIdentity.englishName, supportEmail: creatorIdentity.email,
+  supportUrl: `https://wa.me/${creatorIdentity.phoneE164.slice(1)}`,
+  context: "حسابك على تعلّم", recipient: "البريد المرتبط بالطلب", help: "محتاج مساعدة؟", support: "تواصل مع الدعم",
+  footer: "تعلّم المونتاج والجرافيك ديزاين والموشن جرافيك، خطوة بخطوة.",
+  fallback: "لو الزر مش بيشتغل، انسخ الرابط التالي وافتحه في المتصفح:",
+};
+export const authEmails = [
+  { id: "confirmation", label: "Confirm sign up", subject: "أهلاً بيك في تعلّم — أكّد بريدك الإلكتروني", title: "خطوتك الأولى تبدأ هنا", message: "أهلاً بيك في تعلّم. أكّد بريدك الإلكتروني عشان تكمّل إعداد حسابك وتبدأ رحلة التعلّم.", action: "تأكيد البريد الإلكتروني", notice: "لو ما أنشأتش حساب على تعلّم، تجاهل الرسالة دي." },
+  { id: "recovery", label: "Reset password", subject: "تعلّم — إعادة تعيين كلمة المرور", title: "نرجّعك لحسابك", message: "وصلنا طلب لإعادة تعيين كلمة مرور حسابك. اضغط على الزر واختر كلمة مرور جديدة.", action: "تعيين كلمة مرور جديدة", notice: "لو ما طلبتش تغيير كلمة المرور، تجاهل الرسالة دي. كلمة مرورك الحالية هتفضل زي ما هي." },
+  { id: "email_change", label: "Change email address", subject: "تعلّم — تأكيد تغيير البريد الإلكتروني", title: "أكّد بريدك الجديد", message: "وصلنا طلب لتغيير البريد الإلكتروني المرتبط بحسابك. أكّد التغيير من الزر التالي. قد تحتاج تأكيده من البريدين حسب إعدادات الأمان.", action: "تأكيد تغيير البريد", detail: "{{ .NewEmail }}", notice: "لو ما طلبتش التغيير، ما تضغطش على الرابط وتواصل مع الدعم." },
+  { id: "invite", label: "Invite user", subject: "دعوتك للانضمام إلى تعلّم", title: "مكانك معانا جاهز", message: "تمت دعوتك للانضمام إلى تعلّم. اقبل الدعوة لإعداد حسابك والبدء في التعلّم.", action: "قبول الدعوة", notice: "لو ما كنتش متوقع الدعوة، تقدر تتجاهل الرسالة دي." },
+  { id: "magic_link", label: "Magic link or OTP", subject: "تعلّم — رابط تسجيل الدخول", title: "ادخل لحسابك بسهولة", message: "استخدم الرابط التالي لتسجيل الدخول إلى حسابك على تعلّم. الرابط للاستخدام مرة واحدة؛ ما تشاركهش مع أي شخص.", action: "تسجيل الدخول", notice: "لو ما طلبتش تسجيل الدخول، تجاهل الرسالة دي." },
+  { id: "reauthentication", label: "Reauthentication", subject: "تعلّم — رمز تأكيد هويتك", title: "نتأكد إن ده أنت", message: "استخدم رمز التأكيد التالي لإتمام الإجراء على حسابك. الرمز مؤقت؛ ما تشاركهش مع أي شخص، حتى الدعم.", code: "{{ .Token }}", notice: "لو ما طلبتش الرمز، تجاهل الرسالة دي." },
+] as const;
+export const securityEmails = [
+  { id: "phone_changed_notification", label: "Phone number changed", subject: "تعلّم — تم تغيير رقم الهاتف", title: "رقم هاتفك اتغيّر", message: "تم تغيير رقم الهاتف المرتبط بحسابك على تعلّم.", detail: "{{ .OldPhone }} → {{ .Phone }}", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
+  { id: "password_changed_notification", label: "Password changed", subject: "تعلّم — تم تغيير كلمة المرور", title: "كلمة مرورك اتغيّرت", message: "تم تغيير كلمة المرور لحسابك على تعلّم.", notice: "لو مش أنت اللي غيّرتها، أعد تعيين كلمة المرور فوراً وتواصل مع الدعم.", action: "استعادة الحساب", actionUrl: "{{ .SiteURL }}/forgot-password" },
+  { id: "email_changed_notification", label: "Email address changed", subject: "تعلّم — تم تغيير البريد الإلكتروني", title: "بريد حسابك اتغيّر", message: "تم تغيير البريد الإلكتروني المرتبط بحسابك على تعلّم.", detail: "{{ .OldEmail }} → {{ .Email }}", notice: "لو مش أنت اللي غيّرته، تواصل مع الدعم فوراً." },
+] as const;
 ```
 
 ### File: `config/fonts.ts`
@@ -4703,6 +4790,188 @@ export default function AdminPagination({ query, hasNext, labels }: { query: Adm
     {page > 1 && <Link href={userQueryUrl(query, page - 1)} className="lms-secondary-button">{labels.previous}</Link>}
     <span>{labels.page} {page}</span>{hasNext && <Link href={userQueryUrl(query, page + 1)} className="lms-secondary-button">{labels.next}</Link>}
   </nav>;
+}
+```
+
+### File: `modules/components/admin/analytics/acquisition-sources.tsx`
+
+SHA-256: `ad88e5c0267bae9eee9f4a3013635052dcb64f7fbb8fac834a09f86a2bab5fd0`
+
+```tsx
+import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
+import type { AnalyticsSource } from "@platform/types/admin-analytics";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
+export default function AcquisitionSources({ sources, labels }: { sources: AnalyticsSource[]; labels: AnalyticsLabels }) {
+  const total = sources.reduce((sum, source) => sum + source.count, 0);
+  const known = sources.some(source => source.source !== "unknown");
+  return <AnalyticsPanel title={labels.sourcesTitle} description={labels.sourcesDescription} source={labels.attributionSource} sourceLabel={labels.source}>
+    {!known && <p className="analytics-empty-note">{total ? labels.sourcesUnavailable : labels.sourcesEmpty}</p>}
+    <ul className="analytics-sources-list">{sources.map(source => <li key={source.source}>
+      <div><span>{labels.sourceNames[source.source]}</span><strong>{formatAnalyticsNumber(source.count)}</strong></div>
+      <progress aria-label={labels.sourceNames[source.source]} value={source.count} max={total} />
+      <small>{formatAnalyticsNumber(source.count / total * 100)}%</small>
+    </li>)}</ul>
+  </AnalyticsPanel>;
+}
+```
+
+### File: `modules/components/admin/analytics/learning-summary.tsx`
+
+SHA-256: `583d766f0d5a60b7cd3d24d24ccc4d01754cd1be5a7ba300ed38f9b5d81cb1b7`
+
+```tsx
+import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
+import type { AnalyticsMetrics } from "@platform/types/admin-analytics";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
+export default function LearningSummary({ metrics, labels }: { metrics: AnalyticsMetrics; labels: AnalyticsLabels }) {
+  return <AnalyticsPanel title={labels.learningTitle} source={labels.learningSource} sourceLabel={labels.source}>
+    <dl className="analytics-learning">{(["totalEnrollments", "studentsEnrolled", "completedLessons"] as const).map(key =>
+      <div key={key}><dt>{key === "totalEnrollments" ? labels.totalSubscriptions : key === "studentsEnrolled" ? labels.enrolledStudents : labels.completedLessons}</dt>
+        <dd className="numeral">{formatAnalyticsNumber(metrics[key])}</dd></div>)}</dl>
+  </AnalyticsPanel>;
+}
+```
+
+### File: `modules/components/admin/analytics/metric-card.tsx`
+
+SHA-256: `a1862a5f702bf0d2124002dcd7e3c54f7119a76d97ee33b0d719447f2263cc4a`
+
+```tsx
+import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import MetricChange from "./metric-change";
+export default function MetricCard({ title, value, previous, note, source, labels }: {
+  labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note: string; source: string;
+}) {
+  return <article className="analytics-metric" aria-label={title}>
+    <h2>{title}</h2><strong className="analytics-value numeral">{value === null ? "—" : formatAnalyticsNumber(value)}</strong>
+    {value !== null && previous !== undefined && <MetricChange labels={labels} current={value} previous={previous} />}
+    {value === null && <span className="analytics-unavailable">{labels.unavailable}</span>}
+    <p>{note}</p><small><span>{labels.source}: </span>{source}</small>
+  </article>;
+}
+```
+
+### File: `modules/components/admin/analytics/metric-change.tsx`
+
+SHA-256: `50bf88bbe1ddc760806603094f697cc70131d28ab2cb2514a891cefa62a57546`
+
+```tsx
+import { periodChange } from "@platform/features/admin/analytics/helpers/change";
+import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+export default function MetricChange({ current, previous, labels }: { current: number; previous: number; labels: AnalyticsLabels }) {
+  const change = periodChange(current, previous);
+  const text = change.direction === "new" ? labels.new : change.direction === "flat" ? labels.unchanged :
+    `${change.direction === "up" ? labels.growth : labels.decline} ${formatAnalyticsNumber(change.percent ?? 0)}%`;
+  return <span className="analytics-change" data-direction={change.direction}
+    title={change.percent === null && change.direction === "new" ? labels.noBaseline : labels.comparison}>
+    <span aria-hidden="true">{change.direction === "up" || change.direction === "new" ? "↗" : change.direction === "down" ? "↘" : "—"}</span>{text}
+  </span>;
+}
+```
+
+### File: `modules/components/admin/analytics/overview.tsx`
+
+SHA-256: `17730fefd2935c355a94386ec0ffa89dedc9dbfd6ab962eca762f0c58be1e52c`
+
+```tsx
+import RefreshButton from "@khatab/design/ui/refresh-button";
+import type { AdminAnalytics, AnalyticsPeriod } from "@platform/types/admin-analytics";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import { formatAnalyticsDate } from "@platform/features/admin/analytics/helpers/format";
+import PageHeading from "@platform/components/ui/page-heading";
+import MetricCard from "./metric-card";
+import SignupChart from "./signup-chart";
+import TrendingCourses from "./trending-courses";
+import AcquisitionSources from "./acquisition-sources";
+import LearningSummary from "./learning-summary";
+export default function AnalyticsOverview({ data, period, labels }: { data: AdminAnalytics; period: AnalyticsPeriod; labels: AnalyticsLabels }) {
+  const m = data.metrics;
+  return <div className="analytics-overview">
+    <header className="analytics-overview-header"><PageHeading title={labels.title} description={labels.description} />
+      <div><p>{labels.refreshed}: <time dateTime={data.generatedAt}>{formatAnalyticsDate(data.generatedAt, { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</time> · {labels.timezone}</p>
+        <RefreshButton label={labels.refresh} pendingLabel={labels.loading} className="lms-secondary-button" /></div></header>
+    <p className="analytics-period-note">{labels.periodNote}</p>
+    <div className="analytics-metrics-grid">
+      <MetricCard labels={labels} title={labels.studentsWeek} value={m.studentsWeek} previous={m.studentsPreviousWeek} note={labels.comparison} source={labels.studentsSource} />
+      <MetricCard labels={labels} title={labels.enrollmentsWeek} value={m.enrollmentsWeek} previous={m.enrollmentsPreviousWeek} note={labels.recordedSubscriptions} source={labels.enrollmentsSource} />
+      <MetricCard labels={labels} title={labels.totalStudents} value={m.totalStudents} note={labels.studentsOnly} source={labels.studentsSource} />
+      <MetricCard labels={labels} title={labels.publishedCourses} value={m.publishedCourses} note={labels.availableCourses} source={labels.courseSource} />
+    </div>
+    <div className="analytics-primary-grid"><SignupChart labels={labels} daily={data.daily} /><TrendingCourses labels={labels} courses={data.courses[period]} period={period} /></div>
+    <div className="analytics-secondary-grid"><AcquisitionSources labels={labels} sources={data.sources} /><LearningSummary labels={labels} metrics={m} /></div>
+    <div className="analytics-revenue-grid">
+      <MetricCard labels={labels} title={labels.revenueWeek} value={null} note={labels.revenueNote} source={labels.paymentSource} />
+      <MetricCard labels={labels} title={labels.revenueMonth} value={null} note={labels.revenueNote} source={labels.paymentSource} />
+    </div>
+    <details className="analytics-definitions"><summary>{labels.definitions}</summary><p>{labels.definitionsText}</p></details>
+  </div>;
+}
+```
+
+### File: `modules/components/admin/analytics/signup-chart.tsx`
+
+SHA-256: `a350adcc7a64d2d4914506da83dbc018a49239e3814b7e40faf5bc45a1b26baf`
+
+```tsx
+"use client";
+import { useState } from "react";
+import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
+import TimeSeriesChart from "@khatab/design/ui/time-series-chart";
+import { Radio } from "@khatab/design/ui/choice-controls";
+import type { AnalyticsDay, AnalyticsMetric } from "@platform/types/admin-analytics";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import { formatAnalyticsDate, formatChartDay } from "@platform/features/admin/analytics/helpers/format";
+export default function SignupChart({ daily, labels }: { daily: AnalyticsDay[]; labels: AnalyticsLabels }) {
+  const [metric, setMetric] = useState<AnalyticsMetric>("students");
+  const data = daily.map(day => ({ tick: formatChartDay(day.day), label: formatAnalyticsDate(day.day, { day: "numeric", month: "long" }),
+    current: day[metric], previous: metric === "students" ? day.previousStudents : day.previousEnrollments }));
+  return <AnalyticsPanel title={labels.chartTitle} description={labels.chartDescription} source={labels.chartSource} sourceLabel={labels.source}>
+    <fieldset className="analytics-chart-controls"><legend>{labels.metric}</legend>
+      <Radio name="analytics-metric" label={labels.students} value="students" checked={metric === "students"} onChange={() => setMetric("students")} />
+      <Radio name="analytics-metric" label={labels.enrollments} value="enrollments" checked={metric === "enrollments"} onChange={() => setMetric("enrollments")} />
+    </fieldset>
+    <div className="analytics-legend"><span data-series="current">{labels.current}</span><span data-series="previous">{labels.previous}</span></div>
+    {!data.some(point => point.current > 0) && <p className="analytics-empty-note">{labels.chartEmpty}</p>}
+    <TimeSeriesChart data={data} title={labels.chartTitle} labels={{ current: labels.current, previous: labels.previous, value: labels[metric] }} />
+    <details className="analytics-data-table"><summary>{labels.dailyTable}</summary><div className="analytics-table-scroll">
+      <table><caption>{labels[metric]}</caption><thead><tr><th scope="col">{labels.day}</th><th scope="col">{labels.current}</th><th scope="col">{labels.previous}</th></tr></thead>
+        <tbody>{data.map(point => <tr key={point.label}><th scope="row">{point.label}</th><td>{point.current}</td><td>{point.previous ?? "—"}</td></tr>)}</tbody></table>
+    </div></details>
+  </AnalyticsPanel>;
+}
+```
+
+### File: `modules/components/admin/analytics/trending-courses.tsx`
+
+SHA-256: `0fdb609318f262cf5cba57ed430b2ab407eec2e6ab67a18954fafe5af47ec873`
+
+```tsx
+import Link from "next/link";
+import AnalyticsPanel from "@khatab/design/ui/analytics-panel";
+import type { AnalyticsPeriod, TrendingCourse } from "@platform/types/admin-analytics";
+import { routes } from "@platform/config/navigation";
+import { analyticsConfig } from "@platform/config/admin-analytics";
+import type { AnalyticsLabels } from "@platform/types/admin-analytics";
+import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
+import MetricChange from "./metric-change";
+export default function TrendingCourses({ courses, period, labels }: { courses: TrendingCourse[]; period: AnalyticsPeriod; labels: AnalyticsLabels }) {
+  return <AnalyticsPanel title={labels.trendTitle} description={labels.trendDescription} source={labels.courseSource} sourceLabel={labels.source}>
+    <nav className="analytics-periods" aria-label={labels.periodLabel}>{analyticsConfig.periods.map(value =>
+      <Link key={value} href={`${routes.adminDashboard}?period=${value}`} aria-current={period === value ? "page" : undefined}>{labels[value]}</Link>)}</nav>
+    {courses.length === 0 ? <p className="analytics-empty-note">{labels.trendEmpty}</p> : <ol className="analytics-course-ranking">
+      {courses.map((course, index) => <li key={course.slug}>
+        <span className="analytics-rank numeral" aria-hidden="true">{index + 1}</span>
+        <div><Link href={routes.adminCourse(course.slug)}>{course.title}</Link>{!course.published && <small>{labels.draft}</small>}
+          <div className="analytics-rank-bar" aria-hidden="true"><progress value={course.count} max={courses[0].count} /></div>
+          {period !== "all" && <MetricChange labels={labels} current={course.count} previous={course.previous} />}</div>
+        <strong className="numeral">{formatAnalyticsNumber(course.count)}<small>{labels.subscriptions}</small></strong>
+      </li>)}
+    </ol>}
+  </AnalyticsPanel>;
 }
 ```
 
@@ -7980,11 +8249,12 @@ export default function SectionHeading(props: ComponentProps<typeof Heading>) {
 
 ### File: `modules/components/ui/symbol.tsx`
 
-SHA-256: `eb1073ef715e47ce68fda27c8e3bb497153efd3c8f33165d4f56e8385661b126`
+SHA-256: `302e2a06c2da6dbd1ed41448fba82efeb48b5a515b9c4503843be89fee3b53d1`
 
 ```tsx
 import type { ComponentPropsWithoutRef } from "react";
 const paths = {
+  home: "m3 10 9-7 9 7v11h-6v-7H9v7H3V10z",
   grid: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
   book: "M4 3h6a3 3 0 0 1 3 3v15a4 4 0 0 0-4-2H4V3zm16 0h-4a3 3 0 0 0-3 3v15a4 4 0 0 1 4-2h3V3z",
   folder: "M3 7V4h6l3 3h9v13H3V7z",
@@ -8040,6 +8310,21 @@ export const accountMenuContent = {
 };
 
 export const adminAccountMenuContent = { ...accountMenuContent, links: accountMenuContent.links.map(link => ({ ...link, href: link.href === routes.profile ? routes.adminProfile : link.href === routes.settings ? routes.adminSettings : link.href })) };
+```
+
+### File: `modules/config/admin-analytics.ts`
+
+SHA-256: `c07c106ac2ceb6fcac631b24efdeb47ebba3647595d26e80840274aeadc96c02`
+
+```typescript
+export const analyticsConfig = {
+  timezone: "Africa/Cairo", locale: "ar-EG-u-nu-latn", trendLimit: 5,
+  periods: ["week", "month", "all"] as const,
+  sources: ["youtube", "facebook", "instagram", "tiktok", "google", "direct", "unknown"] as const,
+  metrics: ["studentsWeek", "studentsPreviousWeek", "studentsMonth", "studentsPreviousMonth", "totalStudents",
+    "enrollmentsWeek", "enrollmentsPreviousWeek", "enrollmentsMonth", "enrollmentsPreviousMonth", "totalEnrollments",
+    "studentsEnrolled", "publishedCourses", "completedLessons"] as const,
+};
 ```
 
 ### File: `modules/config/admin.ts`
@@ -8109,7 +8394,7 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `262e0f887aa8de8a12b630b9e5f312d9dbc038adc0d00b324fe4633fc493897f`
+SHA-256: `b02b2a43ac479cdf0331d400ee89355a9db59cfb6ccb175b2f83198c69f61aa3`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8150,7 +8435,7 @@ export const routes = {
   adminDashboard: "/admin/dashboard",
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
-  adminUsers: "/admin/dashboard",
+  adminUsers: "/admin/dashboard/users",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
@@ -8171,6 +8456,7 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
@@ -8258,6 +8544,37 @@ export const accountCopy = {
   confirmEmailTitle: "تأكيد البريد الإلكتروني", confirmEmailHint: "أدخل بريد حسابك لإعادة إرسال رسالة التأكيد.",
   resendEmail: "إعادة إرسال رسالة التأكيد", emailSent: "تم إرسال رسالة التأكيد. راجع بريدك الإلكتروني.",
 } as const;
+```
+
+### File: `modules/data/admin-analytics.ts`
+
+SHA-256: `a9241f1528f555ee76faf82d5d574da583b60f5e170ef6609c5b67bfc3576573`
+
+```typescript
+export const analyticsCopy = {
+  home: "الرئيسية", title: "المنصة في أرقام", description: "تابع نمو الطلاب والاشتراكات، واعرف الدورات التي عليها إقبال.",
+  refreshed: "آخر تحديث", timezone: "توقيت القاهرة", refresh: "تحديث الأرقام", week: "هذا الأسبوع", month: "هذا الشهر", all: "كل الوقت",
+  studentsWeek: "طلاب انضموا هذا الأسبوع", enrollmentsWeek: "اشتراكات هذا الأسبوع", totalStudents: "إجمالي الطلاب", publishedCourses: "دورات منشورة",
+  studentsOnly: "حسابات الطلاب الحالية، دون المديرين", recordedSubscriptions: "اشتراكات مسجلة، وليست مدفوعات", availableCourses: "دورات متاحة في المنصة",
+  growth: "زيادة", decline: "انخفاض", unchanged: "دون تغيير", new: "نشاط جديد", comparison: "مقارنة بالفترة المناظرة السابقة", noBaseline: "لم يُسجّل نشاط في الفترة السابقة",
+  chartTitle: "حركة الانضمام خلال الشهر", chartDescription: "أعداد يومية فعلية حتى اليوم، مع مقارنة بأيام الشهر السابق.",
+  metric: "النشاط المعروض", students: "طلاب جدد", enrollments: "اشتراكات", current: "الشهر الحالي", previous: "الشهر السابق",
+  dailyTable: "عرض الأرقام اليومية", day: "اليوم", chartEmpty: "لم يُسجّل نشاط خلال هذا الشهر بعد.",
+  trendTitle: "الدورات الأكثر إقبالاً", trendDescription: "الترتيب حسب عدد الاشتراكات الفعلية في الفترة المختارة.",
+  trendEmpty: "لا توجد اشتراكات في هذه الفترة حتى الآن.", periodLabel: "فترة ترتيب الدورات", subscriptions: "اشتراك", draft: "غير منشورة", course: "الدورة",
+  source: "مصدر البيانات", studentsSource: "Supabase Auth · تاريخ إنشاء حساب الطالب", enrollmentsSource: "Supabase · سجل الاشتراكات",
+  chartSource: "Supabase Auth + الاشتراكات · تجميع يومي بتوقيت القاهرة", courseSource: "Supabase · الاشتراكات وتفاصيل الدورات",
+  paymentSource: "لا يوجد سجل مدفوعات متصل بعد", revenueWeek: "إيرادات الأسبوع", revenueMonth: "إيرادات الشهر", unavailable: "غير متاح",
+  revenueNote: "تظهر هنا المبالغ المحصّلة بعد إضافة المدفوعات. الاشتراك أو سعر الدورة لا يُحتسب كإيراد.",
+  sourcesTitle: "من أين انضم الطلاب؟", sourcesDescription: "مصادر الانضمام المسجلة لحسابات الطلاب الجدد هذا الشهر، وليست زيارات الموقع.",
+  sourcesUnavailable: "لم تُسجّل مصادر الانضمام بعد. لا يمكن اعتبار البيانات المفقودة زيارات مباشرة.",
+  sourcesEmpty: "لا يوجد طلاب جدد هذا الشهر لعرض مصادر انضمامهم.", attributionSource: "Supabase Auth · المصدر المسجل مع حساب الطالب، إن توفر",
+  sourceNames: { youtube: "YouTube", facebook: "Facebook", instagram: "Instagram", tiktok: "TikTok", google: "Google", direct: "مباشر", unknown: "غير مسجل" },
+  totalSubscriptions: "إجمالي الاشتراكات", enrolledStudents: "طلاب مشتركون", completedLessons: "دروس مكتملة", learningTitle: "نشاط التعلّم",
+  learningSource: "Supabase · الاشتراكات وتقدّم الدروس", error: "تعذّر تحميل الأرقام الآن.", retry: "حاول مرة أخرى", loading: "جارٍ تحميل إحصاءات المنصة…",
+  periodNote: "الأسبوع يبدأ يوم الإثنين. المقارنة تستخدم نفس المدة المنقضية من الأسبوع أو الشهر السابق.",
+  definitions: "كيف تُحسب الأرقام؟", definitionsText: "تعكس الإحصاءات الحسابات والاشتراكات الحالية؛ الحسابات المحذوفة والمديرون مستبعدون. مصادر الانضمام لا تقيس زيارات الموقع. بيانات الإيرادات غير متاحة حتى تسجيل مدفوعات فعلية.",
+};
 ```
 
 ### File: `modules/data/admin-users.ts`
@@ -9522,6 +9839,108 @@ import { creatorContacts } from "../../../config/creator-contacts";
 import SettingsView from "@platform/components/account/settings/settings-view";
 export default async function AccountSettingsPage() {
   return <SettingsView profile={await readAccount()} labels={accountCopy} supportHref={creatorContacts.whatsapp} />;
+}
+```
+
+### File: `modules/features/admin/analytics/helpers/change.ts`
+
+SHA-256: `391f150e8635d82217a1cc6e48b3791d2febd644b8fc4d1077f4bea3c8d21fef`
+
+```typescript
+export function periodChange(current: number, previous: number) {
+  if (previous === 0) return { direction: current === 0 ? "flat" : "new", percent: null } as const;
+  const difference = current - previous;
+  return { direction: difference === 0 ? "flat" : difference > 0 ? "up" : "down", percent: Math.abs(difference / previous * 100) } as const;
+}
+```
+
+### File: `modules/features/admin/analytics/helpers/format.ts`
+
+SHA-256: `ef4acc13e9363f2158bceb80fd4e976dd2f8440a5eb4bb43a3875adccf101ccc`
+
+```typescript
+import { analyticsConfig } from "@platform/config/admin-analytics";
+export const formatAnalyticsNumber = (value: number) => new Intl.NumberFormat(analyticsConfig.locale, { maximumFractionDigits: 1 }).format(value);
+export const formatAnalyticsDate = (value: string, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" }) =>
+  new Intl.DateTimeFormat(analyticsConfig.locale, { ...options, timeZone: analyticsConfig.timezone }).format(new Date(value));
+export const formatChartDay = (value: string) => formatAnalyticsNumber(Number(value.slice(-2)));
+```
+
+### File: `modules/features/admin/analytics/helpers/read-period.ts`
+
+SHA-256: `2e93341292cd850a4aded7733b15d74cf8e8d444285e2c914dd00eb9f142424e`
+
+```typescript
+import type { AnalyticsPeriod } from "@platform/types/admin-analytics";
+import { analyticsConfig } from "@platform/config/admin-analytics";
+export function readAnalyticsPeriod(value: unknown): AnalyticsPeriod {
+  return typeof value === "string" && analyticsConfig.periods.some(period => period === value) ? value as AnalyticsPeriod : "week";
+}
+```
+
+### File: `modules/features/admin/analytics/helpers/read-snapshot.ts`
+
+SHA-256: `cc61f479865a458191b510eccae9643b18c4b9deda80e700fecae2a58abda0ab`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+import { analyticsConfig } from "@platform/config/admin-analytics";
+import type { AdminAnalytics } from "@platform/types/admin-analytics";
+import { objectRecord, isCount, isTimestamp, isDay, isCourse, isSource } from "./validate-records";
+export function readAnalyticsSnapshot(value: unknown): AdminAnalytics {
+  const r = objectRecord(value), metrics = objectRecord(r?.metrics), courses = objectRecord(r?.courses);
+  if (r && metrics && courses && [r.generatedAt, r.weekStart, r.monthStart].every(isTimestamp) && r.timezone === analyticsConfig.timezone
+    && analyticsConfig.metrics.every(key => isCount(metrics[key]))
+    && Array.isArray(r.daily) && r.daily.length <= 31 && r.daily.every(isDay)
+    && analyticsConfig.periods.every(key => Array.isArray(courses[key]) && courses[key].length <= analyticsConfig.trendLimit && courses[key].every(isCourse))
+    && Array.isArray(r.sources) && r.sources.every(isSource)) return r as unknown as AdminAnalytics;
+  throw new ApiError(503, "INTERNAL_ERROR");
+}
+```
+
+### File: `modules/features/admin/analytics/helpers/validate-records.ts`
+
+SHA-256: `09848fc08679766b99f18de72cf34c55dffba3aada21a94fb6aedf9825a06744`
+
+```typescript
+import { analyticsConfig } from "@platform/config/admin-analytics";
+import type { AnalyticsDay, AnalyticsSource, TrendingCourse } from "@platform/types/admin-analytics";
+export function objectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+export const isCount = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+export const isTimestamp = (value: unknown): value is string => typeof value === "string" && Number.isFinite(Date.parse(value));
+export function isDay(value: unknown): value is AnalyticsDay {
+  const r = objectRecord(value);
+  return Boolean(r && typeof r.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.day) && isTimestamp(r.day) && isCount(r.students) && isCount(r.enrollments)
+    && (r.previousStudents === null || isCount(r.previousStudents)) && (r.previousEnrollments === null || isCount(r.previousEnrollments)));
+}
+export function isCourse(value: unknown): value is TrendingCourse {
+  const r = objectRecord(value);
+  return Boolean(r && typeof r.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(r.slug) && typeof r.title === "string"
+    && (r.thumbnail === null || typeof r.thumbnail === "string") && ["recorded", "live"].includes(String(r.delivery))
+    && typeof r.published === "boolean" && isCount(r.count) && isCount(r.previous));
+}
+export function isSource(value: unknown): value is AnalyticsSource {
+  const r = objectRecord(value);
+  return Boolean(r && analyticsConfig.sources.some(source => source === r.source) && isCount(r.count));
+}
+```
+
+### File: `modules/features/admin/analytics/repositories/read-analytics.ts`
+
+SHA-256: `37ae9b1c9bdd9bff2b597e55e3dd50fa81bab8de3c11dff2d08f15d537f43122`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../../identity";
+import { ApiError } from "@platform/lib/api/error";
+import { readAnalyticsSnapshot } from "../helpers/read-snapshot";
+export async function readAdminAnalytics() {
+  const { client } = await requireAdmin();
+  const { data, error } = await client.rpc("admin_dashboard_snapshot");
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  return readAnalyticsSnapshot(data);
 }
 ```
 
@@ -12493,6 +12912,85 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
   .lms-admin-filter-footer .lms-admin-actions { width: 100%; }
   .lms-admin-filter-footer .lms-admin-actions > * { flex: 1; white-space: normal; }
 }
+```
+
+### File: `modules/styles/analytics.css`
+
+SHA-256: `34e4e55539d8d5f888d88272fccab183412aa52e29692582a6e71c1236b8f2ee`
+
+```css
+.analytics-overview { display: grid; gap: var(--space-lg); min-width: 0; }
+.analytics-overview-header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-lg); }
+.analytics-overview-header p, .analytics-period-note { color: var(--text-secondary); font-size: var(--font-size-caption); margin: 0; }
+.analytics-overview-header > div:last-child { display: grid; gap: var(--space-sm); justify-items: end; }
+.analytics-overview-header .lms-secondary-button { min-height: var(--control-target-size); }
+.analytics-metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-md); }
+.analytics-primary-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--space-lg); }
+.analytics-secondary-grid, .analytics-revenue-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); }
+.analytics-metric { padding: var(--space-lg); min-width: 0; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.analytics-metric h2 { margin: 0; color: var(--text-secondary); font-size: var(--font-size-body); font-weight: var(--font-weight-label); }
+.analytics-value { display: block; font-size: var(--size-2rem); margin-block: var(--space-sm); color: var(--text-primary); }
+.analytics-metric > p { margin: var(--space-sm) 0; font-size: var(--font-size-caption); color: var(--text-secondary); }
+.analytics-metric > small { display: block; color: var(--text-muted); font-size: var(--font-size-caption); }
+.analytics-change { display: inline-flex; gap: var(--space-xs); font-size: var(--font-size-caption); color: var(--text-secondary); }
+.analytics-change[data-direction="up"], .analytics-change[data-direction="new"] { color: var(--text-primary); }
+.analytics-change[data-direction="down"] { color: var(--text-accent-readable); }
+.analytics-unavailable { color: var(--text-secondary); }
+.analytics-chart-controls { display: flex; flex-wrap: wrap; gap: var(--space-md); border: 0; padding: 0; margin: 0 0 var(--space-md); min-width: 0; }
+.analytics-chart-controls legend { margin-bottom: var(--space-sm); font-size: var(--font-size-caption); color: var(--text-secondary); }
+.analytics-legend { display: flex; flex-wrap: wrap; gap: var(--space-md); color: var(--text-secondary); font-size: var(--font-size-caption); }
+.analytics-legend span { display: inline-flex; align-items: center; gap: var(--space-sm); }
+.analytics-legend span::before { content: ''; width: var(--space-md); border-top: var(--size-2px) solid var(--analytics-chart-current); }
+.analytics-legend [data-series="previous"]::before { border-color: var(--analytics-chart-previous); border-top-style: dashed; }
+.analytics-empty-note { color: var(--text-secondary); font-size: var(--font-size-caption); padding-block: var(--space-md); }
+.analytics-periods { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-md); }
+.analytics-periods a { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control-target-size); padding-inline: var(--space-md); border-bottom: var(--size-2px) solid transparent; color: var(--text-secondary); transition: color var(--transition-fast), border-color var(--transition-fast); }
+.analytics-periods a[aria-current], .analytics-periods a:hover { color: var(--text-primary); border-color: var(--primary-red); }
+.analytics-course-ranking, .analytics-sources-list { list-style: none; margin: 0; padding: 0; }
+.analytics-course-ranking > li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-md); padding-block: var(--space-md); border-bottom: var(--size-1px) solid var(--border-subtle); }
+.analytics-course-ranking > li:last-child { border: 0; }
+.analytics-rank { color: var(--text-muted); }
+.analytics-course-ranking a { color: var(--text-primary); transition: color var(--transition-fast); }
+.analytics-course-ranking a:hover { color: var(--text-accent-readable); }
+.analytics-course-ranking small { display: block; font-size: var(--font-size-caption); color: var(--text-secondary); font-weight: var(--font-weight-body); }
+.analytics-course-ranking strong { text-align: end; }
+.analytics-rank-bar { margin-block: var(--space-sm); }
+.analytics-overview progress { display: block; width: 100%; height: var(--space-xs); border: 0; border-radius: var(--radius-full); background: var(--border-subtle); color: var(--primary-red); overflow: hidden; appearance: none; }
+.analytics-overview progress::-webkit-progress-bar { background: var(--border-subtle); }
+.analytics-overview progress::-webkit-progress-value { background: var(--primary-red); }
+.analytics-overview progress::-moz-progress-bar { background: var(--primary-red); }
+.analytics-sources-list > li { padding-block: var(--space-sm); }
+.analytics-sources-list > li > div { display: flex; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-sm); }
+.analytics-sources-list small { color: var(--text-secondary); }
+.analytics-learning { display: grid; gap: var(--space-lg); margin: 0; }
+.analytics-learning > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); border-bottom: var(--size-1px) solid var(--border-subtle); padding-bottom: var(--space-md); }
+.analytics-learning dd { margin: 0; font-size: var(--size-2rem); font-weight: var(--font-weight-action); }
+.analytics-learning dt { color: var(--text-secondary); }
+.analytics-definitions, .analytics-data-table { font-size: var(--font-size-caption); color: var(--text-secondary); }
+.analytics-definitions summary, .analytics-data-table summary { min-height: var(--control-target-size); padding-block: var(--space-sm); }
+.analytics-table-scroll { overflow-x: auto; }
+.analytics-data-table table { width: 100%; border-collapse: collapse; text-align: start; }
+.analytics-data-table th, .analytics-data-table td { padding: var(--space-sm); border-bottom: var(--size-1px) solid var(--border-subtle); text-align: start; }
+.analytics-overview :focus-visible { outline: var(--size-2px) solid var(--text-primary); outline-offset: var(--space-xs); }
+@media (max-width: 1024px) {
+  .analytics-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analytics-primary-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 768px) {
+  .analytics-overview-header { flex-direction: column; }
+  .analytics-overview-header > div:last-child { justify-items: start; }
+  .analytics-secondary-grid, .analytics-revenue-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .analytics-metrics-grid { grid-template-columns: minmax(0, 1fr); }
+  .analytics-metric, .analytics-panel-heading, .analytics-panel-body { padding: var(--space-md); }
+  .analytics-panel-body { padding-top: 0; }
+  .analytics-course-ranking > li { gap: var(--space-sm); }
+}
+.analytics-loading { display: grid; gap: var(--space-lg); color: var(--text-secondary); }
+.analytics-skeleton { min-height: var(--space-5xl); background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); }
+.analytics-skeleton-chart { min-height: var(--analytics-chart-height); }
+.analytics-error { display: grid; gap: var(--space-lg); justify-items: start; }
 ```
 
 ### File: `modules/styles/auth.css`
@@ -16174,6 +16672,38 @@ export interface AccountSettingsInput {
 export type ContactField = "email" | "phone";
 ```
 
+### File: `modules/types/admin-analytics.ts`
+
+SHA-256: `0fca7b6b1494a983e3a5df230f689086e1f67ecd9d54cb7e5249e089bec74f08`
+
+```typescript
+export type AnalyticsPeriod = "week" | "month" | "all";
+export type AnalyticsMetric = "students" | "enrollments";
+export interface AnalyticsMetrics {
+  studentsWeek: number; studentsPreviousWeek: number; studentsMonth: number; studentsPreviousMonth: number;
+  totalStudents: number; enrollmentsWeek: number; enrollmentsPreviousWeek: number;
+  enrollmentsMonth: number; enrollmentsPreviousMonth: number; totalEnrollments: number;
+  studentsEnrolled: number; publishedCourses: number; completedLessons: number;
+}
+export interface AnalyticsDay {
+  day: string; students: number; enrollments: number;
+  previousStudents: number | null; previousEnrollments: number | null;
+}
+export interface TrendingCourse {
+  slug: string; title: string; thumbnail: string | null; delivery: "recorded" | "live";
+  published: boolean; count: number; previous: number;
+}
+export interface AnalyticsSource { source: "youtube" | "facebook" | "instagram" | "tiktok" | "google" | "direct" | "unknown"; count: number }
+export interface AdminAnalytics {
+  generatedAt: string; timezone: string; weekStart: string; monthStart: string;
+  metrics: AnalyticsMetrics; daily: AnalyticsDay[];
+  courses: Record<AnalyticsPeriod, TrendingCourse[]>; sources: AnalyticsSource[];
+}
+
+import type { analyticsCopy } from "@platform/data/admin-analytics";
+export type AnalyticsLabels = { [K in keyof typeof analyticsCopy]: K extends "sourceNames" ? Record<keyof typeof analyticsCopy.sourceNames, string> : string };
+```
+
 ### File: `modules/types/admin-users.ts`
 
 SHA-256: `23d789211f981ca568a734c456788b4e844c24404c004421c6d0397c66c0be21`
@@ -16287,7 +16817,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `5693aa1a05c2c83019a9bb2e87b50079816bf1c41bb0c1ddb7a27347f098b125`
+SHA-256: `f9050631a63927ed05e180b0cb2c8fa5bb4dc90c4e109649184ff02500186659`
 
 ```typescript
 
@@ -16509,6 +17039,9 @@ isOneToOne: false
           Functions: {
             "account_access_allowed":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"admin_dashboard_snapshot":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
@@ -16820,7 +17353,7 @@ export default nextConfig;
 
 ### File: `package.json`
 
-SHA-256: `f40385a36ca6c454b25ac179533c490ae87cf4b4407ce4d0699a1c9ca289d6bb`
+SHA-256: `7e90cdce41dc2009ec028e089fb5605f76b7ea25f994bfb695b52c8feacef6ec`
 
 ```json
 {
@@ -16842,7 +17375,9 @@ SHA-256: `f40385a36ca6c454b25ac179533c490ae87cf4b4407ce4d0699a1c9ca289d6bb`
     "typecheck": "tsc --noEmit",
     "backend:seed:generate": "tsx scripts/backend/generate-seed.ts",
     "backend:test": "node tests/backend/integration.cjs",
-    "backend:migrate:hosted": "node scripts/backend/migrate-hosted.cjs"
+    "backend:migrate:hosted": "node scripts/backend/migrate-hosted.cjs",
+    "email:generate": "tsx scripts/email/generate.ts",
+    "email:publish": "npm run email:generate && node scripts/email/publish.cjs"
   },
   "dependencies": {
     "@khatab/design": "file:packages/design-system",
@@ -16852,6 +17387,8 @@ SHA-256: `f40385a36ca6c454b25ac179533c490ae87cf4b4407ce4d0699a1c9ca289d6bb`
     "next": "^16.3.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-is": "19.1.1",
+    "recharts": "3.10.1",
     "server-only": "0.0.1"
   },
   "devDependencies": {
@@ -16869,6 +17406,15 @@ SHA-256: `f40385a36ca6c454b25ac179533c490ae87cf4b4407ce4d0699a1c9ca289d6bb`
     "unique-names-generator": "4.7.1"
   }
 }
+```
+
+### File: `packages/design-system/config/charts.ts`
+
+SHA-256: `a234fbee35ff4b349c9200571df13fc3231cc051d1cc7bea114d67a1fd9cfd20`
+
+```typescript
+export const chartGeometry = { margin: { top: 16, right: 12, left: 0, bottom: 4 }, axisWidth: 36,
+  tickGap: 24, strokeWidth: 2, dash: "4 4" } as const;
 ```
 
 ### File: `packages/design-system/config/form-controls.ts`
@@ -16901,6 +17447,72 @@ export const youtubePlayerPolicy = {
   sampleMs: 250,
   ...playerPolicy,
 } as const;
+```
+
+### File: `packages/design-system/email/fragments.ts`
+
+SHA-256: `bd010c3aa65931380d5b40be4556d416063b77f2336e950f18f68a559d277cd7`
+
+```typescript
+import type { EmailBrand, EmailContent, EmailTheme } from "./types";
+export function escapeEmailText(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+export function emailAction(content: EmailContent, theme: EmailTheme, brand: EmailBrand) {
+  if (content.code) return `<p dir="ltr" style="font-size:${theme.headingSize};font-weight:700;text-align:center;padding:${theme.gap};border:1px solid ${theme.border};border-radius:${theme.radius}">${content.code}</p>`;
+  if (!content.action) return "";
+  const url = content.actionUrl ?? "{{ .ConfirmationURL }}";
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:${theme.padding} 0"><tr><td bgcolor="${theme.primary}" style="border-radius:${theme.radius};text-align:center"><a href="${url}" style="display:inline-block;padding:${theme.gap} ${theme.padding};font-family:${escapeEmailText(theme.font)};font-size:${theme.buttonSize};font-weight:700;color:${theme.text};text-decoration:none">${escapeEmailText(content.action)}</a></td></tr></table>
+<p style="font-size:${theme.smallSize};color:${theme.secondary}">${escapeEmailText(brand.fallback)}</p><p dir="ltr" style="font-size:${theme.smallSize};word-break:break-all;overflow-wrap:anywhere"><a href="${url}" style="color:${theme.secondary}">${url}</a></p>`;
+}
+```
+
+### File: `packages/design-system/email/render.ts`
+
+SHA-256: `2a090a292944da1e8b5db0ee4bc6c45a104330b550d8d458f97efad3bd2cfc0a`
+
+```typescript
+import type { EmailBrand, EmailContent, EmailTheme } from "./types";
+import { emailAction, escapeEmailText as esc } from "./fragments";
+export function renderEmail(content: EmailContent, brand: EmailBrand, t: EmailTheme) {
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark"><meta name="supported-color-schemes" content="dark"><title>${esc(content.subject)}</title></head>
+<body bgcolor="${t.background}" style="margin:0;padding:0;background-color:${t.background};color:${t.text};font-family:${esc(t.font)};font-size:${t.bodySize};line-height:1.8;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${esc(content.message)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${t.background}"><tr><td align="center" style="padding:${t.padding} ${t.gap}">
+<!--[if mso]><table role="presentation" width="${parseInt(t.width)}" align="center"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:${t.width};text-align:right" dir="rtl">
+<tr><td style="padding:0 0 ${t.padding}"><a href="{{ .SiteURL }}" style="color:${t.text};text-decoration:none;font-size:${t.headingSize};font-weight:700">${esc(brand.name)} <span style="color:${t.primary}">▲</span></a><br><span dir="ltr" style="font-size:${t.smallSize};color:${t.secondary}">${esc(brand.englishName)}</span></td></tr>
+<tr><td bgcolor="${t.surface}" style="background-color:${t.surface};padding:${t.padding};border:1px solid ${t.border};border-top:3px solid ${t.primary};border-radius:${t.radius}">
+<p style="margin:0 0 ${t.gap};color:${t.secondary};font-size:${t.smallSize}">${esc(brand.context)}</p>
+<h1 style="margin:0 0 ${t.gap};font-size:${t.headingSize};line-height:1.5;color:${t.text}">${esc(content.title)}</h1>
+<p style="margin:0 0 ${t.gap};color:${t.secondary}">${esc(content.message)}</p>
+${content.detail ? `<p dir="ltr" style="overflow-wrap:anywhere;word-break:break-all;color:${t.text}">${esc(content.detail)}</p>` : ""}
+${emailAction(content, t, brand)}
+<p style="margin:${t.padding} 0 0;padding-top:${t.gap};border-top:1px solid ${t.border};font-size:${t.smallSize};color:${t.secondary}">${esc(content.notice)}</p>
+<p style="margin:${t.gap} 0 0;color:${t.secondary};font-size:${t.smallSize}">${esc(brand.recipient)}<br><span dir="ltr" style="display:inline-block;overflow-wrap:anywhere;word-break:break-all">{{ .Email }}</span></p>
+</td></tr><tr><td style="padding:${t.padding} 0;color:${t.secondary};font-size:${t.smallSize}">
+<p style="margin:0 0 ${t.gap}">${esc(brand.help)} <a href="${brand.supportUrl}" style="color:${t.text};text-decoration:underline">${esc(brand.support)}</a></p>
+<p style="margin:0 0 ${t.gap}">${esc(brand.footer)}</p><a href="mailto:${brand.supportEmail}" style="color:${t.secondary}" dir="ltr">${brand.supportEmail}</a>
+</td></tr></table><!--[if mso]></td></tr></table><![endif]-->
+</td></tr></table></body></html>\n`;
+}
+```
+
+### File: `packages/design-system/email/types.ts`
+
+SHA-256: `e84e05794043369dc0242e9c0fed834bd252dfd70db24e4b06c372bd0207beea`
+
+```typescript
+export interface EmailContent {
+  id: string; label: string; subject: string; title: string; message: string; notice: string;
+  action?: string; actionUrl?: string; detail?: string; code?: string;
+}
+export interface EmailBrand {
+  name: string; englishName: string; supportEmail: string; supportUrl: string; context: string;
+  recipient: string; help: string; support: string; footer: string; fallback: string;
+}
+export type EmailTheme = Record<"background" | "surface" | "primary" | "text" | "secondary" | "border" | "font" | "width" | "padding" | "gap" | "radius" | "bodySize" | "headingSize" | "buttonSize" | "smallSize", string>;
 ```
 
 ### File: `packages/design-system/helpers/browser/animation-frame.ts`
@@ -18481,7 +19093,7 @@ export function getYouTubeEmbedUrl(rawUrl: string): string | null {
 
 ### File: `packages/design-system/package.json`
 
-SHA-256: `f4a0477a045e42ec054d1cac61d5295d304cda07ad295d9e65535e0d88229914`
+SHA-256: `3712a234bcca4df7720ea43da59331f8cfdc7ec5b6c3163c9d98abf22ae52cbd`
 
 ```json
 {
@@ -18495,7 +19107,8 @@ SHA-256: `f4a0477a045e42ec054d1cac61d5295d304cda07ad295d9e65535e0d88229914`
     "./lib/*": "./lib/*.ts",
     "./styles/*": "./styles/*",
     "./helpers/*": "./helpers/*.ts",
-    "./config/*": "./config/*.ts"
+    "./config/*": "./config/*.ts",
+    "./email/*": "./email/*.ts"
   },
   "peerDependencies": {
     "react": "^19.1.1",
@@ -18557,6 +19170,29 @@ SHA-256: `87c66f082b8fc6a28401b9d3b063a0f99a8daa4c6d7b03e3016897d04e8cd242`
 .ds-action-panel a:focus-visible, .ds-action-panel > button:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: calc(-1 * var(--size-2px)); }
 .ds-action-logout { border-top: var(--size-1px) solid var(--border-hairline) !important; }
 @media (prefers-reduced-motion: reduce) { .ds-action-panel { transition: none; transform: none; } }
+```
+
+### File: `packages/design-system/styles/analytics.css`
+
+SHA-256: `7ceb1f38d13881e1eecfec42de6dc333678be1200daccb5aaf9c8a4f9c6d0e60`
+
+```css
+/* Portable chart and panel presentation; all visual roles come from the theme. */
+.analytics-panel { min-width: 0; display: flex; flex-direction: column; background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; }
+.analytics-panel-heading, .analytics-panel-body { padding: var(--space-lg); }
+.analytics-panel-heading { padding-bottom: var(--space-md); }
+.analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--font-size-body); }
+.analytics-panel-heading p { margin: var(--space-sm) 0 0; color: var(--text-secondary); font-size: var(--font-size-caption); }
+.analytics-panel-body { flex: 1; padding-top: 0; }
+.analytics-source { padding: var(--space-md) var(--space-lg); border-top: var(--size-1px) solid var(--border-subtle); font-size: var(--font-size-caption); color: var(--text-muted); }
+.analytics-source span { color: var(--text-secondary); }
+.analytics-source p { margin: var(--space-xs) 0 0; overflow-wrap: anywhere; }
+.analytics-chart { width: 100%; height: var(--analytics-chart-height); min-width: 0; font-size: var(--font-size-caption); }
+.analytics-tooltip { border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-md); background: var(--bg-section-alt); color: var(--text-primary); }
+.analytics-tooltip dl { margin: var(--space-sm) 0 0; }
+.analytics-tooltip dl > div { display: flex; gap: var(--space-md); justify-content: space-between; }
+.analytics-tooltip dt { color: var(--text-secondary); }
+.analytics-tooltip dd { margin: 0; }
 ```
 
 ### File: `packages/design-system/styles/coming-soon.css`
@@ -18792,13 +19428,26 @@ SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
 
 ### File: `packages/design-system/styles/theme.css`
 
-SHA-256: `00ffb216b27f5135c42d0a91e0781e1cacae6e683a7328c3800a395ded63b5a2`
+SHA-256: `1fa741b8c7d00e2041f29fdb65d282874b22bec894da7565baae7e4f21794e4f`
 
 ```css
 /* Shared visual foundation of the two client-approved reference sites.
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  /* Email exports resolve these roles to literal inline styles for Gmail/Outlook. */
+  --email-content-width: 600px;
+  --email-border: #36404f;
+  --email-font: "IBM Plex Sans Arabic", Tahoma, Arial, sans-serif;
+  --email-body-size: 16px;
+  --email-heading-size: 28px;
+  --email-caption-size: 14px;
+
+  --analytics-chart-height: 280px;
+  --analytics-chart-current: var(--primary-red);
+  --analytics-chart-previous: var(--text-secondary);
+  --analytics-chart-grid: var(--border-subtle);
+
   --action-menu-width: 256px;
 
   --control-select-min-width: 200px;
@@ -22982,6 +23631,15 @@ export interface ActionMenuProps {
 }
 ```
 
+### File: `packages/design-system/types/charts.ts`
+
+SHA-256: `a282dc37bf7e5e972213d864fd8ee5a0d562ae89cb25fc819ce3e651da0719c6`
+
+```typescript
+export interface TimeSeriesPoint { label: string; tick: string; current: number; previous: number | null }
+export interface TimeSeriesLabels { current: string; previous: string; value: string }
+```
+
 ### File: `packages/design-system/types/interactions.ts`
 
 SHA-256: `632659b437e59730e77f553f3003eb09719fdb58cbda1e070dbddf212ccf86a3`
@@ -23535,6 +24193,23 @@ export default function Action(props: ActionProps) {
 }
 ```
 
+### File: `packages/design-system/ui/analytics-panel.tsx`
+
+SHA-256: `acb6e468e141e0dc0f30a7810a65f225c5f1b50a7452d016c63fc601c599278e`
+
+```tsx
+import type { ReactNode } from "react";
+export default function AnalyticsPanel({ title, description, source, sourceLabel, children, className = "" }: {
+  title: string; description?: string; source: string; sourceLabel: string; children: ReactNode; className?: string;
+}) {
+  return <section className={`analytics-panel ${className}`} aria-label={title}>
+    <header className="analytics-panel-heading"><h2>{title}</h2>{description && <p>{description}</p>}</header>
+    <div className="analytics-panel-body">{children}</div>
+    <footer className="analytics-source"><span>{sourceLabel}</span><p>{source}</p></footer>
+  </section>;
+}
+```
+
 ### File: `packages/design-system/ui/asset-image.tsx`
 
 SHA-256: `c918de95af998406fe86cf9503783a364b1901e4fb164b3694495ffd31e7997f`
@@ -23624,6 +24299,25 @@ export default function Avatar({ name, url, label, className = "" }: { name: str
     // eslint-disable-next-line @next/next/no-img-element
     ? <img src={url} alt="" referrerPolicy="no-referrer" />
     : <span aria-hidden="true">{name.slice(0, 1)}</span>}</span>;
+}
+```
+
+### File: `packages/design-system/ui/chart-tooltip.tsx`
+
+SHA-256: `3f0ce55f2f5a8ddf2fc230a0d004236cffb471bccf5685845397a2d20ded3aaf`
+
+```tsx
+import type { TimeSeriesPoint, TimeSeriesLabels } from "../types/charts";
+export default function ChartTooltip({ active, payload, labels }: {
+  active?: boolean; payload?: readonly { payload: TimeSeriesPoint }[]; labels: TimeSeriesLabels;
+}) {
+  const point = payload?.[0]?.payload;
+  if (!active || !point) return null;
+  return <div className="analytics-tooltip" dir="rtl">
+    <strong>{point.label}</strong>
+    <dl><div><dt>{labels.current}</dt><dd>{point.current} {labels.value}</dd></div>
+      <div><dt>{labels.previous}</dt><dd>{point.previous ?? "—"}</dd></div></dl>
+  </div>;
 }
 ```
 
@@ -24717,6 +25411,22 @@ export default function ReelCard(reel: ReelData) {
 }
 ```
 
+### File: `packages/design-system/ui/refresh-button.tsx`
+
+SHA-256: `49a1311c6f3f88972f0f38ca8e03f0618f1e602e4e873835376d9345bbb0e434`
+
+```tsx
+"use client";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+export default function RefreshButton({ label, pendingLabel, className }: { label: string; pendingLabel: string; className?: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  return <button type="button" className={className} disabled={pending} aria-busy={pending}
+    onClick={() => startTransition(() => router.refresh())}>{pending ? pendingLabel : label}</button>;
+}
+```
+
 ### File: `packages/design-system/ui/review-card.tsx`
 
 SHA-256: `204c679c335160a6b11927707630e016afb19615a848f20d27314365becdcaee`
@@ -25048,6 +25758,40 @@ export default function TestimonialsSection({
       </Container>
     </Section>
   );
+}
+```
+
+### File: `packages/design-system/ui/time-series-chart.tsx`
+
+SHA-256: `6c97d3f299fa5f350029433c198547ca3240dae566063283120853076019cadb`
+
+```tsx
+"use client";
+import { useId } from "react";
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { TimeSeriesPoint, TimeSeriesLabels } from "../types/charts";
+import { chartGeometry } from "../config/charts";
+import ChartTooltip from "./chart-tooltip";
+export default function TimeSeriesChart({ data, labels, title }: { data: TimeSeriesPoint[]; labels: TimeSeriesLabels; title: string }) {
+  const gradient = `chart-fill-${useId().replaceAll(":", "")}`;
+  return <div className="analytics-chart" dir="ltr" role="group" aria-label={title}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <ComposedChart data={data} accessibilityLayer margin={chartGeometry.margin}>
+        <defs><linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--analytics-chart-current)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--analytics-chart-current)" stopOpacity="0" />
+        </linearGradient></defs>
+        <CartesianGrid vertical={false} stroke="var(--analytics-chart-grid)" strokeDasharray={chartGeometry.dash} />
+        <XAxis dataKey="tick" axisLine={false} tickLine={false} minTickGap={chartGeometry.tickGap} tick={{ fill: "var(--text-secondary)" }} />
+        <YAxis allowDecimals={false} width={chartGeometry.axisWidth} axisLine={false} tickLine={false} tick={{ fill: "var(--text-secondary)" }} />
+        <Tooltip content={<ChartTooltip labels={labels} />} cursor={{ stroke: "var(--border-strong)" }} />
+        <Area type="linear" dataKey="current" name={labels.current} fill={`url(#${gradient})`} stroke="var(--analytics-chart-current)"
+          strokeWidth={chartGeometry.strokeWidth} isAnimationActive={false} />
+        <Line type="linear" dataKey="previous" name={labels.previous} stroke="var(--analytics-chart-previous)"
+          strokeDasharray={chartGeometry.dash} strokeWidth={chartGeometry.strokeWidth} dot={false} connectNulls={false} isAnimationActive={false} />
+      </ComposedChart>
+    </ResponsiveContainer>
+  </div>;
 }
 ```
 
@@ -25935,9 +26679,65 @@ const {chromium}=require('@playwright/test'),fs=require('node:fs');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 ```
 
+### File: `scripts/email/generate.ts`
+
+SHA-256: `51a817daef4087e234232047e416874408a903f4dc4f07ae817af4804bce4b7a`
+
+```typescript
+import fs from "node:fs";
+import path from "node:path";
+import { parseTokens, resolveToken } from "../../packages/design-system/lib/theme.cjs";
+import { renderEmail } from "../../packages/design-system/email/render";
+import type { EmailTheme } from "../../packages/design-system/email/types";
+import { authEmails, securityEmails, emailBrand } from "../../config/email/content";
+const tokens = parseTokens([fs.readFileSync("packages/design-system/styles/theme.css", "utf8")]);
+const roles = { background: "--bg-main", surface: "--bg-surface", primary: "--primary-red", text: "--text-primary", secondary: "--text-secondary", border: "--email-border", font: "--email-font", width: "--email-content-width", padding: "--space-lg", gap: "--space-md", radius: "--radius-md", bodySize: "--email-body-size", headingSize: "--email-heading-size", buttonSize: "--email-body-size", smallSize: "--email-caption-size" };
+const theme = Object.fromEntries(Object.entries(roles).map(([key, token]) => [key, resolveToken(tokens, token)])) as EmailTheme;
+fs.mkdirSync("supabase/templates", { recursive: true });
+const templates = [...authEmails, ...securityEmails];
+for (const content of templates) fs.writeFileSync(path.join("supabase/templates", content.id + ".html"), renderEmail(content, emailBrand, theme));
+const payload = Object.fromEntries(templates.flatMap(content => [[`mailer_subjects_${content.id}`, content.subject], [`mailer_templates_${content.id}_content`, renderEmail(content, emailBrand, theme)]]));
+fs.writeFileSync("supabase/templates/hosted-config.json", JSON.stringify(payload, null, 2) + "\n");
+const localConfigPath = "supabase/config.toml";
+const localTemplates = authEmails.map(content => `[auth.email.template.${content.id}]\nsubject = ${JSON.stringify(content.subject)}\ncontent_path = "./supabase/templates/${content.id}.html"`).join("\n\n");
+const localConfig = fs.readFileSync(localConfigPath, "utf8").replace(/# BEGIN generated auth email templates[\s\S]*?# END generated auth email templates/, `# BEGIN generated auth email templates\n${localTemplates}\n# END generated auth email templates`);
+fs.writeFileSync(localConfigPath, localConfig);
+console.log(`Generated ${templates.length} email templates from the canonical theme.`);
+```
+
+### File: `scripts/email/publish.cjs`
+
+SHA-256: `1fd989d328f610484c302023ddc6b847eb438166d22dab334d727f8364c203ed`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Server-only Supabase Management API CLI; never bundled. */
+const fs=require('node:fs');
+process.loadEnvFile('.env.local');
+const token=process.env.SUPABASE_ACCESS_TOKEN;
+if(!token) throw new Error('Add a Supabase personal access token as SUPABASE_ACCESS_TOKEN in ignored .env.local. Auth secret keys cannot configure hosted templates.');
+const host=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname;
+if(!/^[a-z0-9]+\.supabase\.co$/.test(host)) throw new Error('Expected the dedicated hosted Supabase project URL.');
+const endpoint=`https://api.supabase.com/v1/projects/${host.split('.')[0]}/config/auth`;
+const headers={Authorization:`Bearer ${token}`,'Content-Type':'application/json'};
+const payload=JSON.parse(fs.readFileSync('supabase/templates/hosted-config.json','utf8'));
+async function request(method,body) {
+  const result=await fetch(endpoint,{method,headers,body:body&&JSON.stringify(body),signal:AbortSignal.timeout(30000)});
+  if(!result.ok) throw new Error(`Supabase Management API returned HTTP ${result.status}; templates were not verified.`);
+  return result.json();
+}
+(async()=>{
+  const before=await request('GET');
+  fs.writeFileSync('/tmp/khatab-email-templates-before.json',JSON.stringify(Object.fromEntries(Object.keys(payload).map(key=>[key,before[key]])),null,2),{mode:0o600});
+  await request('PATCH',payload);
+  const after=await request('GET');
+  if(!Object.entries(payload).every(([key,value])=>after[key]===value)) throw new Error('Hosted template verification failed.');
+  console.log(`Verified ${Object.keys(payload).length/2} hosted email templates. SMTP, redirects and security notification switches were preserved.`);
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
+```
+
 ### File: `scripts/generate-theme.cjs`
 
-SHA-256: `f91ff96df284c503d75959a3883c20a005f02e1a9101e0a7fb3360f9e9658780`
+SHA-256: `45f9ee730b7da2d90eba4d0d9906a079b1fa5bf8aa99be14a4023a14917c5129`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Build-time generation from canonical CSS; no runtime source parsing. */
@@ -25999,6 +26799,9 @@ fs.writeFileSync(
   path.join(root, "modules/styles/certificate-font.json"),
   JSON.stringify({ base64: certificateFont }) + "\n",
 );
+
+// Email HTML shares the canonical theme and is regenerated with each build.
+require("node:child_process").execFileSync("npx", ["tsx", "scripts/email/generate.ts"], { stdio: "inherit" });
 ```
 
 ### File: `scripts/measure-route-performance.cjs`
@@ -26955,9 +27758,75 @@ verify(Boolean((await student.direct.from('account_contacts').update({phone_veri
 };
 ```
 
+### File: `tests/backend/admin-analytics.cjs`
+
+SHA-256: `cd9b546f1c1eda9bce5b31ca2cd998de468197326a2fcbea6af82979980484e9`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated analytics database and responsive browser acceptance. */
+const {Client}=require('pg');
+const {chromium,expect}=require('@playwright/test');
+const fs=require('node:fs');
+module.exports=async function analyticsChecks({admin,provision,anonymous,verify,url,config}) {
+  const manager=await provision('Analytics Manager');
+  await admin.from('admin_users').insert({user_id:manager.id});
+  const initial=JSON.parse((await manager.api('/api/admin/analytics')).data);
+  const current=await provision('Analytics Current'), previous=await provision('Analytics Previous');
+  verify((await anonymous('/api/admin/analytics')).status===401,'Anonymous analytics access denied');
+  verify((await current.api('/api/admin/analytics')).status===403,'Student analytics access denied');
+  verify(Boolean((await current.direct.rpc('admin_dashboard_snapshot')).error),'Direct student RPC denied');
+  const db=new Client({connectionString:config.DB_URL});await db.connect();
+  try {
+    await db.query("update auth.users set raw_user_meta_data=raw_user_meta_data || '{\"acquisition_source\":\"youtube\"}'::jsonb where id=$1",[current.id]);
+    await db.query("update auth.users set created_at=((date_trunc('week',now() at time zone 'Africa/Cairo') - interval '7 days') + ((now() at time zone 'Africa/Cairo')-date_trunc('week',now() at time zone 'Africa/Cairo'))/2) at time zone 'Africa/Cairo' where id=$1",[previous.id]);
+    const {rows}=await db.query('select slug from public.courses order by slug limit 2');
+    for(const row of rows) await db.query('insert into public.enrollments(user_id,course_slug) values($1,$2)',[current.id,row.slug]);
+    await db.query('insert into public.enrollments(user_id,course_slug,created_at) select id,$2,created_at from auth.users where id=$1',[previous.id,rows[0].slug]);
+    const response=await manager.api('/api/admin/analytics'),data=JSON.parse(response.data);
+    verify(response.status===200&&/no-store/.test(response.headers.get('cache-control')),'Admin analytics returns uncached aggregates');
+    verify(data.timezone==='Africa/Cairo','Analytics uses explicit Cairo timezone');
+    verify(data.metrics.totalStudents===initial.metrics.totalStudents+2,'Admin accounts excluded from total students');
+    verify(data.metrics.studentsWeek===initial.metrics.studentsWeek+1,'Current week excludes prior-week signup');
+    verify(data.metrics.studentsPreviousWeek===initial.metrics.studentsPreviousWeek+1,'Previous week uses equal elapsed duration');
+    verify(data.metrics.enrollmentsWeek===initial.metrics.enrollmentsWeek+2,'Actual enrollments counted separately from signups');
+    verify(data.metrics.enrollmentsPreviousWeek===initial.metrics.enrollmentsPreviousWeek+1,'Previous enrollment comparison counts actual records');
+    verify(data.courses.week[0].count>=1&&data.courses.all[0].count>=data.courses.week[0].count,'Popular course ranking is based on enrollments');
+    verify(data.sources.some(s=>s.source==='youtube'&&s.count===1),'Recorded attribution retained');
+    verify(data.sources.some(s=>s.source==='unknown'),'Missing attribution stays unknown');
+    verify(!JSON.stringify(data).includes(current.email)&&!('revenue' in data.metrics),'Aggregate response omits email and invented revenue');
+    verify(data.daily.length===Number(new Intl.DateTimeFormat('en',{timeZone:'Africa/Cairo',day:'numeric'}).format(new Date())),'Daily chart ends at Cairo today');
+    const browser=await chromium.launch({headless:true});
+    try {
+      const page=await browser.newPage(); const errors=[];page.on('pageerror',e=>errors.push(e.message));
+      await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);
+      await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
+      await expect(page).toHaveURL(url+'/admin/dashboard');await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible();
+      fs.mkdirSync('docs/evidence/admin-analytics',{recursive:true});
+      for(const width of [320,390,768,1440]) {
+        await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
+        verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Analytics has no overflow at ${width}px`);
+        await page.screenshot({path:`docs/evidence/admin-analytics/home-${width}.png`,fullPage:true});
+      }
+      await page.getByLabel('اشتراكات',{exact:true}).check();await expect(page.getByLabel('اشتراكات',{exact:true})).toBeChecked();
+      await page.getByText('عرض الأرقام اليومية',{exact:true}).click();await expect(page.locator('.analytics-data-table table')).toBeVisible();
+      await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
+      await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);
+      await page.getByRole('button',{name:'تحديث الأرقام',exact:true}).click();await expect(page.getByRole('button',{name:'تحديث الأرقام',exact:true})).toBeEnabled();
+      verify(await page.getByText('غير متاح',{exact:true}).count()===2,'Week and month revenue marked unavailable');
+      await page.getByRole('link',{name:'المستخدمون',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/users');
+      await expect(page.getByRole('heading',{name:'إدارة المستخدمين',exact:true})).toBeVisible();
+      verify(errors.length===0,'Chart and navigation have no browser errors');
+    } finally {await browser.close();}
+    await admin.from('admin_users').delete().eq('user_id',manager.id);
+    verify((await manager.api('/api/admin/analytics')).status===403,'Revoked admin denied immediately');
+    verify(Boolean((await manager.direct.rpc('admin_dashboard_snapshot')).error),'Revoked admin RPC denied');
+  } finally {await db.end();}
+};
+```
+
 ### File: `tests/backend/admin-user-search.cjs`
 
-SHA-256: `c07ecfe368bef7ba0f7e56928018cd0d6bd864be0f8fbacaf709198f9896344c`
+SHA-256: `20d1bb5966a0d4edab715c5efe454f5020f23367fa8f1c4ded0612c4f38b3188`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Real isolated database and browser fixtures. */
@@ -27014,6 +27883,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
     await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
     await expect(page).toHaveURL(url + '/admin/dashboard');
+    await page.goto(url + '/admin/dashboard/users');
     await page.getByRole('searchbox').fill(prefix);
     await page.getByRole('button', { name: 'تطبيق البحث والفلاتر' }).click();
     await expect(page).toHaveURL(new RegExp('q=' + prefix));
@@ -27040,7 +27910,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
       verify(await page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) <= innerWidth), `Search/filter UI fits ${width}px`);
     }
     await page.getByRole('link', { name: 'مسح الفلاتر', exact: true }).click();
-    await expect(page).toHaveURL(url + '/admin/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard/users');
     await expect(page.getByRole('searchbox')).toHaveValue('');
     verify((await page.locator('.lms-admin-table tbody tr').count()) <= 5, 'Clear filters keeps five-record page limit');
     verify(errors.length === 0, 'Search/filter browser has no JavaScript errors');
@@ -27050,7 +27920,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `b703963f3e870680bd422485281dba02274bddc896ed0b68c480dc81eec4b182`
+SHA-256: `bb8d376933b72c8bc7d4fc2d5826b54f7f9a1bd3766cbd9702be883b6a1ce2b1`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -27071,7 +27941,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.goto(url + '/dashboard');
     await expect(page).toHaveURL(url + '/admin/dashboard');
     verify(true, 'Generic dashboard link resolves to administrator dashboard');
-    await page.goto(url + '/admin/dashboard');
+    await page.goto(url + '/admin/dashboard/users');
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
     await page.getByRole('searchbox', { name: 'البحث عن مستخدم', exact: true }).fill(target.email);
     await page.getByRole('button', { name: 'تطبيق البحث والفلاتر', exact: true }).click();
@@ -27101,7 +27971,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(page.getByText('نشط', { exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 900 });
     verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'User detail fits mobile viewport');
-    await page.goto(url + '/admin/dashboard?q=' + encodeURIComponent(target.email));
+    await page.goto(url + '/admin/dashboard/users?q=' + encodeURIComponent(target.email));
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByRole('row').filter({ hasText: target.email })).toBeVisible();
     for (const width of [320, 390, 768, 1024, 1440]) {
@@ -27314,6 +28184,39 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
 };
 ```
 
+### File: `tests/backend/analytics-live.cjs`
+
+SHA-256: `ebbfb76414e169a2ed20ea2b5f0f967b757245912acef1f85a13c1f54eb5705e`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only deployed analytics acceptance, credentials from ignored env. */
+const {chromium,expect}=require('@playwright/test');
+process.loadEnvFile('.env.local');
+const url=process.env.TARGET_URL||'http://localhost:3040';
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ try {
+  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');
+  await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);
+  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible();
+  const response=await page.request.get(url+'/api/admin/analytics');expect(response.status()).toBe(200);
+  const data=await response.json();expect(data.timezone).toBe('Africa/Cairo');
+  for(const width of [390,1440]) {
+   await page.setViewportSize({width,height:960});await expect(page.locator('.recharts-surface')).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.screenshot({path:`docs/evidence/admin-analytics/${url.startsWith('https')?'live':'production'}-${width}.png`,fullPage:true});
+  }
+  await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
+  await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);
+  await page.getByRole('link',{name:'المستخدمون',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/users');
+  await expect(page.getByRole('searchbox')).toBeVisible();expect(errors).toEqual([]);
+  console.log('Read-only analytics acceptance passed:',url,'responsive charts, admin API, period tabs, user navigation; zero browser errors.');
+ } finally {await browser.close();}
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
+```
+
 ### File: `tests/backend/browser.cjs`
 
 SHA-256: `1c14aff27fd7eb1c5d81e98d779469e493ca875fc3cd2566f25f90d4dc049678`
@@ -27420,9 +28323,49 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 };
 ```
 
+### File: `tests/backend/email-design.cjs`
+
+SHA-256: `c2828766b449922ba34de788d3b1c73bfbfbb2606be52614f6338bb1a49d5577`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Generated email design, placeholders and rendering checks. */
+const fs=require('node:fs'), assert=require('node:assert/strict');
+const {chromium}=require('@playwright/test');
+const config=JSON.parse(fs.readFileSync('supabase/templates/hosted-config.json','utf8'));
+(async()=>{
+ const browser=await chromium.launch({headless:true});let checks=0;
+ try {
+  fs.mkdirSync('docs/evidence/email-design',{recursive:true});
+  for(const file of fs.readdirSync('supabase/templates').filter(file=>file.endsWith('.html'))) {
+   const id=file.replace('.html',''),html=fs.readFileSync('supabase/templates/'+file,'utf8');
+   assert.equal(config[`mailer_templates_${id}_content`],html);assert.match(html,/lang="ar" dir="rtl"/);
+   assert.match(html,/#101317/);assert.match(html,/#fc3522/);assert.doesNotMatch(html,/<script|var\(--|localhost|sb_secret_|SMTP_PASSWORD/);
+   if(['confirmation','recovery','email_change','invite','magic_link'].includes(id))assert.equal((html.match(/href="{{ \.ConfirmationURL }}"/g)||[]).length,2);
+   if(id==='reauthentication'){assert.match(html,/{{ \.Token }}/);assert.doesNotMatch(html,/ConfirmationURL/);}
+   if(id==='email_change')assert.match(html,/{{ \.NewEmail }}/);
+   const page=await browser.newPage();
+   const preview=html.replaceAll('{{ .ConfirmationURL }}','https://ta3allam.vercel.app/api/auth/callback?token_hash='+'x'.repeat(90)).replaceAll('{{ .SiteURL }}','https://ta3allam.vercel.app').replaceAll('{{ .Email }}','student@ta3allam.com').replaceAll('{{ .NewEmail }}','newstudent@ta3allam.com').replaceAll('{{ .OldEmail }}','student@ta3allam.com').replaceAll('{{ .Token }}','12345678').replaceAll('{{ .Phone }}','+201201024880').replaceAll('{{ .OldPhone }}','+201055555555');
+   for(const width of [320,390,768]) {
+    await page.setViewportSize({width,height:1000});await page.setContent(preview);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${id} overflows ${width}px`);
+    assert.ok(await page.locator('h1').isVisible());
+    if(['confirmation','recovery','email_change','invite','magic_link'].includes(id)) {
+      const style=await page.locator('td[bgcolor="#fc3522"] a').evaluate(el=>({color:getComputedStyle(el).color,decoration:getComputedStyle(el).textDecorationLine}));
+      assert.equal(style.color,'rgb(255, 255, 255)');assert.equal(style.decoration,'none');
+    }
+    if(id==='recovery'||id==='confirmation')await page.screenshot({path:`docs/evidence/email-design/${id}-${width}.png`,fullPage:true});
+    checks++;
+   }
+   await page.close();
+  }
+  console.log(`Email design: ${checks} responsive renders passed; placeholders, canonical colors and generated payload verified.`);
+ } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});
+```
+
 ### File: `tests/backend/form-controls-browser.cjs`
 
-SHA-256: `a8540b23c7e659de512b2771801350dcb73c2edf57ad3acc4fdee97f95072c8a`
+SHA-256: `649252c43de11c7a74c71bf807776fbc5ad454397c7dfbf983edcaf0025d13fd`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks with ephemeral isolated accounts. */
@@ -27438,6 +28381,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);
     await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);
     await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+    await page.goto(url+'/admin/dashboard/users');
     await page.getByRole('radio',{name:'الاسم يبدأ بـ',exact:true}).check();
     await page.getByRole('searchbox').fill('Zack');await page.getByRole('button',{name:'تطبيق البحث والفلاتر'}).click();
     await expect(page).toHaveURL(/mode=prefix/);await expect(page.getByRole('radio',{name:'الاسم يبدأ بـ'})).toBeChecked();
@@ -27446,7 +28390,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     await page.getByRole('button',{name:'تطبيق البحث والفلاتر'}).click();await expect(page).toHaveURL(/newcomers=1/);
     verify(true,'Custom checkboxes combine with prefix search');
     await page.screenshot({path:`${directory}/filters-390.png`,fullPage:true});
-    await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
+    await page.goto(url+'/admin/dashboard/users?q='+encodeURIComponent(student.email));
     const handle = JSON.parse((await student.api('/api/profile')).data).username;
     const view = page.getByRole('link',{name:'عرض المستخدم',exact:true});
     await expect(view).toHaveAttribute('href','/admin/dashboard/users/'+handle);
@@ -27455,7 +28399,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     await page.goto(url+'/admin/dashboard/users/'+student.id);
     await expect(page).toHaveURL(url+'/admin/dashboard/users/'+handle);
     verify(true,'Browser follows legacy UUID redirect to canonical username');
-    await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
+    await page.goto(url+'/admin/dashboard/users?q='+encodeURIComponent(student.email));
     await page.getByRole('button',{name:'إدارة الحساب',exact:true}).click();
     const dialog = page.getByRole('dialog',{name:'إدارة الحساب',exact:true}), combo=dialog.getByRole('combobox');
     for(const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1440,height:900}]) {
@@ -27488,7 +28432,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `4d7e0f0d161f00b6682036b2a1d97f065bf3205815b8230e2abc84f4a01e2b89`
+SHA-256: `4e3a68fc6e5c297d0d2d58e77572324f0981fb59eacf5ec977545856c3ab887b`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -27540,6 +28484,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-analytics') {
+    await require('./admin-analytics.cjs')({admin,provision,anonymous,verify,url,config});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'navigation') {
     const manager=await provision('Navigation Manager'),student=await provision('Navigation Student');
     assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);

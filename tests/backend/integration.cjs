@@ -47,6 +47,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-analytics') {
+    await require('./admin-analytics.cjs')({admin,provision,anonymous,verify,url,config});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'navigation') {
     const manager=await provision('Navigation Manager'),student=await provision('Navigation Student');
     assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);

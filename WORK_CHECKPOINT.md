@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — admin Home analytics and themed auth emails
+
+- Added Home at `/admin/dashboard`; moved user management to `/admin/dashboard/users`, preserving username detail routes. Added real Cairo-time signup/enrollment metrics, a Recharts daily chart with previous-month comparison and accessible table, week/month/all-time enrollment rankings, signup attribution, learning summary and explicit source labels. Revenue remains unavailable until actual payments exist.
+- Analytics RPC checks live admin authority inside a private definer, exposes only aggregated records via an invoker wrapper, and has no anonymous execution grant. Local/hosted database advisors and SQL lint passed. Migration `20261011161615_admin_dashboard_analytics.sql` is applied to the dedicated hosted database.
+- Passed 26 analytics, 47 user-search and 68 username/form-control checks with isolated fixtures, including revoked-admin/anonymous/student denial and four responsive widths. Production build, TypeScript, lint and architecture (561 files / no violations) passed. Screenshots: `docs/evidence/admin-analytics/`.
+- Gmail SMTP authentication passed; the user saved hosted SMTP settings. The live password-reset request returned HTTP 200 and the user confirmed Inbox delivery. No password was changed. Credentials remain out of Git and public variables.
+- Added nine Arabic auth/security email templates using a reusable shared renderer, canonical theme roles and centralized content. Build regeneration, local auth config, hosted payload, safe publish script and installation guide are included. All nine passed 27 responsive rendering checks and token/CTA checks. Screenshots: `docs/evidence/email-design/`. The user chose manual hosted installation. Supabase-ready HTML and matching subjects are documented in `docs/EMAIL_DESIGN.md`; custom hosted activation remains pending the user pasting/saving those templates. Gmail delivery is already confirmed, and a clearly labelled themed preview was sent to the same administrator Inbox.
+- Release: code verified locally, including read-only production-server acceptance against hosted Supabase. Application push/live verification in progress.
+
 ## Latest checkpoint — Ta3allam navbar section order
 
 - Reordered the marketing navbar to match the homepage: الدورات → كيف تتعلّم؟ → تعرّف على مؤسس تعلّم → الكوتشينج → الأسئلة الشائعة. Section destinations are unchanged.
@@ -863,4 +872,4 @@ Metadata was fetched on 2026-10-09 at approximately 15:32 UTC. Counts are a veri
 
 `python3 scripts/sync-youtube-metadata.py` refreshes the known associations from public YouTube metadata, validates every response before replacing the last snapshot and archives source evidence. Rebuild both applications after refreshing. No runtime YouTube API/player dependency was introduced.
 
-**Verification:** root/LMS lint and production builds/TypeScript passed; architecture guard reported 289 files and zero violations. All 16 targeted LMS media/portfolio tests and all eight workshop portfolio-player tests passed. A live browser comparison confirmed identical titles, counts and posters on all three pages. Evidence: `docs/evidence/youtube-metadata/lms-tests.log`, `workshop-tests.log` and seven source metadata JSON files. New production builds: workshop `W05z3xZBzXbsjlBUXOVza`, LMS `KarcpmPWgwTalCdrZryhS`. Reproduction snapshot: 363 files. No commit, push or deployment was performed.
+**Verification:** root/LMS lint and production builds/TypeScript passed; architecture guard reported 289 files and zero violations. All 16 targeted LMS media/portfolio tests and all nine workshop portfolio-player tests passed. A live browser comparison confirmed identical titles, counts and posters on all three pages. Evidence: `docs/evidence/youtube-metadata/lms-tests.log`, `workshop-tests.log` and seven source metadata JSON files. New production builds: workshop `W05z3xZBzXbsjlBUXOVza`, LMS `KarcpmPWgwTalCdrZryhS`. Reproduction snapshot: 363 files. No commit, push or deployment was performed.

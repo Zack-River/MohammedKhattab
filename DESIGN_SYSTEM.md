@@ -321,3 +321,9 @@ Shared `NavigationLink` uses native anchors for fragment destinations; ordinary 
 ## Mobile dashboard access
 
 The public navbar keeps the authenticated account destination visible beside the mobile menu toggle at every viewport width. Administrators see “لوحة الإدارة” and students see “لوحة التعلّم”; the guest sees “ابدأ التعلّم”. Mobile account links use the shared touch-target token and do not wrap or shrink. Never hide the only account/dashboard destination in a responsive rule.
+
+## Admin analytics and authentication emails (2026-10-11)
+
+Admin Home uses the same dark/red identity at `/admin/dashboard`, with the user list at `/admin/dashboard/users`. Recharts is explicitly authorized for daily signup/enrollment charts; chart, tooltip, panel and refresh controls live in the shared design package and accept data/labels. Components receive product copy as props. Chart roles stay in the canonical theme, and product grid/ranking styles live in `modules/styles/analytics.css`. Charts use straight count lines and no motion; a daily table supplies the numerical alternative. Counts and comparisons are database-backed, not demo revenue. See `docs/ADMIN_ANALYTICS.md`.
+
+Authentication email exports use one shared table-based renderer at `packages/design-system/email/render.ts`, focused fragments, and centrally supplied Arabic content in `config/email/content.ts`. Email theme roles are canonical; generation resolves them to email-compatible inline literals. `npm run email:generate` regenerates nine templates, the hosted payload and local auth template configuration. Typography uses IBM Plex Sans Arabic with Tahoma/Arial email-client fallbacks. Gmail cannot reliably load the site's font, and mail clients can override dark-mode colors. There are no animated email effects or new email libraries. See `docs/EMAIL_DESIGN.md` for installation and verification. Hosted Supabase templates must be published separately from the Next.js deployment.

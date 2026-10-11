@@ -2,6 +2,19 @@
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  /* Email exports resolve these roles to literal inline styles for Gmail/Outlook. */
+  --email-content-width: 600px;
+  --email-border: #36404f;
+  --email-font: "IBM Plex Sans Arabic", Tahoma, Arial, sans-serif;
+  --email-body-size: 16px;
+  --email-heading-size: 28px;
+  --email-caption-size: 14px;
+
+  --analytics-chart-height: 280px;
+  --analytics-chart-current: var(--primary-red);
+  --analytics-chart-previous: var(--text-secondary);
+  --analytics-chart-grid: var(--border-subtle);
+
   --action-menu-width: 256px;
 
   --control-select-min-width: 200px;

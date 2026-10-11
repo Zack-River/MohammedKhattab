@@ -9,7 +9,8 @@
     "./lib/*": "./lib/*.ts",
     "./styles/*": "./styles/*",
     "./helpers/*": "./helpers/*.ts",
-    "./config/*": "./config/*.ts"
+    "./config/*": "./config/*.ts",
+    "./email/*": "./email/*.ts"
   },
   "peerDependencies": {
     "react": "^19.1.1",

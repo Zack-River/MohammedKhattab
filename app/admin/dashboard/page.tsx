@@ -1,16 +1,10 @@
-import PageHeading from "@platform/components/ui/page-heading";
-import UsersTable from "@platform/components/admin/users-table";
-import AdminPagination from "@platform/components/admin/admin-pagination";
-import UserFilters from "@platform/components/admin/user-filters";
-import { readAdminUsers } from "@platform/features/admin/repositories/users";
+import { analyticsCopy } from "@platform/data/admin-analytics";
+import AnalyticsOverview from "@platform/components/admin/analytics/overview";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-import { readUserQuery, userQueryParams } from "@platform/features/admin/helpers/read-user-query";
-import { adminUsersCopy as labels } from "@platform/data/admin-users";
-export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+import { readAdminAnalytics } from "@platform/features/admin/analytics/repositories/read-analytics";
+import { readAnalyticsPeriod } from "@platform/features/admin/analytics/helpers/read-period";
+export default async function AdminHomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
-  const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
-  return <><PageHeading title={labels.heading} />
-    <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
-    <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
-  </>;
+  const period = readAnalyticsPeriod((await searchParams).period);
+  return <AnalyticsOverview labels={analyticsCopy} data={await readAdminAnalytics()} period={period} />;
 }

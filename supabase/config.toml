@@ -413,3 +413,44 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# BEGIN generated auth email templates
+[auth.email.template.confirmation]
+subject = "أهلاً بيك في تعلّم — أكّد بريدك الإلكتروني"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "تعلّم — إعادة تعيين كلمة المرور"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "تعلّم — تأكيد تغيير البريد الإلكتروني"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.invite]
+subject = "دعوتك للانضمام إلى تعلّم"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "تعلّم — رابط تسجيل الدخول"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.reauthentication]
+subject = "تعلّم — رمز تأكيد هويتك"
+content_path = "./supabase/templates/reauthentication.html"
+# END generated auth email templates
+
+[auth.email.notification.password_changed]
+enabled = false
+subject = "تعلّم — تم تغيير كلمة المرور"
+content_path = "./supabase/templates/password_changed_notification.html"
+
+[auth.email.notification.email_changed]
+enabled = false
+subject = "تعلّم — تم تغيير البريد الإلكتروني"
+content_path = "./supabase/templates/email_changed_notification.html"
+
+[auth.email.notification.phone_changed]
+enabled = false
+subject = "تعلّم — تم تغيير رقم الهاتف"
+content_path = "./supabase/templates/phone_changed_notification.html"

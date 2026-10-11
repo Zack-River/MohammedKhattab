@@ -57,3 +57,6 @@ fs.writeFileSync(
   path.join(root, "modules/styles/certificate-font.json"),
   JSON.stringify({ base64: certificateFont }) + "\n",
 );
+
+// Email HTML shares the canonical theme and is regenerated with each build.
+require("node:child_process").execFileSync("npx", ["tsx", "scripts/email/generate.ts"], { stdio: "inherit" });

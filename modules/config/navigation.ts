@@ -36,7 +36,7 @@ export const routes = {
   adminDashboard: "/admin/dashboard",
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
-  adminUsers: "/admin/dashboard",
+  adminUsers: "/admin/dashboard/users",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
@@ -57,6 +57,7 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
