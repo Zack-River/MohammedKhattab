@@ -45,3 +45,5 @@ Shared-form update `3c6d25d` is deployed. Five contract tests, 44 price/creation
 ## Automatic lesson duration
 
 `LessonMediaFields` composes the video URL and read-only duration. `useLessonVideoDuration` owns lookup state and native form validity; `lessonProbeSource` validates/resolves the source; `probeVideoDuration` requests native video metadata and releases its media source on completion, failure, timeout or abort. Drive file URLs use the authenticated course `/media/stream` endpoint, while direct URLs are probed by the browser. The duration is rounded up to whole seconds and validated against the existing maximum. Failed or pending lookups clear stale values and prevent saving; retry is available. Existing durations are preserved for unchanged lesson links. Stored private playback URLs remain outside public metadata.
+
+Automatic-duration release `f95e764` is deployed. All 98 isolated curriculum API/browser checks passed, followed by six read-only live checks using the supplied real Drive video (42 seconds), with zero runtime errors and unchanged course data.

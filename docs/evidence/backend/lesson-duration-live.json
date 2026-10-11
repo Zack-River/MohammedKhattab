@@ -1,0 +1,16 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "slug": "testing-course",
+  "seconds": 42,
+  "checkedAt": "2026-10-11T23:31:17.708Z",
+  "checks": [
+    "Read-only duration has no manually entered default",
+    "Real supplied Drive file duration calculated through protected stream",
+    "Automatic duration fits mobile lesson dialog",
+    "Closing dialog restores page",
+    "Existing course unchanged",
+    "No browser runtime errors"
+  ],
+  "errors": [],
+  "readOnly": true
+}
