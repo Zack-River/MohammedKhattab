@@ -2,6 +2,11 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — course editor heading cleanup
+
+- Removed the requested instructional description below the course editor title and its unused copy entry. Refreshed the design reproduction snapshot.
+- Targeted lint, TypeScript, production build and diff checks passed.
+
 ## Latest checkpoint — course management table and separate content page
 
 - Replaced course cards with the Users-style table/cards: name/status, creation/update dates, student/lesson/chapter/section counts and edit/delete actions. Added combined search, publication/category/delivery filters and creation/update/student sorting; five records per page with persistent filter pagination. Added top-right Create Course action and a validated draft form. Narrow-screen headings stack above the action; active editor tabs use the existing accent treatment.

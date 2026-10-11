@@ -562,7 +562,7 @@ export default async function CourseContentPage({ params }: { params: Promise<{ 
 
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `de9a8ab6cc6cf72a019c044cf3c5c77ea1b14e6545a60c483502167bee74d544`
+SHA-256: `c7a870d5daeb14a2acc9c5f6a3557fb495903c7fab002af3f78ea6e0b0b4eae0`
 
 ```tsx
 import Link from "next/link";
@@ -582,7 +582,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
-  return <><PageHeading title={record.course.title} description={adminCopy.description}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
+  return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
     <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
   </>;
 }
@@ -9068,11 +9068,11 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `d9c45806e10c0060e2895d813ecc85124145dd33408588225c530187d0c79849`
+SHA-256: `10a4c1d3b77997c5e96649401eaa08e1b629dbdf8e21ab01a86ff852aac4e292`
 
 ```typescript
 export const adminCopy = {
-  navigation: "إدارة الدورات", heading: "إدارة الدورات", description: "عدّل المحتوى والأسعار والوسائط. تظهر التغييرات بعد الحفظ دون تعديل الكود.",
+  navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", category: "التصنيف",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
