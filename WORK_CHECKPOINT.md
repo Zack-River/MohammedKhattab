@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — hosted email templates saved
+
+- The user confirmed that all custom email templates were pasted and saved in hosted Supabase after the common-placeholder update.
+- Sent a fresh production password-reset request for the existing administrator address through `/api/auth/forgot-password`; it returned HTTP 200 with `sent: true`. No password was changed and no recovery URL/token was stored or logged.
+- Template source/placeholder/rendering checks are already passing. Recipient Inbox appearance for this newest message remains a manual check; sender Sent-mail lookup did not locate it, so delivered HTML replacement has not been independently verified.
+
 ## Latest checkpoint — email placeholder contract
 
 - Audited and regenerated all nine Supabase email templates and the hosted payload using only the seven variables supplied by the user. Removed NewEmail/OldEmail/Phone/OldPhone details; notifications now use generic copy. Existing confirmation URLs, reauthentication tokens, site links and account email placeholders remain intact.

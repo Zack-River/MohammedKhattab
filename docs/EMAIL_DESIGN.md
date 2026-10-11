@@ -37,3 +37,7 @@ Sources: [Supabase email templates](https://supabase.com/docs/guides/auth/auth-e
 All nine templates are audited/generated using only the dashboard variables provided: `{{ .ConfirmationURL }}`, `{{ .Token }}`, `{{ .TokenHash }}`, `{{ .SiteURL }}`, `{{ .Email }}`, `{{ .Data }}` and `{{ .RedirectTo }}`. The shared contract in `packages/design-system/email/variables.ts` rejects other or malformed placeholder expressions during generation. `supabase/templates/variables.json` lists the variables actually used by each output. Confirmation/invitation/recovery/email-change/magic-link messages use ConfirmationURL; reauthentication uses Token; notifications use SiteURL/Email and do not contain verification links or codes.
 
 Email- and phone-change details are now generic: NewEmail, OldEmail, Phone and OldPhone are excluded at the user's request. Supabase documents them as scoped variables, but these exports deliberately stay within the supplied common-variable list. Subjects, Arabic copy and design remain centralized. Regenerate and paste the updated HTML into hosted Supabase; a Git push cannot update hosted template settings.
+
+## Hosted installation status
+
+The user confirmed all templates were saved in hosted Supabase on 2026-10-11. A fresh live password-reset request returned HTTP 200 with `sent: true`; no password was changed. The newest message's Inbox appearance is still a recipient check. Earlier Gmail Inbox delivery was confirmed, and all source templates passed the placeholder and responsive rendering tests.
