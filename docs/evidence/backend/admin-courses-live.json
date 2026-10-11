@@ -1,0 +1,21 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "checkedAt": "2026-10-11T21:46:35.514Z",
+  "checks": [
+    "Guest list denied",
+    "Eight course overview columns",
+    "Authenticated database counts with bounded pagination",
+    "Search finds exact course",
+    "Responsive 320px",
+    "Responsive 390px",
+    "Responsive 768px",
+    "Responsive 1440px",
+    "Responsive 1920px",
+    "Create draft screen accessible",
+    "Overview editor excludes lesson details",
+    "Dedicated content route"
+  ],
+  "courseTotal": 7,
+  "errors": [],
+  "readOnly": true
+}
