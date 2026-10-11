@@ -18,6 +18,9 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     verify(true, 'Generic dashboard link resolves to administrator dashboard');
     await page.goto(url + '/admin/dashboard');
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
+    await page.getByRole('searchbox', { name: 'البحث عن مستخدم', exact: true }).fill(target.email);
+    await page.getByRole('button', { name: 'تطبيق البحث والفلاتر', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp('q='));
     const row = page.getByRole('row').filter({ hasText: target.email });
     await expect(row).toContainText('Moderation Student');
     await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
@@ -42,7 +45,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(page.getByText('نشط', { exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 900 });
     verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'User detail fits mobile viewport');
-    await page.goto(url + '/admin/dashboard');
+    await page.goto(url + '/admin/dashboard?q=' + encodeURIComponent(target.email));
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByRole('row').filter({ hasText: target.email })).toBeVisible();
     for (const width of [320, 390, 768, 1024, 1440]) {

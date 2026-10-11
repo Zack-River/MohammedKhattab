@@ -196,6 +196,9 @@ isOneToOne: false
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
+                           },
+"search_admin_users":
+{ Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_statuses": (string)[] }; Returns: Json
                            }
           }
           Enums: {

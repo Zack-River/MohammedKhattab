@@ -560,21 +560,23 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
 
 ### File: `app/admin/dashboard/page.tsx`
 
-SHA-256: `c69434b0444bd148608fcd6cce0c5dd659b9f3f9b5f3e5aab2e31e394a4213b0`
+SHA-256: `b8c4ef7b403edd77cde61ee1da76c31affeda6c19a7e61b1028efbd8d2fa401f`
 
 ```tsx
 import PageHeading from "@platform/components/ui/page-heading";
 import UsersTable from "@platform/components/admin/users-table";
 import AdminPagination from "@platform/components/admin/admin-pagination";
+import UserFilters from "@platform/components/admin/user-filters";
 import { readAdminUsers } from "@platform/features/admin/repositories/users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-import { readAdminPage } from "@platform/features/admin/helpers/read-admin-page";
+import { readUserQuery, userQueryParams } from "@platform/features/admin/helpers/read-user-query";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
-export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
-  const records = await readAdminUsers(readAdminPage((await searchParams).page));
+  const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
   return <><PageHeading title={labels.heading} description={labels.description} />
-    <UsersTable labels={labels} users={records.users} /><AdminPagination labels={labels} page={records.page} hasNext={records.hasNext} />
+    <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
+    <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
   </>;
 }
 ```
@@ -644,14 +646,14 @@ export async function POST(request: Request, context: Context) { return handleAd
 
 ### File: `app/api/admin/users/route.ts`
 
-SHA-256: `8a1753af672148af9f0a38bd2d5e2b02a01f2b6f2c7db7c5dae7efedd4497b40`
+SHA-256: `d61ea8de083330ddd6a01cc074d6cffd09cdd23cf3c1c8bab6b1ac13108591de`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
 import { readAdminUsers } from "@platform/features/admin/repositories/users";
-import { readAdminPage } from "@platform/features/admin/helpers/read-admin-page";
+import { readUserQuery } from "@platform/features/admin/helpers/read-user-query";
 export async function GET(request: Request) {
-  return apiResponse(async () => Response.json(await readAdminUsers(readAdminPage(new URL(request.url).searchParams.get("page")))));
+  return apiResponse(async () => Response.json(await readAdminUsers(readUserQuery(new URL(request.url).searchParams))));
 }
 ```
 
@@ -4298,16 +4300,17 @@ export default function AdminDialog({ title, closeLabel, pending = false, onClos
 
 ### File: `modules/components/admin/admin-pagination.tsx`
 
-SHA-256: `50d4d62de7adc5984a330c85028611c3e06bbef91513fc8fcfc17f38a390313e`
+SHA-256: `483e91c6885f897a547e0520baa144cab6ceb63b8e5f10d56e9874443fd2e59e`
 
 ```tsx
 import Link from "next/link";
-import { routes } from "@platform/config/navigation";
-import type { AdminUsersLabels } from "@platform/types/admin-users";
-export default function AdminPagination({ page, hasNext, labels }: { page: number; hasNext: boolean; labels: AdminUsersLabels }) {
+import type { AdminUserQuery, AdminUsersLabels } from "@platform/types/admin-users";
+import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
+export default function AdminPagination({ query, hasNext, labels }: { query: AdminUserQuery; hasNext: boolean; labels: AdminUsersLabels }) {
+  const page = query.page;
   return <nav className="lms-admin-pagination" aria-label={labels.users}>
-    {page > 1 && <Link href={`${routes.adminUsers}?page=${page - 1}`} className="lms-secondary-button">{labels.previous}</Link>}
-    <span>{page}</span>{hasNext && <Link href={`${routes.adminUsers}?page=${page + 1}`} className="lms-secondary-button">{labels.next}</Link>}
+    {page > 1 && <Link href={userQueryUrl(query, page - 1)} className="lms-secondary-button">{labels.previous}</Link>}
+    <span>{labels.page} {page}</span>{hasNext && <Link href={userQueryUrl(query, page + 1)} className="lms-secondary-button">{labels.next}</Link>}
   </nav>;
 }
 ```
@@ -4519,6 +4522,34 @@ export default function UserDetails({ user, labels }: { user: AdminUser; labels:
       <div key={label}><dt>{label}</dt><dd dir={label === labels.name ? undefined : "auto"}>{value}</dd></div>)}</dl>
     <UserStatus user={user} labels={labels} /><UserActions user={user} labels={labels} />
   </section>;
+}
+```
+
+### File: `modules/components/admin/user-filters.tsx`
+
+SHA-256: `bf30bab52b232da440dbe5d742a0169343496d17ce2a62f85c68ff6de4e7126f`
+
+```tsx
+import Form from "next/form";
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import { userAdministration, userStatusFilters } from "@platform/config/user-moderation";
+import type { AdminUserQuery, AdminUsersLabels } from "@platform/types/admin-users";
+import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
+export default function UserFilters({ query, total, labels }: { query: AdminUserQuery; total: number; labels: AdminUsersLabels }) {
+  return <Form key={userQueryUrl(query)} action={routes.adminUsers} className="lms-admin-filters" role="search" aria-label={labels.search}>
+    <div className="lms-admin-search"><label htmlFor="admin-user-search">{labels.search}</label>
+      <input type="search" id="admin-user-search" name="q" defaultValue={query.search} placeholder={labels.searchHint} maxLength={userAdministration.searchMaxLength} />
+    </div>
+    <fieldset><legend>{labels.filters}</legend><div className="lms-admin-filter-options">
+      {userStatusFilters.map(status => <label key={status}><input type="checkbox" name="status" value={status} defaultChecked={query.statuses.includes(status)} />{labels[status]}</label>)}
+      <label><input type="checkbox" name="admins" value="1" defaultChecked={query.adminsOnly} />{labels.adminsOnly}</label>
+      <label><input type="checkbox" name="newcomers" value="1" defaultChecked={query.newcomers} />{labels.newcomers}</label>
+    </div><p className="lms-admin-filter-hint">{labels.filterHint}</p></fieldset>
+    <div className="lms-admin-filter-footer"><div className="lms-admin-actions">
+      <button type="submit" className="btn-primary">{labels.apply}</button><Link href={routes.adminUsers} className="lms-secondary-button">{labels.clear}</Link>
+    </div><p className="lms-admin-result-count">{labels.results}: <strong>{total}</strong></p></div>
+  </Form>;
 }
 ```
 
@@ -7753,7 +7784,7 @@ export const requestPolicy = { maxJsonBytes: 16 * 1024 } as const;
 
 ### File: `modules/config/user-moderation.ts`
 
-SHA-256: `d69034abd9eaad7e31c726571437dc550eddd253c67664ae57a8f89eea579346`
+SHA-256: `34bde1fc7555454caff88a53c6e26dae2ea24f9df8cec61491c8a98ada549686`
 
 ```typescript
 export const suspensionPeriods = [
@@ -7762,12 +7793,13 @@ export const suspensionPeriods = [
   { id: "month", hours: 720, label: "شهر (٣٠ يومًا)" },
   { id: "year", hours: 8760, label: "سنة (٣٦٥ يومًا)" },
 ] as const;
-export const userAdministration = { pageSize: 20, permanentBanHours: 876000, refreshMs: 60000 } as const;
+export const userAdministration = { pageSize: 5, searchMaxLength: 100, newcomerDays: 7, permanentBanHours: 876000, refreshMs: 60000 } as const;
+export const userStatusFilters = ["suspended", "banned"] as const;
 ```
 
 ### File: `modules/data/admin-users.ts`
 
-SHA-256: `851a53a13c39ad11d2afae6e20ead37c07cf5bc8541537a8bf4edb4335a36077`
+SHA-256: `68de6f70d3d244511ec3e943a3f51541b3eab0e5fae618c732e4e8bbbfe83c56`
 
 ```typescript
 export const adminUsersCopy = {
@@ -7786,6 +7818,9 @@ export const adminUsersCopy = {
   manage: "إدارة الحساب", close: "إغلاق", protected: "حساب محمي",
   access: "صلاحيات الوصول", accessHint: "اختر مدة التعليق، أو استعد الوصول قبل انتهاء المدة.",
   permissions: "صلاحية الإدارة", danger: "حذف الحساب", managementHint: "تُراجع الإجراءات قبل تطبيقها على الحساب.",
+  search: "البحث عن مستخدم", searchHint: "الاسم أو اسم المستخدم أو البريد الإلكتروني", filters: "تصفية المستخدمين",
+  newcomers: "المنضمون خلال آخر ٧ أيام", adminsOnly: "المديرون فقط", apply: "تطبيق البحث والفلاتر", clear: "مسح الفلاتر",
+  filterHint: "اختر معلّق أو محظور أو كليهما. باقي الفلاتر تُطبّق على نتائج البحث معًا.", results: "عدد النتائج", page: "الصفحة",
 } as const;
 ```
 
@@ -8789,6 +8824,55 @@ export function readModeration(value: unknown): UserModeration | null {
 export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
 ```
 
+### File: `modules/features/admin/helpers/read-user-query.ts`
+
+SHA-256: `a88ee2ede543a625d2c42924ac5a6849f27ad9bb4a48271ea37733f7f83bac54`
+
+```typescript
+import { userAdministration, userStatusFilters } from "@platform/config/user-moderation";
+import type { AdminUserQuery } from "@platform/types/admin-users";
+import { ApiError } from "@platform/lib/api/error";
+import { readAdminPage } from "./read-admin-page";
+export function readUserQuery(params: URLSearchParams): AdminUserQuery {
+  const search = (params.get("q") ?? "").trim(), statuses = [...new Set(params.getAll("status"))];
+  if (search.length > userAdministration.searchMaxLength || statuses.some(status => !userStatusFilters.includes(status as "suspended" | "banned"))
+    || ["admins", "newcomers"].some(key => params.has(key) && params.get(key) !== "1")) throw new ApiError(400, "INVALID_INPUT");
+  return { page: readAdminPage(params.get("page")), search, statuses: statuses as AdminUserQuery["statuses"],
+    adminsOnly: params.get("admins") === "1", newcomers: params.get("newcomers") === "1" };
+}
+export function userQueryParams(values: Record<string, string | string[] | undefined>) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) params.append(key, item);
+  return params;
+}
+```
+
+### File: `modules/features/admin/helpers/read-user-results.ts`
+
+SHA-256: `fb5ef37a3264d30054c6d18d94ae9fe3169006517adac1642b636943d6c497de`
+
+```typescript
+import type { AdminUser, AdminUserPage } from "@platform/types/admin-users";
+import { ApiError } from "@platform/lib/api/error";
+function isUser(value: unknown): value is AdminUser {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return ["id", "name", "username", "email"].every(key => typeof item[key] === "string")
+    && ["admin", "confirmed", "permanentlyBanned"].every(key => typeof item[key] === "boolean")
+    && ["avatarUrl", "suspendedUntil"].every(key => item[key] === null || typeof item[key] === "string");
+}
+export function readUserResults(value: unknown): AdminUserPage {
+  if (value && typeof value === "object") {
+    const result = value as Record<string, unknown>;
+    if (Array.isArray(result.users) && result.users.every(isUser) && typeof result.page === "number" && Number.isInteger(result.page)
+      && typeof result.hasNext === "boolean" && typeof result.total === "number" && Number.isInteger(result.total)) {
+      return { users: result.users, page: result.page, hasNext: result.hasNext, total: result.total };
+    }
+  }
+  throw new ApiError(503, "INTERNAL_ERROR");
+}
+```
+
 ### File: `modules/features/admin/helpers/suspension-remaining.ts`
 
 SHA-256: `e085b00b4062a33f298bdda5cd3ea3c8419d846caf43004f76a8667ea9fc9a90`
@@ -8797,6 +8881,23 @@ SHA-256: `e085b00b4062a33f298bdda5cd3ea3c8419d846caf43004f76a8667ea9fc9a90`
 export function suspensionRemaining(until: string, now: number) {
   const minutes = Math.max(0, Math.ceil((Date.parse(until) - now) / 60000));
   return { days: Math.floor(minutes / 1440), hours: Math.floor(minutes % 1440 / 60), minutes: minutes % 60, expired: minutes === 0 };
+}
+```
+
+### File: `modules/features/admin/helpers/user-query-url.ts`
+
+SHA-256: `8bd4608393a8ae9f756b3805dd89b44d0c905aaaa1b6b12b58d9eccacaa7c9af`
+
+```typescript
+import { routes } from "@platform/config/navigation";
+import type { AdminUserQuery } from "@platform/types/admin-users";
+export function userQueryUrl(query: AdminUserQuery, page = query.page) {
+  const params = new URLSearchParams({ page: String(page) });
+  if (query.search) params.set("q", query.search);
+  for (const status of query.statuses) params.append("status", status);
+  if (query.adminsOnly) params.set("admins", "1");
+  if (query.newcomers) params.set("newcomers", "1");
+  return `${routes.adminUsers}?${params}`;
 }
 ```
 
@@ -8977,7 +9078,7 @@ export async function readUserSubscriptions(id: string) {
 
 ### File: `modules/features/admin/repositories/users.ts`
 
-SHA-256: `40150caada5b3dd918c7c4785553c487408ade18d0db70661a455e5339ea6c27`
+SHA-256: `6c60a0349c7c5efeee5f501879ebe5f92dfb42240df3797720b8d5dbb912e773`
 
 ```typescript
 import "server-only";
@@ -8986,19 +9087,15 @@ import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { ApiError } from "@platform/lib/api/error";
 import { userAdministration } from "@platform/config/user-moderation";
 import { adminUserRecord } from "../helpers/admin-user-record";
-export async function readAdminUsers(page = 1) {
-  await requireAdmin();
-  const client = createAuthAdministrator();
-  const result = await client.auth.admin.listUsers({ page, perPage: userAdministration.pageSize });
+import type { AdminUserQuery } from "@platform/types/admin-users";
+import { readUserResults } from "../helpers/read-user-results";
+export async function readAdminUsers(query: AdminUserQuery) {
+  const { client } = await requireAdmin();
+  const result = await client.rpc("search_admin_users", { p_page: query.page, p_limit: userAdministration.pageSize,
+    p_search: query.search, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
+    ...(query.newcomers ? { p_new_since: new Date(Date.now() - userAdministration.newcomerDays * 86400000).toISOString() } : {}) });
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  const users = result.data.users, ids = users.map(user => user.id);
-  if (!ids.length) return { users: [], page, hasNext: false };
-  const [profiles, roles] = await Promise.all([
-    client.from("profiles").select("*").in("id", ids), client.from("admin_users").select("user_id").in("user_id", ids),
-  ]);
-  if (profiles.error || roles.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return { users: users.map(user => adminUserRecord(user, profiles.data.find(row => row.id === user.id), roles.data.some(row => row.user_id === user.id))),
-    page, hasNext: Boolean(result.data.nextPage) };
+  return readUserResults(result.data);
 }
 export async function readAdminUser(id: string) {
   await requireAdmin();
@@ -11333,7 +11430,7 @@ export const theme = palette;
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `fbad00b82a7cd1160dba60ebef97edded20d55def85402196d9d3b8278fcdb6a`
+SHA-256: `d24d15d0100b5f38d0e2b0d40b39519a234094841a76419ea025908bea97eb0c`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -11419,6 +11516,30 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 @media (min-width: 480px) and (max-width: 1024px) {
   .lms-admin-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-lg); }
   .lms-admin-table tbody th, .lms-admin-table tbody td:nth-child(4), .lms-admin-table .lms-admin-row-actions { grid-column: 1 / -1; }
+}
+.lms-admin-filters { padding: var(--space-lg); margin-bottom: var(--space-lg); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.lms-admin-search label { display: block; font-weight: var(--font-weight-action); margin-bottom: var(--space-sm); }
+.lms-admin-search input { display: block; width: 100%; min-width: 0; min-height: var(--size-44px); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); background: var(--bg-main); color: var(--text-primary); font: inherit; }
+.lms-admin-search input::placeholder { color: var(--text-muted); }
+.lms-admin-filters fieldset { min-width: 0; border: 0; padding: 0; margin: var(--space-md) 0 0; }
+.lms-admin-filters legend { padding: 0; font-size: var(--font-size-caption); color: var(--text-secondary); margin-bottom: var(--space-sm); }
+.lms-admin-filter-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.lms-admin-filter-options label { display: flex; align-items: center; gap: var(--space-sm); min-height: var(--size-44px); padding: var(--space-sm) var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--font-size-caption); cursor: pointer; transition: background-color var(--transition-smooth), border-color var(--transition-smooth); }
+.lms-admin-filter-options label:has(input:checked) { background: var(--primary-red-subtle); border-color: var(--primary-red); color: var(--text-primary); }
+.lms-admin-filter-options input { accent-color: var(--primary-red); width: var(--space-md); height: var(--space-md); margin: 0; flex-shrink: 0; cursor: pointer; }
+.lms-admin-filter-hint { margin-top: var(--space-sm); font-size: var(--font-size-caption); color: var(--text-muted); }
+.lms-admin-filter-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-md); }
+.lms-admin-filter-footer .lms-admin-actions { margin: 0; }
+.lms-admin-filter-footer .btn-primary, .lms-admin-filter-footer .lms-secondary-button { min-height: var(--size-44px); font-size: var(--font-size-caption); padding: var(--space-sm) var(--space-md); }
+.lms-admin-result-count { margin: 0; font-size: var(--font-size-caption); color: var(--text-muted); }
+.lms-admin-result-count strong { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.lms-admin-filters :focus-visible { outline: var(--size-2px) solid var(--text-primary); outline-offset: var(--size-2px); }
+@media (max-width: 480px) {
+  .lms-admin-filters { padding: var(--space-md); }
+  .lms-admin-filter-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lms-admin-filter-options label { padding-inline: var(--space-sm); }
+  .lms-admin-filter-footer .lms-admin-actions { width: 100%; }
+  .lms-admin-filter-footer .lms-admin-actions > * { flex: 1; white-space: normal; }
 }
 ```
 
@@ -15071,7 +15192,7 @@ SHA-256: `daa5378e3319f1c86b480af2ed93eb4d15b23e79bf07361931888dfe7e9e1364`
 
 ### File: `modules/types/admin-users.ts`
 
-SHA-256: `7d78c3b42d2ac929a29a1fa88f11686329cccf3be50a0e7605ea774ae14b0161`
+SHA-256: `8a74fe6cfd6127625e51ba5d36e360d65dfae71a007858d756984a139832b6ce`
 
 ```typescript
 import type { suspensionPeriods } from "@platform/config/user-moderation";
@@ -15081,7 +15202,10 @@ export interface AdminUser {
   id: string; name: string; username: string; email: string; avatarUrl: string | null;
   admin: boolean; confirmed: boolean; suspendedUntil: string | null; permanentlyBanned: boolean;
 }
-export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: boolean; }
+export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: boolean; total: number; }
+export interface AdminUserQuery {
+  page: number; search: string; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
+}
 export interface UserSubscription { slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
 
 import type { adminUsersCopy } from "@platform/data/admin-users";
@@ -15173,7 +15297,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `f708d528598e59318c4a2cf611659894f7daaa17ac10a88768e3157523a7c746`
+SHA-256: `766ca31b4214c3f51ad38a5df8ece591017b0b0ce4fd5b54adff3f6a0afa3672`
 
 ```typescript
 
@@ -15374,6 +15498,9 @@ isOneToOne: false
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
+                           },
+"search_admin_users":
+{ Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_statuses": (string)[] }; Returns: Json
                            }
           }
           Enums: {
@@ -24169,7 +24296,7 @@ writeFileSync("supabase/seed.sql", statements.join("\n") + "\n");
 
 ### File: `scripts/backend/migrate-hosted.cjs`
 
-SHA-256: `1eb249ee964167459afd50aa6dcc650d4eb9770843f9407237145e5c63c35238`
+SHA-256: `753856419917f268235f4f2a404971de8be42cc7800d4fbab6d3fdf80b9bd0c6`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Credential-safe CLI bootstrap for the selected hosted database. */
@@ -24179,7 +24306,7 @@ if (!process.env.SUPABASE_DB_URL) throw new Error("Set SUPABASE_DB_URL locally; 
 const target = new URL(process.env.SUPABASE_DB_URL);
 if (!target.hostname.endsWith(".pooler.supabase.com")) throw new Error("Use the chosen Supabase Session pooler");
 target.searchParams.set("sslmode", "require");
-const command = process.argv.includes("--advisors") ? ["advisors", "--fail-on", "error"] : ["push", "--include-seed", "--yes"];
+const command = process.argv.includes("--advisors") ? ["advisors", "--fail-on", "error"] : ["push", "--yes", ...(process.argv.includes("--seed") ? ["--include-seed"] : [])];
 const result = spawnSync("npx", ["supabase", "db", ...command, "--db-url", target.toString()], { encoding: "utf8", timeout: 120000 });
 const redact = (text) => (text ?? "").replaceAll(target.toString(), "[database connection]").replaceAll(decodeURIComponent(target.password), "[redacted]");
 process.stdout.write(redact(result.stdout));
@@ -25168,9 +25295,102 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 });
 ```
 
+### File: `tests/backend/admin-user-search.cjs`
+
+SHA-256: `c07ecfe368bef7ba0f7e56928018cd0d6bd864be0f8fbacaf709198f9896344c`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real isolated database and browser fixtures. */
+const { Client } = require('pg');
+const { chromium, expect } = require('@playwright/test');
+module.exports = async function userSearchChecks({ admin, provision, anonymous, verify, url, config }) {
+  const manager = await provision('Search Manager');
+  await admin.from('admin_users').insert({ user_id: manager.id });
+  const prefix = `Filter-${Date.now()}`, fixtures = [];
+  for (let index = 0; index < 8; index++) fixtures.push(await provision(`${prefix} Account ${index}`));
+  const [suspended, banned, old, expired, promoted] = fixtures;
+  await manager.api(`/api/admin/users/${suspended.id}`, { action: 'suspend', period: 'week' });
+  await manager.api(`/api/admin/users/${banned.id}`, { action: 'ban' });
+  await manager.api(`/api/admin/users/${promoted.id}`, { action: 'promote' });
+  const db = new Client({ connectionString: config.DB_URL });
+  await db.connect();
+  try {
+    await db.query("update auth.users set created_at = now() - interval '30 days' where id = $1", [old.id]);
+    await db.query("update auth.users set banned_until = now() - interval '1 minute' where id = $1", [expired.id]);
+  } finally { await db.end(); }
+  const params = { p_page: 1, p_limit: 5, p_search: '', p_statuses: [], p_admins_only: false };
+  verify(Boolean((await fixtures[5].direct.rpc('search_admin_users', params)).error), 'Database rejects direct student user search');
+  verify((await anonymous('/api/admin/users?q=' + prefix)).status === 401, 'Anonymous cannot search accounts');
+  const get = async query => { const response = await manager.api('/api/admin/users?' + query); verify(response.status === 200, `Search request succeeds: ${query}`); return JSON.parse(response.data); };
+  const first = await get('q=' + prefix), second = await get('q=' + prefix + '&page=2');
+  verify(first.users.length === 5 && first.total === 8 && first.hasNext, 'Search paginates five of eight matches');
+  verify(second.users.length === 3 && second.total === 8 && !second.hasNext, 'Second page includes remaining matches');
+  verify(new Set([...first.users, ...second.users].map(user => user.id)).size === 8, 'Pages contain no overlapping or missing accounts');
+  const specific = await get('q=' + encodeURIComponent(old.email.toUpperCase()));
+  verify(specific.users.length === 1 && specific.users[0].id === old.id, 'Case-insensitive email search finds account beyond first page');
+  const username = (await manager.api('/api/admin/users/' + old.id)).data;
+  const byUsername = await get('q=' + JSON.parse(username).user.username);
+  verify(byUsername.users[0]?.id === old.id, 'Username search works');
+  const blocked = await get('q=' + prefix + '&status=suspended');
+  verify(blocked.total === 1 && blocked.users[0].id === suspended.id, 'Suspended filter excludes permanent bans and expired suspension');
+  const bannedOnly = await get('q=' + prefix + '&status=banned');
+  verify(bannedOnly.total === 1 && bannedOnly.users[0].id === banned.id, 'Banned filter matches permanent restriction');
+  const both = await get('q=' + prefix + '&status=suspended&status=banned&newcomers=1');
+  verify(both.total === 2, 'Both status filters combine with search and newcomer window');
+  const admins = await get('q=' + prefix + '&admins=1&newcomers=1');
+  verify(admins.total === 1 && admins.users[0].id === promoted.id, 'Admin and newcomer filters intersect with search');
+  const newcomers = await get('q=' + prefix + '&newcomers=1');
+  verify(newcomers.total === 7 && !newcomers.users.some(user => user.id === old.id), 'Newcomers excludes accounts older than seven days');
+  verify((await get('q=' + prefix + '&admins=1&status=banned')).total === 0, 'Contradictory filters show an empty result');
+  verify((await get('q=' + encodeURIComponent("%' OR 1=1 --"))).total === 0, 'Search treats wildcard and SQL syntax literally');
+  for (const query of ['status=unknown', 'admins=yes', 'newcomers=30', 'q=' + 'x'.repeat(101)])
+    verify((await manager.api('/api/admin/users?' + query)).status === 400, `Malformed query rejected: ${query.slice(0, 30)}`);
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
+    const errors = []; page.on('pageerror', error => errors.push(error.message));
+    await page.goto(url + '/login');
+    await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
+    await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
+    await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    await page.getByRole('searchbox').fill(prefix);
+    await page.getByRole('button', { name: 'تطبيق البحث والفلاتر' }).click();
+    await expect(page).toHaveURL(new RegExp('q=' + prefix));
+    await expect(page.locator('.lms-admin-table tbody tr')).toHaveCount(5);
+    await page.getByRole('link', { name: 'التالي', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp('page=2.*q=' + prefix));
+    await expect(page.locator('.lms-admin-table tbody tr')).toHaveCount(3);
+    await page.getByLabel('المنضمون خلال آخر ٧ أيام').check();
+    await page.getByRole('button', { name: 'تطبيق البحث والفلاتر' }).click();
+    await expect(page).toHaveURL(new RegExp('newcomers=1'));
+    verify(!new URL(page.url()).searchParams.has('page'), 'Changing filters resets pagination to page one');
+    await expect(page.locator('.lms-admin-table tbody tr')).toHaveCount(5);
+    await page.getByLabel('معلّق', { exact: true }).check();
+    await page.getByLabel('محظور', { exact: true }).check();
+    await page.getByRole('button', { name: 'تطبيق البحث والفلاتر' }).click();
+    await expect(page.locator('.lms-admin-table tbody tr')).toHaveCount(2);
+    verify(await page.getByRole('searchbox').inputValue() === prefix, 'Combined filters preserve search');
+    await page.screenshot({ path: 'docs/evidence/admin-dashboard/filters-mobile.png', fullPage: true });
+    await page.reload(); await expect(page.getByLabel('معلّق', { exact: true })).toBeChecked();
+    await page.goBack(); await expect(page.getByLabel('معلّق', { exact: true })).not.toBeChecked();
+    verify(true, 'Filter values survive refresh and browser history');
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      verify(await page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) <= innerWidth), `Search/filter UI fits ${width}px`);
+    }
+    await page.getByRole('link', { name: 'مسح الفلاتر', exact: true }).click();
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    await expect(page.getByRole('searchbox')).toHaveValue('');
+    verify((await page.locator('.lms-admin-table tbody tr').count()) <= 5, 'Clear filters keeps five-record page limit');
+    verify(errors.length === 0, 'Search/filter browser has no JavaScript errors');
+  } finally { await browser.close(); }
+};
+```
+
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `082689a5f4eda2eb6d46d6a51b2141ffa0abecd1f4936ff53d2c738d9f5c397f`
+SHA-256: `1330ceeb38a59aa9d0fa702302eeab33f2fbae7a012f6dac926fe1e53da04ef7`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25193,6 +25413,9 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     verify(true, 'Generic dashboard link resolves to administrator dashboard');
     await page.goto(url + '/admin/dashboard');
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
+    await page.getByRole('searchbox', { name: 'البحث عن مستخدم', exact: true }).fill(target.email);
+    await page.getByRole('button', { name: 'تطبيق البحث والفلاتر', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp('q='));
     const row = page.getByRole('row').filter({ hasText: target.email });
     await expect(row).toContainText('Moderation Student');
     await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
@@ -25217,7 +25440,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(page.getByText('نشط', { exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 900 });
     verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'User detail fits mobile viewport');
-    await page.goto(url + '/admin/dashboard');
+    await page.goto(url + '/admin/dashboard?q=' + encodeURIComponent(target.email));
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByRole('row').filter({ hasText: target.email })).toBeVisible();
     for (const width of [320, 390, 768, 1024, 1440]) {
@@ -25527,7 +25750,7 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `cbcfd7165a415dec21ad1655fe293335a1eed18d36417ea41d5e58d54e7d9e3c`
+SHA-256: `4e2074503d7d302dad74453a4aa995003e544180c3bfab6cae1de38be95fc945`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -25574,6 +25797,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-user-search') {
+    await require('./admin-user-search.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-users-browser') {
     const manager = await provision('User Manager'), target = await provision('Moderation Student');
     await admin.from('admin_users').insert({ user_id: manager.id });

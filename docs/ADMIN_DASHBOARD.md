@@ -2,7 +2,7 @@
 
 ## Routes and shared UI
 
-- `/admin/dashboard`: administrator-only Users tab, paginated 20 accounts at a time.
+- `/admin/dashboard`: administrator-only Users tab, paginated five accounts at a time, including phones.
 - `/admin/dashboard/users/[id]`: administrator-only account details and actual course subscriptions. No public `/users` profile pages.
 - `/admin/dashboard/courses` and `/admin/dashboard/courses/[slug]`: existing database-backed course and media editor.
 - Previous `/dashboard/admin/courses` URLs redirect to the new editor.
@@ -18,6 +18,16 @@ Desktop keeps five aligned columns: avatar/name/role, username, email, status an
 Each student has View and Manage actions. Manage opens a native modal with account identity and grouped access, administrator permission and deletion controls. Suspension duration lives inside this modal. Restricting, promoting and deleting still require a separate confirmation; Restore remains immediate. Escape cancels the current modal and restores focus to its opener, keyboard focus stays within the active modal, and pending requests prevent cancellation. Protected administrators show a concise protected-account label with the explanation in its title. Shared dialog, identity and moderation-control components are reusable on private details.
 
 Controls have a minimum 44px height. Dialogs fit the viewport, scroll internally and lock background scrolling. Browser acceptance checks 320, 390, 768, 1024 and 1440px, record-name width, nested cancellation, focus restoration, keyboard containment, touch targets and actual suspension/restoration. UI checks complement the unchanged API/RLS authorization tests.
+
+## Search and combined filters
+
+Search matches name, username or email as a case-insensitive literal substring. Status choices are Suspended and Banned; selecting both matches either status. Admin-only and Newcomers (last seven days) intersect with those choices and the search. Expired suspensions do not match Suspended. Permanent bans do not match Suspended. An empty status selection includes every status.
+
+`userAdministration` centralizes page size (five), search length (100) and newcomer days (seven). `readUserQuery` validates page, search and allowed filter values for the page and API. `userQueryUrl` preserves search/filter choices in pagination links. Submitting the GET form resets to page one; Clear removes all choices. The URL restores values after refresh or browser Back. A total-result count is calculated before pagination.
+
+Filtering happens in the database through `public.search_admin_users`, using the administrator's verified session, then orders by creation time and ID descending for deterministic pagination. Its invoker wrapper calls a private function that must join private Auth data: the function checks active identity and trusted administrator membership internally before reading accounts, and is unavailable to anonymous callers. It projects only account DTO fields, never Auth secrets. Search uses literal substring matching rather than SQL interpolation or wildcard syntax. Private fields never reach students.
+
+Isolated coverage: `BACKEND_SUITE=admin-user-search npm run backend:test` creates eight matching accounts, tests disjoint five/three pages, search beyond page one, role/date/status intersections, expired/old records, malformed parameters, literal SQL/wildcard input, direct student RPC denial, browser pagination/reset/refresh/Back and narrow layouts. Hosted verification only reads real accounts; no production users are moderated.
 
 ## Accounts and moderation
 

@@ -4,19 +4,15 @@ import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { ApiError } from "@platform/lib/api/error";
 import { userAdministration } from "@platform/config/user-moderation";
 import { adminUserRecord } from "../helpers/admin-user-record";
-export async function readAdminUsers(page = 1) {
-  await requireAdmin();
-  const client = createAuthAdministrator();
-  const result = await client.auth.admin.listUsers({ page, perPage: userAdministration.pageSize });
+import type { AdminUserQuery } from "@platform/types/admin-users";
+import { readUserResults } from "../helpers/read-user-results";
+export async function readAdminUsers(query: AdminUserQuery) {
+  const { client } = await requireAdmin();
+  const result = await client.rpc("search_admin_users", { p_page: query.page, p_limit: userAdministration.pageSize,
+    p_search: query.search, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
+    ...(query.newcomers ? { p_new_since: new Date(Date.now() - userAdministration.newcomerDays * 86400000).toISOString() } : {}) });
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  const users = result.data.users, ids = users.map(user => user.id);
-  if (!ids.length) return { users: [], page, hasNext: false };
-  const [profiles, roles] = await Promise.all([
-    client.from("profiles").select("*").in("id", ids), client.from("admin_users").select("user_id").in("user_id", ids),
-  ]);
-  if (profiles.error || roles.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return { users: users.map(user => adminUserRecord(user, profiles.data.find(row => row.id === user.id), roles.data.some(row => row.user_id === user.id))),
-    page, hasNext: Boolean(result.data.nextPage) };
+  return readUserResults(result.data);
 }
 export async function readAdminUser(id: string) {
   await requireAdmin();

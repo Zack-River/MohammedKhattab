@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { routes } from "@platform/config/navigation";
-import type { AdminUsersLabels } from "@platform/types/admin-users";
-export default function AdminPagination({ page, hasNext, labels }: { page: number; hasNext: boolean; labels: AdminUsersLabels }) {
+import type { AdminUserQuery, AdminUsersLabels } from "@platform/types/admin-users";
+import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
+export default function AdminPagination({ query, hasNext, labels }: { query: AdminUserQuery; hasNext: boolean; labels: AdminUsersLabels }) {
+  const page = query.page;
   return <nav className="lms-admin-pagination" aria-label={labels.users}>
-    {page > 1 && <Link href={`${routes.adminUsers}?page=${page - 1}`} className="lms-secondary-button">{labels.previous}</Link>}
-    <span>{page}</span>{hasNext && <Link href={`${routes.adminUsers}?page=${page + 1}`} className="lms-secondary-button">{labels.next}</Link>}
+    {page > 1 && <Link href={userQueryUrl(query, page - 1)} className="lms-secondary-button">{labels.previous}</Link>}
+    <span>{labels.page} {page}</span>{hasNext && <Link href={userQueryUrl(query, page + 1)} className="lms-secondary-button">{labels.next}</Link>}
   </nav>;
 }

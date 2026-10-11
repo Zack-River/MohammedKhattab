@@ -42,6 +42,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'admin-user-search') {
+    await require('./admin-user-search.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-users-browser') {
     const manager = await provision('User Manager'), target = await provision('Moderation Student');
     await admin.from('admin_users').insert({ user_id: manager.id });

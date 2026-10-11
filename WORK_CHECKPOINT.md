@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — account search, filters and five-card pagination
+
+- Added name/username/email search and combinable Suspended, Banned, Admin-only and last-seven-days Newcomers filters. Status selections match either selected status; role and join date intersect with search and status. Expired restrictions and older accounts are handled correctly.
+- Database query filters the full account population before returning five records; phone pages never exceed five cards. Desktop uses the same five-record pages. Pagination preserves applied choices, submitting search/filters resets page one, Clear resets all, and refresh/Back restores form values from the URL. Exact result total is shown.
+- New private Auth-query function requires active trusted admin membership internally; public wrapper is invoker-only and anonymous execution is revoked. The server uses the verified admin session rather than passing unrestricted Auth records through the browser. Inputs and response DTO are validated. RPC types were regenerated from the local schema.
+- Search/filter acceptance: **47 checks passed** using eight isolated matching accounts, disjoint five/three pages, cross-page and case-insensitive search, combined filters, date/expiry rules, literal SQL/wildcard input, direct student RPC denial, malformed inputs and 320–1440px browser checks. Existing moderation/security suite: **95 checks passed**. TypeScript, lint, architecture (461 files, zero violations), SQL lint/advisors and production build passed. Shadow schema comparison: no differences. Hosted migration applied; advisors report no issues.
+- Hosted migration tooling now seeds only when explicitly invoked with `--seed`; ordinary migrations cannot reapply resource seeds. No seeds ran in this release. The existing catalog and account data are preserved.
+- Final local production browser checks passed with the real hosted administrator: search totals, empty intersections, combined admin/newcomer/status filters, URL persistence, filter-preserving pagination and five-record bounds at 320/390/768/1024/1440px; zero JavaScript errors. Final build: `hQTlcDWPehAQNnHmvcX95`. Deployment verification is in progress. Migration: `20261011020418_admin_user_search.sql`. Evidence: `docs/evidence/admin-dashboard/filters-*`.
+
 ## Latest checkpoint — responsive administrator account UI
 
 - Researched Carbon data tables, NN/G record tasks and WCAG reflow before implementing a restrained admin layout using the approved dark/red/Arabic identity. Sources and component contracts are documented in `docs/ADMIN_DASHBOARD.md`.

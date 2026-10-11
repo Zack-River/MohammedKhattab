@@ -1,0 +1,52 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Search Manager: real login
+PASS 2: Filter-1791684368821 Account 0: real login
+PASS 3: Filter-1791684368821 Account 1: real login
+PASS 4: Filter-1791684368821 Account 2: real login
+PASS 5: Filter-1791684368821 Account 3: real login
+PASS 6: Filter-1791684368821 Account 4: real login
+PASS 7: Filter-1791684368821 Account 5: real login
+PASS 8: Filter-1791684368821 Account 6: real login
+PASS 9: Filter-1791684368821 Account 7: real login
+PASS 10: Database rejects direct student user search
+PASS 11: Anonymous cannot search accounts
+PASS 12: Search request succeeds: q=Filter-1791684368821
+PASS 13: Search request succeeds: q=Filter-1791684368821&page=2
+PASS 14: Search paginates five of eight matches
+PASS 15: Second page includes remaining matches
+PASS 16: Pages contain no overlapping or missing accounts
+PASS 17: Search request succeeds: q=FILTER-1791684368821-ACCOUNT-2-1791684369545%40EXAMPLE.COM
+PASS 18: Case-insensitive email search finds account beyond first page
+PASS 19: Search request succeeds: q=user-dbca9095486748e982cc924a8d641c20
+PASS 20: Username search works
+PASS 21: Search request succeeds: q=Filter-1791684368821&status=suspended
+PASS 22: Suspended filter excludes permanent bans and expired suspension
+PASS 23: Search request succeeds: q=Filter-1791684368821&status=banned
+PASS 24: Banned filter matches permanent restriction
+PASS 25: Search request succeeds: q=Filter-1791684368821&status=suspended&status=banned&newcomers=1
+PASS 26: Both status filters combine with search and newcomer window
+PASS 27: Search request succeeds: q=Filter-1791684368821&admins=1&newcomers=1
+PASS 28: Admin and newcomer filters intersect with search
+PASS 29: Search request succeeds: q=Filter-1791684368821&newcomers=1
+PASS 30: Newcomers excludes accounts older than seven days
+PASS 31: Search request succeeds: q=Filter-1791684368821&admins=1&status=banned
+PASS 32: Contradictory filters show an empty result
+PASS 33: Search request succeeds: q=%25'%20OR%201%3D1%20--
+PASS 34: Search treats wildcard and SQL syntax literally
+PASS 35: Malformed query rejected: status=unknown
+PASS 36: Malformed query rejected: admins=yes
+PASS 37: Malformed query rejected: newcomers=30
+PASS 38: Malformed query rejected: q=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PASS 39: Changing filters resets pagination to page one
+PASS 40: Combined filters preserve search
+PASS 41: Filter values survive refresh and browser history
+PASS 42: Search/filter UI fits 320px
+PASS 43: Search/filter UI fits 390px
+PASS 44: Search/filter UI fits 768px
+PASS 45: Search/filter UI fits 1440px
+PASS 46: Clear filters keeps five-record page limit
+PASS 47: Search/filter browser has no JavaScript errors
+Backend integration: 47 checks passed
