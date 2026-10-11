@@ -1,1 +1,1 @@
-export const curriculumPolicy = { defaultDurationSeconds: 60, titleMin: 2, titleMax: 160, descriptionMax: 2000, maxDurationSeconds: 86400, maxChapters: 100, maxSections: 100, maxLessons: 2000 } as const;
+export const curriculumPolicy = { metadataDelayMs: 400, metadataTimeoutMs: 30000, titleMin: 2, titleMax: 160, descriptionMax: 2000, maxDurationSeconds: 86400, maxChapters: 100, maxSections: 100, maxLessons: 2000 } as const;

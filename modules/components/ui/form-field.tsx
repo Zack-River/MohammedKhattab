@@ -1,6 +1,6 @@
 "use client";
-import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react";
-export interface FormFieldProps extends Omit<ComponentPropsWithoutRef<"input">, "id"> {
+import { useId, type ComponentPropsWithRef, type ReactNode } from "react";
+export interface FormFieldProps extends Omit<ComponentPropsWithRef<"input">, "id"> {
   label: string; error?: string; hint?: string; control?: ReactNode;
 }
 export default function FormField({ label, error, hint, control, ...input }: FormFieldProps) {

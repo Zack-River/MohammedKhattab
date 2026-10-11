@@ -878,6 +878,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 }
 ```
 
+### File: `app/api/admin/courses/[slug]/media/stream/route.ts`
+
+SHA-256: `7775cf191e13fabec4e464f81a4667fc258be95809004d4597bc942677b6c7d2`
+
+```typescript
+import { handleAdminMediaStream } from "@platform/features/admin/handle-media-stream";
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  return handleAdminMediaStream((await params).slug, request);
+}
+```
+
 ### File: `app/api/admin/courses/[slug]/route.ts`
 
 SHA-256: `df6a15c7240ca821e6a26e2d7da0afa28822b27014dbf0950d78147c573ba20b`
@@ -5549,14 +5560,14 @@ export default function LessonAssignment({ course, chapterId, sectionId, labels 
 
 ### File: `modules/components/admin/curriculum/lesson-fields.tsx`
 
-SHA-256: `9a1eedc4b5e639594a4f1d19714fc5fa288f2ec7b5489bf3647d28f87767e10e`
+SHA-256: `74eebec855ff4718035ba8c8e74ea4cce838782a46ef323f11c8256ed00fbb21`
 
 ```tsx
 "use client";
 import TextareaField from "@platform/components/ui/textarea-field";
 import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
 import { curriculumPolicy as policy } from "@platform/config/curriculum";
-import { adminCoursePolicy } from "@platform/config/admin";
+import LessonMediaFields from "./lesson-media-fields";
 import FormField from "@platform/components/ui/form-field";
 import { Checkbox } from "@khatab/design/ui/choice-controls";
 import LessonAssignment from "./lesson-assignment";
@@ -5567,9 +5578,28 @@ export default function LessonFields({ context, target }: { context: CurriculumC
     <FormField label={labels.title} name="title" defaultValue={lesson?.title ?? ""} required minLength={policy.titleMin} maxLength={policy.titleMax} />
     <TextareaField label={labels.description} name="description" defaultValue={lesson?.description ?? ""} maxLength={policy.descriptionMax} rows={3} />
     <LessonAssignment course={course} chapterId={target.chapterId!} sectionId={target.sectionId ?? ""} labels={labels} />
-    <FormField label={labels.duration} name="durationSeconds" type="number" dir="ltr" defaultValue={lesson?.durationSeconds ?? policy.defaultDurationSeconds} min={1} max={policy.maxDurationSeconds} step={1} required />
-    <FormField label={labels.video} name="videoUrl" dir="ltr" defaultValue={lesson ? videos[lesson.id] ?? "" : ""} maxLength={adminCoursePolicy.urlMax} hint={labels.mediaHint} required />
+    <LessonMediaFields slug={course.slug} initialUrl={lesson ? videos[lesson.id] ?? "" : ""} initialSeconds={lesson?.durationSeconds} labels={labels} />
     <Checkbox label={labels.preview} name="preview" defaultChecked={lesson?.preview ?? false} />
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/lesson-media-fields.tsx`
+
+SHA-256: `d09dafa67b73c3246a69495ceea200af7c8915e95456658411a121c09d74efd7`
+
+```tsx
+"use client";
+import FormField from "@platform/components/ui/form-field";
+import { useLessonVideoDuration } from "@platform/hooks/use-lesson-video-duration";
+import { adminCoursePolicy } from "@platform/config/admin";
+import type { CurriculumLabels } from "@platform/types/curriculum";
+export default function LessonMediaFields({ slug, initialUrl, initialSeconds, labels }: { slug: string; initialUrl: string; initialSeconds?: number; labels: CurriculumLabels }) {
+  const { url, change, seconds, pending, error, inputRef, retry } = useLessonVideoDuration(slug,initialUrl,initialSeconds,labels);
+  return <>
+    <FormField label={labels.video} name="videoUrl" ref={inputRef} dir="ltr" value={url} onChange={event => change(event.target.value)} maxLength={adminCoursePolicy.urlMax} hint={labels.mediaHint} error={error} required />
+    <FormField label={labels.duration} name="durationSeconds" type="text" dir="ltr" readOnly value={seconds ?? ""} hint={pending ? labels.durationLoading : labels.durationHint} aria-busy={pending} />
+    {error && <button type="button" className="lms-text-link" onClick={retry}>{labels.retryDuration}</button>}
   </>;
 }
 ```
@@ -8719,12 +8749,12 @@ export default function EmptyState({
 
 ### File: `modules/components/ui/form-field.tsx`
 
-SHA-256: `c6e3f9b3a12735af5dc4c2547dca996aab6993ae305011f4caf8266c81effff8`
+SHA-256: `d1595a5b0393e93c44b31ad8b23060ac55cc0595941097694c8e508e36881432`
 
 ```tsx
 "use client";
-import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react";
-export interface FormFieldProps extends Omit<ComponentPropsWithoutRef<"input">, "id"> {
+import { useId, type ComponentPropsWithRef, type ReactNode } from "react";
+export interface FormFieldProps extends Omit<ComponentPropsWithRef<"input">, "id"> {
   label: string; error?: string; hint?: string; control?: ReactNode;
 }
 export default function FormField({ label, error, hint, control, ...input }: FormFieldProps) {
@@ -9046,10 +9076,10 @@ export const courseDeliveries = ["all", "recorded", "live"] as const;
 
 ### File: `modules/config/curriculum.ts`
 
-SHA-256: `2199eb5c4771716895c297578c08fc29fb574d68977c632260e967ef9ad1e225`
+SHA-256: `ec88e9a34861939a1aeaaff159bd25efca435b219d46425eb13c0d5beb61772e`
 
 ```typescript
-export const curriculumPolicy = { defaultDurationSeconds: 60, titleMin: 2, titleMax: 160, descriptionMax: 2000, maxDurationSeconds: 86400, maxChapters: 100, maxSections: 100, maxLessons: 2000 } as const;
+export const curriculumPolicy = { metadataDelayMs: 400, metadataTimeoutMs: 30000, titleMin: 2, titleMax: 160, descriptionMax: 2000, maxDurationSeconds: 86400, maxChapters: 100, maxSections: 100, maxLessons: 2000 } as const;
 ```
 
 ### File: `modules/config/dashboard-shell.ts`
@@ -9088,7 +9118,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `05817097a51d3d4c82653e449ccd4c761974d001a62421b26de7276176ee14bf`
+SHA-256: `a450859de3244ac9854a1106fa9cc2bd31089f13f253d7057492035e2031c45c`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9161,6 +9191,7 @@ export const endpoints = {
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
+  adminMediaStream: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/stream?url=${encodeURIComponent(url)}`,
   adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
@@ -9810,12 +9841,12 @@ export const courses: Course[] = [...records.map((course) => ({
 
 ### File: `modules/data/curriculum.ts`
 
-SHA-256: `224dc47794e36d8fbb51f2783009708da56781a84fef69b4ef6de615af54a05b`
+SHA-256: `9a7447cd1a8da6917745a8f4afeaf03bcc4acad3cb9d261c7c53fd34b1473049`
 
 ```typescript
 export const curriculumCopy = {
  chapter: "فصل", section: "قسم", lesson: "درس", create: "إضافة", edit: "تعديل", remove: "حذف", close: "إغلاق", cancel: "إلغاء",
- addChapter: "إضافة فصل", addSection: "إضافة قسم", addLesson: "إضافة درس", title: "الاسم", description: "وصف الدرس", video: "رابط فيديو الدرس", duration: "مدة الدرس بالثواني", preview: "معاينة مجانية", chapterLabel: "الفصل", sectionLabel: "القسم", ungrouped: "بدون قسم", empty: "لا توجد دروس في هذا القسم بعد.", emptyCourse: "ابدأ بإضافة فصل، ثم أضف أقسامه ودروسه.",
+ addChapter: "إضافة فصل", addSection: "إضافة قسم", addLesson: "إضافة درس", title: "الاسم", description: "وصف الدرس", video: "رابط فيديو الدرس", duration: "مدة الدرس بالثواني", durationHint: "تُحسب تلقائيًا من رابط الفيديو.", durationLoading: "جارٍ حساب مدة الفيديو…", durationError: "تعذّر قراءة مدة الفيديو. تأكد من صحة الرابط وإتاحة الملف للمشاهدة، ثم أعد المحاولة.", retryDuration: "إعادة المحاولة", preview: "معاينة مجانية", chapterLabel: "الفصل", sectionLabel: "القسم", ungrouped: "بدون قسم", empty: "لا توجد دروس في هذا القسم بعد.", emptyCourse: "ابدأ بإضافة فصل، ثم أضف أقسامه ودروسه.",
  save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر حفظ المحتوى. حاول مرة أخرى.",
  draftHint: "أضف الدروس وحدّد الفصل والقسم المناسب لكل درس قبل نشر الدورة.",
  deleteHint: "حذف الدرس يزيل تقدّمه وارتباطات موارده. حذف الفصل أو القسم متاح بعد نقل محتواه أو حذفه.",
@@ -10870,6 +10901,30 @@ export async function handleAdminLesson(slug: string, id: string, request: Reque
     if (!record || !lesson) throw new ApiError(404,"NOT_FOUND");
     await persistCurriculum(slug,record.revision,record.course.modules,{ id, video_url: body.videoUrl, preview: lesson.preview ?? false });
     return Response.json({ saved: true });
+  });
+}
+```
+
+### File: `modules/features/admin/handle-media-stream.ts`
+
+SHA-256: `bf3ddcbc8dda48c1a16dc81e04c1829ab7bead38220c53b1380290b8058170d4`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { requireAdmin } from "./identity";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import { streamDrive } from "@platform/features/catalog/stream-drive";
+import { adminCoursePolicy } from "@platform/config/admin";
+export function handleAdminMediaStream(slug: string, request: Request) {
+  return apiResponse(async () => {
+    const { client } = await requireAdmin();
+    const url = new URL(request.url).searchParams.get("url") ?? "";
+    if (url.length > adminCoursePolicy.urlMax || !driveFileId(url)) throw new ApiError(400,"INVALID_INPUT");
+    const course = await client.from("courses").select("slug").eq("slug",slug).maybeSingle();
+    if (course.error) throw new ApiError(503,"INTERNAL_ERROR");
+    if (!course.data) throw new ApiError(404,"NOT_FOUND");
+    return streamDrive(url, request);
   });
 }
 ```
@@ -13369,6 +13424,23 @@ export function driveFileId(value: string) {
 }
 ```
 
+### File: `modules/helpers/media/lesson-probe-source.ts`
+
+SHA-256: `bfa90f9990bc09eb4dc0c1ceb66b8cf242f4d802d379c2671614bc4027e36834`
+
+```typescript
+import { driveFileId } from "./drive-file-id";
+import { validMediaUrl } from "@platform/features/admin/helpers/validate-media-url";
+import { endpoints } from "@platform/config/navigation";
+export function lessonProbeSource(slug: string, value: string) {
+  const url = value.trim();
+  if (!url || !validMediaUrl(url)) return null;
+  if (driveFileId(url)) return endpoints.adminMediaStream(slug,url);
+  if (/^https:\/\/drive\.google\.com(?:\/|$)/i.test(url)) return null;
+  return url;
+}
+```
+
 ### File: `modules/helpers/media/playable-url.ts`
 
 SHA-256: `4822f997188c46ebac4596b7649a6ec676bd9acefa0846cd1d77c78277b82bb0`
@@ -13379,6 +13451,36 @@ import { endpoints } from "@platform/config/navigation";
 export function playableUrl(value: string, slug: string, lessonId?: string) {
   if (!driveFileId(value)) return value;
   return lessonId ? endpoints.lessonStream(slug,lessonId) : endpoints.introStream(slug);
+}
+```
+
+### File: `modules/helpers/media/probe-video-duration.ts`
+
+SHA-256: `baef68b29b3d586004e48f78cc9a692e7aa47bdf144ee1d0a3af4cab9ac11b06`
+
+```typescript
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+export function probeVideoDuration(source: string, signal: AbortSignal, errorLabel: string): Promise<number> {
+  return new Promise((resolve,reject) => {
+    const video = document.createElement("video");
+    let settled = false;
+    const finish = (seconds?: number) => {
+      if (settled) return;
+      settled = true; clearTimeout(timeout);
+      signal.removeEventListener("abort",abort); video.onloadedmetadata = null; video.onerror = null;
+      video.removeAttribute("src"); video.load();
+      if (seconds) resolve(seconds); else reject(new Error(errorLabel));
+    };
+    const abort = () => finish();
+    const timeout = setTimeout(abort,policy.metadataTimeoutMs);
+    video.onloadedmetadata = () => {
+      const seconds = Math.ceil(video.duration);
+      finish(Number.isFinite(seconds) && seconds > 0 && seconds <= policy.maxDurationSeconds ? seconds : undefined);
+    };
+    video.onerror = abort; signal.addEventListener("abort",abort,{once:true});
+    if (signal.aborted) { abort(); return; }
+    video.preload = "metadata"; video.src = source; video.load();
+  });
 }
 ```
 
@@ -13960,6 +14062,38 @@ export function useLessonNotes(key: string) {
     }
   }
   return { value, save, failed };
+}
+```
+
+### File: `modules/hooks/use-lesson-video-duration.ts`
+
+SHA-256: `c6c328df447a3e4bfa76cc457173493bda8801f4b35062ec7f8f5499181ca739`
+
+```typescript
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+import { lessonProbeSource } from "@platform/helpers/media/lesson-probe-source";
+import { probeVideoDuration } from "@platform/helpers/media/probe-video-duration";
+export function useLessonVideoDuration(slug: string, initialUrl: string, initialSeconds: number | undefined, labels: { durationError: string; durationLoading: string }) {
+  const inputRef = useRef<HTMLInputElement>(null), [url,setUrl] = useState(initialUrl), [attempt,retry] = useState(0);
+  const [result,setResult] = useState({ url: initialSeconds ? initialUrl : "", seconds: initialSeconds, error: "" });
+  const pending = Boolean(url && result.url !== url), seconds = url && !pending ? result.seconds : undefined, error = result.url === url ? result.error : "";
+  function change(value: string) { if (value === url) return; inputRef.current?.setCustomValidity(labels.durationLoading); setUrl(value); }
+  function retryProbe() { setResult({url:"",seconds:undefined,error:""}); retry(value => value + 1); }
+  useEffect(() => {
+    if (!url || result.url === url) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      const source = lessonProbeSource(slug,url);
+      const probe = source ? probeVideoDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
+      void probe.then(seconds => { if (!controller.signal.aborted) setResult({url,seconds,error:""}); })
+        .catch(() => { if (!controller.signal.aborted) setResult({url,seconds:undefined,error:labels.durationError}); });
+    },policy.metadataDelayMs);
+    return () => { clearTimeout(timer); controller.abort(); };
+  },[url,slug,result.url,attempt,labels.durationError]);
+  useEffect(() => { inputRef.current?.setCustomValidity(url && !seconds ? error || labels.durationLoading : ""); },[url,seconds,error,labels.durationLoading]);
+  return { url, change, seconds, pending, error, inputRef, retry: retryProbe };
 }
 ```
 
@@ -30521,7 +30655,7 @@ test("Creation and editing enforce integer amounts; zero remains the canonical f
 
 ### File: `tests/backend/curriculum-authoring-browser.cjs`
 
-SHA-256: `104ba934a79af31317fadc99ed02f1a2a8843bec99b5688fe145245fce35b925`
+SHA-256: `4016706f4d3edf94cbcb54a59b303e9455930639f74e1690580e457d5cc499fe`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Responsive curriculum authoring acceptance. */
@@ -30552,7 +30686,7 @@ module.exports=async({manager,verify,url,slug})=>{
   const chapter=page.locator('.lms-curriculum > section').filter({has:page.getByRole('heading',{name:'Browser chapter',exact:true})});await expect(chapter).toBeVisible();verify(true,'Chapter creation persists and refreshes page');
   await chapter.getByRole('button',{name:'إضافة قسم',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser section');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
   let section=chapter.locator('.lms-curriculum-group').filter({has:page.getByRole('heading',{name:'Browser section',exact:true})});await expect(section).toBeVisible();verify(true,'Section creation persists');
-  await section.getByRole('button',{name:'إضافة درس',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser lesson');await dialog.getByLabel('رابط فيديو الدرس',{exact:true}).fill('/assets/video/workshop-intro.mp4');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(section.getByRole('heading',{name:'Browser lesson',exact:true})).toBeVisible();verify(true,'Lesson creation uses chosen section');
+  await section.getByRole('button',{name:'إضافة درس',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser lesson');await dialog.getByLabel('رابط فيديو الدرس',{exact:true}).fill('/assets/video/workshop-intro.mp4');await expect(dialog.getByLabel('مدة الدرس بالثواني',{exact:true})).toHaveValue(/^[1-9][0-9]*$/);await expect(dialog.getByLabel('مدة الدرس بالثواني',{exact:true})).toHaveAttribute('readonly','');const calculatedSeconds=Number(await dialog.getByLabel('مدة الدرس بالثواني',{exact:true}).inputValue());verify(true,'Lesson duration is automatically read from video metadata');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(section.getByRole('heading',{name:'Browser lesson',exact:true})).toBeVisible();verify(true,'Lesson creation uses chosen section');const saved=(await (await page.request.get(url+'/api/admin/courses/'+slug)).json()).course.modules.flatMap(chapter=>chapter.lessons).find(lesson=>lesson.title==='Browser lesson');verify(saved.durationSeconds===calculatedSeconds,'Automatically calculated duration persists in course metadata');
   for(const width of [390,1440]){await page.setViewportSize({width,height:1000});for(const card of await page.locator('.lms-curriculum > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-curriculum-${width}.png`,fullPage:true});}await page.setViewportSize({width:390,height:900});
   let row=section.locator('.lms-curriculum-row');await row.getByRole('button',{name:'تعديل',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser lesson edited');await dialog.getByRole('combobox',{name:'القسم',exact:true}).click();await page.getByRole('option',{name:'بدون قسم',exact:true}).click();await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
   const ungrouped=chapter.locator('.lms-curriculum-group').filter({has:page.getByRole('heading',{name:'بدون قسم',exact:true})});await expect(ungrouped.getByRole('heading',{name:'Browser lesson edited',exact:true})).toBeVisible();verify(true,'Lesson edit and section reassignment persist');
@@ -30567,7 +30701,7 @@ module.exports=async({manager,verify,url,slug})=>{
 
 ### File: `tests/backend/curriculum-authoring.cjs`
 
-SHA-256: `6691a1286bb8b03a5291d732a3bec64b1323c233474bd874f48eac70725e909e`
+SHA-256: `4decc95b5910a910a70957e0a23e17865a49ca67db9449fb36b6e119faaa7f97`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated curriculum API acceptance checks. */
@@ -30582,6 +30716,10 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
  try {
   verify((await manager.api('/api/admin/courses',{slug,title:'Curriculum test course',description:'Course authoring test content',amount:500,category:'editing',delivery:'recorded'})).status===201,'Create empty draft for curriculum');
   const initial=await record();
+  const probe=base+'/media/stream?url='+encodeURIComponent('https://drive.google.com/file/d/1234567890/view');
+  verify((await anonymous(probe)).status===401,'Guest cannot probe Drive media');verify((await student.api(probe)).status===403,'Student cannot probe Drive media');
+  for(const media of ['http://127.0.0.1/private','https://example.com/video.mp4','https://drive.google.com/drive/folders/1234567890','javascript:alert(1)']) verify((await manager.api(base+'/media/stream?url='+encodeURIComponent(media))).status===400,'Metadata stream restricts upstream to Drive files');
+  verify((await manager.api('/api/admin/courses/missing-probe-course/media/stream?url='+encodeURIComponent('https://drive.google.com/file/d/1234567890/view'))).status===404,'Probe requires an existing course');
   verify((await anonymous(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===401,'Guest cannot author curriculum');
   verify((await student.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===403,'Student cannot author curriculum');
   verify(Boolean((await student.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:0,p_modules:[]})).error),'Student cannot bypass API using RPC');
@@ -30623,6 +30761,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
   verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
   verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
+  await require('./lesson-duration-browser.cjs')({manager,verify,url,slug});
   await require('./curriculum-authoring-browser.cjs')({manager,verify,url,slug});
   await admin.from('admin_users').delete().eq('user_id',manager.id);
   verify((await mutate({kind:'chapter',operation:'create',title:'Denied chapter'})).status===403,'Revoked admin access denies new mutations');
@@ -31229,6 +31368,75 @@ async function run() {
     server.kill('SIGTERM'); fs.closeSync(log);
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
+```
+
+### File: `tests/backend/lesson-duration-browser.cjs`
+
+SHA-256: `fd90f30cf9a50b1be3061fa6e54a78aeedd3b9e82982d44be8aa40faffa50c4d`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Automatic lesson-duration browser acceptance. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async({manager,verify,url,slug})=>{
+ const browser=await chromium.launch();
+ try{
+  const page=await browser.newPage();await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  await page.goto(url+'/admin/dashboard/courses/'+slug+'/content');await page.getByRole('button',{name:'إضافة درس',exact:true}).first().click();
+  const dialog=page.getByRole('dialog'),video=dialog.getByLabel('رابط فيديو الدرس',{exact:true}),duration=dialog.getByLabel('مدة الدرس بالثواني',{exact:true});
+  await expect(duration).toHaveValue('');await expect(duration).toHaveAttribute('readonly','');verify(true,'New lessons have no fabricated/manual default duration');
+  await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(/^[1-9][0-9]*$/);const expected=await duration.inputValue();verify(true,'Actual local video metadata calculates duration');await video.fill('/assets/video/workshop-intro.mp4');verify(await video.evaluate(input=>input.validity.valid),'Pasting the same resolved link keeps the field valid');
+  let calls=0;await page.route('**/media/stream?*',route=>{calls++;return route.fulfill({status:200,contentType:'video/mp4',body:fs.readFileSync('public/assets/video/workshop-intro.mp4')});});
+  await video.fill('https://drive.google.com/file/d/1234567890/view');await expect(duration).toHaveValue(expected);verify(calls>0,'Drive links route through protected stream and calculate duration');
+  await video.fill('/assets/video/missing-duration.mp4');await expect(duration).toHaveValue('');await expect(dialog.getByRole('alert')).toContainText('تعذّر قراءة مدة الفيديو');
+  await dialog.getByLabel('الاسم',{exact:true}).fill('Unsavable invalid video');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toBeVisible();verify(await video.evaluate(input=>!input.validity.valid),'Unavailable media blocks saving and clears stale duration');
+  await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(expected);verify(true,'Changing to a valid source recovers automatically');
+  await video.fill('https://drive.google.com/drive/folders/1234567890');await expect(dialog.getByRole('alert')).toBeVisible();await expect(duration).toHaveValue('');verify(true,'Drive folders cannot provide fabricated duration');
+  await video.fill('/assets/video/workshop-intro.mp4');await video.fill('/assets/video/missing-duration.mp4');await expect(dialog.getByRole('alert')).toBeVisible();await expect(duration).toHaveValue('');verify(true,'A stale earlier lookup cannot replace the latest video duration');
+  await video.fill('/assets/video/workshop-intro.mp4');await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await page.getByRole('button',{name:'إضافة درس',exact:true}).first().click();await expect(page.getByLabel('مدة الدرس بالثواني',{exact:true})).toHaveValue('');verify(true,'Closing the dialog cancels lookup and reopening starts fresh');await page.keyboard.press('Escape');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/lesson-duration-live.cjs`
+
+SHA-256: `13d9b65cef5aeb68b2b898376fc43b27c49b865a82dd841a537ea83492860ad7`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only hosted automatic-duration acceptance. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');process.loadEnvFile('.env.local');
+(async()=>{
+ const origin=process.env.TARGET_URL||'https://ta3allam.vercel.app',browser=await chromium.launch(),checks=[],errors=[];
+ try{
+  const page=await browser.newPage();page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/api/admin/courses/**',route=>route.request().method()==='POST'?route.abort():route.continue());
+  await page.goto(origin+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard');
+  const listing=await (await page.request.get(origin+'/api/admin/courses')).json();const slug=listing.courses.find(course=>course.chapters>0)?.slug;if(!slug)throw new Error('No existing chapter available for read-only lesson modal verification');
+  const endpoint=origin+'/api/admin/courses/'+slug,before=await (await page.request.get(endpoint)).json();
+  await page.goto(origin+'/admin/dashboard/courses/'+slug+'/content');await page.getByRole('button',{name:'إضافة درس',exact:true}).first().click();
+  const dialog=page.getByRole('dialog'),duration=dialog.getByLabel('مدة الدرس بالثواني',{exact:true});await expect(duration).toHaveValue('');await expect(duration).toHaveAttribute('readonly','');checks.push('Read-only duration has no manually entered default');
+  await dialog.getByLabel('رابط فيديو الدرس',{exact:true}).fill('https://drive.google.com/file/d/1pVLFPEqSMCXJAjAR3VRl69hg_3zVQctu/view');await expect(duration).toHaveValue(/^[1-9][0-9]*$/,{timeout:45000});const seconds=Number(await duration.inputValue());checks.push('Real supplied Drive file duration calculated through protected stream');
+  await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'docs/evidence/backend/lesson-duration-live-390.png'});checks.push('Automatic duration fits mobile lesson dialog');
+  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);checks.push('Closing dialog restores page');
+  expect(await (await page.request.get(endpoint)).json()).toEqual(before);checks.push('Existing course unchanged');expect(errors).toEqual([]);checks.push('No browser runtime errors');
+  fs.writeFileSync('docs/evidence/backend/lesson-duration-live.json',JSON.stringify({origin,slug,seconds,checkedAt:new Date().toISOString(),checks,errors,readOnly:true},null,2));console.log(`${checks.length} read-only lesson-duration checks passed; supplied Drive file: ${seconds} seconds.`);
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
+```
+
+### File: `tests/backend/lesson-probe-source.test.ts`
+
+SHA-256: `294e6ee575ee5b6aa7dc5f53fca9dba80025b5425267e10d8ad199b33ba55e38`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { lessonProbeSource } from "../../modules/helpers/media/lesson-probe-source";
+test("Drive metadata uses the admin stream; safe direct sources stay direct", () => {
+  const drive="https://drive.google.com/file/d/1234567890/view";
+  assert.equal(lessonProbeSource("video-course",drive),"/api/admin/courses/video-course/media/stream?url="+encodeURIComponent(drive));
+  assert.equal(lessonProbeSource("video-course"," /assets/video/workshop-intro.mp4 "),"/assets/video/workshop-intro.mp4");
+  for(const url of ["","javascript:alert(1)","https://drive.google.com/drive/folders/1234567890","/assets/../file"]) assert.equal(lessonProbeSource("video-course",url),null);
+});
 ```
 
 ### File: `tests/backend/navigation-browser.cjs`

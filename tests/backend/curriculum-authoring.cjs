@@ -10,6 +10,10 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
  try {
   verify((await manager.api('/api/admin/courses',{slug,title:'Curriculum test course',description:'Course authoring test content',amount:500,category:'editing',delivery:'recorded'})).status===201,'Create empty draft for curriculum');
   const initial=await record();
+  const probe=base+'/media/stream?url='+encodeURIComponent('https://drive.google.com/file/d/1234567890/view');
+  verify((await anonymous(probe)).status===401,'Guest cannot probe Drive media');verify((await student.api(probe)).status===403,'Student cannot probe Drive media');
+  for(const media of ['http://127.0.0.1/private','https://example.com/video.mp4','https://drive.google.com/drive/folders/1234567890','javascript:alert(1)']) verify((await manager.api(base+'/media/stream?url='+encodeURIComponent(media))).status===400,'Metadata stream restricts upstream to Drive files');
+  verify((await manager.api('/api/admin/courses/missing-probe-course/media/stream?url='+encodeURIComponent('https://drive.google.com/file/d/1234567890/view'))).status===404,'Probe requires an existing course');
   verify((await anonymous(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===401,'Guest cannot author curriculum');
   verify((await student.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===403,'Student cannot author curriculum');
   verify(Boolean((await student.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:0,p_modules:[]})).error),'Student cannot bypass API using RPC');
@@ -51,6 +55,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
   verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
   verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
+  await require('./lesson-duration-browser.cjs')({manager,verify,url,slug});
   await require('./curriculum-authoring-browser.cjs')({manager,verify,url,slug});
   await admin.from('admin_users').delete().eq('user_id',manager.id);
   verify((await mutate({kind:'chapter',operation:'create',title:'Denied chapter'})).status===403,'Revoked admin access denies new mutations');

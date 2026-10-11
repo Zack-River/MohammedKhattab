@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — automatic lesson duration
+
+- Replaced the manual/default lesson-seconds input with a read-only calculated field. A shared lesson-media component, focused hook, safe-source helper and cancellable native metadata probe read the actual duration after an administrator supplies a video URL. Direct videos and Google Drive file links are supported; Drive folders and inaccessible/unsupported files show a clear error.
+- Added an administrator-only course media stream that reuses the existing Drive streaming implementation, range support and cancellation. The server accepts only Drive file IDs on a fixed upstream host, requires trusted administrator access and an existing course, and returns private/no-store responses. No Google API key, new dependency or database schema change is needed.
+- Changing the URL clears stale duration immediately. Metadata loading is debounced, bounded by a timeout, and cancelled when changing the source or closing the dialog. Saving is blocked until a positive bounded integer duration is available. Existing stored durations remain unchanged when only editing unrelated lesson fields; replacing the link recalculates duration. Seconds round up to match the existing integer contract.
+- The metadata URL contract, lint, TypeScript, architecture (659 files / no violations), secret/diff checks and production build passed. All 98 isolated curriculum API/browser checks passed, including actual media duration persistence, failed/stale lookup blocking, same-link validity, cancellation, Drive proxy routing and permissions. Six read-only checks passed against the built app at localhost:3040, with the real supplied Drive file automatically resolving to 42 seconds and the course unchanged. Production deployment/live verification is pending.
+
 ## Latest checkpoint — shared new-course and editor forms
 
 - `/admin/dashboard/courses/new` now composes the same `CourseFormLayout`, details, price/free choice, textarea and media fields as the existing editor. Both retain the three-card responsive design and aligned desktop edges. Creation-only slug/delivery controls remain in the details card; the save card explains that creation saves a draft.
