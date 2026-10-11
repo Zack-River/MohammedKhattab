@@ -5,6 +5,7 @@ Last updated: **2026-10-12**. This file records the actual implementation and ve
 ## Latest checkpoint — live-course publishing duration
 
 - Diagnosed the reported 400: `testing-course` was created as live with an empty duration, and the editor did not expose that required metadata field. Added `مدة الدورة` with shared limits/help and a specific missing-duration error. Legacy save requests that omit duration preserve its stored value; drafts may remain incomplete.
+- Application commit `b5ab1a3` is deployed. Read-only verification on the real `testing-course` editor confirmed the duration field is visible, the removed description is absent and course data is unchanged.
 - Verified live draft → missing-duration error → duration entry → successful publication and persistence in the isolated browser/API suite. Passed 96 focused checks, 190 full backend regression checks, four contract unit cases, lint, TypeScript/production build, architecture and diff checks. Refreshed the reproduction snapshot; local editor screenshot includes the new field.
 
 ## Latest checkpoint — course editor heading cleanup
