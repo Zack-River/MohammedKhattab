@@ -1,0 +1,34 @@
+PASS 1: guest /: workshop removed from navbar
+PASS 2: guest /: learning action visible without dashboard action
+PASS 3: guest /: navbar fits 320px
+PASS 4: guest /courses: workshop removed from navbar
+PASS 5: guest /courses: learning action visible without dashboard action
+PASS 6: guest /courses: navbar fits 320px
+PASS 7: guest /login: workshop removed from navbar
+PASS 8: guest /login: learning action visible without dashboard action
+PASS 9: guest /login: navbar fits 320px
+PASS 10: guest: founder navbar has no workshop link
+PASS 11: guest: no navigation runtime or hydration errors
+PASS 12: student /: workshop removed from navbar
+PASS 13: student /: only role-appropriate dashboard action shown
+PASS 14: student /: navbar fits 320px
+PASS 15: student /courses: workshop removed from navbar
+PASS 16: student /courses: only role-appropriate dashboard action shown
+PASS 17: student /courses: navbar fits 320px
+PASS 18: student /login: workshop removed from navbar
+PASS 19: student /login: only role-appropriate dashboard action shown
+PASS 20: student /login: navbar fits 320px
+PASS 21: student: founder navbar has no workshop link
+PASS 22: student: no navigation runtime or hydration errors
+PASS 23: admin /: workshop removed from navbar
+PASS 24: admin /: only role-appropriate dashboard action shown
+PASS 25: admin /: navbar fits 320px
+PASS 26: admin /courses: workshop removed from navbar
+PASS 27: admin /courses: only role-appropriate dashboard action shown
+PASS 28: admin /courses: navbar fits 320px
+PASS 29: admin /login: workshop removed from navbar
+PASS 30: admin /login: only role-appropriate dashboard action shown
+PASS 31: admin /login: navbar fits 320px
+PASS 32: admin: founder navbar has no workshop link
+PASS 33: admin: no navigation runtime or hydration errors
+Read-only navigation: 33 checks passed
