@@ -1,3 +1,4 @@
+import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
 import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
@@ -30,7 +31,10 @@ export const routes = {
   admin: "/admin/dashboard/courses",
   adminDashboard: "/admin/dashboard",
   adminUsers: "/admin/dashboard",
-  adminUser: (id: string) => `/admin/dashboard/users/${segment(id)}`,
+  adminUser: (username: string) => {
+    if (!isValidUsername(username)) throw new Error("Invalid username route");
+    return `/admin/dashboard/users/${normalizeUsername(username)}`;
+  },
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,

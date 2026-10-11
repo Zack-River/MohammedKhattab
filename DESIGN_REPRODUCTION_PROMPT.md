@@ -199,7 +199,7 @@ The source `package.json` is included exactly. Preserve the companion `package-l
 | `eslint-config-next` | `^16.3.8` | `16.3.8` |
 | `typescript` | `^5.9.2` | `5.9.3` |
 
-Companion `package-lock.json`: **252166 bytes**; SHA-256 `cb931f2b58eba2ea34f6ad51cf68a5aecc5223f8e94e4108d58cf96022c9021f`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
+Companion `package-lock.json`: **252603 bytes**; SHA-256 `4d709233c50d8d20b4e9ab8faad4e7b2b1fb0db1a43baa3656859f099d9c1f47`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
 ## 13. Original asset manifest
 
 Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompression, different flags, transparent padding, image cropping, and alternative font builds can change pixels. Unused alternative assets remain listed to preserve the available theme/media inventory. Names, alt text, rendered dimensions, and class treatment are defined by the embedded data/components; dimensions in a binary are not a substitute for the rendered dimensions. Font licenses/provenance remain in the original asset folder.
@@ -582,29 +582,28 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
 }
 ```
 
-### File: `app/admin/dashboard/users/[id]/page.tsx`
+### File: `app/admin/dashboard/users/[username]/page.tsx`
 
-SHA-256: `15cd719f2f83ef6cb276c7dffddef2d1fcefd38b82a8e360dcc9adbcad97ede4`
+SHA-256: `68c8344c0f87f4a3d044e6c8709fca9540c02125e6eedeced32cd599f98eb1d3`
 
 ```tsx
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import PageHeading from "@platform/components/ui/page-heading";
 import UserDetails from "@platform/components/admin/user-details";
 import UserSubscriptions from "@platform/components/admin/user-subscriptions";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
-import { readAdminUser } from "@platform/features/admin/repositories/users";
 import { readUserSubscriptions } from "@platform/features/admin/repositories/user-subscriptions";
-import { validUserId } from "@platform/features/admin/helpers/read-moderation";
+import { resolveAdminUser } from "@platform/features/admin/repositories/user-handle";
 import { routes } from "@platform/config/navigation";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { ApiError } from "@platform/lib/api/error";
-export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminUserPage({ params }: { params: Promise<{ username: string }> }) {
   await requireAdminPage();
-  const { id } = await params;
-  if (!validUserId(id)) notFound();
-  const user = await readAdminUser(id).catch(error => { if (error instanceof ApiError && error.status === 404) notFound(); throw error; });
-  const subscriptions = await readUserSubscriptions(id);
+  const { username } = await params;
+  const user = await resolveAdminUser(username).catch(error => { if (error instanceof ApiError && error.status === 404) notFound(); throw error; });
+  if (username !== user.username) redirect(routes.adminUser(user.username));
+  const subscriptions = await readUserSubscriptions(user.id);
   return <><PageHeading title={user.name}><Link className="lms-text-link" href={routes.adminUsers}>{labels.back}</Link></PageHeading>
     <UserDetails labels={labels} user={user} /><UserSubscriptions labels={labels} subscriptions={subscriptions} />
   </>;
@@ -4546,7 +4545,7 @@ export default function UserFilters({ query, total, labels }: { query: AdminUser
 
 ### File: `modules/components/admin/user-identity.tsx`
 
-SHA-256: `5fd87943608de3b0d557cc384a0741779effc793097d9ee6a71e09a5cfaa5274`
+SHA-256: `e5bc721eebd4ab09b52a00741c092d90a87c0e2a66dfd04eb268809d6361957f`
 
 ```tsx
 import Link from "next/link";
@@ -4556,7 +4555,7 @@ import UserAvatar from "./user-avatar";
 export default function UserIdentity({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
   return <div className="lms-admin-identity">
     <UserAvatar name={user.name} url={user.avatarUrl} labels={labels} />
-    <div><Link href={routes.adminUser(user.id)} className="lms-admin-name">{user.name}</Link>
+    <div><Link href={routes.adminUser(user.username)} className="lms-admin-name">{user.name}</Link>
       <span className="lms-admin-role">{user.admin ? labels.admin : labels.student}</span>
     </div>
   </div>;
@@ -4610,7 +4609,7 @@ export default function UserSubscriptions({ subscriptions, labels }: { subscript
 
 ### File: `modules/components/admin/users-table.tsx`
 
-SHA-256: `6ac5d98f6a5bd47fb9cfef3ecea2bef9baeff143c56ca162e16966dda4a83884`
+SHA-256: `55c17eda640424ef1ab6e932b016ea57126ba58368b5af0b3a2ad064c1819233`
 
 ```tsx
 import Link from "next/link";
@@ -4629,7 +4628,7 @@ export default function UsersTable({ users, labels }: { users: AdminUser[]; labe
       <td role="cell" data-label={labels.username}><span className="lms-admin-truncate" dir="ltr" title={user.username}>{user.username}</span></td>
       <td role="cell" data-label={labels.email}><span className="lms-admin-truncate" dir="ltr" title={user.email}>{user.email}</span>{!user.confirmed && <small>{labels.unconfirmed}</small>}</td>
       <td role="cell" data-label={labels.status}><UserStatus user={user} labels={labels} /></td>
-      <td role="cell" className="lms-admin-row-actions"><Link href={routes.adminUser(user.id)} className="lms-admin-view">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
+      <td role="cell" className="lms-admin-row-actions"><Link href={routes.adminUser(user.username)} className="lms-admin-view">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
     </tr>)}</tbody>
   </table>{!users.length && <p className="lms-admin-empty">{labels.empty}</p>}</div>;
 }
@@ -7685,9 +7684,10 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `c03452b577369d2d128422db8b954df2a94ae7127545546e6e7307095ba8b222`
+SHA-256: `52e9f15a4fea90b3f90cff40575fd042b6699fdabe9569e2b2d478319a1a2a49`
 
 ```typescript
+import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
 import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
@@ -7720,7 +7720,10 @@ export const routes = {
   admin: "/admin/dashboard/courses",
   adminDashboard: "/admin/dashboard",
   adminUsers: "/admin/dashboard",
-  adminUser: (id: string) => `/admin/dashboard/users/${segment(id)}`,
+  adminUser: (username: string) => {
+    if (!isValidUsername(username)) throw new Error("Invalid username route");
+    return `/admin/dashboard/users/${normalizeUsername(username)}`;
+  },
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
   course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
@@ -8453,7 +8456,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `2f82359e0e092cf20353cb86143e724fa098eb8d1cd9ff2cfe485ff8ea7021be`
+SHA-256: `5075bcb938cb5d49c42c9b3dd9be985aef2ddb0a67b751e85f51a35f609768da`
 
 ```typescript
 import { projectNavigation, projectRoutes } from "../../config/project-navigation";
@@ -8602,7 +8605,7 @@ export const copy = {
   resources: "أدوات تساعدك تطبّق",
   download: "تحميل الأداة",
   username: "اسم المستخدم",
-  usernameHint: "يمكنك تغيير الاسم الافتراضي. استخدم حروفًا أو أرقامًا أو الشرطة والشرطة السفلية؛ من ٣ إلى ٤٨ حرفًا.",
+  usernameHint: "يمكنك تغيير الاسم الافتراضي. استخدم حروفًا إنجليزية أو أرقامًا أو الشرطة والشرطة السفلية؛ من ٣ إلى ٤٨ حرفًا.",
   profileSaved: "تم حفظ بياناتك",
   save: "حفظ التغييرات",
   name: "اسمك",
@@ -9048,6 +9051,32 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) throw new ApiError(404, "NOT_FOUND");
   return { saved: true };
+}
+```
+
+### File: `modules/features/admin/repositories/user-handle.ts`
+
+SHA-256: `848fd828f91375f8c1caf269eec687439afff6fc3143d90576584954e845ee38`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { isValidUsername, normalizeUsername } from "@platform/helpers/validation/username";
+import { validUserId } from "../helpers/read-moderation";
+import { readAdminUser } from "./users";
+/** Resolve a public-facing handle only after authorization; mutations continue using immutable IDs. */
+export async function resolveAdminUser(handle: string) {
+  await requireAdmin();
+  if (!isValidUsername(handle)) throw new ApiError(404, "NOT_FOUND");
+  const { data, error } = await createAuthAdministrator().from("profiles")
+    .select("id").eq("username", normalizeUsername(handle)).maybeSingle();
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (data) return readAdminUser(data.id);
+  // Existing UUID bookmarks redirect to the stored username in the page.
+  if (validUserId(handle)) return readAdminUser(handle);
+  throw new ApiError(404, "NOT_FOUND");
 }
 ```
 
@@ -10723,14 +10752,14 @@ export function isValidEmail(email: string, maximum: number) {
 
 ### File: `modules/helpers/validation/username.ts`
 
-SHA-256: `3cdb5a66c892ae95c48c57717b6a4642ad28f3c0849a3f0df254607ec6811bad`
+SHA-256: `60a665c1ee02ac476964e0625f70c13852b6e0e8f17750e76d3db4174e7169fa`
 
 ```typescript
 /** Shared username rules; generation and final uniqueness are enforced by the database. */
 export const usernamePolicy = { min: 3, max: 48 } as const;
 export function normalizeUsername(value: string) { return value.trim().toLowerCase(); }
 export function isValidUsername(value: unknown): value is string {
-  return typeof value === "string" && /^[\p{L}\p{N}][\p{L}\p{N}_-]{2,47}$/u.test(normalizeUsername(value));
+  return typeof value === "string" && /^[a-z0-9][a-z0-9_-]{2,47}$/.test(normalizeUsername(value));
 }
 ```
 
@@ -15805,7 +15834,7 @@ export default nextConfig;
 
 ### File: `package.json`
 
-SHA-256: `e55954aa59974e47016c738b3784b6f6f5d19d1366ee6990133e585519d38ca0`
+SHA-256: `5ee87d63788728aace151ac1478d588bac7446584b91090381d7d55765f338e5`
 
 ```json
 {
@@ -15849,7 +15878,8 @@ SHA-256: `e55954aa59974e47016c738b3784b6f6f5d19d1366ee6990133e585519d38ca0`
     "pg": "8.16.3",
     "supabase": "2.120.0",
     "tsx": "4.23.15",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "unique-names-generator": "4.7.1"
   }
 }
 ```
@@ -24567,6 +24597,30 @@ statements.push("insert into public.admin_users(user_id) select id from auth.use
 writeFileSync("supabase/seed.sql", statements.join("\n") + "\n");
 ```
 
+### File: `scripts/backend/generate-username-helper.ts`
+
+SHA-256: `3944672123a07edb1ed9b8326d1af215089be55d31fc28383bfb69565114dae8`
+
+```typescript
+import { writeFileSync } from "node:fs";
+import { uniqueNamesGenerator } from "unique-names-generator";
+// Curated friendly words; the package runs only in migration tooling, never in the browser.
+const gerunds = ["learning", "drawing", "dancing", "reading", "writing", "running", "swimming", "building", "coding", "singing", "painting", "exploring", "creating", "growing", "dreaming", "traveling"];
+const adjectives = ["brave", "kind", "bright", "calm", "clever", "gentle", "happy", "lively", "patient", "proud", "quiet", "sunny", "swift", "warm", "wise", "bold"];
+const bases = new Set<string>();
+for (let seed = 1; seed <= 10000 && bases.size < 256; seed++) {
+  bases.add(uniqueNamesGenerator({ dictionaries: [gerunds, adjectives], separator: "-", length: 2, style: "lowerCase", seed }));
+}
+if (bases.size !== 256) throw new Error("Incomplete username vocabulary");
+const sql = `create or replace function private.username_fallback_base(seed integer)
+returns text language sql immutable set search_path='' as $function$
+select (array[${[...bases].sort().map(word => `'${word}'`).join(",")}])[1 + (seed % 256)];
+$function$;
+revoke all on function private.username_fallback_base(integer) from public, anon, authenticated;
+`;
+writeFileSync(process.argv[2] ?? "/tmp/khatab-username-vocabulary.sql", sql);
+```
+
 ### File: `scripts/backend/migrate-hosted.cjs`
 
 SHA-256: `753856419917f268235f4f2a404971de8be42cc7800d4fbab6d3fdf80b9bd0c6`
@@ -26025,7 +26079,7 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/form-controls-browser.cjs`
 
-SHA-256: `cfbf4cf9190bda81c987b25cfdfb79ad58e3abc455f6e96b790313b9be77089c`
+SHA-256: `970f512675bc53ce80dc9bd68067bd2800b294504bfc59ff0cf9a5c0ff6f824d`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks with ephemeral isolated accounts. */
@@ -26049,6 +26103,15 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     await page.getByRole('button',{name:'تطبيق البحث والفلاتر'}).click();await expect(page).toHaveURL(/newcomers=1/);
     verify(true,'Custom checkboxes combine with prefix search');
     await page.screenshot({path:`${directory}/filters-390.png`,fullPage:true});
+    await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
+    const handle = JSON.parse((await student.api('/api/profile')).data).username;
+    const view = page.getByRole('link',{name:'عرض المستخدم',exact:true});
+    await expect(view).toHaveAttribute('href','/admin/dashboard/users/'+handle);
+    await view.click();await expect(page).toHaveURL(url+'/admin/dashboard/users/'+handle);
+    verify(true,'User link and browser destination use the username');
+    await page.goto(url+'/admin/dashboard/users/'+student.id);
+    await expect(page).toHaveURL(url+'/admin/dashboard/users/'+handle);
+    verify(true,'Browser follows legacy UUID redirect to canonical username');
     await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
     await page.getByRole('button',{name:'إدارة الحساب',exact:true}).click();
     const dialog = page.getByRole('dialog',{name:'إدارة الحساب',exact:true}), combo=dialog.getByRole('combobox');
@@ -26228,7 +26291,7 @@ async function run() {
 
 ### File: `tests/backend/username-controls.cjs`
 
-SHA-256: `f8f0ac2debcd1560e0f4c35e8e9b881ec1a7cd059c7bd5c66fef6aa4dbce0839`
+SHA-256: `54a22f5e25faa49552cd956d35110be5f5a450c438794f1a290473bc24506f90`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Real isolated database acceptance. */
@@ -26241,9 +26304,18 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
   verify(profiles.length === 12 && profiles.every(profile => /^zackriver\d{6}$/.test(profile.username)), 'Concurrent same-name signups merge first and last names with six random digits');
   verify(new Set(profiles.map(profile => profile.username)).size === 12, 'All concurrent generated usernames are unique');
   const arabic = await provision('محمد أحمد خطاب'), single = await provision('Cher');
-  verify(/^محمدخطاب\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Arabic first and last names generate a readable username');
+  verify(/^[a-z]+ing-[a-z]+\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Non-English names generate an English gerund-adjective username');
   verify(/^cher\d{6}$/.test(JSON.parse((await single.api('/api/profile')).data).username), 'Single-name accounts generate a valid username');
   const [a,b] = students;
+  const handle = profiles.find(profile => profile.id === b.id).username;
+  const detail = await manager.api('/admin/dashboard/users/'+handle);
+  verify(detail.status === 200, 'Admin can open user details by username');
+  const legacyPage = await manager.api('/admin/dashboard/users/'+b.id);
+  verify(legacyPage.headers.get('location')?.endsWith('/'+handle) || legacyPage.data.includes('NEXT_REDIRECT'), 'Legacy UUID URL redirects to the username');
+  const missingPage = await manager.api('/admin/dashboard/users/missing-handle');
+  verify(missingPage.status === 404 || missingPage.data.includes('NEXT_HTTP_ERROR_FALLBACK;404'), 'Unknown username returns not found');
+  const deniedPage = await b.api('/admin/dashboard/users/'+handle);
+  verify(deniedPage.status !== 200 || deniedPage.data.includes('NEXT_REDIRECT'), 'Student cannot open username-based admin details');
   const change = (student, username) => student.api('/api/profile', { name: 'Zack Middle River', email: student.email, username });
   verify((await change(a,' My-Custom_Name ')).status === 200, 'Student can choose a normalized username');
   verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Chosen username persists in profile');
@@ -26256,19 +26328,33 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
   verify(duplicate.status === 409 && JSON.parse(duplicate.data).code === 'USERNAME_TAKEN', 'Case-insensitive duplicate rename returns helpful conflict');
   const racing = await Promise.all([change(a,'shared-race'),change(b,'shared-race')]);
   verify(racing.filter(response => response.status === 200).length === 1 && racing.filter(response => response.status === 409).length === 1, 'Concurrent custom renames reserve a username atomically');
-  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
+  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil','محمدخطاب123456','zäck123']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
   verify((await anonymous('/api/profile',{ name:'New Name',email:a.email,username:'forged' })).status === 401, 'Anonymous cannot rename a profile');
   verify((await b.direct.from('profiles').update({username:'forged'}).eq('id',a.id).select()).data?.length === 0, 'RLS blocks another account rename');
   const db = new Client({ connectionString: config.DB_URL }); await db.connect();
   try {
     const result = await db.query("select private.username_base($1) as base, private.username_base($2) as fallback",[' ZACK   Middle River ','!!!']);
-    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === 'user', 'Username helper handles whitespace, case and fallback');
+    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === null, 'Username helper handles whitespace, case and fallback');
     const legacy = students[2], chosen = students[3];
     await db.query("update public.profiles set username='user-' || replace(id::text,'-','') where id=$1",[legacy.id]);
     await db.query("update public.profiles set username='chosen-keep' where id=$1",[chosen.id]);
     await db.query("update public.profiles set username=private.generate_default_username(name) where username='user-' || replace(id::text,'-','')");
     const migrated=await db.query('select id,username from public.profiles where id=any($1::uuid[])',[[legacy.id,chosen.id]]);
     verify(migrated.rows.find(row=>row.id===chosen.id).username==='chosen-keep' && /^zackriver\d{6}$/.test(migrated.rows.find(row=>row.id===legacy.id).username), 'Migration backfills legacy defaults and preserves chosen usernames');
+    await db.query('begin');
+    try {
+      await db.query('alter table public.profiles drop constraint profiles_username_check');
+      await db.query("update public.profiles set username='محمدخطاب123456' where id=$1",[arabic.id]);
+      await db.query("update public.profiles set username=private.generate_default_username(name) where username !~ '^[a-z0-9][a-z0-9_-]{2,47}$'");
+      const backfill = await db.query('select username,name from public.profiles where id=$1',[arabic.id]);
+      verify(/^[a-z]+ing-[a-z]+\d{6}$/.test(backfill.rows[0].username) && backfill.rows[0].name==='محمد أحمد خطاب','Backfill converts non-English handles while preserving display names');
+      const retained = await db.query('select username from public.profiles where id=$1',[chosen.id]);
+      verify(retained.rows[0].username==='chosen-keep','English chosen handles survive the ASCII backfill');
+    } finally { await db.query('rollback'); }
+    const invalidDb = await db.query("update public.profiles set username='محمد123' where id=$1",[arabic.id]).catch(error=>error);
+    verify(invalidDb.code==='23514','Database rejects non-English handles independently of API validation');
+    const variants = await db.query("select private.generate_default_username(name) as username from (values ('محمد River'),('Zack خطاب'),('李 明'),('!!!')) names(name)");
+    verify(variants.rows.every(row=>/^[a-z]+ing-[a-z]+\d{6}$/.test(row.username)), 'Mixed-script, Chinese and punctuation-only names use English fallbacks');
     await db.query('set enable_seqscan=off');
     const plan = await db.query("explain select id from public.profiles where lower(name) ^@ lower($1)", ['محمد']);
     verify(plan.rows.some(row => row['QUERY PLAN'].includes('profiles_name_prefix_idx')), 'Actual parameterized prefix predicate can use the SP-GiST name index');

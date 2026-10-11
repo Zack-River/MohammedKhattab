@@ -8,9 +8,18 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
   verify(profiles.length === 12 && profiles.every(profile => /^zackriver\d{6}$/.test(profile.username)), 'Concurrent same-name signups merge first and last names with six random digits');
   verify(new Set(profiles.map(profile => profile.username)).size === 12, 'All concurrent generated usernames are unique');
   const arabic = await provision('محمد أحمد خطاب'), single = await provision('Cher');
-  verify(/^محمدخطاب\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Arabic first and last names generate a readable username');
+  verify(/^[a-z]+ing-[a-z]+\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Non-English names generate an English gerund-adjective username');
   verify(/^cher\d{6}$/.test(JSON.parse((await single.api('/api/profile')).data).username), 'Single-name accounts generate a valid username');
   const [a,b] = students;
+  const handle = profiles.find(profile => profile.id === b.id).username;
+  const detail = await manager.api('/admin/dashboard/users/'+handle);
+  verify(detail.status === 200, 'Admin can open user details by username');
+  const legacyPage = await manager.api('/admin/dashboard/users/'+b.id);
+  verify(legacyPage.headers.get('location')?.endsWith('/'+handle) || legacyPage.data.includes('NEXT_REDIRECT'), 'Legacy UUID URL redirects to the username');
+  const missingPage = await manager.api('/admin/dashboard/users/missing-handle');
+  verify(missingPage.status === 404 || missingPage.data.includes('NEXT_HTTP_ERROR_FALLBACK;404'), 'Unknown username returns not found');
+  const deniedPage = await b.api('/admin/dashboard/users/'+handle);
+  verify(deniedPage.status !== 200 || deniedPage.data.includes('NEXT_REDIRECT'), 'Student cannot open username-based admin details');
   const change = (student, username) => student.api('/api/profile', { name: 'Zack Middle River', email: student.email, username });
   verify((await change(a,' My-Custom_Name ')).status === 200, 'Student can choose a normalized username');
   verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Chosen username persists in profile');
@@ -23,19 +32,33 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
   verify(duplicate.status === 409 && JSON.parse(duplicate.data).code === 'USERNAME_TAKEN', 'Case-insensitive duplicate rename returns helpful conflict');
   const racing = await Promise.all([change(a,'shared-race'),change(b,'shared-race')]);
   verify(racing.filter(response => response.status === 200).length === 1 && racing.filter(response => response.status === 409).length === 1, 'Concurrent custom renames reserve a username atomically');
-  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
+  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil','محمدخطاب123456','zäck123']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
   verify((await anonymous('/api/profile',{ name:'New Name',email:a.email,username:'forged' })).status === 401, 'Anonymous cannot rename a profile');
   verify((await b.direct.from('profiles').update({username:'forged'}).eq('id',a.id).select()).data?.length === 0, 'RLS blocks another account rename');
   const db = new Client({ connectionString: config.DB_URL }); await db.connect();
   try {
     const result = await db.query("select private.username_base($1) as base, private.username_base($2) as fallback",[' ZACK   Middle River ','!!!']);
-    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === 'user', 'Username helper handles whitespace, case and fallback');
+    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === null, 'Username helper handles whitespace, case and fallback');
     const legacy = students[2], chosen = students[3];
     await db.query("update public.profiles set username='user-' || replace(id::text,'-','') where id=$1",[legacy.id]);
     await db.query("update public.profiles set username='chosen-keep' where id=$1",[chosen.id]);
     await db.query("update public.profiles set username=private.generate_default_username(name) where username='user-' || replace(id::text,'-','')");
     const migrated=await db.query('select id,username from public.profiles where id=any($1::uuid[])',[[legacy.id,chosen.id]]);
     verify(migrated.rows.find(row=>row.id===chosen.id).username==='chosen-keep' && /^zackriver\d{6}$/.test(migrated.rows.find(row=>row.id===legacy.id).username), 'Migration backfills legacy defaults and preserves chosen usernames');
+    await db.query('begin');
+    try {
+      await db.query('alter table public.profiles drop constraint profiles_username_check');
+      await db.query("update public.profiles set username='محمدخطاب123456' where id=$1",[arabic.id]);
+      await db.query("update public.profiles set username=private.generate_default_username(name) where username !~ '^[a-z0-9][a-z0-9_-]{2,47}$'");
+      const backfill = await db.query('select username,name from public.profiles where id=$1',[arabic.id]);
+      verify(/^[a-z]+ing-[a-z]+\d{6}$/.test(backfill.rows[0].username) && backfill.rows[0].name==='محمد أحمد خطاب','Backfill converts non-English handles while preserving display names');
+      const retained = await db.query('select username from public.profiles where id=$1',[chosen.id]);
+      verify(retained.rows[0].username==='chosen-keep','English chosen handles survive the ASCII backfill');
+    } finally { await db.query('rollback'); }
+    const invalidDb = await db.query("update public.profiles set username='محمد123' where id=$1",[arabic.id]).catch(error=>error);
+    verify(invalidDb.code==='23514','Database rejects non-English handles independently of API validation');
+    const variants = await db.query("select private.generate_default_username(name) as username from (values ('محمد River'),('Zack خطاب'),('李 明'),('!!!')) names(name)");
+    verify(variants.rows.every(row=>/^[a-z]+ing-[a-z]+\d{6}$/.test(row.username)), 'Mixed-script, Chinese and punctuation-only names use English fallbacks');
     await db.query('set enable_seqscan=off');
     const plan = await db.query("explain select id from public.profiles where lower(name) ^@ lower($1)", ['محمد']);
     verify(plan.rows.some(row => row['QUERY PLAN'].includes('profiles_name_prefix_idx')), 'Actual parameterized prefix predicate can use the SP-GiST name index');

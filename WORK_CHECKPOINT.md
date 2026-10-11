@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — English usernames and username-based admin URLs
+
+- English first/last names retain merged handles with six secure random digits. Other scripts and mixed-script names use curated English gerund-adjective defaults, generated through pinned `unique-names-generator` migration tooling. Display names remain unchanged.
+- Shared API validation and the database constraint enforce ASCII handles. Migration converts existing non-English handles while preserving valid English choices; global uniqueness and concurrent rename protection remain in the database.
+- User detail routes and all links use `/admin/dashboard/users/[username]`; authorized lookup resolves immutable IDs for moderation/subscriptions. Legacy UUID bookmarks redirect; unknown usernames return 404. No public profile pages were introduced.
+- Production build, TypeScript, targeted ESLint, architecture (472 files / zero violations), local SQL lint/advisors and secret scan passed. Expanded backend/browser acceptance passed all **68 checks**, including mixed scripts, DB constraint rejection, migration preservation, canonical links and legacy redirects. Migration replay has zero schema drift. Hosted rollout is in progress.
+
 ## Latest checkpoint — streamlined administrator navigation
 
 - Removed the administrator sidebar callout (title, description and explore-courses action), removed the same description below the users heading, and removed Explore Courses from the administrator header.

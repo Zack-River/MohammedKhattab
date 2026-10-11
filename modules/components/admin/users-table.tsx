@@ -14,7 +14,7 @@ export default function UsersTable({ users, labels }: { users: AdminUser[]; labe
       <td role="cell" data-label={labels.username}><span className="lms-admin-truncate" dir="ltr" title={user.username}>{user.username}</span></td>
       <td role="cell" data-label={labels.email}><span className="lms-admin-truncate" dir="ltr" title={user.email}>{user.email}</span>{!user.confirmed && <small>{labels.unconfirmed}</small>}</td>
       <td role="cell" data-label={labels.status}><UserStatus user={user} labels={labels} /></td>
-      <td role="cell" className="lms-admin-row-actions"><Link href={routes.adminUser(user.id)} className="lms-admin-view">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
+      <td role="cell" className="lms-admin-row-actions"><Link href={routes.adminUser(user.username)} className="lms-admin-view">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
     </tr>)}</tbody>
   </table>{!users.length && <p className="lms-admin-empty">{labels.empty}</p>}</div>;
 }

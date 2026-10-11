@@ -5,7 +5,7 @@ import UserAvatar from "./user-avatar";
 export default function UserIdentity({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
   return <div className="lms-admin-identity">
     <UserAvatar name={user.name} url={user.avatarUrl} labels={labels} />
-    <div><Link href={routes.adminUser(user.id)} className="lms-admin-name">{user.name}</Link>
+    <div><Link href={routes.adminUser(user.username)} className="lms-admin-name">{user.name}</Link>
       <span className="lms-admin-role">{user.admin ? labels.admin : labels.student}</span>
     </div>
   </div>;

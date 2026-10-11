@@ -2,5 +2,5 @@
 export const usernamePolicy = { min: 3, max: 48 } as const;
 export function normalizeUsername(value: string) { return value.trim().toLowerCase(); }
 export function isValidUsername(value: unknown): value is string {
-  return typeof value === "string" && /^[\p{L}\p{N}][\p{L}\p{N}_-]{2,47}$/u.test(normalizeUsername(value));
+  return typeof value === "string" && /^[a-z0-9][a-z0-9_-]{2,47}$/.test(normalizeUsername(value));
 }

@@ -20,6 +20,15 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     verify(true,'Custom checkboxes combine with prefix search');
     await page.screenshot({path:`${directory}/filters-390.png`,fullPage:true});
     await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
+    const handle = JSON.parse((await student.api('/api/profile')).data).username;
+    const view = page.getByRole('link',{name:'عرض المستخدم',exact:true});
+    await expect(view).toHaveAttribute('href','/admin/dashboard/users/'+handle);
+    await view.click();await expect(page).toHaveURL(url+'/admin/dashboard/users/'+handle);
+    verify(true,'User link and browser destination use the username');
+    await page.goto(url+'/admin/dashboard/users/'+student.id);
+    await expect(page).toHaveURL(url+'/admin/dashboard/users/'+handle);
+    verify(true,'Browser follows legacy UUID redirect to canonical username');
+    await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
     await page.getByRole('button',{name:'إدارة الحساب',exact:true}).click();
     const dialog = page.getByRole('dialog',{name:'إدارة الحساب',exact:true}), combo=dialog.getByRole('combobox');
     for(const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1440,height:900}]) {
