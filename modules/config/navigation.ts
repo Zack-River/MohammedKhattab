@@ -68,6 +68,7 @@ export const endpoints = {
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
+  adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
   enrollments: "/api/enrollments",

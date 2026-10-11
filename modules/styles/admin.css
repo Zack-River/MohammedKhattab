@@ -125,3 +125,21 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
   .lms-page-heading[data-actions-first] > .btn-primary { width: auto; }
 }
 .lms-course-editor-tabs a[aria-current="page"] { color: var(--text-accent-readable); border-color: var(--primary-red); background: var(--primary-red-subtle); }
+
+.lms-course-editor-layout { grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: var(--space-lg); align-items: stretch; }
+.lms-course-editor-layout > .lms-profile-card { max-width: none; min-width: 0; display: grid; gap: var(--space-md); align-content: start; }
+.lms-course-editor-layout h2, .lms-curriculum h2 { font-size: var(--size-1_25rem); margin: 0; }
+.lms-course-details { grid-row: span 2; }
+.lms-curriculum { display: grid; gap: var(--space-lg); }
+.lms-curriculum .lms-profile-card { max-width: none; min-width: 0; }
+.lms-curriculum-heading, .lms-curriculum-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md); }
+.lms-curriculum-heading > div, .lms-curriculum-row > div { min-width: 0; overflow-wrap: anywhere; }
+.lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { margin: 0; }
+.lms-curriculum-groups { display: grid; gap: var(--space-lg); margin-top: var(--space-lg); }
+.lms-curriculum-group { border-top: var(--size-1px) solid var(--border-subtle); padding-top: var(--space-lg); }
+.lms-curriculum-lessons { list-style: none; padding: 0; margin: var(--space-md) 0 0; display: grid; gap: var(--space-sm); }
+.lms-curriculum-row { border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); padding: var(--space-md); }
+.lms-curriculum-row small, .lms-curriculum-note { display: block; color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-curriculum-dialog .lms-profile-form { gap: var(--space-md); }
+@media (max-width: 1024px) { .lms-course-editor-layout { grid-template-columns: minmax(0,1fr); } .lms-course-details { grid-row: auto; } }
+@media (max-width: 480px) { .lms-curriculum-heading, .lms-curriculum-row { align-items: stretch; } .lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { width: 100%; } }

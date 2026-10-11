@@ -13,6 +13,7 @@ export interface Lesson {
 }
 export interface CourseSection { id: string; title: string; lessonIds: string[]; }
 export interface CourseModule {
+  id?: string;
   sections?: CourseSection[];
   title: string;
   lessons: Lesson[];

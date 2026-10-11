@@ -1,0 +1,58 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated curriculum API acceptance checks. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Curriculum Manager'),student=await provision('Curriculum Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='curriculum-'+randomUUID(),base='/api/admin/courses/'+slug;
+ const parse=result=>JSON.parse(result.data),record=async()=>parse(await manager.api(base));
+ const overview=current=>({title:current.course.title,description:current.course.description,amount:current.course.offer.amount,category:current.course.category,duration:current.course.duration,thumbnailUrl:current.course.thumbnailUrl??'',introVideoUrl:current.course.introVideoUrl??'',published:current.published,revision:current.revision});
+ const mutate=async(input)=>manager.api(base+'/content',{revision:(await record()).revision,...input});
+ try {
+  verify((await manager.api('/api/admin/courses',{slug,title:'Curriculum test course',description:'Course authoring test content',amount:500,category:'editing',delivery:'recorded'})).status===201,'Create empty draft for curriculum');
+  const initial=await record();
+  verify((await anonymous(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===401,'Guest cannot author curriculum');
+  verify((await student.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===403,'Student cannot author curriculum');
+  verify(Boolean((await student.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:0,p_modules:[]})).error),'Student cannot bypass API using RPC');
+  verify((await manager.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0},{headers:{Origin:'https://attacker.example'}})).status===403,'Cross-origin authoring rejected');
+  for(const values of [{kind:'bad'},{revision:-1},{title:''},{revision:'0'},{operation:'edit',id:'bad id'}]) verify((await mutate({kind:'chapter',operation:'create',title:'Valid title',...values})).status===400,'Invalid curriculum command rejected');
+  let response=await mutate({kind:'chapter',operation:'create',title:'First chapter'});verify(response.status===200,'Create chapter');const chapter=parse(response).id;
+  response=await mutate({kind:'chapter',operation:'create',title:'Second chapter'});verify(response.status===200,'Create second chapter');const second=parse(response).id;
+  response=await mutate({kind:'section',operation:'create',title:'First section',chapterId:chapter});verify(response.status===200,'Create section in chosen chapter');const section=parse(response).id;
+  const lessonValues={kind:'lesson',operation:'create',title:'First lesson',description:'Lesson description',durationSeconds:125,videoUrl:'/assets/video/workshop-intro.mp4',preview:false,chapterId:chapter,sectionId:section};
+  for(const values of [{durationSeconds:0},{durationSeconds:1.5},{durationSeconds:86401},{videoUrl:'javascript:alert(1)'},{preview:'false'},{sectionId:'missing'}]) verify((await mutate({...lessonValues,...values})).status===400,'Invalid lesson metadata or assignment rejected');
+  response=await mutate(lessonValues);verify(response.status===200,'Create lesson assigned to course and section');const lesson=parse(response).id;
+  let current=await record(),stored=(await admin.from('lessons').select('*').eq('course_slug',slug).eq('id',lesson).single()).data;
+  verify(stored.video_url===lessonValues.videoUrl&&!current.course.modules[0].lessons[0].videoUrl,'Playback stored separately from public metadata');
+  verify(current.course.modules[0].sections[0].lessonIds.includes(lesson),'Section references canonical lesson');
+  verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:chapter})).status===409,'Non-empty section deletion blocked');
+  verify((await mutate({kind:'chapter',operation:'delete',id:chapter})).status===409,'Non-empty chapter deletion blocked');
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:slug});await admin.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:lesson,completed:true});
+  const resource=(await admin.from('resources').select('id').limit(1)).data[0].id;await admin.from('lesson_resources').insert({resource_id:resource,course_slug:slug,lesson_id:lesson});
+  verify((await mutate({kind:'section',operation:'edit',id:section,sourceChapterId:chapter,chapterId:second,title:'Moved section'})).status===200,'Move section and its lessons to another chapter');
+  current=await record();verify(current.course.modules[0].lessons.length===0&&current.course.modules[1].lessons[0].id===lesson,'Section move preserves lesson identity');
+  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  const progress=(await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data,resources=(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data;
+  verify(progress.length===1&&progress[0].completed&&resources.length===1,'Moving and editing retain progress and resource associations');
+  verify((await admin.from('lessons').select('preview').eq('course_slug',slug).eq('id',lesson).single()).data.preview,'Preview changes reach protected playback records');
+  verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:second})).status===200,'Delete empty section');
+  verify((await mutate({kind:'chapter',operation:'delete',id:second})).status===200,'Delete empty chapter');
+  verify((await mutate({kind:'chapter',operation:'edit',id:chapter,title:'Renamed chapter'})).status===200,'Rename chapter');
+  current=await record();verify((await manager.api(base,{...overview(current),published:true})).status===200,'Publish complete recorded curriculum');
+  response=await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter});verify(response.status===400&&parse(response).code==='PUBLISHED_CURRICULUM_INCOMPLETE','Deleting last published lesson blocked');
+  verify((await mutate({kind:'chapter',operation:'create',title:'Empty chapter'})).status===400,'Published course cannot acquire empty chapter');
+  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
+  current=await record();const concurrent=await Promise.all([manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent first',revision:current.revision}),manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent second',revision:current.revision})]);
+  verify(concurrent.map(result=>result.status).sort().join(',')==='200,409','Concurrent edits accept one and reject stale revision');
+  verify((await manager.api(base,overview(current))).status===409,'Stale overview cannot overwrite curriculum changes');
+  const before=await record();const rollback=await manager.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:before.revision,p_modules:[],p_lesson:{id:'invalid',video_url:null,preview:false}});
+  verify(Boolean(rollback.error)&&(await record()).revision===before.revision,'Failed lesson write rolls back curriculum and revision');
+  current=await record();verify((await manager.api(base,{...overview(current),published:false})).status===200,'Unpublish before destructive curriculum change');
+  verify((await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter})).status===200,'Delete draft lesson');
+  verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
+  verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
+  verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
+  await require('./curriculum-authoring-browser.cjs')({manager,verify,url,slug});
+  await admin.from('admin_users').delete().eq('user_id',manager.id);
+  verify((await mutate({kind:'chapter',operation:'create',title:'Denied chapter'})).status===403,'Revoked admin access denies new mutations');
+ } finally { await admin.from('courses').delete().eq('slug',slug); }
+};

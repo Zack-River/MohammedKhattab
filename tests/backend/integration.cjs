@@ -47,6 +47,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'curriculum-authoring') {
+    await require('./curriculum-authoring.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-course-management') {
     await require('./admin-course-management.cjs')({admin,provision,anonymous,verify,url});
     return;

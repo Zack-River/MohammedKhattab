@@ -30,7 +30,7 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
   await page.goto(url+'/admin/dashboard/courses/'+slugs[0]);
   await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();verify(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()===0,'Course overview does not contain lesson editors');
   await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await expect(page.getByRole('heading',{name:'قسم تجريبي',exact:true})).toBeVisible();
-  verify(await page.locator('form').count()>0,'Lesson editing appears on separate content page');
+  await page.locator('.lms-curriculum-row').first().getByRole('button',{name:'تعديل',exact:true}).click(); await expect(page.getByRole('dialog')).toBeVisible(); verify(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()===1,'Lesson editing appears in a focused dialog'); await page.keyboard.press('Escape');
   await page.goto(url+'/admin/dashboard/courses?q='+prefix);const row=page.locator('tbody tr').filter({hasText:`${prefix} دورة 6`});await row.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('button',{name:'تأكيد الحذف',exact:true}).click();await expect(row).toHaveCount(0);verify(true,'Confirmed deletion refreshes course table');
   await page.getByRole('link',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/new');
   await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();

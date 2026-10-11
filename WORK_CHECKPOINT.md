@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — responsive course editor and curriculum authoring
+
+- Reorganized the overview into details/media/publication cards, using the settings layout: aligned desktop columns and a readable single column at 1024px and below. Added a reusable accessible textarea field and typed editor props; retained duration and existing thumbnail upload/video inputs.
+- Added focused chapter/section/lesson creation, edit and deletion dialogs on the course content tab. Sections can move with their lessons; lessons select a chapter and optional section within the current course. A shared edit/delete control and shared dialog/save state replace repeated controls and the obsolete video-only editor.
+- Kept chapter, section and lesson mutation in separate helpers; validation, form decoding, legacy ID normalization, metadata construction and persistence each have focused functions. Existing lesson identities, progress, resources and order survive edits/moves. Non-empty containers require content removal or reassignment before deletion. Published courses remain valid; destructive lesson deletion is confirmed and cleans dependent progress/resource links.
+- Added guarded atomic curriculum persistence and revision conflict checks, including overview and legacy lesson-video writes. Stale edits return 409; database errors roll back all changes. Playback URLs remain outside public metadata. Local schema migration generated from reviewed changes: `20261011222701_curriculum_authoring.sql`; database advisors and schema lint passed.
+- Passed 80 curriculum API/browser checks, 96 existing course-management checks, 190 full backend regression checks, eight contract/reuse unit cases, lint, TypeScript, diff/secret checks and architecture (646 files, no violations). Tested editor layout and dialog centering/focus at 320/390/768/1024/1440/1920px. Screenshots: `docs/evidence/backend/course-form-*` and `course-curriculum-*`.
+- Release status: production build passed; hosted migration applied without seeds, and hosted advisors passed. A read-only hash comparison confirmed all eight hosted course records retain their content, prices, publication state and historical timestamps. Sixteen read-only checks passed against the built standalone app at localhost:3040. Application push/deployment verification pending. Documentation: `docs/ADMIN_COURSE_MANAGEMENT.md`.
+
 ## Latest checkpoint — live-course publishing duration
 
 - Diagnosed the reported 400: `testing-course` was created as live with an empty duration, and the editor did not expose that required metadata field. Added `مدة الدورة` with shared limits/help and a specific missing-duration error. Legacy save requests that omit duration preserve its stored value; drafts may remain incomplete.

@@ -77,14 +77,14 @@ export type Database = {
                   ]
                 },"courses": {
                   Row: {
-                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string,"updated_at": string | null
+                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"revision": number,"slug": string,"updated_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string,"updated_at"?: string | null
+                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"revision"?: number,"slug": string,"updated_at"?: string | null
                   }
                   Update: {
-                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string,"updated_at"?: string | null
+                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"revision"?: number,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
 
@@ -235,6 +235,9 @@ isOneToOne: false
                            },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
+                           },
+"save_admin_curriculum":
+{ Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json

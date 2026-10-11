@@ -541,14 +541,14 @@ export default function SignupPage() { return <AuthPage model={authPages.signup}
 
 ### File: `app/admin/dashboard/courses/[slug]/content/page.tsx`
 
-SHA-256: `6fc2e9b96c00dec8635debe32cf674df7fbc18c8beeac3a26f5194f01de63987`
+SHA-256: `8be201280c7c87e7f08d0244cedc461cd11f4d1b72246db3037173c0024e7c25`
 
 ```tsx
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
 import { adminCoursesCopy } from "@platform/data/admin-courses";
-import { adminCopy } from "@platform/data/admin";
+import { curriculumCopy } from "@platform/data/curriculum";
 import PageHeading from "@platform/components/ui/page-heading";
 import CourseEditorTabs from "@platform/components/admin/course-editor-tabs";
 import CourseContent from "@platform/components/admin/course-content";
@@ -556,13 +556,13 @@ export default async function CourseContentPage({ params }: { params: Promise<{ 
  await requireAdminPage();const {slug}=await params;
  const [records,lessons]=await Promise.all([readAdminCourses(slug),readAdminLessons(slug)]),record=records[0];
  if (!record) notFound();
- return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} /><CourseContent course={record.course} lessons={lessons} labels={adminCoursesCopy} editorLabels={adminCopy} /></>;
+ return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} /><CourseContent course={record.course} revision={record.revision} published={record.published} lessons={lessons} labels={curriculumCopy} /></>;
 }
 ```
 
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `c7a870d5daeb14a2acc9c5f6a3557fb495903c7fab002af3f78ea6e0b0b4eae0`
+SHA-256: `605f0ab91274713332fdef6911465ff3184849533a14b393ed4f37e666c930a5`
 
 ```tsx
 import Link from "next/link";
@@ -583,7 +583,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
   return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
-    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
+    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
 }
 ```
@@ -841,6 +841,17 @@ import { apiResponse } from "@platform/lib/api/respond";
 import { readAdminAnalytics } from "@platform/features/admin/analytics/repositories/read-analytics";
 export async function GET() {
   return apiResponse(async () => Response.json(await readAdminAnalytics()));
+}
+```
+
+### File: `app/api/admin/courses/[slug]/content/route.ts`
+
+SHA-256: `652791102a8946fd63ddd3a0bac2c8493b6a10c92832f973aadd991be467864f`
+
+```typescript
+import { handleAdminCurriculum } from "@platform/features/admin/handle-curriculum";
+export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  return handleAdminCurriculum((await params).slug,request);
 }
 ```
 
@@ -5122,32 +5133,20 @@ export default function TrendingCourses({ courses, period, labels }: { courses: 
 
 ### File: `modules/components/admin/course-content.tsx`
 
-SHA-256: `d4b55d4e751b4531121789180c2ab401df6b401f74d5cf008e5fd8e42f774137`
+SHA-256: `bf4ca365aafe3532e0444097de7e360d348800e8dc409527edd1401a70c67546`
 
 ```tsx
 import type { Course } from "@platform/types/lms";
-import type { AdminCoursesLabels } from "@platform/types/admin-courses";
-import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
-import LessonVideoEditor from "./lesson-video-editor";
-export default function CourseContent({ course, lessons, labels, editorLabels }: {
-  course: Course; lessons: { id: string; video_url: string }[]; labels: AdminCoursesLabels;
-  editorLabels: Record<string, string> & { save: string; saving: string; saved: string };
-}) {
-  const records = new Map(lessons.map(lesson => [lesson.id, lesson]));
-  return <>
-    {!course.modules.length && <p className="lms-admin-empty">{labels.noContent}</p>}
-    {course.modules.map((chapter, index) => <section className="lms-profile-card" key={`${index}-${chapter.title}`} data-reveal>
-      <h2>{chapter.title}</h2>
-      {courseContentGroups(chapter, labels.ungrouped).map((group, groupIndex) => <div key={`${groupIndex}-${group.id}`}>
-        {group.title && <h3>{group.title}</h3>}
-        {group.lessons.map(lesson => {
-          const record = records.get(lesson.id);
-          return record ? <LessonVideoEditor key={lesson.id} slug={course.slug} lesson={{ ...record, title: lesson.title }} labels={editorLabels} />
-            : <div key={lesson.id}><h4>{lesson.title}</h4><p>{labels.noVideo}</p></div>;
-        })}
-      </div>)}
-    </section>)}
-  </>;
+import type { CurriculumLabels } from "@platform/types/curriculum";
+import { curriculumCourse } from "@platform/features/admin/helpers/curriculum-course";
+import CurriculumAction from "./curriculum/curriculum-action";
+import ChapterCard from "./curriculum/chapter-card";
+export default function CourseContent({ course, revision, published, lessons, labels }: { course: Course; revision: number; published: boolean; lessons: { id: string; video_url: string }[]; labels: CurriculumLabels }) {
+  const context = { course: curriculumCourse(course), revision, labels, videos: Object.fromEntries(lessons.map(lesson => [lesson.id,lesson.video_url])) };
+  return <div className="lms-curriculum">
+    <div className="lms-curriculum-heading"><p className="lms-curriculum-note">{published ? labels.publishedHint : course.modules.length ? labels.draftHint : labels.emptyCourse}</p><div className="lms-admin-actions"><CurriculumAction context={context} target={{ kind: "chapter", operation: "create" }} label={labels.addChapter} /></div></div>
+    {context.course.modules.map(chapter => <ChapterCard key={chapter.id} context={context} chapter={chapter} />)}
+  </div>;
 }
 ```
 
@@ -5235,51 +5234,47 @@ export default function CourseEditorTabs({ slug, active, labels }: { slug: strin
 
 ### File: `modules/components/admin/course-editor.tsx`
 
-SHA-256: `eecc7863799d0ebb712c749c0f0f1138f5bf49bc7be74e35cdd70c687b0e37bc`
+SHA-256: `2220de9ff371feac8043d901001d8245c1a0a58178256becfb53aee547880ba3`
 
 ```tsx
 "use client";
-import type { ImageUploadLabels } from "@platform/types/image-upload";
+import type { CourseEditorProps } from "@platform/types/course-editor";
 import { endpoints } from "@platform/config/navigation";
 import { useAdminSave } from "@platform/hooks/use-admin-save";
 import { readCourseEdit } from "@platform/features/admin/helpers/read-course-edit";
-import type { Course } from "@platform/types/lms";
+import CourseMediaFields from "./course-media-fields";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
 import CourseFields from "./course-fields";
 import SaveFeedback from "./save-feedback";
-export default function CourseEditor({ course, published, labels, categories, uploadLabels }: { course: Course; published: boolean; labels: Record<string,string> & { save: string; saving: string; saved: string }; categories: readonly { id: string; label: string }[]; uploadLabels: ImageUploadLabels }) {
+export default function CourseEditor({ course, published, revision, labels, categories, uploadLabels }: CourseEditorProps) {
   const command = useAdminSave(endpoints.adminCourse(course.slug), labels.error);
-  return <form className="lms-profile-form lms-admin-form" method="post" onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}>
-    <CourseFields course={course} published={published} labels={labels} categories={categories} uploadLabels={uploadLabels} />
-    <SaveFeedback {...command} labels={labels} />
+  return <form className="lms-profile-form lms-admin-form lms-course-editor-layout" method="post" onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}>
+    <input type="hidden" name="revision" value={revision} />
+    <section className="lms-profile-card lms-course-details" data-reveal><h2>{labels.detailsHeading}</h2><CourseFields course={course} labels={labels} categories={categories} /></section>
+    <section className="lms-profile-card" data-reveal><h2>{labels.mediaHeading}</h2><CourseMediaFields course={course} labels={labels} uploadLabels={uploadLabels} /></section>
+    <section className="lms-profile-card" data-reveal><h2>{labels.publicationHeading}</h2><Checkbox label={labels.published} name="published" defaultChecked={published} /><SaveFeedback {...command} labels={labels} /></section>
   </form>;
 }
 ```
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `783bbe869fa1464c1ed50dd35161ac1f28365c9591a01121983071624b67a060`
+SHA-256: `d8bb37ab818d9ee529df17cbf2acf517a2ba6c22b71a99fd42cfa1fe084f59f3`
 
 ```tsx
 "use client";
-import CourseThumbnailField from "./course-thumbnail-field";
-import type { ImageUploadLabels } from "@platform/types/image-upload";
+import type { CourseEditorProps } from "@platform/types/course-editor";
 import Select from "@khatab/design/ui/select";
-import { Checkbox } from "@khatab/design/ui/choice-controls";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
-import { useId } from "react";
+import TextareaField from "@platform/components/ui/textarea-field";
 import FormField from "@platform/components/ui/form-field";
-import type { Course } from "@platform/types/lms";
-export default function CourseFields({ course, published, labels, categories, uploadLabels }: { course: Course; published: boolean; labels: Record<string,string>; categories: readonly { id: string; label: string }[]; uploadLabels: ImageUploadLabels }) {
-  const id = useId();
+export default function CourseFields({ course, labels, categories }: Pick<CourseEditorProps,"course" | "labels" | "categories">) {
   return <>
     <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
-    <label htmlFor={`${id}-description`}>{labels.descriptionLabel}</label><textarea id={`${id}-description`} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
+    <TextareaField label={labels.descriptionLabel} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
     <FormField label={labels.price} name="amount" type="number" min={0} max={policy.amountMax} step="0.01" defaultValue={course.offer.amount} required />
     <FormField label={labels.duration} name="duration" defaultValue={course.duration} maxLength={policy.durationMax} hint={course.delivery === "live" ? labels.durationHint : undefined} />
     <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
-    <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
-    <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
-    <Checkbox label={labels.published} name="published" defaultChecked={published} />
   </>;
 }
 ```
@@ -5307,6 +5302,24 @@ export default function CourseFilters({ query, total, labels, categories }: { qu
    <Select name="direction" label={labels.direction} defaultValue={query.direction} options={["desc","asc"].map(value => ({value,label:labels[value as "desc"]}))} /></div>
   <div className="lms-admin-filter-footer"><div className="lms-admin-actions"><button type="submit" className="btn-primary">{labels.apply}</button><Link href={routes.admin} className="lms-secondary-button">{labels.clear}</Link></div><p className="lms-admin-result-count">{labels.results}: <strong>{total}</strong></p></div>
  </Form>;
+}
+```
+
+### File: `modules/components/admin/course-media-fields.tsx`
+
+SHA-256: `6681cf658609c58136b00848649580b9027c04123031ef5949da56296190217b`
+
+```tsx
+"use client";
+import type { CourseEditorProps } from "@platform/types/course-editor";
+import { adminCoursePolicy as policy } from "@platform/config/admin";
+import FormField from "@platform/components/ui/form-field";
+import CourseThumbnailField from "./course-thumbnail-field";
+export default function CourseMediaFields({ course, labels, uploadLabels }: Pick<CourseEditorProps,"course" | "labels" | "uploadLabels">) {
+  return <>
+    <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
+    <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
+  </>;
 }
 ```
 
@@ -5364,23 +5377,200 @@ export default function CourseThumbnailField({ slug, initialUrl, label, maxLengt
 }
 ```
 
-### File: `modules/components/admin/lesson-video-editor.tsx`
+### File: `modules/components/admin/curriculum/chapter-card.tsx`
 
-SHA-256: `e8f110f1e00f9c7b8c480997b5a573e3db97293021bedbe8e3d6ded8cb67c047`
+SHA-256: `508d1d8116091282bf296b408f99553db894912d757dd963037709124956f98f`
+
+```tsx
+import type { CurriculumChapter, CurriculumContext } from "@platform/types/curriculum";
+import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
+import CurriculumAction from "./curriculum-action";
+import EntityActions from "./entity-actions";
+import SectionGroup from "./section-group";
+export default function ChapterCard({ context, chapter }: { context: CurriculumContext; chapter: CurriculumChapter }) {
+  const target = { kind: "chapter" as const, id: chapter.id };
+  return <section className="lms-profile-card" data-reveal>
+    <header className="lms-curriculum-heading"><div><h2>{chapter.title}</h2><small className="lms-curriculum-note">{context.labels.chapter}</small></div><div className="lms-admin-actions">
+      <CurriculumAction context={context} target={{ kind: "section", operation: "create", chapterId: chapter.id }} label={context.labels.addSection} />
+      <CurriculumAction context={context} target={{ kind: "lesson", operation: "create", chapterId: chapter.id }} label={context.labels.addLesson} />
+      <EntityActions context={context} target={target} />
+    </div></header>
+    <div className="lms-curriculum-groups">{courseContentGroups(chapter,context.labels.ungrouped).map(group => <SectionGroup key={group.sectionId ? `section-${group.sectionId}` : "unassigned"} context={context} chapterId={chapter.id} group={group} />)}</div>
+  </section>;
+}
+```
+
+### File: `modules/components/admin/curriculum/curriculum-action.tsx`
+
+SHA-256: `95a8fa0d68f3059b21caf4337ff98b60cf5495a52c877c5539c89a0c15c2738a`
 
 ```tsx
 "use client";
-import { adminCoursePolicy } from "@platform/config/admin";
-import { endpoints } from "@platform/config/navigation";
-import FormField from "@platform/components/ui/form-field";
+import { useState } from "react";
+import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
+import CurriculumDialog from "./curriculum-dialog";
+export default function CurriculumAction({ context, target, label }: { context: CurriculumContext; target: CurriculumTarget; label: string }) {
+  const [open, setOpen] = useState(false);
+  return <>
+    <button type="button" className={target.operation === "delete" ? "lms-admin-danger" : "lms-secondary-button"} onClick={() => setOpen(true)}>{label}</button>
+    {open && <CurriculumDialog context={context} target={target} onClose={() => setOpen(false)} />}
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/curriculum-dialog.tsx`
+
+SHA-256: `d95fbedc1acd9fe71b00924cec5f2f0c96d5cad9fff629213f4e1cee9a783d22`
+
+```tsx
+"use client";
+import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
 import { useAdminSave } from "@platform/hooks/use-admin-save";
-import SaveFeedback from "./save-feedback";
-export default function LessonVideoEditor({ slug, lesson, labels }: { slug: string; lesson: { id: string; title: string; video_url: string }; labels: Record<string,string> & { save: string; saving: string; saved: string } }) {
-  const command = useAdminSave(endpoints.adminLesson(slug,lesson.id), labels.error);
-  return <section className="lms-profile-card"><h3>{lesson.title}</h3><form className="lms-profile-form lms-admin-form" method="post" onSubmit={event => { event.preventDefault(); void command.save({ videoUrl: new FormData(event.currentTarget).get("videoUrl") }); }}>
-    <FormField label={labels.lessonVideo} name="videoUrl" defaultValue={lesson.video_url} required dir="ltr" maxLength={adminCoursePolicy.urlMax} hint={labels.mediaHint} />
-    <SaveFeedback {...command} labels={labels} />
-  </form></section>;
+import { endpoints } from "@platform/config/navigation";
+import { readCurriculumForm } from "@platform/features/admin/helpers/read-curriculum-form";
+import AdminDialog from "../admin-dialog";
+import SaveFeedback from "../save-feedback";
+import CurriculumFields from "./curriculum-fields";
+export default function CurriculumDialog({ context, target, onClose }: { context: CurriculumContext; target: CurriculumTarget; onClose: () => void }) {
+  const { course, labels, revision } = context;
+  const command = useAdminSave(endpoints.adminCurriculum(course.slug),labels.error);
+  const title = `${target.operation === "delete" ? labels.remove : labels[target.operation]} ${labels[target.kind]}`;
+  return <AdminDialog title={title} closeLabel={labels.close} pending={command.pending} onClose={onClose}>
+    <div className="lms-curriculum-dialog"><form className="lms-profile-form lms-admin-form" onSubmit={async event => {
+      event.preventDefault();
+      if (await command.save(readCurriculumForm(new FormData(event.currentTarget),target,revision))) onClose();
+    }}>
+      <p className="lms-curriculum-note">{labels.courseLabel}: {course.title}</p>
+      {target.operation === "delete" ? <p>{labels.deleteHint}</p> : <CurriculumFields context={context} target={target} />}
+      <fieldset disabled={command.pending}><SaveFeedback {...command} labels={{ ...labels, save: target.operation === "delete" ? labels.remove : labels.save }} /></fieldset>
+    </form></div>
+  </AdminDialog>;
+}
+```
+
+### File: `modules/components/admin/curriculum/curriculum-fields.tsx`
+
+SHA-256: `09e19e88f0b57a9bd6e1b4c01aa4e7bad76b29e2dad83fdea6b13177fe86b5f8`
+
+```tsx
+"use client";
+import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
+import FormField from "@platform/components/ui/form-field";
+import Select from "@khatab/design/ui/select";
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+import LessonFields from "./lesson-fields";
+export default function CurriculumFields({ context, target }: { context: CurriculumContext; target: CurriculumTarget }) {
+  const { course, labels } = context;
+  const chapter = course.modules.find(chapter => chapter.id === target.chapterId || chapter.id === target.id);
+  if (target.kind === "lesson") return <LessonFields context={context} target={target} />;
+  const record = target.kind === "chapter" ? chapter : chapter?.sections?.find(section => section.id === target.id);
+  return <>
+    <FormField label={labels.title} name="title" defaultValue={record?.title ?? ""} required minLength={policy.titleMin} maxLength={policy.titleMax} />
+    {target.kind === "section" && <Select label={labels.chapterLabel} name="chapterId" required defaultValue={target.chapterId} options={course.modules.map(chapter => ({ value: chapter.id, label: chapter.title }))} />}
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/entity-actions.tsx`
+
+SHA-256: `f30074011233ad8e2cef7422fc8b7284ba9681ffd7464c5790509cd1f13c16cf`
+
+```tsx
+import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
+import CurriculumAction from "./curriculum-action";
+export default function EntityActions({ context, target }: { context: CurriculumContext; target: Omit<CurriculumTarget,"operation"> }) {
+  return <>
+    <CurriculumAction context={context} target={{ ...target, operation: "edit" }} label={context.labels.edit} />
+    <CurriculumAction context={context} target={{ ...target, operation: "delete" }} label={context.labels.remove} />
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/lesson-assignment.tsx`
+
+SHA-256: `f1991ef13cc9606913682b542a46da41edab00399ae048b518149bedac28a7d1`
+
+```tsx
+"use client";
+import { useState } from "react";
+import Select from "@khatab/design/ui/select";
+import type { CurriculumCourse, CurriculumLabels } from "@platform/types/curriculum";
+export default function LessonAssignment({ course, chapterId, sectionId, labels }: { course: CurriculumCourse; chapterId: string; sectionId: string; labels: CurriculumLabels }) {
+  const [selected, setSelected] = useState(chapterId);
+  const sections = course.modules.find(chapter => chapter.id === selected)?.sections ?? [];
+  return <>
+    <Select label={labels.chapterLabel} name="chapterId" required value={selected} onValueChange={setSelected} options={course.modules.map(chapter => ({ value: chapter.id, label: chapter.title }))} />
+    <Select key={selected} label={labels.sectionLabel} name="sectionId" defaultValue={selected === chapterId ? sectionId : ""} options={[{ value: "", label: labels.ungrouped }, ...sections.map(section => ({ value: section.id, label: section.title }))]} />
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/lesson-fields.tsx`
+
+SHA-256: `9a1eedc4b5e639594a4f1d19714fc5fa288f2ec7b5489bf3647d28f87767e10e`
+
+```tsx
+"use client";
+import TextareaField from "@platform/components/ui/textarea-field";
+import type { CurriculumContext, CurriculumTarget } from "@platform/types/curriculum";
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+import { adminCoursePolicy } from "@platform/config/admin";
+import FormField from "@platform/components/ui/form-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import LessonAssignment from "./lesson-assignment";
+export default function LessonFields({ context, target }: { context: CurriculumContext; target: CurriculumTarget }) {
+  const { course, labels, videos } = context;
+  const lesson = course.modules.flatMap(chapter => chapter.lessons).find(lesson => lesson.id === target.id);
+  return <>
+    <FormField label={labels.title} name="title" defaultValue={lesson?.title ?? ""} required minLength={policy.titleMin} maxLength={policy.titleMax} />
+    <TextareaField label={labels.description} name="description" defaultValue={lesson?.description ?? ""} maxLength={policy.descriptionMax} rows={3} />
+    <LessonAssignment course={course} chapterId={target.chapterId!} sectionId={target.sectionId ?? ""} labels={labels} />
+    <FormField label={labels.duration} name="durationSeconds" type="number" dir="ltr" defaultValue={lesson?.durationSeconds ?? policy.defaultDurationSeconds} min={1} max={policy.maxDurationSeconds} step={1} required />
+    <FormField label={labels.video} name="videoUrl" dir="ltr" defaultValue={lesson ? videos[lesson.id] ?? "" : ""} maxLength={adminCoursePolicy.urlMax} hint={labels.mediaHint} required />
+    <Checkbox label={labels.preview} name="preview" defaultChecked={lesson?.preview ?? false} />
+  </>;
+}
+```
+
+### File: `modules/components/admin/curriculum/lesson-row.tsx`
+
+SHA-256: `902baac74052e0e72a18a3f31ee2240a15918d5d0d7432dc4745f531b1f13e7e`
+
+```tsx
+import type { Lesson } from "@platform/types/lms";
+import type { CurriculumContext } from "@platform/types/curriculum";
+import EntityActions from "./entity-actions";
+export default function LessonRow({ context, lesson, chapterId, sectionId }: { context: CurriculumContext; lesson: Lesson; chapterId: string; sectionId?: string }) {
+  const target = { kind: "lesson" as const, id: lesson.id, chapterId, sectionId };
+  return <li className="lms-curriculum-row">
+    <div><h4>{lesson.title}</h4><small>{lesson.duration}{lesson.preview && ` · ${context.labels.preview}`}</small></div>
+    <div className="lms-admin-actions">
+      <EntityActions context={context} target={target} />
+    </div>
+  </li>;
+}
+```
+
+### File: `modules/components/admin/curriculum/section-group.tsx`
+
+SHA-256: `5e4004f76b82b7917c20427531c0a11a67f7590f531d1e4337daf4c406748465`
+
+```tsx
+import type { Lesson } from "@platform/types/lms";
+import type { CurriculumContext } from "@platform/types/curriculum";
+import CurriculumAction from "./curriculum-action";
+import EntityActions from "./entity-actions";
+import LessonRow from "./lesson-row";
+export default function SectionGroup({ context, chapterId, group }: { context: CurriculumContext; chapterId: string; group: { id: string; sectionId?: string; title: string; lessons: Lesson[] } }) {
+  const sectionId = group.sectionId;
+  const target = { kind: "section" as const, id: sectionId, chapterId };
+  return <section className="lms-curriculum-group">
+    <div className="lms-curriculum-heading"><h3>{group.title || context.labels.ungrouped}</h3><div className="lms-admin-actions">
+      <CurriculumAction context={context} target={{ kind: "lesson", operation: "create", chapterId, sectionId }} label={context.labels.addLesson} />
+      {sectionId && <EntityActions context={context} target={target} />}
+    </div></div>
+    {group.lessons.length ? <ul className="lms-curriculum-lessons">{group.lessons.map(lesson => <LessonRow key={lesson.id} context={context} lesson={lesson} chapterId={chapterId} sectionId={sectionId} />)}</ul> : <p className="lms-curriculum-note">{context.labels.empty}</p>}
+  </section>;
 }
 ```
 
@@ -8704,6 +8894,25 @@ export default function Symbol({
 }
 ```
 
+### File: `modules/components/ui/textarea-field.tsx`
+
+SHA-256: `779b49b3ca987a27840f91278d7f6429b3e896115774bd7a06abc3ef2fd396de`
+
+```tsx
+"use client";
+import { useId, type ComponentPropsWithoutRef } from "react";
+export default function TextareaField({ label, hint, error, ...input }: Omit<ComponentPropsWithoutRef<"textarea">,"id"> & { label: string; hint?: string; error?: string }) {
+  const id = useId();
+  const descriptions = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(" ");
+  return <div className="lms-form-field">
+    <label htmlFor={id}>{label}</label>
+    <textarea {...input} id={id} aria-invalid={Boolean(error)} aria-describedby={descriptions || undefined} />
+    {hint && <small id={`${id}-hint`} className="lms-field-hint">{hint}</small>}
+    {error && <p id={`${id}-error`} className="lms-error" role="alert">{error}</p>}
+  </div>;
+}
+```
+
 ### File: `modules/config/account-menu.ts`
 
 SHA-256: `c98acd7f46718798dacb0cfe4b8c709fcf838d2907558c8f744bf2dec3f8b8e4`
@@ -8793,6 +9002,14 @@ export const courseStatuses = ["published", "draft"] as const;
 export const courseDeliveries = ["all", "recorded", "live"] as const;
 ```
 
+### File: `modules/config/curriculum.ts`
+
+SHA-256: `2199eb5c4771716895c297578c08fc29fb574d68977c632260e967ef9ad1e225`
+
+```typescript
+export const curriculumPolicy = { defaultDurationSeconds: 60, titleMin: 2, titleMax: 160, descriptionMax: 2000, maxDurationSeconds: 86400, maxChapters: 100, maxSections: 100, maxLessons: 2000 } as const;
+```
+
 ### File: `modules/config/dashboard-shell.ts`
 
 SHA-256: `20f982922031a45a8395b39953a361ddbdc4e1ad7180f648e423d25bfc2fbc78`
@@ -8829,7 +9046,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `5be48d373887765c7899cd8dc25ebb26ae2d2f181de22c869b84fd09fead2f6d`
+SHA-256: `05817097a51d3d4c82653e449ccd4c761974d001a62421b26de7276176ee14bf`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8902,6 +9119,7 @@ export const endpoints = {
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
+  adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
   enrollments: "/api/enrollments",
@@ -9069,17 +9287,18 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `b31192f5ce56b59273103bd237e25a0c23f075768326b7e9d562fa3b1e72036a`
+SHA-256: `f1b725b48ed0340e9cc858c6eb36dd2308771f095aaabaa4d69713aa91e9f073`
 
 ```typescript
 export const adminCopy = {
+  detailsHeading: "بيانات الدورة", mediaHeading: "الصورة والفيديو", publicationHeading: "النشر والحفظ",
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", category: "التصنيف",
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو مباشر أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
-  lessonVideo: "رابط فيديو الدرس", lessons: "فيديوهات الدروس", publicPage: "عرض الصفحة", unavailable: "الدورة غير موجودة",
+  publicPage: "عرض الصفحة", unavailable: "الدورة غير موجودة",
 };
 ```
 
@@ -9125,10 +9344,14 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `716fe4a8f6d8983b81d83b2a4e6b58f27173e7cd13ea62d5221745dc0d766018`
+SHA-256: `d7f39c9cabf6e01bbc4538d970d7cd40a1e8e7caf4ec1864f961f4ce5459f7b4`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  SECTION_ID_CONFLICT: "يوجد قسم بنفس المعرّف في الفصل المختار. انقل دروسه إلى قسم آخر بدلاً من ذلك.",
+  COURSE_CONFLICT: "تغيّر محتوى الدورة منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
+  CURRICULUM_NOT_EMPTY: "انقل الدروس أو احذف المحتوى قبل حذف الفصل أو القسم.",
+  PUBLISHED_CURRICULUM_INCOMPLETE: "هذا التعديل يترك محتوى منشورًا غير مكتمل. ألغِ نشر الدورة أولاً من بياناتها.",
   COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
   COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
   COURSE_DURATION_REQUIRED: "أدخل مدة الدورة المباشرة قبل النشر.",
@@ -9540,6 +9763,21 @@ export const courses: Course[] = [...records.map((course) => ({
     })),
   })),
 })), liveWorkshopCourse];
+```
+
+### File: `modules/data/curriculum.ts`
+
+SHA-256: `224dc47794e36d8fbb51f2783009708da56781a84fef69b4ef6de615af54a05b`
+
+```typescript
+export const curriculumCopy = {
+ chapter: "فصل", section: "قسم", lesson: "درس", create: "إضافة", edit: "تعديل", remove: "حذف", close: "إغلاق", cancel: "إلغاء",
+ addChapter: "إضافة فصل", addSection: "إضافة قسم", addLesson: "إضافة درس", title: "الاسم", description: "وصف الدرس", video: "رابط فيديو الدرس", duration: "مدة الدرس بالثواني", preview: "معاينة مجانية", chapterLabel: "الفصل", sectionLabel: "القسم", ungrouped: "بدون قسم", empty: "لا توجد دروس في هذا القسم بعد.", emptyCourse: "ابدأ بإضافة فصل، ثم أضف أقسامه ودروسه.",
+ save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر حفظ المحتوى. حاول مرة أخرى.",
+ draftHint: "أضف الدروس وحدّد الفصل والقسم المناسب لكل درس قبل نشر الدورة.",
+ deleteHint: "حذف الدرس يزيل تقدّمه وارتباطات موارده. حذف الفصل أو القسم متاح بعد نقل محتواه أو حذفه.",
+ publishedHint: "لإضافة فصول فارغة أو حذف آخر درس، ألغِ النشر أولاً من بيانات الدورة، ثم أعد النشر بعد اكتمال المحتوى.", courseLabel: "الدورة", mediaHint: "فيديو مباشر أو ملف Google Drive عام.",
+} as const;
 ```
 
 ### File: `modules/data/image-upload.ts`
@@ -10544,25 +10782,50 @@ export async function handleAdminCourse(slug: string, request?: Request) {
 }
 ```
 
-### File: `modules/features/admin/handle-lesson.ts`
+### File: `modules/features/admin/handle-curriculum.ts`
 
-SHA-256: `0f844b1af47d7e0a3b77b0e821d29435278ed398ec66b7644f0e446086a8f490`
+SHA-256: `2c9ee6654e5386491b9bbe5433d9b63a09eb5ceddb8bae6bf4cc4eaad93a6d62`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "./identity";
+import { validateCurriculumMutation } from "./helpers/validate-curriculum-mutation";
+import { saveCurriculum } from "./repositories/save-curriculum";
+export async function handleAdminCurriculum(slug: string, request: Request) {
+  return apiResponse(async () => {
+    await requireAdmin();
+    if (!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+    const input = validateCurriculumMutation(await readJson(request));
+    if (!input) throw new ApiError(400,"INVALID_INPUT");
+    return Response.json(await saveCurriculum(slug,input));
+  });
+}
+```
+
+### File: `modules/features/admin/handle-lesson.ts`
+
+SHA-256: `c37081fd992dc3829ea6ff08050469e00668750ed41288a4ce2b9e85829feace`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { requireAdmin } from "./identity";
+import { readAdminCourses } from "./repositories/courses";
+import { persistCurriculum } from "./repositories/persist-curriculum";
 import { validMediaUrl } from "./helpers/validate-media-url";
 export async function handleAdminLesson(slug: string, id: string, request: Request) {
   return apiResponse(async () => {
-    const { client } = await requireAdmin();
+    await requireAdmin();
     if (!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
     const body = await readJson(request);
     if (!validMediaUrl(body?.videoUrl) || !body.videoUrl) throw new ApiError(400,"INVALID_INPUT");
-    const { data, error } = await client.from("lessons").update({ video_url: body.videoUrl }).eq("course_slug",slug).eq("id",id).select("id").maybeSingle();
-    if (error) throw new ApiError(503,"INTERNAL_ERROR");
-    if (!data) throw new ApiError(404,"NOT_FOUND");
+    const record = (await readAdminCourses(slug))[0];
+    const lesson = record?.course.modules.flatMap(chapter => chapter.lessons).find(lesson => lesson.id === id);
+    if (!record || !lesson) throw new ApiError(404,"NOT_FOUND");
+    await persistCurriculum(slug,record.revision,record.course.modules,{ id, video_url: body.videoUrl, preview: lesson.preview ?? false });
     return Response.json({ saved: true });
   });
 }
@@ -10615,20 +10878,59 @@ export function adminUserRecord(user: User, profile: Profile | undefined, admin:
 }
 ```
 
+### File: `modules/features/admin/helpers/apply-curriculum-mutation.ts`
+
+SHA-256: `5412a8f4943d6deb0af0a9d02c86374d115810b1c31eee1ddaff82792cbabc8d`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import type { CurriculumMutation } from "@platform/types/curriculum";
+import { curriculumCourse } from "./curriculum-course";
+import { mutateChapter } from "./mutate-chapter";
+import { mutateSection } from "./mutate-section";
+import { mutateLesson } from "./mutate-lesson";
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+import { ApiError } from "@platform/lib/api/error";
+export function applyCurriculumMutation(current: Course, input: CurriculumMutation, id: string) {
+  const course = curriculumCourse(structuredClone(current));
+  const mutate = { chapter: mutateChapter, section: mutateSection, lesson: mutateLesson };
+  mutate[input.kind](course,input,id);
+  if (course.modules.length > policy.maxChapters || course.modules.some(chapter => (chapter.sections?.length ?? 0) > policy.maxSections) || course.modules.flatMap(chapter => chapter.lessons).length > policy.maxLessons) throw new ApiError(400,"INVALID_INPUT");
+  return course;
+}
+```
+
+### File: `modules/features/admin/helpers/assert-course-content.ts`
+
+SHA-256: `23f75c8c3e9755a766ae07a2e78d031a88edb2886d0ba2ae564925c07aa29956`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import { validateCourse } from "@platform/features/catalog/helpers/validate-course";
+import { validateLessons } from "@platform/features/catalog/helpers/validate-lessons";
+import { ApiError } from "@platform/lib/api/error";
+export function assertCourseContent(course: Course, published: boolean, code = "INCOMPLETE_COURSE") {
+  try {
+    validateCourse(course,new Set(),{ draft: !published });
+    validateLessons(course,course.modules.flatMap(chapter => chapter.lessons.flatMap(lesson => lesson.resourceIds)),{ draft: !published });
+  } catch { throw new ApiError(400,code); }
+}
+```
+
 ### File: `modules/features/admin/helpers/course-content-groups.ts`
 
-SHA-256: `54502029548e1ffc13471b34e3afd430127b255722c0e5ede399c9c0fa340ae8`
+SHA-256: `b74a987b66f9e681886d2c52f324f05546af09cb6c7837317773aa89d02234a5`
 
 ```typescript
 import type { CourseModule } from "@platform/types/lms";
 export function courseContentGroups(chapter: CourseModule, ungroupedLabel: string) {
   const grouped = new Set(chapter.sections?.flatMap(section => section.lessonIds));
   const groups = (chapter.sections ?? []).map(section => ({
-    id: section.id, title: section.title,
+    id: section.id, sectionId: section.id as string | undefined, title: section.title,
     lessons: chapter.lessons.filter(lesson => section.lessonIds.includes(lesson.id)),
   }));
   const ungrouped = chapter.lessons.filter(lesson => !grouped.has(lesson.id));
-  if (ungrouped.length) groups.push({ id: "ungrouped", title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
+  if (ungrouped.length) groups.push({ id: "ungrouped", sectionId: undefined, title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
   return groups;
 }
 ```
@@ -10665,6 +10967,147 @@ export function createCourseMetadata(input: CreateCourseInput, defaults: { curre
 }
 ```
 
+### File: `modules/features/admin/helpers/curriculum-course.ts`
+
+SHA-256: `8e33a9d15aa5f8b5c1a1e30da45e0a8919a70531e779b214d189a10ebbbf1ec9`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import type { CurriculumCourse } from "@platform/types/curriculum";
+export function curriculumCourse(course: Course): CurriculumCourse {
+  return { ...course, modules: course.modules.map((chapter,index) => ({ ...chapter, id: chapter.id ?? `chapter-${index + 1}` })) };
+}
+```
+
+### File: `modules/features/admin/helpers/curriculum-lookup.ts`
+
+SHA-256: `a848ea7713012712fb2eb6ec6995592d9239ffa2f78602a00786e97923d7fc3e`
+
+```typescript
+import type { CurriculumCourse } from "@platform/types/curriculum";
+import { ApiError } from "@platform/lib/api/error";
+export function curriculumChapter(course: CurriculumCourse, id?: string) {
+  const chapter = course.modules.find(chapter => chapter.id === id);
+  if (!chapter) throw new ApiError(404,"NOT_FOUND");
+  return chapter;
+}
+export function curriculumLesson(course: CurriculumCourse, id?: string) {
+  const chapter = course.modules.find(chapter => chapter.lessons.some(lesson => lesson.id === id));
+  const lesson = chapter?.lessons.find(lesson => lesson.id === id);
+  if (!chapter || !lesson) throw new ApiError(404,"NOT_FOUND");
+  return { chapter, lesson };
+}
+export function curriculumSection(course: CurriculumCourse, id?: string, chapterId?: string) {
+  const chapter = course.modules.find(chapter => (!chapterId || chapter.id === chapterId) && chapter.sections?.some(section => section.id === id));
+  const section = chapter?.sections?.find(section => section.id === id);
+  if (!chapter || !section) throw new ApiError(404,"NOT_FOUND");
+  return { chapter, section };
+}
+```
+
+### File: `modules/features/admin/helpers/edit-course-metadata.ts`
+
+SHA-256: `dfb0a942aee210e2a85c1003fae9a32af7dfcf25f0130d99f20951f3e02a0e94`
+
+```typescript
+import { categories } from "@platform/config/catalog";
+import type { Course } from "@platform/types/lms";
+import type { validateCourseEdit } from "./validate-course-edit";
+export function editCourseMetadata(current: Course, values: NonNullable<ReturnType<typeof validateCourseEdit>>): Course {
+  return {
+    ...current,
+    title: values.title,
+    description: values.description,
+    duration: values.duration ?? current.duration,
+    category: values.category,
+    categoryLabel: categories.find(category => category.id === values.category)!.label,
+    thumbnailUrl: values.thumbnailUrl,
+    introVideoUrl: values.introVideoUrl,
+    offer: { ...current.offer, amount: values.amount, amountLabel: undefined },
+  };
+}
+```
+
+### File: `modules/features/admin/helpers/mutate-chapter.ts`
+
+SHA-256: `935558f5715fd18dc7ff0f85f8a533b647e2e52f8885925cabd2539c4d690920`
+
+```typescript
+import type { CurriculumCourse, CurriculumMutation } from "@platform/types/curriculum";
+import { curriculumChapter } from "./curriculum-lookup";
+import { ApiError } from "@platform/lib/api/error";
+export function mutateChapter(course: CurriculumCourse, input: CurriculumMutation, id: string) {
+  if (input.operation === "create") { course.modules.push({ id, title: input.title!, lessons: [], sections: [] }); return; }
+  const chapter = curriculumChapter(course,input.id);
+  if (input.operation === "edit") { chapter.title = input.title!; return; }
+  if (chapter.lessons.length || chapter.sections?.length) throw new ApiError(409,"CURRICULUM_NOT_EMPTY");
+  course.modules = course.modules.filter(record => record.id !== chapter.id);
+}
+```
+
+### File: `modules/features/admin/helpers/mutate-lesson.ts`
+
+SHA-256: `06f888854c896e67c8376145843e9122515730a62a796fee4cf5eb15e1078922`
+
+```typescript
+import { formatPlayerTime } from "@khatab/design/helpers/media/format-time";
+import type { CurriculumCourse, CurriculumMutation } from "@platform/types/curriculum";
+import { curriculumChapter, curriculumLesson } from "./curriculum-lookup";
+import { ApiError } from "@platform/lib/api/error";
+export function mutateLesson(course: CurriculumCourse, input: CurriculumMutation, id: string) {
+  const destination = curriculumChapter(course,input.chapterId);
+  const section = input.sectionId ? destination.sections?.find(section => section.id === input.sectionId) : undefined;
+  if (input.sectionId && !section) throw new ApiError(400,"INVALID_INPUT");
+  const existing = input.operation === "create" ? undefined : curriculumLesson(course,input.id);
+  const position = existing?.chapter.id === destination.id ? destination.lessons.findIndex(lesson => lesson.id === input.id) : -1;
+  const lesson = existing?.lesson ?? { id, resourceIds: [], takeaway: [], videoUrl: "" };
+  for (const chapter of course.modules) {
+    chapter.lessons = chapter.lessons.filter(record => record.id !== lesson.id);
+    chapter.sections?.forEach(section => { section.lessonIds = section.lessonIds.filter(id => id !== lesson.id); });
+  }
+  if (input.operation === "delete") return;
+  const updated = {
+    ...lesson,
+    title: input.title!,
+    description: input.description!,
+    durationSeconds: input.durationSeconds!,
+    duration: formatPlayerTime(input.durationSeconds!),
+    preview: input.preview!,
+    videoUrl: "",
+  };
+  if (position >= 0) destination.lessons.splice(position,0,updated); else destination.lessons.push(updated);
+  section?.lessonIds.push(lesson.id);
+}
+```
+
+### File: `modules/features/admin/helpers/mutate-section.ts`
+
+SHA-256: `3d1fbcdd851a38c8c64c97e6987a2adf4a3bf10061ec5668dece7b641df011b6`
+
+```typescript
+import type { CurriculumCourse, CurriculumMutation } from "@platform/types/curriculum";
+import { curriculumChapter, curriculumSection } from "./curriculum-lookup";
+import { ApiError } from "@platform/lib/api/error";
+export function mutateSection(course: CurriculumCourse, input: CurriculumMutation, id: string) {
+  const destination = curriculumChapter(course,input.chapterId);
+  destination.sections ??= [];
+  if (input.operation === "create") { destination.sections.push({ id, title: input.title!, lessonIds: [] }); return; }
+  const { chapter, section } = curriculumSection(course,input.id,input.sourceChapterId ?? input.chapterId);
+  if (input.operation === "delete") {
+    if (section.lessonIds.length) throw new ApiError(409,"CURRICULUM_NOT_EMPTY");
+    chapter.sections = chapter.sections!.filter(record => record.id !== section.id); return;
+  }
+  section.title = input.title!;
+  if (chapter.id === destination.id) return;
+  if (destination.sections.some(record => record.id === section.id)) throw new ApiError(409,"SECTION_ID_CONFLICT");
+  const assigned = new Set(section.lessonIds);
+  destination.lessons.push(...chapter.lessons.filter(lesson => assigned.has(lesson.id)));
+  chapter.lessons = chapter.lessons.filter(lesson => !assigned.has(lesson.id));
+  chapter.sections = chapter.sections!.filter(record => record.id !== section.id);
+  destination.sections.push(section);
+}
+```
+
 ### File: `modules/features/admin/helpers/read-admin-page.ts`
 
 SHA-256: `61da744f4fd12d38d517b1f3f67e709340ff3acff72c78397f0a27b392d54922`
@@ -10680,11 +11123,11 @@ export function readAdminPage(value?: string | null) {
 
 ### File: `modules/features/admin/helpers/read-course-edit.ts`
 
-SHA-256: `f5f9293f1094d76a5c4701824755f148117035252eb31a6a7006023ec778b9d1`
+SHA-256: `ff9f3ee38a0184779204601018917a1e4842aed8d26c0c879c72b82114cd0741`
 
 ```typescript
 export function readCourseEdit(form: FormData) {
-  return { title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), duration: form.get("duration"),
+  return { revision: Number(form.get("revision")), title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), duration: form.get("duration"),
     thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
 }
 ```
@@ -10728,6 +11171,28 @@ export function readCourseResults(value: unknown): AdminCourseResults {
       throw new Error("Invalid course result");
   }
   return result;
+}
+```
+
+### File: `modules/features/admin/helpers/read-curriculum-form.ts`
+
+SHA-256: `02aca70947ba1a82458c5f4a84314bbf09d2b2fb0d2f268ce0bb734fe1b84949`
+
+```typescript
+import type { CurriculumTarget } from "@platform/types/curriculum";
+export function readCurriculumForm(data: FormData, target: CurriculumTarget, revision: number) {
+  return {
+    ...target,
+    sourceChapterId: target.chapterId,
+    revision,
+    title: String(data.get("title") ?? ""),
+    chapterId: String(data.get("chapterId") ?? target.chapterId ?? ""),
+    sectionId: String(data.get("sectionId") ?? target.sectionId ?? ""),
+    description: String(data.get("description") ?? ""),
+    videoUrl: String(data.get("videoUrl") ?? ""),
+    durationSeconds: Number(data.get("durationSeconds")),
+    preview: data.get("preview") === "on",
+  };
 }
 ```
 
@@ -10842,22 +11307,44 @@ export function validateCourseCreate(input: Record<string, unknown> | null): Cre
 
 ### File: `modules/features/admin/helpers/validate-course-edit.ts`
 
-SHA-256: `df5a3177b502bd33c2118a141df2c2ee275674a8fb5e474c98c50bc27fc7a12c`
+SHA-256: `7ad3f0e88cc2fdacd40790b12fe4b9576e842e7c45617e37e5d9335e9a4ab77f`
 
 ```typescript
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { categories } from "@platform/config/catalog";
 import { validMediaUrl } from "./validate-media-url";
 export function validateCourseEdit(input: Record<string, unknown> | null) {
-  if (!input || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax ||
+  if (!input || (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || Number(input.revision) < 0)) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax ||
     typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax ||
     typeof input.amount !== "number" || !Number.isFinite(input.amount) || input.amount < 0 || input.amount > policy.amountMax ||
     (input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) ||
     !categories.some(category => category.id !== "all" && category.id === input.category) ||
     !validMediaUrl(input.thumbnailUrl) || !validMediaUrl(input.introVideoUrl) || typeof input.published !== "boolean") return null;
-  return { title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as Exclude<typeof categories[number]["id"], "all">,
+  return { ...(input.revision !== undefined ? { revision: Number(input.revision) } : {}), title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as Exclude<typeof categories[number]["id"], "all">,
     ...(typeof input.duration === "string" ? { duration: input.duration.trim() } : {}),
     thumbnailUrl: input.thumbnailUrl, introVideoUrl: input.introVideoUrl, published: input.published };
+}
+```
+
+### File: `modules/features/admin/helpers/validate-curriculum-mutation.ts`
+
+SHA-256: `4088921c36a8713178a14ba12e1d8de9b2c011edf3610531604b2fde4fc40da2`
+
+```typescript
+import type { CurriculumMutation } from "@platform/types/curriculum";
+import { curriculumPolicy as policy } from "@platform/config/curriculum";
+import { validMediaUrl } from "./validate-media-url";
+const identifier = (value: unknown) => typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) && value.length <= 100;
+export function validateCurriculumMutation(body: Record<string,unknown> | null): CurriculumMutation | null {
+  if (!body || !["chapter","section","lesson"].includes(String(body.kind)) || !["create","edit","delete"].includes(String(body.operation)) || !Number.isSafeInteger(body.revision) || Number(body.revision) < 0) return null;
+  if (body.operation !== "create" && !identifier(body.id)) return null;
+  if (body.kind !== "chapter" && !identifier(body.chapterId)) return null;
+  if (body.sourceChapterId !== undefined && !identifier(body.sourceChapterId)) return null;
+  if (body.sectionId !== undefined && body.sectionId !== "" && !identifier(body.sectionId)) return null;
+  if (body.operation === "delete") return body as unknown as CurriculumMutation;
+  if (typeof body.title !== "string" || body.title.trim().length < policy.titleMin || body.title.trim().length > policy.titleMax) return null;
+  if (body.kind === "lesson" && (typeof body.description !== "string" || body.description.length > policy.descriptionMax || !Number.isSafeInteger(body.durationSeconds) || Number(body.durationSeconds) <= 0 || Number(body.durationSeconds) > policy.maxDurationSeconds || !body.videoUrl || !validMediaUrl(body.videoUrl) || typeof body.preview !== "boolean")) return null;
+  return { ...body, title: body.title.trim() } as unknown as CurriculumMutation;
 }
 ```
 
@@ -10935,7 +11422,7 @@ export async function readCourseList(query: AdminCourseQuery) {
 
 ### File: `modules/features/admin/repositories/courses.ts`
 
-SHA-256: `d17e60631b8bef5af5db5d639baedf329a7cab544a99155d87bd5c10b73664da`
+SHA-256: `5d1e129819d2576a99abdeefb68adf77ae44b440e0920d6de67aa680ac6eea31`
 
 ```typescript
 import { requireAdmin } from "../identity";
@@ -10943,11 +11430,11 @@ import { publicCourse } from "@platform/features/catalog/helpers/public-course";
 import { ApiError } from "@platform/lib/api/error";
 export async function readAdminCourses(slug?: string) {
   const { client } = await requireAdmin();
-  let query = client.from("courses").select("slug,metadata,amount,published").order("position");
+  let query = client.from("courses").select("slug,metadata,amount,published,revision").order("position");
   if (slug) query = query.eq("slug", slug);
   const { data, error } = await query;
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount), { draft: !row.published }), published: row.published }));
+  return (data ?? []).map(row => ({ course: publicCourse(row.metadata, row.slug, Number(row.amount), { draft: !row.published }), published: row.published, revision: row.revision }));
 }
 export async function readAdminLessons(slug: string) {
   const { client } = await requireAdmin();
@@ -11006,16 +11493,33 @@ export async function moderateUser(id: string, change: UserModeration) {
 }
 ```
 
-### File: `modules/features/admin/repositories/save-course.ts`
+### File: `modules/features/admin/repositories/persist-curriculum.ts`
 
-SHA-256: `52ec0dfa95d7a4bd52c73c99859d8d7d2dfbbda3369e17fa431aec00ea3496d8`
+SHA-256: `4613230fd2c6f581d72619a2e8d18097967c1a990e5ade5449f6c9bce5358063`
 
 ```typescript
-import { validateCourse } from "@platform/features/catalog/helpers/validate-course";
-import { validateLessons } from "@platform/features/catalog/helpers/validate-lessons";
+import { requireAdmin } from "../identity";
+import type { CourseModule } from "@platform/types/lms";
+import type { Json } from "@platform/types/database";
+import { ApiError } from "@platform/lib/api/error";
+export async function persistCurriculum(slug: string, revision: number, modules: CourseModule[], lesson: { id: string; video_url: string; preview: boolean } | null, deletedId?: string) {
+  const { client } = await requireAdmin();
+  const { error } = await client.rpc("save_admin_curriculum", { p_slug: slug, p_revision: revision, p_modules: JSON.parse(JSON.stringify(modules)) as Json, p_lesson: lesson, p_deleted_id: deletedId });
+  if (!error) return;
+  const code = ["COURSE_CONFLICT","NOT_FOUND","FORBIDDEN"].find(code => error.message.includes(code));
+  throw new ApiError(code === "COURSE_CONFLICT" ? 409 : code === "NOT_FOUND" ? 404 : code === "FORBIDDEN" ? 403 : 503,code ?? "INTERNAL_ERROR");
+}
+```
+
+### File: `modules/features/admin/repositories/save-course.ts`
+
+SHA-256: `ec57cd27f1ff16ffbf2166d966189916065d337ba13326048733d3e1aea18f38`
+
+```typescript
+import { assertCourseContent } from "../helpers/assert-course-content";
 import { requireAdmin } from "../identity";
 import { readAdminCourses } from "./courses";
-import { categories } from "@platform/config/catalog";
+import { editCourseMetadata } from "../helpers/edit-course-metadata";
 import { ApiError } from "@platform/lib/api/error";
 import type { Json } from "@platform/types/database";
 import type { validateCourseEdit } from "../helpers/validate-course-edit";
@@ -11023,15 +11527,42 @@ export async function saveCourse(slug: string, values: NonNullable<ReturnType<ty
   const { client } = await requireAdmin();
   const current = (await readAdminCourses(slug))[0];
   if (!current) throw new ApiError(404, "NOT_FOUND");
-  const { amount, published, ...metadata } = values;
-  const course = { ...current.course, ...metadata, duration: metadata.duration ?? current.course.duration, categoryLabel: categories.find(category => category.id === values.category)!.label,
-    offer: { ...current.course.offer, amount, amountLabel: undefined } };
+  if (values.revision !== undefined && values.revision !== current.revision) throw new ApiError(409,"COURSE_CONFLICT");
+  const { amount, published } = values;
+  const course = editCourseMetadata(current.course,values);
   if (published && course.delivery === "live" && !course.duration.trim()) throw new ApiError(400, "COURSE_DURATION_REQUIRED");
-  try { validateCourse(course, new Set(), { draft: !published }); validateLessons(course, course.modules.flatMap(module => module.lessons.flatMap(lesson => lesson.resourceIds)), { draft: !published }); } catch { throw new ApiError(400, "INCOMPLETE_COURSE"); }
-  const { error, data } = await client.from("courses").update({ metadata: JSON.parse(JSON.stringify(course)) as NonNullable<Json>, amount, published }).eq("slug",slug).select("slug").maybeSingle();
+  assertCourseContent(course,published);
+  const { error, data } = await client.from("courses").update({ metadata: JSON.parse(JSON.stringify(course)) as NonNullable<Json>, amount, published }).eq("slug",slug).eq("revision",current.revision).select("slug").maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  if (!data) throw new ApiError(404, "NOT_FOUND");
+  if (!data) throw new ApiError(409, "COURSE_CONFLICT");
   return { saved: true };
+}
+```
+
+### File: `modules/features/admin/repositories/save-curriculum.ts`
+
+SHA-256: `52a096e50c2b93441cf71b5552bdfd86681462e587cd0a88bdabe280e1c521cd`
+
+```typescript
+import { randomUUID } from "node:crypto";
+import { requireAdmin } from "../identity";
+import { readAdminCourses } from "./courses";
+import { applyCurriculumMutation } from "../helpers/apply-curriculum-mutation";
+import { assertCourseContent } from "../helpers/assert-course-content";
+import type { CurriculumMutation } from "@platform/types/curriculum";
+import { persistCurriculum } from "./persist-curriculum";
+import { ApiError } from "@platform/lib/api/error";
+export async function saveCurriculum(slug: string, input: CurriculumMutation) {
+  await requireAdmin();
+  const current = (await readAdminCourses(slug))[0];
+  if (!current) throw new ApiError(404,"NOT_FOUND");
+  if (current.revision !== input.revision) throw new ApiError(409,"COURSE_CONFLICT");
+  const id = input.operation === "create" ? `${input.kind}-${randomUUID()}` : input.id!;
+  const course = applyCurriculumMutation(current.course,input,id);
+  assertCourseContent(course,current.published,"PUBLISHED_CURRICULUM_INCOMPLETE");
+  const lesson = input.kind === "lesson" && input.operation !== "delete" ? { id, video_url: input.videoUrl!, preview: input.preview! } : null;
+  await persistCurriculum(slug,input.revision,course.modules,lesson,input.kind === "lesson" && input.operation === "delete" ? id : undefined);
+  return { saved: true, id };
 }
 ```
 
@@ -13803,7 +14334,7 @@ SHA-256: `e9b88c82469e171452b48182347dd8aa9c7d26d19abba52070eabed534f179aa`
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `640c005de2a8b6c02ecde874db3f1aae2e823109ff0aa6c24f04c0299ddd61b7`
+SHA-256: `94117b923abea4d13978a8fcde8de521914c4ff83657c6fa99ff3411f6415f00`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -13933,6 +14464,24 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
   .lms-page-heading[data-actions-first] > .btn-primary { width: auto; }
 }
 .lms-course-editor-tabs a[aria-current="page"] { color: var(--text-accent-readable); border-color: var(--primary-red); background: var(--primary-red-subtle); }
+
+.lms-course-editor-layout { grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: var(--space-lg); align-items: stretch; }
+.lms-course-editor-layout > .lms-profile-card { max-width: none; min-width: 0; display: grid; gap: var(--space-md); align-content: start; }
+.lms-course-editor-layout h2, .lms-curriculum h2 { font-size: var(--size-1_25rem); margin: 0; }
+.lms-course-details { grid-row: span 2; }
+.lms-curriculum { display: grid; gap: var(--space-lg); }
+.lms-curriculum .lms-profile-card { max-width: none; min-width: 0; }
+.lms-curriculum-heading, .lms-curriculum-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md); }
+.lms-curriculum-heading > div, .lms-curriculum-row > div { min-width: 0; overflow-wrap: anywhere; }
+.lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { margin: 0; }
+.lms-curriculum-groups { display: grid; gap: var(--space-lg); margin-top: var(--space-lg); }
+.lms-curriculum-group { border-top: var(--size-1px) solid var(--border-subtle); padding-top: var(--space-lg); }
+.lms-curriculum-lessons { list-style: none; padding: 0; margin: var(--space-md) 0 0; display: grid; gap: var(--space-sm); }
+.lms-curriculum-row { border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); padding: var(--space-md); }
+.lms-curriculum-row small, .lms-curriculum-note { display: block; color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-curriculum-dialog .lms-profile-form { gap: var(--space-md); }
+@media (max-width: 1024px) { .lms-course-editor-layout { grid-template-columns: minmax(0,1fr); } .lms-course-details { grid-row: auto; } }
+@media (max-width: 480px) { .lms-curriculum-heading, .lms-curriculum-row { align-items: stretch; } .lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { width: 100%; } }
 ```
 
 ### File: `modules/styles/analytics.css`
@@ -17824,6 +18373,42 @@ export interface ContentBindings {
 }
 ```
 
+### File: `modules/types/course-editor.ts`
+
+SHA-256: `24cd1e7737c2a3e26c0eaae29e1da97794823894493d8367c0eb032c3ca81986`
+
+```typescript
+import type { Course } from "./lms";
+import type { ImageUploadLabels } from "./image-upload";
+import type { adminCopy } from "@platform/data/admin";
+export type CourseEditorLabels = { [K in keyof typeof adminCopy]: string };
+export interface CourseEditorProps {
+  course: Course;
+  published: boolean;
+  revision: number;
+  labels: CourseEditorLabels;
+  categories: readonly { id: string; label: string }[];
+  uploadLabels: ImageUploadLabels;
+}
+```
+
+### File: `modules/types/curriculum.ts`
+
+SHA-256: `20e4a7f1afa2fdbba5f86ec86cf182f15feb16257adf31bd175d479fdc89fe3a`
+
+```typescript
+import type { Course, CourseModule } from "./lms";
+import type { curriculumCopy } from "@platform/data/curriculum";
+export type CurriculumLabels = { [K in keyof typeof curriculumCopy]: string };
+export type CurriculumKind = "chapter" | "section" | "lesson";
+export type CurriculumOperation = "create" | "edit" | "delete";
+export interface CurriculumTarget { kind: CurriculumKind; operation: CurriculumOperation; id?: string; chapterId?: string; sourceChapterId?: string; sectionId?: string; }
+export interface CurriculumMutation extends CurriculumTarget { revision: number; title?: string; description?: string; durationSeconds?: number; videoUrl?: string; preview?: boolean; }
+export type CurriculumChapter = CourseModule & { id: string };
+export type CurriculumCourse = Omit<Course,"modules"> & { modules: CurriculumChapter[] };
+export interface CurriculumContext { course: CurriculumCourse; revision: number; videos: Record<string,string>; labels: CurriculumLabels; }
+```
+
 ### File: `modules/types/dashboard-shell.ts`
 
 SHA-256: `0d1a1ad79f897a0387fa54b0586c11f4ff2ed974ed25448181895678414094f4`
@@ -17869,7 +18454,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `0a50e96bee7a1c4bf4d89a76b79be9c0ee14e68ed312f5b7b359fbeeafb49ea6`
+SHA-256: `6bab1ffe6bd1bd8816725d2166f66fc8a94ace487c4fcad6ae2cf9166e8e9395`
 
 ```typescript
 
@@ -17951,14 +18536,14 @@ export type Database = {
                   ]
                 },"courses": {
                   Row: {
-                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"slug": string,"updated_at": string | null
+                    "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"revision": number,"slug": string,"updated_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"slug": string,"updated_at"?: string | null
+                    "amount": number,"created_at"?: string | null,"metadata": NonNullable<Json>,"position"?: number,"published"?: boolean,"revision"?: number,"slug": string,"updated_at"?: string | null
                   }
                   Update: {
-                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string,"updated_at"?: string | null
+                    "amount"?: number,"created_at"?: string | null,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"revision"?: number,"slug"?: string,"updated_at"?: string | null
                   }
                   Relationships: [
 
@@ -18109,6 +18694,9 @@ isOneToOne: false
                            },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
+                           },
+"save_admin_curriculum":
+{ Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json
@@ -18287,7 +18875,7 @@ export type LandingHeroProps = {
 
 ### File: `modules/types/lms.ts`
 
-SHA-256: `bc141e9914d630ce3892d8e30f53013146ab5ed0d30c63fb108a3da2e314d185`
+SHA-256: `bd6808c52f090c07837ba16417d2f4bb01332da0296ebaa6de2f708ab92512be`
 
 ```typescript
 import type { Category, ArtworkKind } from "@platform/config/catalog";
@@ -18305,6 +18893,7 @@ export interface Lesson {
 }
 export interface CourseSection { id: string; title: string; lessonIds: string[]; }
 export interface CourseModule {
+  id?: string;
   sections?: CourseSection[];
   title: string;
   lessons: Lesson[];
@@ -29031,7 +29620,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
 
 ### File: `tests/backend/admin-course-management-browser.cjs`
 
-SHA-256: `636f58f2da626fd8543963d47f6dbb2418e53f517b289a15f7dea48251caef07`
+SHA-256: `d8b28548bf3b5e49b9c5bd730efb4a85a1ec94b6ce987018eee50e02932a98c0`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -29066,7 +29655,7 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
   await page.goto(url+'/admin/dashboard/courses/'+slugs[0]);
   await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();verify(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()===0,'Course overview does not contain lesson editors');
   await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await expect(page.getByRole('heading',{name:'قسم تجريبي',exact:true})).toBeVisible();
-  verify(await page.locator('form').count()>0,'Lesson editing appears on separate content page');
+  await page.locator('.lms-curriculum-row').first().getByRole('button',{name:'تعديل',exact:true}).click(); await expect(page.getByRole('dialog')).toBeVisible(); verify(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()===1,'Lesson editing appears in a focused dialog'); await page.keyboard.press('Escape');
   await page.goto(url+'/admin/dashboard/courses?q='+prefix);const row=page.locator('tbody tr').filter({hasText:`${prefix} دورة 6`});await row.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('button',{name:'تأكيد الحذف',exact:true}).click();await expect(row).toHaveCount(0);verify(true,'Confirmed deletion refreshes course table');
   await page.getByRole('link',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/new');
   await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();
@@ -29712,6 +30301,192 @@ test("Live courses require duration but may have no recorded lessons",()=>{
 });
 ```
 
+### File: `tests/backend/curriculum-authoring-browser.cjs`
+
+SHA-256: `104ba934a79af31317fadc99ed02f1a2a8843bec99b5688fe145245fce35b925`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Responsive curriculum authoring acceptance. */
+const {chromium,expect}=require('@playwright/test');
+module.exports=async({manager,verify,url,slug})=>{
+ const browser=await chromium.launch({headless:true});
+ try {
+  const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  const editor=url+'/admin/dashboard/courses/'+slug;
+  await page.goto(editor);
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Course form fits ${width}px`);
+   const cards=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return{x:r.x,y:r.y,bottom:r.bottom,width:r.width};}));
+   if(width>1024)verify(Math.abs(cards[0].y-cards[1].y)<2&&Math.abs(cards[0].bottom-cards[2].bottom)<2,`Detail card aligns with combined media and publication cards at ${width}px`);
+   else verify(cards[1].y>cards[0].y&&cards[2].y>cards[1].y,`Form cards stack at ${width}px`);
+   if(width===390||width===1440){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-form-${width}.png`,fullPage:true});}
+  }
+  await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();const box=await dialog.boundingBox();
+   verify(Math.abs(box.x+box.width/2-width/2)<2&&Math.abs(box.y+box.height/2-500)<2,`Curriculum dialog centered at ${width}px`);
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Curriculum fits ${width}px`);
+   await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(page.getByRole('button',{name:'إضافة فصل',exact:true})).toBeFocused();
+  }
+  await page.setViewportSize({width:390,height:900});await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();let dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser chapter');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const chapter=page.locator('.lms-curriculum > section').filter({has:page.getByRole('heading',{name:'Browser chapter',exact:true})});await expect(chapter).toBeVisible();verify(true,'Chapter creation persists and refreshes page');
+  await chapter.getByRole('button',{name:'إضافة قسم',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser section');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
+  let section=chapter.locator('.lms-curriculum-group').filter({has:page.getByRole('heading',{name:'Browser section',exact:true})});await expect(section).toBeVisible();verify(true,'Section creation persists');
+  await section.getByRole('button',{name:'إضافة درس',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser lesson');await dialog.getByLabel('رابط فيديو الدرس',{exact:true}).fill('/assets/video/workshop-intro.mp4');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(section.getByRole('heading',{name:'Browser lesson',exact:true})).toBeVisible();verify(true,'Lesson creation uses chosen section');
+  for(const width of [390,1440]){await page.setViewportSize({width,height:1000});for(const card of await page.locator('.lms-curriculum > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-curriculum-${width}.png`,fullPage:true});}await page.setViewportSize({width:390,height:900});
+  let row=section.locator('.lms-curriculum-row');await row.getByRole('button',{name:'تعديل',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser lesson edited');await dialog.getByRole('combobox',{name:'القسم',exact:true}).click();await page.getByRole('option',{name:'بدون قسم',exact:true}).click();await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const ungrouped=chapter.locator('.lms-curriculum-group').filter({has:page.getByRole('heading',{name:'بدون قسم',exact:true})});await expect(ungrouped.getByRole('heading',{name:'Browser lesson edited',exact:true})).toBeVisible();verify(true,'Lesson edit and section reassignment persist');
+  row=ungrouped.locator('.lms-curriculum-row');await row.getByRole('button',{name:'حذف',exact:true}).click();dialog=page.getByRole('dialog');await expect(dialog).toContainText('حذف الدرس يزيل');await dialog.getByRole('button',{name:'حذف',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(ungrouped).toHaveCount(0);verify(true,'Confirmed lesson deletion removes row');
+  await section.getByRole('button',{name:'تعديل',exact:true}).click();dialog=page.getByRole('dialog');await dialog.getByLabel('الاسم',{exact:true}).fill('Browser section edited');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toHaveCount(0);
+  section=chapter.locator('.lms-curriculum-group').filter({has:page.getByRole('heading',{name:'Browser section edited',exact:true})});await section.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'حذف',exact:true}).click();await expect(section).toHaveCount(0);verify(true,'Section rename and deletion persist');
+  await chapter.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'حذف',exact:true}).click();await expect(chapter).toHaveCount(0);verify(true,'Empty chapter deletion persists');
+  await page.reload();verify(await page.getByRole('heading',{name:'Browser chapter',exact:true}).count()===0,'Curriculum reload retains edits');verify(errors.length===0,'No browser runtime errors');
+ } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/curriculum-authoring.cjs`
+
+SHA-256: `6691a1286bb8b03a5291d732a3bec64b1323c233474bd874f48eac70725e909e`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated curriculum API acceptance checks. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Curriculum Manager'),student=await provision('Curriculum Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='curriculum-'+randomUUID(),base='/api/admin/courses/'+slug;
+ const parse=result=>JSON.parse(result.data),record=async()=>parse(await manager.api(base));
+ const overview=current=>({title:current.course.title,description:current.course.description,amount:current.course.offer.amount,category:current.course.category,duration:current.course.duration,thumbnailUrl:current.course.thumbnailUrl??'',introVideoUrl:current.course.introVideoUrl??'',published:current.published,revision:current.revision});
+ const mutate=async(input)=>manager.api(base+'/content',{revision:(await record()).revision,...input});
+ try {
+  verify((await manager.api('/api/admin/courses',{slug,title:'Curriculum test course',description:'Course authoring test content',amount:500,category:'editing',delivery:'recorded'})).status===201,'Create empty draft for curriculum');
+  const initial=await record();
+  verify((await anonymous(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===401,'Guest cannot author curriculum');
+  verify((await student.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0})).status===403,'Student cannot author curriculum');
+  verify(Boolean((await student.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:0,p_modules:[]})).error),'Student cannot bypass API using RPC');
+  verify((await manager.api(base+'/content',{kind:'chapter',operation:'create',title:'First chapter',revision:0},{headers:{Origin:'https://attacker.example'}})).status===403,'Cross-origin authoring rejected');
+  for(const values of [{kind:'bad'},{revision:-1},{title:''},{revision:'0'},{operation:'edit',id:'bad id'}]) verify((await mutate({kind:'chapter',operation:'create',title:'Valid title',...values})).status===400,'Invalid curriculum command rejected');
+  let response=await mutate({kind:'chapter',operation:'create',title:'First chapter'});verify(response.status===200,'Create chapter');const chapter=parse(response).id;
+  response=await mutate({kind:'chapter',operation:'create',title:'Second chapter'});verify(response.status===200,'Create second chapter');const second=parse(response).id;
+  response=await mutate({kind:'section',operation:'create',title:'First section',chapterId:chapter});verify(response.status===200,'Create section in chosen chapter');const section=parse(response).id;
+  const lessonValues={kind:'lesson',operation:'create',title:'First lesson',description:'Lesson description',durationSeconds:125,videoUrl:'/assets/video/workshop-intro.mp4',preview:false,chapterId:chapter,sectionId:section};
+  for(const values of [{durationSeconds:0},{durationSeconds:1.5},{durationSeconds:86401},{videoUrl:'javascript:alert(1)'},{preview:'false'},{sectionId:'missing'}]) verify((await mutate({...lessonValues,...values})).status===400,'Invalid lesson metadata or assignment rejected');
+  response=await mutate(lessonValues);verify(response.status===200,'Create lesson assigned to course and section');const lesson=parse(response).id;
+  let current=await record(),stored=(await admin.from('lessons').select('*').eq('course_slug',slug).eq('id',lesson).single()).data;
+  verify(stored.video_url===lessonValues.videoUrl&&!current.course.modules[0].lessons[0].videoUrl,'Playback stored separately from public metadata');
+  verify(current.course.modules[0].sections[0].lessonIds.includes(lesson),'Section references canonical lesson');
+  verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:chapter})).status===409,'Non-empty section deletion blocked');
+  verify((await mutate({kind:'chapter',operation:'delete',id:chapter})).status===409,'Non-empty chapter deletion blocked');
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:slug});await admin.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:lesson,completed:true});
+  const resource=(await admin.from('resources').select('id').limit(1)).data[0].id;await admin.from('lesson_resources').insert({resource_id:resource,course_slug:slug,lesson_id:lesson});
+  verify((await mutate({kind:'section',operation:'edit',id:section,sourceChapterId:chapter,chapterId:second,title:'Moved section'})).status===200,'Move section and its lessons to another chapter');
+  current=await record();verify(current.course.modules[0].lessons.length===0&&current.course.modules[1].lessons[0].id===lesson,'Section move preserves lesson identity');
+  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  const progress=(await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data,resources=(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data;
+  verify(progress.length===1&&progress[0].completed&&resources.length===1,'Moving and editing retain progress and resource associations');
+  verify((await admin.from('lessons').select('preview').eq('course_slug',slug).eq('id',lesson).single()).data.preview,'Preview changes reach protected playback records');
+  verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:second})).status===200,'Delete empty section');
+  verify((await mutate({kind:'chapter',operation:'delete',id:second})).status===200,'Delete empty chapter');
+  verify((await mutate({kind:'chapter',operation:'edit',id:chapter,title:'Renamed chapter'})).status===200,'Rename chapter');
+  current=await record();verify((await manager.api(base,{...overview(current),published:true})).status===200,'Publish complete recorded curriculum');
+  response=await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter});verify(response.status===400&&parse(response).code==='PUBLISHED_CURRICULUM_INCOMPLETE','Deleting last published lesson blocked');
+  verify((await mutate({kind:'chapter',operation:'create',title:'Empty chapter'})).status===400,'Published course cannot acquire empty chapter');
+  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
+  current=await record();const concurrent=await Promise.all([manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent first',revision:current.revision}),manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent second',revision:current.revision})]);
+  verify(concurrent.map(result=>result.status).sort().join(',')==='200,409','Concurrent edits accept one and reject stale revision');
+  verify((await manager.api(base,overview(current))).status===409,'Stale overview cannot overwrite curriculum changes');
+  const before=await record();const rollback=await manager.direct.rpc('save_admin_curriculum',{p_slug:slug,p_revision:before.revision,p_modules:[],p_lesson:{id:'invalid',video_url:null,preview:false}});
+  verify(Boolean(rollback.error)&&(await record()).revision===before.revision,'Failed lesson write rolls back curriculum and revision');
+  current=await record();verify((await manager.api(base,{...overview(current),published:false})).status===200,'Unpublish before destructive curriculum change');
+  verify((await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter})).status===200,'Delete draft lesson');
+  verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
+  verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
+  verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
+  await require('./curriculum-authoring-browser.cjs')({manager,verify,url,slug});
+  await admin.from('admin_users').delete().eq('user_id',manager.id);
+  verify((await mutate({kind:'chapter',operation:'create',title:'Denied chapter'})).status===403,'Revoked admin access denies new mutations');
+ } finally { await admin.from('courses').delete().eq('slug',slug); }
+};
+```
+
+### File: `tests/backend/curriculum-helpers.test.ts`
+
+SHA-256: `6a8fff8339f680267b19f619c0edeaa5aafecec5b3854d48ac6d1df8a1bd05a5`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { applyCurriculumMutation } from "../../modules/features/admin/helpers/apply-curriculum-mutation";
+import { curriculumCourse } from "../../modules/features/admin/helpers/curriculum-course";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+import { courseContentGroups } from "../../modules/features/admin/helpers/course-content-groups";
+import type { Course } from "../../modules/types/lms";
+function fixture(): Course {
+  const course = createCourseMetadata({slug:"reusable-course",title:"Reusable course",description:"Description",amount:0,category:"editing",delivery:"recorded"},{currency:"EGP",action:"Enroll",liveLabel:"Live"});
+  const lesson = (id: string) => ({id,title:id,description:"",duration:"1:00",durationSeconds:60,videoUrl:"",resourceIds:["resource"],takeaway:["Outcome"]});
+  course.modules = [{title:"First",lessons:[lesson("one"),lesson("two")],sections:[{id:"intro",title:"Intro",lessonIds:["one"]}]},{title:"Second",lessons:[],sections:[{id:"intro",title:"Other intro",lessonIds:[]}]}];
+  return course;
+}
+test("Legacy chapter identifiers are stable and normalization does not modify its input", () => {
+  const course = fixture(), snapshot = structuredClone(course);
+  assert.deepEqual(curriculumCourse(course).modules.map(chapter=>chapter.id),["chapter-1","chapter-2"]);
+  assert.deepEqual(curriculumCourse(course),curriculumCourse(course));assert.deepEqual(course,snapshot);
+});
+test("Repeated lesson edits preserve order, resources and learning outcomes without mutating inputs", () => {
+  const course = fixture(), snapshot = structuredClone(course);
+  const edit = {kind:"lesson" as const,operation:"edit" as const,revision:0,id:"one",chapterId:"chapter-1",sectionId:"intro",title:"Edited",description:"Updated",durationSeconds:3601,videoUrl:"/assets/video/workshop-intro.mp4",preview:true};
+  for(const input of [course,fixture()]) {
+    const updated = applyCurriculumMutation(input,edit,"one"),lesson=updated.modules[0].lessons[0];
+    assert.deepEqual(updated.modules[0].lessons.map(lesson=>lesson.id),["one","two"]);
+    assert.deepEqual(lesson.resourceIds,["resource"]);assert.deepEqual(lesson.takeaway,["Outcome"]);
+    assert.equal(lesson.duration,"1:00:01");assert.equal(lesson.videoUrl,"");assert.equal(lesson.preview,true);
+    assert.deepEqual(updated.modules[0].sections![0].lessonIds,["one"]);
+  }
+  assert.deepEqual(course,snapshot);
+});
+test("Legacy section ids repeated across chapters resolve within the selected source chapter", () => {
+  const updated = applyCurriculumMutation(fixture(),{kind:"section",operation:"edit",revision:0,id:"intro",sourceChapterId:"chapter-2",chapterId:"chapter-2",title:"Renamed second"},"intro");
+  assert.equal(updated.modules[0].sections![0].title,"Intro");assert.equal(updated.modules[1].sections![0].title,"Renamed second");
+  assert.throws(()=>applyCurriculumMutation(fixture(),{kind:"section",operation:"edit",revision:0,id:"intro",sourceChapterId:"chapter-1",chapterId:"chapter-2",title:"Move"},"intro"),/SECTION_ID_CONFLICT/);
+});
+test("A real section named ungrouped remains distinguishable from unassigned lessons", () => {
+  const chapter=fixture().modules[0];chapter.sections=[{id:"ungrouped",title:"Real section",lessonIds:["one"]}];
+  const groups=courseContentGroups(chapter,"Without section");assert.equal(groups[0].sectionId,"ungrouped");assert.equal(groups[1].sectionId,undefined);
+});
+```
+
+### File: `tests/backend/curriculum-live.cjs`
+
+SHA-256: `4766895a1eede3c92866799bbbab2c160636ec86bb3bb9eaa59b74c3dfe2d361`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only production course-editor verification. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');process.loadEnvFile('.env.local');
+(async()=>{
+ const origin=process.env.TARGET_URL||'https://ta3allam.vercel.app',slug=process.env.TARGET_COURSE_SLUG||'testing-course',browser=await chromium.launch(),checks=[],errors=[];
+ try{
+  const page=await browser.newPage();page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/api/admin/courses/**',route=>route.request().method()==='POST'?route.abort():route.continue());
+  await page.goto(origin+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard',{timeout:60000});
+  const endpoint=origin+'/api/admin/courses/'+slug;let response=await page.request.get(endpoint);expect(response.status()).toBe(200);const before=await response.json();expect(Number.isSafeInteger(before.revision)).toBe(true);checks.push('Revision present on real course record');
+  await page.goto(origin+'/admin/dashboard/courses/'+slug);await expect(page.locator('.lms-course-editor-layout > section')).toHaveCount(3);checks.push('Three focused course form cards');
+  await expect(page.getByLabel('مدة الدورة',{exact:true})).toBeVisible();checks.push('Required duration remains editable');
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);checks.push(`Editor fits ${width}px`);
+   if(width>1024){const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(2);expect(Math.abs(boxes[0].bottom-boxes[2].bottom)).toBeLessThan(2);checks.push(`Desktop card alignment ${width}px`);}
+   if(width===390||width===1440){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-form-live-${width}.png`,fullPage:true});}
+  }
+  await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();let dialog=page.getByRole('dialog');await expect(dialog.getByLabel('الاسم',{exact:true})).toBeVisible();checks.push('Chapter creation dialog available');await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
+  await page.setViewportSize({width:390,height:900});await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();dialog=page.getByRole('dialog');const box=await dialog.boundingBox();expect(Math.abs(box.x+box.width/2-195)).toBeLessThan(2);expect(Math.abs(box.y+box.height/2-450)).toBeLessThan(2);checks.push('Mobile dialog centered');await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'إضافة فصل',exact:true})).toBeFocused();checks.push('Dialog restores keyboard focus');
+  response=await page.request.get(endpoint);expect(await response.json()).toEqual(before);checks.push('Course metadata and revision unchanged by verification');expect(errors).toEqual([]);checks.push('Zero browser runtime errors');
+  fs.writeFileSync('docs/evidence/backend/curriculum-live.json',JSON.stringify({origin,slug,checkedAt:new Date().toISOString(),checks,errors,readOnly:true},null,2));console.log(`${checks.length} read-only hosted course-editor checks passed.`);
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
+```
+
 ### File: `tests/backend/dashboard-access.cjs`
 
 SHA-256: `94231e33b94a2e21a0a0d7c1e45f77e600b57caf216f32b0800ac9a0116a5bfe`
@@ -30034,7 +30809,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `ba58cd49c12699f0f24550a542f995f179da5c383f196893ea006c5525ce2db7`
+SHA-256: `bdd094ec5d4af6b29f79dd2c8fbfcd92c7227ebd0e9a686c5b75155b38939397`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -30086,6 +30861,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'curriculum-authoring') {
+    await require('./curriculum-authoring.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-course-management') {
     await require('./admin-course-management.cjs')({admin,provision,anonymous,verify,url});
     return;

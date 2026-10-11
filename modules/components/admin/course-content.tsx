@@ -1,24 +1,12 @@
 import type { Course } from "@platform/types/lms";
-import type { AdminCoursesLabels } from "@platform/types/admin-courses";
-import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
-import LessonVideoEditor from "./lesson-video-editor";
-export default function CourseContent({ course, lessons, labels, editorLabels }: {
-  course: Course; lessons: { id: string; video_url: string }[]; labels: AdminCoursesLabels;
-  editorLabels: Record<string, string> & { save: string; saving: string; saved: string };
-}) {
-  const records = new Map(lessons.map(lesson => [lesson.id, lesson]));
-  return <>
-    {!course.modules.length && <p className="lms-admin-empty">{labels.noContent}</p>}
-    {course.modules.map((chapter, index) => <section className="lms-profile-card" key={`${index}-${chapter.title}`} data-reveal>
-      <h2>{chapter.title}</h2>
-      {courseContentGroups(chapter, labels.ungrouped).map((group, groupIndex) => <div key={`${groupIndex}-${group.id}`}>
-        {group.title && <h3>{group.title}</h3>}
-        {group.lessons.map(lesson => {
-          const record = records.get(lesson.id);
-          return record ? <LessonVideoEditor key={lesson.id} slug={course.slug} lesson={{ ...record, title: lesson.title }} labels={editorLabels} />
-            : <div key={lesson.id}><h4>{lesson.title}</h4><p>{labels.noVideo}</p></div>;
-        })}
-      </div>)}
-    </section>)}
-  </>;
+import type { CurriculumLabels } from "@platform/types/curriculum";
+import { curriculumCourse } from "@platform/features/admin/helpers/curriculum-course";
+import CurriculumAction from "./curriculum/curriculum-action";
+import ChapterCard from "./curriculum/chapter-card";
+export default function CourseContent({ course, revision, published, lessons, labels }: { course: Course; revision: number; published: boolean; lessons: { id: string; video_url: string }[]; labels: CurriculumLabels }) {
+  const context = { course: curriculumCourse(course), revision, labels, videos: Object.fromEntries(lessons.map(lesson => [lesson.id,lesson.video_url])) };
+  return <div className="lms-curriculum">
+    <div className="lms-curriculum-heading"><p className="lms-curriculum-note">{published ? labels.publishedHint : course.modules.length ? labels.draftHint : labels.emptyCourse}</p><div className="lms-admin-actions"><CurriculumAction context={context} target={{ kind: "chapter", operation: "create" }} label={labels.addChapter} /></div></div>
+    {context.course.modules.map(chapter => <ChapterCard key={chapter.id} context={context} chapter={chapter} />)}
+  </div>;
 }

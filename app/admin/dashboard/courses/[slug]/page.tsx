@@ -16,6 +16,6 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
   return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
-    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
+    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
 }
