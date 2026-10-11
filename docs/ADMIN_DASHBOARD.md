@@ -21,7 +21,7 @@ Controls have a minimum 44px height. Dialogs fit the viewport, scroll internally
 
 ## Search and combined filters
 
-Search matches name, username or email as a case-insensitive literal substring. Status choices are Suspended and Banned; selecting both matches either status. Admin-only and Newcomers (last seven days) intersect with those choices and the search. Expired suspensions do not match Suspended. Permanent bans do not match Suspended. An empty status selection includes every status.
+The default search matches name, username or email as a case-insensitive literal substring. The “الاسم يبدأ بـ” radio option instead searches the beginning of the full name, using `lower(name) ^@ lower(p_search)` and the `profiles_name_prefix_idx` SP-GiST expression index. It supports Arabic and Latin case folding; punctuation is literal, not wildcard SQL. Search mode combines with every existing filter and persists through pagination. Status choices are Suspended and Banned; selecting both matches either status. Admin-only and Newcomers (last seven days) intersect with those choices and the search. Expired suspensions do not match Suspended. Permanent bans do not match Suspended. An empty status selection includes every status.
 
 `userAdministration` centralizes page size (five), search length (100) and newcomer days (seven). `readUserQuery` validates page, search and allowed filter values for the page and API. `userQueryUrl` preserves search/filter choices in pagination links. Submitting the GET form resets to page one; Clear removes all choices. The URL restores values after refresh or browser Back. A total-result count is calculated before pagination.
 
@@ -31,7 +31,7 @@ Isolated coverage: `BACKEND_SUITE=admin-user-search npm run backend:test` create
 
 ## Accounts and moderation
 
-Name, username and optional HTTPS avatar are read from profiles; email, confirmation and restrictions are read from Supabase Auth. Existing accounts receive unique `user-<UUID>` usernames. Missing images display an initial instead of an invented profile photo.
+Name, username and optional HTTPS avatar are read from profiles; email, confirmation and restrictions are read from Supabase Auth. Default usernames merge the first and last words of the stored name, lowercase and remove punctuation, then append six cryptographically random digits. Arabic names are supported. The private database helpers `username_base` and `generate_default_username` own generation; the trigger serializes same-profile upserts and reserves every candidate using transaction advisory locks plus the unique constraint. Exact legacy `user-<UUID>` defaults are backfilled; chosen handles are preserved. Students can edit their own handle at `/dashboard/profile`; Unicode validation is shared in `modules/helpers/validation/username.ts`, the server normalizes input, and conflicting handles return HTTP 409. Owner-only RLS remains in force. Missing images display an initial instead of an invented profile photo.
 
 Suspensions: 24 hours, 7 days, 30 days and 365 days. Administrators see the expiry in UTC and a remaining days/hours/minutes counter, refreshed each minute. Restore clears a suspension or ban immediately. Expiry automatically restores access. Supabase's duration API represents the permanent-ban option with 100 years; it is displayed as a ban rather than a countdown.
 
@@ -52,3 +52,7 @@ Run `npm run backend:test` against the dedicated local Supabase stack. It uses t
 Coverage includes anonymous/student denial, direct RPC escalation, field minimization, uncached responses, malformed IDs/pagination/durations, cross-origin deletion, administrator protection, real subscriptions, all suspension durations, already-issued API/JWT restrictions, early restore, automatic expiry, native login rejection, permanent-ban display, deletion cascades, durable promotion, browser confirmation/restore and mobile table bounds. Full-page screenshot widths must also match the mobile viewport; checking only the HTML element's scroll width misses clipped absolute-positioned overflow.
 
 Evidence and release status: `docs/evidence/admin-dashboard/VERIFICATION.md` and `WORK_CHECKPOINT.md`.
+
+## Shared control acceptance
+
+Filters use the design-system Checkbox and Radio; duration and category use Select; publishing uses Checkbox. These are the same reusable implementations, with native form semantics and modal-safe top-layer dropdowns. No new dependency is added. `BACKEND_SUITE=username-controls npm run backend:test` checks concurrent generation/renames, Arabic/single names, legacy backfill preservation, owned-profile editing, name-prefix indexing/filtering and responsive modal controls. `tests/platform/form-controls.spec.ts` checks independent controlled/uncontrolled instances, disabled options, keyboard selection/typeahead, required validity, native submitted values, reset, light dismissal, reduced motion and 320px bounds. Fixture screens are excluded from the production app.

@@ -1,0 +1,50 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Real isolated database acceptance. */
+const { Client } = require('pg');
+module.exports = async function usernameControls({ admin, provision, anonymous, verify, url, config }) {
+  const manager = await provision('Control Manager');
+  await admin.from('admin_users').insert({ user_id: manager.id });
+  const students = await Promise.all(Array.from({ length: 12 }, () => provision('Zack Middle River')));
+  const profiles = (await admin.from('profiles').select('id,username').in('id',students.map(student => student.id))).data;
+  verify(profiles.length === 12 && profiles.every(profile => /^zackriver\d{6}$/.test(profile.username)), 'Concurrent same-name signups merge first and last names with six random digits');
+  verify(new Set(profiles.map(profile => profile.username)).size === 12, 'All concurrent generated usernames are unique');
+  const arabic = await provision('محمد أحمد خطاب'), single = await provision('Cher');
+  verify(/^محمدخطاب\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Arabic first and last names generate a readable username');
+  verify(/^cher\d{6}$/.test(JSON.parse((await single.api('/api/profile')).data).username), 'Single-name accounts generate a valid username');
+  const [a,b] = students;
+  const change = (student, username) => student.api('/api/profile', { name: 'Zack Middle River', email: student.email, username });
+  verify((await change(a,' My-Custom_Name ')).status === 200, 'Student can choose a normalized username');
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Chosen username persists in profile');
+  await a.api('/api/profile', { name: 'New Name', email:a.email });
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Name-only profile upsert preserves chosen username');
+  await Promise.all([a.api('/api/profile',{name:'Concurrent Name',email:a.email}),change(a,'kept-during-upsert')]);
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'kept-during-upsert', 'Concurrent name-only upsert cannot overwrite a chosen username');
+  await change(a,'my-custom_name');
+  const duplicate = await change(b,'MY-CUSTOM_NAME');
+  verify(duplicate.status === 409 && JSON.parse(duplicate.data).code === 'USERNAME_TAKEN', 'Case-insensitive duplicate rename returns helpful conflict');
+  const racing = await Promise.all([change(a,'shared-race'),change(b,'shared-race')]);
+  verify(racing.filter(response => response.status === 200).length === 1 && racing.filter(response => response.status === 409).length === 1, 'Concurrent custom renames reserve a username atomically');
+  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
+  verify((await anonymous('/api/profile',{ name:'New Name',email:a.email,username:'forged' })).status === 401, 'Anonymous cannot rename a profile');
+  verify((await b.direct.from('profiles').update({username:'forged'}).eq('id',a.id).select()).data?.length === 0, 'RLS blocks another account rename');
+  const db = new Client({ connectionString: config.DB_URL }); await db.connect();
+  try {
+    const result = await db.query("select private.username_base($1) as base, private.username_base($2) as fallback",[' ZACK   Middle River ','!!!']);
+    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === 'user', 'Username helper handles whitespace, case and fallback');
+    const legacy = students[2], chosen = students[3];
+    await db.query("update public.profiles set username='user-' || replace(id::text,'-','') where id=$1",[legacy.id]);
+    await db.query("update public.profiles set username='chosen-keep' where id=$1",[chosen.id]);
+    await db.query("update public.profiles set username=private.generate_default_username(name) where username='user-' || replace(id::text,'-','')");
+    const migrated=await db.query('select id,username from public.profiles where id=any($1::uuid[])',[[legacy.id,chosen.id]]);
+    verify(migrated.rows.find(row=>row.id===chosen.id).username==='chosen-keep' && /^zackriver\d{6}$/.test(migrated.rows.find(row=>row.id===legacy.id).username), 'Migration backfills legacy defaults and preserves chosen usernames');
+    await db.query('set enable_seqscan=off');
+    const plan = await db.query("explain select id from public.profiles where lower(name) ^@ lower($1)", ['محمد']);
+    verify(plan.rows.some(row => row['QUERY PLAN'].includes('profiles_name_prefix_idx')), 'Actual parameterized prefix predicate can use the SP-GiST name index');
+  } finally { await db.end(); }
+  await a.api('/api/profile', { name:'Other Name',email:a.email });
+  const search = async value => JSON.parse((await manager.api('/api/admin/users?mode=prefix&q='+encodeURIComponent(value))).data);
+  verify((await search('محمد')).users.some(user => user.id === arabic.id), 'Arabic first-letter indexed search finds the right account');
+  verify((await search(a.email)).total === 0, 'Prefix mode searches names rather than email');
+  verify((await search('ZaCk')).total === 11, 'Name-prefix search ignores Latin case');
+  verify((await manager.api('/api/admin/users?mode=unknown')).status === 400, 'Unknown search mode rejected');
+  await require('./form-controls-browser.cjs')({ manager, student:b, verify, url });
+};

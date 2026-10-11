@@ -9,7 +9,7 @@ import { readUserResults } from "../helpers/read-user-results";
 export async function readAdminUsers(query: AdminUserQuery) {
   const { client } = await requireAdmin();
   const result = await client.rpc("search_admin_users", { p_page: query.page, p_limit: userAdministration.pageSize,
-    p_search: query.search, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
+    p_search: query.search, p_search_mode: query.searchMode, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
     ...(query.newcomers ? { p_new_since: new Date(Date.now() - userAdministration.newcomerDays * 86400000).toISOString() } : {}) });
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
   return readUserResults(result.data);

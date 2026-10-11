@@ -16,8 +16,8 @@ export async function handleProfile(request?: Request) {
       const { error } = await client.auth.updateUser({ email: profile.email }, { emailRedirectTo: `${applicationOrigin()}/api/auth/callback` });
       if (error) throw new ApiError(400, "AUTH_FAILED");
     }
-    const { error } = await client.from("profiles").upsert({ id: user.id, name: profile.name });
-    if (error) throw new ApiError(503, "INTERNAL_ERROR");
-    return Response.json({ name: profile.name, email: user.email, emailChangePending: profile.email !== user.email });
+    const { error } = await client.from("profiles").upsert({ id: user.id, name: profile.name, ...(profile.username ? { username: profile.username } : {}) });
+    if (error) throw new ApiError(error.code === "23505" ? 409 : 503, error.code === "23505" ? "USERNAME_TAKEN" : "INTERNAL_ERROR");
+    return Response.json({ ...await readProfile(client, user), emailChangePending: profile.email !== user.email });
   });
 }

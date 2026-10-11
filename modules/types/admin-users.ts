@@ -1,4 +1,4 @@
-import type { suspensionPeriods } from "@platform/config/user-moderation";
+import type { suspensionPeriods, userSearchModes } from "@platform/config/user-moderation";
 export type SuspensionPeriod = typeof suspensionPeriods[number]["id"];
 export type UserModeration = { action: "suspend"; period: SuspensionPeriod } | { action: "ban" | "restore" | "remove" | "promote" };
 export interface AdminUser {
@@ -7,7 +7,7 @@ export interface AdminUser {
 }
 export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: boolean; total: number; }
 export interface AdminUserQuery {
-  page: number; search: string; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
+  page: number; search: string; searchMode: typeof userSearchModes[number]; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
 }
 export interface UserSubscription { slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
 

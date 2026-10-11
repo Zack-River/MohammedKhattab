@@ -29,7 +29,7 @@ export default async function ProfilePage() {
           interfaceCopy={{ namePlaceholder: interfaceCopy.namePlaceholder }}
           copy={{
             error: copy.error,
-            name: copy.name,
+            name: copy.name, username: copy.username, usernameHint: copy.usernameHint,
             email: copy.email,
             emailPlaceholder: copy.emailPlaceholder,
             saving: copy.saving,

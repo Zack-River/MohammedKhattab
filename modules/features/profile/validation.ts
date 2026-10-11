@@ -1,3 +1,4 @@
+import { isValidUsername, normalizeUsername } from "@platform/helpers/validation/username";
 import { isValidEmail } from "@platform/helpers/validation/email";
 import type { Learner } from "@platform/types/lms";
 export const profilePolicy = {
@@ -19,5 +20,6 @@ export function validateProfile(input: unknown, { allowEmptyEmail = false }: { a
     (!(allowEmptyEmail && email === "") && !isValidEmail(email, profilePolicy.emailMax))
   )
     return null;
-  return { name, email };
+  if (value.username !== undefined && !isValidUsername(value.username)) return null;
+  return { name, email, ...(typeof value.username === "string" ? { username: normalizeUsername(value.username) } : {}) };
 }

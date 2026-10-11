@@ -1,4 +1,5 @@
 export const backendCopy: Record<string, string> = {
+  USERNAME_TAKEN: "اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر.",
   PROTECTED_ADMIN: "حسابات المديرين محمية من الحظر والحذف.",
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
   UNAUTHENTICATED: "سجّل الدخول للمتابعة.", FORBIDDEN: "غير مسموح بهذا الطلب.",

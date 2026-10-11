@@ -27,7 +27,7 @@ module.exports = async function userManagementChecks({ admin, provision, anonymo
   verify(Boolean((await admin.auth.admin.updateUserById(manager.id,{ ban_duration: '24h' })).error), 'Database prevents administrator ban races');
   await admin.from('enrollments').insert({ user_id: target.id, course_slug: 'editing-foundations' });
   const detail = json(await manager.api(endpoint));
-  verify(detail.user.name === 'Moderation Student' && detail.user.username.startsWith('user-'), 'User detail contains real profile and username');
+  verify(detail.user.name === 'Moderation Student' && /^moderationstudent[0-9]{6}$/.test(detail.user.username), 'User detail contains real profile and username');
   verify(detail.subscriptions.some(course => course.slug === 'editing-foundations'), 'User detail reads actual subscribed courses');
   for (const [period, hours] of [['day',24],['week',168],['month',720],['year',8760]]) {
     verify((await manager.api(endpoint,{ action: 'suspend', period })).status === 200, `${period} suspension succeeds`);

@@ -17,14 +17,13 @@ export function useProfileSubmission(entry: boolean, errorLabel: string) {
     setSaved(false);
     setValidationError("");
     const form = new FormData(event.currentTarget);
-    if (
-      !validateProfile({ name: form.get("name"), email: form.get("email") })
-    ) {
+    const input = { name: form.get("name"), email: form.get("email"), ...(form.has("username") ? { username: form.get("username") } : {}) };
+    if (!validateProfile(input)) {
       setValidationError(errorLabel);
       return;
     }
     const result = await run(() => httpRequest({ path: endpoints.profile,
-      body: { name: form.get("name"), email: form.get("email") },
+      body: input,
       failureLabel: errorLabel, decode: input => ({ profile: readProfileResponse(input), emailChangePending: Boolean(input && typeof input === "object" && "emailChangePending" in input && input.emailChangePending) }) }));
     if (result) {
       setSaved(true);

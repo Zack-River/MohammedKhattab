@@ -2054,7 +2054,7 @@ export default async function DashboardPage() {
 
 ### File: `app/dashboard/profile/page.tsx`
 
-SHA-256: `983decadcd91cad920c0e03d71c222d60fd52537fbc71e07ff4ae6068f37f767`
+SHA-256: `07c1e8c017f7a47af31582d35e07c1bbdd3d04a83d01712c23166975a596fe89`
 
 ```tsx
 import { backendCopy } from "@platform/data/backend-copy";
@@ -2088,7 +2088,7 @@ export default async function ProfilePage() {
           interfaceCopy={{ namePlaceholder: interfaceCopy.namePlaceholder }}
           copy={{
             error: copy.error,
-            name: copy.name,
+            name: copy.name, username: copy.username, usernameHint: copy.usernameHint,
             email: copy.email,
             emailPlaceholder: copy.emailPlaceholder,
             saving: copy.saving,
@@ -2625,7 +2625,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `b0dfa053de98e14751012bf60ae87b38051e3583f916162b9a61e81846bbf5b9`
+SHA-256: `6ded27bfbe042ce685b7c23e5374a3ea03ef064030888b32ffe1ffebfcc83709`
 
 ```css
 @import "./styles/theme.css";
@@ -2640,6 +2640,7 @@ SHA-256: `b0dfa053de98e14751012bf60ae87b38051e3583f916162b9a61e81846bbf5b9`
 @import "../packages/design-system/styles/designer-credit.css";
 @import "../modules/styles/auth.css";
 @import "../modules/styles/admin.css";
+@import "../packages/design-system/styles/form-controls.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -4186,7 +4187,7 @@ export default function LogoutButton({ label, errorLabel }: { label: string; err
 
 ### File: `modules/components/account/profile-form.tsx`
 
-SHA-256: `55f3ad27b11377cba1cc0ecb6a381cbdf6933c48e56ea36f3e70816997777996`
+SHA-256: `71329e4f4fa1a9ff2a25e44a822c9e16f3eb59696302dec38eb2cd9eb77b1142`
 
 ```tsx
 "use client";
@@ -4194,7 +4195,8 @@ import Action from "@khatab/design/ui/action";
 
 import type { ContentBindings } from "@platform/types/content";
 
-import { useId } from "react";
+import FormField from "@platform/components/ui/form-field";
+import { usernamePolicy } from "@platform/helpers/validation/username";
 import { useProfileSubmission } from "@platform/hooks/use-profile-submission";
 import type { Learner } from "@platform/types/lms";
 import { profilePolicy } from "@platform/features/profile/validation";
@@ -4214,6 +4216,8 @@ export default function ProfileForm({
     ContentBindings["copy"],
     | "error"
     | "name"
+    | "username"
+    | "usernameHint"
     | "email"
     | "emailPlaceholder"
     | "saving"
@@ -4222,33 +4226,15 @@ export default function ProfileForm({
     | "profileSaved"
   >;
 }) {
-  const id = useId();
   const { submit, pending, error, saved, emailChangePending } = useProfileSubmission(entry, copy.error);
   return (
     <form className="lms-profile-form" onSubmit={submit}>
-      <label htmlFor={`${id}-name`}>{copy.name}</label>
-      <input
-        id={`${id}-name`}
-        name="name"
-        defaultValue={entry ? "" : profile.name}
-        required
-        minLength={profilePolicy.nameMin}
-        maxLength={profilePolicy.nameMax}
-        autoComplete="name"
-        placeholder={interfaceCopy.namePlaceholder}
-      />
-      <label htmlFor={`${id}-email`}>{copy.email}</label>
-      <input
-        id={`${id}-email`}
-        name="email"
-        type="email"
-        dir="ltr"
-        defaultValue={profile.email}
-        required
-        maxLength={profilePolicy.emailMax}
-        autoComplete="email"
-        placeholder={copy.emailPlaceholder}
-      />
+      <FormField label={copy.name} name="name" defaultValue={entry ? "" : profile.name} required
+        minLength={profilePolicy.nameMin} maxLength={profilePolicy.nameMax} autoComplete="name" placeholder={interfaceCopy.namePlaceholder} />
+      {profile.username && <FormField label={copy.username} name="username" defaultValue={profile.username} required dir="auto"
+        minLength={usernamePolicy.min} maxLength={usernamePolicy.max} autoComplete="username" hint={copy.usernameHint} />}
+      <FormField label={copy.email} name="email" type="email" dir="ltr" defaultValue={profile.email} required
+        maxLength={profilePolicy.emailMax} autoComplete="email" placeholder={copy.emailPlaceholder} />
       <Action
         kind="button"
         className="btn-primary"
@@ -4338,10 +4324,12 @@ export default function CourseEditor({ course, published, labels, categories }: 
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `ddbf771b89222f12b7f324b58b03fc48170adab71745f007f050db66dab19658`
+SHA-256: `b66f87be24e0e598d88f5cc4c12ef431ad2ee51c2421565da95c5fa61dfc6f50`
 
 ```tsx
 "use client";
+import Select from "@khatab/design/ui/select";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { useId } from "react";
 import FormField from "@platform/components/ui/form-field";
@@ -4352,10 +4340,10 @@ export default function CourseFields({ course, published, labels, categories }: 
     <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
     <label htmlFor={`${id}-description`}>{labels.descriptionLabel}</label><textarea id={`${id}-description`} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
     <FormField label={labels.price} name="amount" type="number" min={0} max={policy.amountMax} step="0.01" defaultValue={course.offer.amount} required />
-    <label htmlFor={`${id}-category`}>{labels.category}</label><select id={`${id}-category`} name="category" defaultValue={course.category}>{categories.map(category => <option key={category.id} value={category.id}>{category.label}</option>)}</select>
+    <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
     <FormField label={labels.thumbnail} name="thumbnailUrl" dir="ltr" defaultValue={course.thumbnailUrl ?? ""} maxLength={policy.urlMax} />
     <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
-    <label className="lms-admin-checkbox"><input type="checkbox" name="published" defaultChecked={published} />{labels.published}</label>
+    <Checkbox label={labels.published} name="published" defaultChecked={published} />
   </>;
 }
 ```
@@ -4406,23 +4394,21 @@ export default function ModerationConfirmation({ change, name, labels, pending, 
 
 ### File: `modules/components/admin/moderation-controls.tsx`
 
-SHA-256: `775875f6eae94e7559d7c07928799f8d85891426d77126b371692fe175612fc6`
+SHA-256: `626c14d4aabb42b5775dc6c96240908761712b9b17b8adea1e106b290fe3f598`
 
 ```tsx
-import { useId } from "react";
+import Select from "@khatab/design/ui/select";
 import { suspensionPeriods } from "@platform/config/user-moderation";
 import type { AdminUser, AdminUsersLabels, SuspensionPeriod, UserModeration } from "@platform/types/admin-users";
 export default function ModerationControls({ user, labels, period, pending, onPeriod, onAction }: {
   user: AdminUser; labels: AdminUsersLabels; period: SuspensionPeriod; pending: boolean;
   onPeriod: (period: SuspensionPeriod) => void; onAction: (change: UserModeration) => void;
 }) {
-  const periodId = useId();
   return <div className="lms-admin-controls">
     <fieldset disabled={pending}><legend>{labels.access}</legend><p>{labels.accessHint}</p>
-      <label htmlFor={periodId}>{labels.period}</label>
-      <div className="lms-admin-suspend"><select id={periodId} value={period} onChange={event => onPeriod(event.target.value as SuspensionPeriod)}>
-        {suspensionPeriods.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
-      </select><button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "suspend", period })}>{labels.suspend}</button></div>
+      <div className="lms-admin-suspend"><Select label={labels.period} value={period} disabled={pending}
+        options={suspensionPeriods.map(item => ({ value: item.id, label: item.label }))}
+        onValueChange={value => onPeriod(value as SuspensionPeriod)} /><button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "suspend", period })}>{labels.suspend}</button></div>
       <div className="lms-admin-actions">
         {user.suspendedUntil && <button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "restore" })}>{labels.restore}</button>}
         <button type="button" className="lms-admin-danger" onClick={() => onAction({ action: "ban" })}>{labels.ban}</button>
@@ -4527,13 +4513,14 @@ export default function UserDetails({ user, labels }: { user: AdminUser; labels:
 
 ### File: `modules/components/admin/user-filters.tsx`
 
-SHA-256: `bf30bab52b232da440dbe5d742a0169343496d17ce2a62f85c68ff6de4e7126f`
+SHA-256: `fb3e73a2ee7541ee054066ac309bd42c0a88f4877df7d79aa1a98c376745b733`
 
 ```tsx
+import { Checkbox, Radio } from "@khatab/design/ui/choice-controls";
 import Form from "next/form";
 import Link from "next/link";
 import { routes } from "@platform/config/navigation";
-import { userAdministration, userStatusFilters } from "@platform/config/user-moderation";
+import { userAdministration, userStatusFilters, userSearchModes } from "@platform/config/user-moderation";
 import type { AdminUserQuery, AdminUsersLabels } from "@platform/types/admin-users";
 import { userQueryUrl } from "@platform/features/admin/helpers/user-query-url";
 export default function UserFilters({ query, total, labels }: { query: AdminUserQuery; total: number; labels: AdminUsersLabels }) {
@@ -4541,10 +4528,13 @@ export default function UserFilters({ query, total, labels }: { query: AdminUser
     <div className="lms-admin-search"><label htmlFor="admin-user-search">{labels.search}</label>
       <input type="search" id="admin-user-search" name="q" defaultValue={query.search} placeholder={labels.searchHint} maxLength={userAdministration.searchMaxLength} />
     </div>
+    <fieldset><legend>{labels.searchMode}</legend><div className="lms-admin-filter-options">
+      {userSearchModes.map(mode => <Radio key={mode} name="mode" value={mode} label={labels[mode]} defaultChecked={query.searchMode === mode} />)}
+    </div></fieldset>
     <fieldset><legend>{labels.filters}</legend><div className="lms-admin-filter-options">
-      {userStatusFilters.map(status => <label key={status}><input type="checkbox" name="status" value={status} defaultChecked={query.statuses.includes(status)} />{labels[status]}</label>)}
-      <label><input type="checkbox" name="admins" value="1" defaultChecked={query.adminsOnly} />{labels.adminsOnly}</label>
-      <label><input type="checkbox" name="newcomers" value="1" defaultChecked={query.newcomers} />{labels.newcomers}</label>
+      {userStatusFilters.map(status => <Checkbox key={status} name="status" value={status} label={labels[status]} defaultChecked={query.statuses.includes(status)} />)}
+      <Checkbox name="admins" value="1" label={labels.adminsOnly} defaultChecked={query.adminsOnly} />
+      <Checkbox name="newcomers" value="1" label={labels.newcomers} defaultChecked={query.newcomers} />
     </div><p className="lms-admin-filter-hint">{labels.filterHint}</p></fieldset>
     <div className="lms-admin-filter-footer"><div className="lms-admin-actions">
       <button type="submit" className="btn-primary">{labels.apply}</button><Link href={routes.adminUsers} className="lms-secondary-button">{labels.clear}</Link>
@@ -7784,7 +7774,7 @@ export const requestPolicy = { maxJsonBytes: 16 * 1024 } as const;
 
 ### File: `modules/config/user-moderation.ts`
 
-SHA-256: `34bde1fc7555454caff88a53c6e26dae2ea24f9df8cec61491c8a98ada549686`
+SHA-256: `136cefaa68e44a61ea50b88f2ed8f4f8114a3bd103c589236ab38e5338f9f6ae`
 
 ```typescript
 export const suspensionPeriods = [
@@ -7795,14 +7785,16 @@ export const suspensionPeriods = [
 ] as const;
 export const userAdministration = { pageSize: 5, searchMaxLength: 100, newcomerDays: 7, permanentBanHours: 876000, refreshMs: 60000 } as const;
 export const userStatusFilters = ["suspended", "banned"] as const;
+export const userSearchModes = ["contains", "prefix"] as const;
 ```
 
 ### File: `modules/data/admin-users.ts`
 
-SHA-256: `68de6f70d3d244511ec3e943a3f51541b3eab0e5fae618c732e4e8bbbfe83c56`
+SHA-256: `6e5a74cff61ea7245d4e03c9ddcb7ae5db3f6cb84334052fa0a336b9a115ce79`
 
 ```typescript
 export const adminUsersCopy = {
+  searchMode: "طريقة البحث", contains: "بحث شامل", prefix: "الاسم يبدأ بـ",
   heading: "إدارة المستخدمين", description: "الحسابات والاشتراكات وإدارة صلاحيات الوصول.",
   users: "المستخدمون", courses: "الدورات", dashboard: "لوحة الإدارة", name: "الاسم", username: "اسم المستخدم",
   email: "البريد الإلكتروني", status: "الحالة", actions: "الإجراءات", view: "عرض المستخدم", admin: "مدير", student: "طالب",
@@ -7880,10 +7872,11 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `1ad3550ac11fa6a7703fae0f476fa6f919192e13db3b6093350fcdb2b6124feb`
+SHA-256: `7d175eac6dcf3a95afd6ae433aa520bc6fe7058d73845f9b9ecfe82c6b4db59d`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  USERNAME_TAKEN: "اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر.",
   PROTECTED_ADMIN: "حسابات المديرين محمية من الحظر والحذف.",
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
   UNAUTHENTICATED: "سجّل الدخول للمتابعة.", FORBIDDEN: "غير مسموح بهذا الطلب.",
@@ -8457,7 +8450,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `7f0b23e8d088241f4a08545b34088f35f9ea670b065fee51ed69f577592c97ef`
+SHA-256: `2f82359e0e092cf20353cb86143e724fa098eb8d1cd9ff2cfe485ff8ea7021be`
 
 ```typescript
 import { projectNavigation, projectRoutes } from "../../config/project-navigation";
@@ -8605,6 +8598,8 @@ export const copy = {
   notesSaved: "ملاحظاتك محفوظة في هذا المتصفح",
   resources: "أدوات تساعدك تطبّق",
   download: "تحميل الأداة",
+  username: "اسم المستخدم",
+  usernameHint: "يمكنك تغيير الاسم الافتراضي. استخدم حروفًا أو أرقامًا أو الشرطة والشرطة السفلية؛ من ٣ إلى ٤٨ حرفًا.",
   profileSaved: "تم حفظ بياناتك",
   save: "حفظ التغييرات",
   name: "اسمك",
@@ -8826,10 +8821,10 @@ export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a
 
 ### File: `modules/features/admin/helpers/read-user-query.ts`
 
-SHA-256: `a88ee2ede543a625d2c42924ac5a6849f27ad9bb4a48271ea37733f7f83bac54`
+SHA-256: `1e45c5877aa496e0b7fa23ff15fde4e6bdf8c9945abf402b25d38e58b93c11ea`
 
 ```typescript
-import { userAdministration, userStatusFilters } from "@platform/config/user-moderation";
+import { userAdministration, userStatusFilters, userSearchModes } from "@platform/config/user-moderation";
 import type { AdminUserQuery } from "@platform/types/admin-users";
 import { ApiError } from "@platform/lib/api/error";
 import { readAdminPage } from "./read-admin-page";
@@ -8837,7 +8832,9 @@ export function readUserQuery(params: URLSearchParams): AdminUserQuery {
   const search = (params.get("q") ?? "").trim(), statuses = [...new Set(params.getAll("status"))];
   if (search.length > userAdministration.searchMaxLength || statuses.some(status => !userStatusFilters.includes(status as "suspended" | "banned"))
     || ["admins", "newcomers"].some(key => params.has(key) && params.get(key) !== "1")) throw new ApiError(400, "INVALID_INPUT");
-  return { page: readAdminPage(params.get("page")), search, statuses: statuses as AdminUserQuery["statuses"],
+  const searchMode = params.get("mode") ?? userSearchModes[0];
+  if (!userSearchModes.includes(searchMode as AdminUserQuery["searchMode"])) throw new ApiError(400, "INVALID_INPUT");
+  return { searchMode: searchMode as AdminUserQuery["searchMode"], page: readAdminPage(params.get("page")), search, statuses: statuses as AdminUserQuery["statuses"],
     adminsOnly: params.get("admins") === "1", newcomers: params.get("newcomers") === "1" };
 }
 export function userQueryParams(values: Record<string, string | string[] | undefined>) {
@@ -8886,13 +8883,14 @@ export function suspensionRemaining(until: string, now: number) {
 
 ### File: `modules/features/admin/helpers/user-query-url.ts`
 
-SHA-256: `8bd4608393a8ae9f756b3805dd89b44d0c905aaaa1b6b12b58d9eccacaa7c9af`
+SHA-256: `f4243cf254024c1d05694e2db0351b02d3d9cf2978825fb0bc58228f20f2f180`
 
 ```typescript
 import { routes } from "@platform/config/navigation";
 import type { AdminUserQuery } from "@platform/types/admin-users";
 export function userQueryUrl(query: AdminUserQuery, page = query.page) {
   const params = new URLSearchParams({ page: String(page) });
+  if (query.searchMode === "prefix") params.set("mode", "prefix");
   if (query.search) params.set("q", query.search);
   for (const status of query.statuses) params.append("status", status);
   if (query.adminsOnly) params.set("admins", "1");
@@ -9078,7 +9076,7 @@ export async function readUserSubscriptions(id: string) {
 
 ### File: `modules/features/admin/repositories/users.ts`
 
-SHA-256: `6c60a0349c7c5efeee5f501879ebe5f92dfb42240df3797720b8d5dbb912e773`
+SHA-256: `1acfdab71e8abdc2798d510238e00796c7d0586dd75e06be344798b9d36aa334`
 
 ```typescript
 import "server-only";
@@ -9092,7 +9090,7 @@ import { readUserResults } from "../helpers/read-user-results";
 export async function readAdminUsers(query: AdminUserQuery) {
   const { client } = await requireAdmin();
   const result = await client.rpc("search_admin_users", { p_page: query.page, p_limit: userAdministration.pageSize,
-    p_search: query.search, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
+    p_search: query.search, p_search_mode: query.searchMode, p_statuses: query.statuses, p_admins_only: query.adminsOnly,
     ...(query.newcomers ? { p_new_since: new Date(Date.now() - userAdministration.newcomerDays * 86400000).toISOString() } : {}) });
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
   return readUserResults(result.data);
@@ -10432,7 +10430,7 @@ export default function PortfolioPage() {
 
 ### File: `modules/features/profile/handle-request.ts`
 
-SHA-256: `ab9a050e13e13ecf9d74a9e35b42a21bb08e9efe605ee039e33b98dbad657275`
+SHA-256: `08342db27b600bd23f746ce7091ee4404d6f782fdb9c2eaca23ab97638363795`
 
 ```typescript
 import { applicationOrigin } from "@platform/lib/application-origin";
@@ -10453,9 +10451,9 @@ export async function handleProfile(request?: Request) {
       const { error } = await client.auth.updateUser({ email: profile.email }, { emailRedirectTo: `${applicationOrigin()}/api/auth/callback` });
       if (error) throw new ApiError(400, "AUTH_FAILED");
     }
-    const { error } = await client.from("profiles").upsert({ id: user.id, name: profile.name });
-    if (error) throw new ApiError(503, "INTERNAL_ERROR");
-    return Response.json({ name: profile.name, email: user.email, emailChangePending: profile.email !== user.email });
+    const { error } = await client.from("profiles").upsert({ id: user.id, name: profile.name, ...(profile.username ? { username: profile.username } : {}) });
+    if (error) throw new ApiError(error.code === "23505" ? 409 : 503, error.code === "23505" ? "USERNAME_TAKEN" : "INTERNAL_ERROR");
+    return Response.json({ ...await readProfile(client, user), emailChangePending: profile.email !== user.email });
   });
 }
 ```
@@ -10480,7 +10478,7 @@ export async function ensureProfile(client: DatabaseClient, user: User) {
 
 ### File: `modules/features/profile/repositories/read-profile.ts`
 
-SHA-256: `6f4249ebe6bc16efe5dee8cdc72f24db938a26725f0fed7e1884a9e9fb8dce7c`
+SHA-256: `04d0b19bcfebd0176163f200ade1b2d1eeb1096bdcf8422906d552f78e38935e`
 
 ```typescript
 import type { DatabaseClient } from "@platform/types/database-client";
@@ -10488,18 +10486,19 @@ import type { User } from "@supabase/supabase-js";
 import { ApiError } from "@platform/lib/api/error";
 import { interfaceCopy } from "@platform/data/interface-copy";
 export async function readProfile(client: DatabaseClient, user: User) {
-  const { data, error } = await client.from("profiles").select("name").eq("id", user.id).maybeSingle();
+  const { data, error } = await client.from("profiles").select("name, username").eq("id", user.id).maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   const name = data?.name ?? interfaceCopy.demoLearnerName;
-  return { name, email: user.email ?? "" };
+  return { name, username: data?.username, email: user.email ?? "" };
 }
 ```
 
 ### File: `modules/features/profile/validation.ts`
 
-SHA-256: `4f5ce368774694f43d61beab8b0d8ce38403d9a179ee1a143cc016123bb04ddf`
+SHA-256: `43200b48c50d7b7fe52ea1b606b36b04ec9cba5fffa9b7237926380e5a796f9e`
 
 ```typescript
+import { isValidUsername, normalizeUsername } from "@platform/helpers/validation/username";
 import { isValidEmail } from "@platform/helpers/validation/email";
 import type { Learner } from "@platform/types/lms";
 export const profilePolicy = {
@@ -10521,7 +10520,8 @@ export function validateProfile(input: unknown, { allowEmptyEmail = false }: { a
     (!(allowEmptyEmail && email === "") && !isValidEmail(email, profilePolicy.emailMax))
   )
     return null;
-  return { name, email };
+  if (value.username !== undefined && !isValidUsername(value.username)) return null;
+  return { name, email, ...(typeof value.username === "string" ? { username: normalizeUsername(value.username) } : {}) };
 }
 ```
 
@@ -10715,6 +10715,19 @@ SHA-256: `55f177c7de940fc7131239bb013588a21df124033d5af13c43106b9411c081cb`
 ```typescript
 export function isValidEmail(email: string, maximum: number) {
   return email.length <= maximum && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+```
+
+### File: `modules/helpers/validation/username.ts`
+
+SHA-256: `3cdb5a66c892ae95c48c57717b6a4642ad28f3c0849a3f0df254607ec6811bad`
+
+```typescript
+/** Shared username rules; generation and final uniqueness are enforced by the database. */
+export const usernamePolicy = { min: 3, max: 48 } as const;
+export function normalizeUsername(value: string) { return value.trim().toLowerCase(); }
+export function isValidUsername(value: unknown): value is string {
+  return typeof value === "string" && /^[\p{L}\p{N}][\p{L}\p{N}_-]{2,47}$/u.test(normalizeUsername(value));
 }
 ```
 
@@ -11063,7 +11076,7 @@ export function useLogout(errorLabel: string) {
 
 ### File: `modules/hooks/use-profile-submission.ts`
 
-SHA-256: `fa41440b8d7b0f1a159cfbf9401857d560db56e973b934d1ba2e16f7604d5a15`
+SHA-256: `55793dcc0e2e73ae79cf83ede8ef575441bf69f4b133d9d983417e71d65ccb3d`
 
 ```typescript
 "use client";
@@ -11085,14 +11098,13 @@ export function useProfileSubmission(entry: boolean, errorLabel: string) {
     setSaved(false);
     setValidationError("");
     const form = new FormData(event.currentTarget);
-    if (
-      !validateProfile({ name: form.get("name"), email: form.get("email") })
-    ) {
+    const input = { name: form.get("name"), email: form.get("email"), ...(form.has("username") ? { username: form.get("username") } : {}) };
+    if (!validateProfile(input)) {
       setValidationError(errorLabel);
       return;
     }
     const result = await run(() => httpRequest({ path: endpoints.profile,
-      body: { name: form.get("name"), email: form.get("email") },
+      body: input,
       failureLabel: errorLabel, decode: input => ({ profile: readProfileResponse(input), emailChangePending: Boolean(input && typeof input === "object" && "emailChangePending" in input && input.emailChangePending) }) }));
     if (result) {
       setSaved(true);
@@ -11430,7 +11442,7 @@ export const theme = palette;
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `f214ef61bf6a3094367ca05bd1f1bc0bef0206fb7a880945ccbad238f00b2980`
+SHA-256: `fa8aba86f9070c90f081e4683e2651908fc868230268e14e8df60708909aaafc`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -11490,8 +11502,9 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 .lms-admin-controls legend { color: var(--text-primary); font-weight: var(--font-weight-action); padding-inline: var(--space-xs); }
 .lms-admin-controls p { color: var(--text-muted); font-size: var(--font-size-caption); margin-bottom: var(--space-md); }
 .lms-admin-controls label { display: block; margin-bottom: var(--space-xs); font-size: var(--font-size-caption); color: var(--text-secondary); }
-.lms-admin-suspend { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
-.lms-admin-suspend > * { flex: 1; }
+.lms-admin-suspend { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-sm); }
+.lms-admin-suspend > .ds-select { flex: 1 1 var(--control-select-min-width); }
+.lms-admin-suspend > button { flex: 0 1 auto; }
 .lms-admin-controls select { min-width: 0; min-height: var(--size-44px); background: var(--bg-main); color: var(--text-primary); padding: var(--space-sm); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); font: inherit; }
 .lms-admin-controls .lms-admin-destructive { border-color: var(--primary-red); }
 .lms-admin-dialog button:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
@@ -11526,7 +11539,6 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 .lms-admin-filter-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
 .lms-admin-filter-options label { display: flex; align-items: center; gap: var(--space-sm); min-height: var(--size-44px); padding: var(--space-sm) var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--font-size-caption); cursor: pointer; transition: background-color var(--transition-smooth), border-color var(--transition-smooth); }
 .lms-admin-filter-options label:has(input:checked) { background: var(--primary-red-subtle); border-color: var(--primary-red); color: var(--text-primary); }
-.lms-admin-filter-options input { accent-color: var(--primary-red); width: var(--space-md); height: var(--space-md); margin: 0; flex-shrink: 0; cursor: pointer; }
 .lms-admin-filter-hint { margin-top: var(--space-sm); font-size: var(--font-size-caption); color: var(--text-muted); }
 .lms-admin-filter-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-md); }
 .lms-admin-filter-footer .lms-admin-actions { margin: 0; }
@@ -15192,10 +15204,10 @@ SHA-256: `daa5378e3319f1c86b480af2ed93eb4d15b23e79bf07361931888dfe7e9e1364`
 
 ### File: `modules/types/admin-users.ts`
 
-SHA-256: `8a74fe6cfd6127625e51ba5d36e360d65dfae71a007858d756984a139832b6ce`
+SHA-256: `23d789211f981ca568a734c456788b4e844c24404c004421c6d0397c66c0be21`
 
 ```typescript
-import type { suspensionPeriods } from "@platform/config/user-moderation";
+import type { suspensionPeriods, userSearchModes } from "@platform/config/user-moderation";
 export type SuspensionPeriod = typeof suspensionPeriods[number]["id"];
 export type UserModeration = { action: "suspend"; period: SuspensionPeriod } | { action: "ban" | "restore" | "remove" | "promote" };
 export interface AdminUser {
@@ -15204,7 +15216,7 @@ export interface AdminUser {
 }
 export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: boolean; total: number; }
 export interface AdminUserQuery {
-  page: number; search: string; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
+  page: number; search: string; searchMode: typeof userSearchModes[number]; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
 }
 export interface UserSubscription { slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
 
@@ -15297,7 +15309,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `766ca31b4214c3f51ad38a5df8ece591017b0b0ce4fd5b54adff3f6a0afa3672`
+SHA-256: `31588c4f030f9b09baf15215c6d62e284192be019bbb52f3351a9c2bd5b6c263`
 
 ```typescript
 
@@ -15500,7 +15512,7 @@ isOneToOne: false
 { Args: { "target_id": string }; Returns: undefined
                            },
 "search_admin_users":
-{ Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_statuses": (string)[] }; Returns: Json
+{ Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
                            }
           }
           Enums: {
@@ -15667,7 +15679,7 @@ export type LandingHeroProps = {
 
 ### File: `modules/types/lms.ts`
 
-SHA-256: `ff321009dbc5d9ef6a3444f976b03e86a4be47e193642babedc6f7d175cb5435`
+SHA-256: `dea1d43c9db4c2419e6843662fe763028ca38d39d78936cfa61c37b16ca4d6e2`
 
 ```typescript
 import type { Category, ArtworkKind } from "@platform/config/catalog";
@@ -15715,6 +15727,7 @@ export interface Course {
   featured?: boolean;
 }
 export interface Learner {
+  username?: string;
   name: string;
   email: string;
 }
@@ -15834,6 +15847,15 @@ SHA-256: `e55954aa59974e47016c738b3784b6f6f5d19d1366ee6990133e585519d38ca0`
     "typescript": "^5.9.2"
   }
 }
+```
+
+### File: `packages/design-system/config/form-controls.ts`
+
+SHA-256: `5c29c87d50516de91c142ae1436a8ffbb1799bc8979e0917ea0da79368b5cba8`
+
+```typescript
+/** Nonvisual interaction policy shared by every custom form control. */
+export const formControlBehavior = { typeaheadResetMs: 700 } as const;
 ```
 
 ### File: `packages/design-system/config/player.ts`
@@ -16757,6 +16779,46 @@ export function subscribeDismissal({ root, toggle, onClose, desktopQuery, restor
 }
 ```
 
+### File: `packages/design-system/helpers/place-select-menu.ts`
+
+SHA-256: `0f82659b90dd3296594235deb4b0196015d8bfb32a7a32427a93e9c88dfd66d3`
+
+```typescript
+/** Keep the top-layer menu within the viewport, including small landscape screens. */
+export function placeSelectMenu(button: HTMLElement, panel: HTMLElement) {
+  const rect = button.getBoundingClientRect();
+  const style = getComputedStyle(panel), gap = parseFloat(style.getPropertyValue("--space-sm")) || 0;
+  const width = Math.min(rect.width, window.innerWidth - gap * 2);
+  panel.style.width = `${width}px`;
+  const roomBelow = window.innerHeight - rect.bottom - gap * 2, roomAbove = rect.top - gap * 2;
+  const desired = Math.min(panel.scrollHeight, parseFloat(style.getPropertyValue("--control-menu-max-height")));
+  const above = roomBelow < desired && roomAbove > roomBelow;
+  const height = Math.min(desired, above ? roomAbove : roomBelow);
+  panel.style.maxHeight = `${Math.max(gap, height)}px`;
+  const left = style.direction === "rtl" ? rect.right - width : rect.left;
+  panel.style.left = `${Math.max(gap, Math.min(left, window.innerWidth - width - gap))}px`;
+  panel.style.top = `${above ? rect.top - gap - height : rect.bottom + gap}px`;
+}
+```
+
+### File: `packages/design-system/helpers/select-navigation.ts`
+
+SHA-256: `4405d62a1a84663110b5c3b4e61dde02a2db52a18b31d9b14ab9f849a0c56f35`
+
+```typescript
+import type { SelectOption } from "../types/select";
+export function selectNavigation(key: string, active: number, options: readonly SelectOption[]) {
+  const available = options.map((option, index) => option.disabled ? -1 : index).filter(index => index >= 0);
+  if (key === "Home") return available[0] ?? -1;
+  if (key === "End") return available.at(-1) ?? -1;
+  const direction = key === "ArrowUp" ? -1 : 1, current = available.indexOf(active);
+  return available[(current + direction + available.length) % available.length] ?? -1;
+}
+export function selectTypeahead(text: string, options: readonly SelectOption[]) {
+  return options.findIndex(option => !option.disabled && option.label.toLocaleLowerCase().startsWith(text.toLocaleLowerCase()));
+}
+```
+
 ### File: `packages/design-system/helpers/theme/parse-number.ts`
 
 SHA-256: `e07bf6daefd75c24040bd11b36c5b541c1e04da891dda843e2e7aa90a0e0a232`
@@ -17093,6 +17155,81 @@ export function useScrollReveals({ rootRef, options, enabled = true }: ScrollRev
 }
 ```
 
+### File: `packages/design-system/hooks/use-select-menu.ts`
+
+SHA-256: `7d9271414fe4bc97ecaa1c24b25fe6e9f5492b13974d204a9d7d2acf6f25f00b`
+
+```typescript
+"use client";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { formControlBehavior } from "../config/form-controls";
+import type { SelectOption } from "../types/select";
+import { placeSelectMenu } from "../helpers/place-select-menu";
+import { selectNavigation, selectTypeahead } from "../helpers/select-navigation";
+export function useSelectMenu(options: readonly SelectOption[], selected: string, choose: (value: string) => void) {
+  const button = useRef<HTMLButtonElement>(null), panel = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false), [active, setActive] = useState(-1);
+  const typing = useRef({ text: "", time: 0 });
+  function toggle(show = !open) {
+    setOpen(show);
+    if (show) { setActive(Math.max(0, options.findIndex(option => option.value === selected))); panel.current?.showPopover(); }
+    else panel.current?.hidePopover();
+  }
+  function commit(index: number) {
+    const option = options[index];
+    if (!option || option.disabled) return;
+    choose(option.value); toggle(false); button.current?.focus();
+  }
+  function keyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault(); if (!open) toggle(true);
+      setActive(current => selectNavigation(event.key, open ? current : options.findIndex(option => option.value === selected), options));
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault(); if (open) commit(active); else toggle(true);
+    } else if (event.key === "Escape" && open) { event.preventDefault(); event.stopPropagation(); toggle(false); }
+    else if (event.key === "Tab") { toggle(false); }
+    else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+      const now = performance.now(); typing.current = { text: (now - typing.current.time < formControlBehavior.typeaheadResetMs ? typing.current.text : "") + event.key, time: now };
+      const index = selectTypeahead(typing.current.text, options);
+      if (index >= 0) { if (!open) toggle(true); setActive(index); }
+    }
+  }
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => { if (button.current && panel.current) placeSelectMenu(button.current, panel.current); };
+    reposition(); window.addEventListener("resize", reposition); window.addEventListener("scroll", reposition, true);
+    const observer = new ResizeObserver(reposition); if (button.current) observer.observe(button.current);
+    return () => { observer.disconnect(); window.removeEventListener("resize", reposition); window.removeEventListener("scroll", reposition, true); };
+  }, [open]);
+  useEffect(() => { if (open) panel.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" }); }, [active, open]);
+  return { button, panel, open, active, setOpen, toggle, commit, keyDown, setActive };
+}
+```
+
+### File: `packages/design-system/hooks/use-select-value.ts`
+
+SHA-256: `40ce451c401e872a393ed4ba2ab84305e9c5d680ccfcf37f3aa64098056207d5`
+
+```typescript
+"use client";
+import { useEffect, useRef, useState } from "react";
+import type { SelectProps } from "../types/select";
+/** Native validity and reset events stay synchronized with controlled or local selection. */
+export function useSelectValue({ value, defaultValue, options, onValueChange }: SelectProps) {
+  const initial = defaultValue ?? options.find(option => !option.disabled)?.value ?? "";
+  const [internal, setInternal] = useState(initial), [error, setError] = useState("");
+  const nativeRef = useRef<HTMLSelectElement>(null);
+  function choose(next: string) { setInternal(next); setError(""); onValueChange?.(next); }
+  useEffect(() => {
+    const form = nativeRef.current?.form;
+    const reset = () => { setInternal(initial); setError(""); onValueChange?.(initial); };
+    form?.addEventListener("reset", reset);
+    return () => form?.removeEventListener("reset", reset);
+  }, [initial, onValueChange]);
+  return { selected: value ?? internal, choose, error, setError, nativeRef };
+}
+```
+
 ### File: `packages/design-system/hooks/use-youtube-player.ts`
 
 SHA-256: `d29c434ab0522568daad7472b0efd800b4fba412b165102dfdcc1325dbbb04c3`
@@ -17418,6 +17555,52 @@ SHA-256: `1cbeb63c4e038236f45a9d9fefb3b7674b953266f81a670098e9bc78d11a5624`
 }
 ```
 
+### File: `packages/design-system/styles/form-controls.css`
+
+SHA-256: `044c9414fa9af9b2d772f1bb81c074e7c17376b41f6f1ce425259217231af574`
+
+```css
+/* Shared form controls retain native form submission and keyboard semantics. */
+.ds-choice { position: relative; display: inline-flex; align-items: center; gap: var(--space-control); min-height: var(--control-target-size); cursor: pointer; color: var(--text-secondary); padding-block: var(--space-xs); }
+.ds-select-native { position: absolute; opacity: 0; width: var(--size-1px); height: var(--size-1px); overflow: hidden; pointer-events: none; }
+.ds-choice-marker { display: grid; place-items: center; flex-shrink: 0; width: var(--control-marker-size); height: var(--control-marker-size); border: var(--size-1px) solid var(--text-muted); background: var(--bg-main); border-radius: var(--radius-xs); transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.ds-choice-marker svg { width: 100%; height: 100%; stroke: var(--text-primary); stroke-width: 2; opacity: 0; transition: opacity var(--transition-fast); }
+.ds-choice-radio { border-radius: var(--radius-full); }
+.ds-choice-radio::after { content: ""; width: var(--control-radio-dot); height: var(--control-radio-dot); background: var(--text-primary); border-radius: var(--radius-full); opacity: 0; transition: opacity var(--transition-fast); }
+.ds-choice-input:checked + .ds-choice-marker { background: var(--primary-red); border-color: var(--primary-red); }
+.ds-choice-input:checked + .ds-choice-marker svg, .ds-choice-input:checked + .ds-choice-radio::after { opacity: 1; }
+.ds-choice-input:focus-visible + .ds-choice-marker { outline: var(--size-2px) solid var(--text-primary); outline-offset: var(--space-xs); }
+.ds-choice:has(input:disabled) { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+.ds-choice:hover:not(:has(input:disabled)) .ds-choice-marker { border-color: var(--primary-red); }
+.ds-choice-copy { display: grid; gap: var(--space-xs); }
+.ds-choice-copy small { color: var(--text-muted); }
+.ds-select { position: relative; display: grid; gap: var(--space-sm); min-width: 0; }
+.ds-select-trigger { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); width: 100%; min-height: var(--control-target-size); padding: var(--space-control) var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-main); color: var(--text-primary); font: inherit; text-align: start; cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast); }
+.ds-select-trigger svg { width: var(--control-marker-size); height: var(--control-marker-size); flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; transition: transform var(--transition-fast); }
+.ds-select-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.ds-select-trigger:hover:not(:disabled), .ds-select-trigger[aria-expanded="true"] { border-color: var(--primary-red); }
+.ds-select-trigger:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: var(--space-xs); }
+.ds-select-trigger:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+.ds-select-menu { position: fixed; inset: auto; margin: 0; padding: var(--space-xs); max-height: var(--control-menu-max-height); overflow-y: auto; overscroll-behavior: contain; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-surface-elevated); color: var(--text-primary); font: inherit; box-shadow: var(--control-menu-shadow); }
+.ds-select-menu [role="option"] { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: var(--control-target-size); padding: var(--space-sm) var(--space-control); border-radius: var(--radius-xs); cursor: pointer; transition: background var(--transition-fast), color var(--transition-fast); }
+.ds-select-menu [role="option"][data-active="true"] { background: var(--bg-surface); }
+.ds-select-menu [role="option"][aria-selected="true"] { color: var(--text-primary); background: var(--primary-red-subtle); }
+.ds-select-menu [role="option"][aria-disabled="true"] { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .ds-choice-marker, .ds-choice-marker svg, .ds-choice-radio::after, .ds-select-trigger, .ds-select-trigger svg, .ds-select-menu [role="option"] { transition: none; } }
+
+.ds-choice .ds-choice-input { position: absolute; z-index: 1; opacity: 0; width: var(--control-marker-size); height: var(--control-marker-size); margin: 0; cursor: inherit; }
+
+.ds-select-menu [aria-selected="true"] > span:last-child:not(:first-child) { color: var(--primary-red); }
+
+.ds-select-menu { opacity: 0; transform: translateY(var(--space-xs)); transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--motion-duration-control) allow-discrete, overlay var(--motion-duration-control) allow-discrete; }
+.ds-select-menu:popover-open { opacity: 1; transform: translateY(0); }
+@starting-style { .ds-select-menu:popover-open { opacity: 0; transform: translateY(var(--space-xs)); } }
+@media (prefers-reduced-motion: reduce) { .ds-select-menu { transition: none; } }
+
+.ds-control-error { color: var(--primary-red); }
+.ds-select-trigger[aria-invalid="true"] { border-color: var(--primary-red); }
+```
+
 ### File: `packages/design-system/styles/project-navigation.css`
 
 SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
@@ -17445,13 +17628,19 @@ SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
 
 ### File: `packages/design-system/styles/theme.css`
 
-SHA-256: `d85a719c610c26ca9e7ff69526ad4314acd6c2e0a1d7c93d3a99635bc6a6a16f`
+SHA-256: `8c6ff41e66bebbfeff2c1dfdc35086fe94df9cfccaf1c30f3729950f5ae19690`
 
 ```css
 /* Shared visual foundation of the two client-approved reference sites.
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  --control-select-min-width: 200px;
+  --control-target-size: 44px;
+  --control-marker-size: 20px;
+  --control-radio-dot: 8px;
+  --control-menu-max-height: 288px;
+  --control-menu-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
   /* Reusable teaser-poster artwork; type scales with its container. */
   --coming-soon-title-size: clamp(2rem, 14cqi, 5.5rem);
   --coming-soon-ghost-size: clamp(3rem, 19cqi, 10rem);
@@ -21883,6 +22072,20 @@ export interface ProjectNavigationContent {
 }
 ```
 
+### File: `packages/design-system/types/select.ts`
+
+SHA-256: `fae84e0b8e92f30a9d461b59e872a869fc027667372d13d3b4e889b96271e0f6`
+
+```typescript
+import type { ReactNode } from "react";
+export interface SelectOption { value: string; label: string; disabled?: boolean; }
+export interface SelectProps {
+  options: readonly SelectOption[]; label: ReactNode; name?: string; id?: string;
+  value?: string; defaultValue?: string; onValueChange?: (value: string) => void;
+  validationMessage?: string; required?: boolean; disabled?: boolean; placeholder?: string; className?: string;
+}
+```
+
 ### File: `packages/design-system/types/ui.ts`
 
 SHA-256: `66bf9a7656aed3e79e49c9ca5fd3c719b518f88258c76f64441cf92933b15551`
@@ -22222,6 +22425,29 @@ export default function AuthorIdentity({
     </div>
   );
 }
+```
+
+### File: `packages/design-system/ui/choice-controls.tsx`
+
+SHA-256: `fb3211790ac3373fddb42253e5e06cf07a8c7f90075de32d258ca92afe5d3219`
+
+```tsx
+import type { InputHTMLAttributes, ReactNode } from "react";
+export interface ChoiceProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label: ReactNode;
+  hint?: ReactNode;
+}
+function Choice({ kind, label, hint, className = "", ...input }: ChoiceProps & { kind: "checkbox" | "radio" }) {
+  return <label className={`ds-choice ${className}`}>
+    <input {...input} type={kind} className="ds-choice-input" />
+    <span className={`ds-choice-marker ds-choice-${kind}`} aria-hidden="true">
+      {kind === "checkbox" && <svg viewBox="0 0 16 16" fill="none"><path d="m3 8 3 3 7-7" /></svg>}
+    </span>
+    <span className="ds-choice-copy"><span>{label}</span>{hint && <small>{hint}</small>}</span>
+  </label>;
+}
+export function Checkbox(props: ChoiceProps) { return <Choice {...props} kind="checkbox" />; }
+export function Radio(props: ChoiceProps) { return <Choice {...props} kind="radio" />; }
 ```
 
 ### File: `packages/design-system/ui/clients-section.tsx`
@@ -23426,6 +23652,48 @@ export default function Section({
       {...props}
     />
   );
+}
+```
+
+### File: `packages/design-system/ui/select.tsx`
+
+SHA-256: `743d85dc63906d8a217a0c982f3cd909f380ae31d47beffa0ab8bd080fca34b3`
+
+```tsx
+"use client";
+import { useId } from "react";
+import { useSelectValue } from "../hooks/use-select-value";
+import { useSelectMenu } from "../hooks/use-select-menu";
+import type { SelectProps } from "../types/select";
+export default function Select({ options, label, name, id, value, defaultValue, onValueChange, required, disabled, validationMessage, placeholder = "—", className = "" }: SelectProps) {
+  const generated = useId(), controlId = id ?? generated;
+  const { selected, choose, error, setError, nativeRef } = useSelectValue({ options, label, value, defaultValue, onValueChange });
+  const { button: buttonRef, panel: panelRef, open, active, setOpen, toggle, commit, keyDown, setActive } = useSelectMenu(options, selected, choose);
+  return <div className={`ds-select ${className}`}>
+    <label id={`${controlId}-label`} htmlFor={controlId}>{label}</label>
+    <select ref={nativeRef} aria-hidden="true" tabIndex={-1} className="ds-select-native" name={name} value={selected} required={required} disabled={disabled}
+      onChange={event => choose(event.target.value)}
+      onInvalid={event => { event.preventDefault(); setError(validationMessage ?? event.currentTarget.validationMessage); buttonRef.current?.focus(); }}>
+      {!selected && <option value="">{placeholder}</option>}
+      {options.map(option => <option key={option.value} value={option.value} disabled={option.disabled}>{option.label}</option>)}
+    </select>
+    <button ref={buttonRef} id={controlId} type="button" className="ds-select-trigger" role="combobox" disabled={disabled}
+      aria-labelledby={`${controlId}-label`} aria-expanded={open} aria-controls={`${controlId}-menu`}
+      aria-haspopup="listbox" aria-required={required} aria-invalid={Boolean(error)} aria-describedby={error ? `${controlId}-error` : undefined} aria-activedescendant={open && active >= 0 ? `${controlId}-option-${active}` : undefined}
+      onClick={() => toggle()} onKeyDown={keyDown}>
+      <span id={`${controlId}-value`}>{options.find(option => option.value === selected)?.label ?? placeholder}</span>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" /></svg>
+    </button>
+    <div ref={panelRef} popover="auto" id={`${controlId}-menu`} className="ds-select-menu" role="listbox" aria-labelledby={`${controlId}-label`}
+      onToggle={event => setOpen(event.newState === "open")} onMouseDown={event => event.preventDefault()}>
+      {options.map((option, index) => <div key={option.value} id={`${controlId}-option-${index}`} role="option" data-index={index}
+        aria-selected={selected === option.value} aria-disabled={option.disabled || undefined} data-active={active === index}
+        onPointerMove={event => !option.disabled && (event.movementX || event.movementY) && setActive(index)} onClick={() => commit(index)}>
+        <span>{option.label}</span>{selected === option.value && <span aria-hidden="true">✓</span>}
+      </div>)}
+    </div>
+    {error && <p id={`${controlId}-error`} className="ds-control-error" role="alert">{error}</p>}
+  </div>;
 }
 ```
 
@@ -25390,7 +25658,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `146b096990b940c2196f6dfb8b9e65ccb19eb4ae9a3d58c4f8215561dc47fe0d`
+SHA-256: `dc44e20cf84498cc7ae0cf718830b56125861503bd9f30ad4f80652ac0e2782c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25421,7 +25689,8 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
     const management = page.getByRole('dialog', { name: 'إدارة الحساب', exact: true });
     await expect(management).toBeVisible();
-    await management.getByRole('combobox').selectOption('week');
+    await management.getByRole('combobox').click();
+    await page.getByRole('option', { name: 'أسبوع', exact: true }).click();
     await management.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'تأكيد الإجراء', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
@@ -25456,7 +25725,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
       const bounds = await management.boundingBox();
       verify(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 900, `Management dialog fits ${width}px viewport`);
       verify(Math.abs(bounds.x + bounds.width / 2 - width / 2) <= 1 && Math.abs(bounds.y + bounds.height / 2 - 450) <= 1, `Management dialog is centered at ${width}px`);
-      const targets = await management.locator('button, select').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+      const targets = await management.locator('button').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
       verify(targets.every(height => height >= 44), `Dialog controls have 44px touch targets at ${width}px`);
       await page.keyboard.press('Tab');
       verify(await management.evaluate(element => element.contains(document.activeElement)), `Keyboard focus remains inside dialog at ${width}px`);
@@ -25482,7 +25751,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
 
 ### File: `tests/backend/admin-users.cjs`
 
-SHA-256: `a1a635dcb3d8120ff0bdf24cf63a195539535272ed1210ad1083987097b4e6d1`
+SHA-256: `2e684dccd956127ab3af4f0097f0c57d8635820f3b58d1f5ddc2b7318ba6a46f`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated real Auth, API, RLS and browser acceptance tests. */
@@ -25514,7 +25783,7 @@ module.exports = async function userManagementChecks({ admin, provision, anonymo
   verify(Boolean((await admin.auth.admin.updateUserById(manager.id,{ ban_duration: '24h' })).error), 'Database prevents administrator ban races');
   await admin.from('enrollments').insert({ user_id: target.id, course_slug: 'editing-foundations' });
   const detail = json(await manager.api(endpoint));
-  verify(detail.user.name === 'Moderation Student' && detail.user.username.startsWith('user-'), 'User detail contains real profile and username');
+  verify(detail.user.name === 'Moderation Student' && /^moderationstudent[0-9]{6}$/.test(detail.user.username), 'User detail contains real profile and username');
   verify(detail.subscriptions.some(course => course.slug === 'editing-foundations'), 'User detail reads actual subscribed courses');
   for (const [period, hours] of [['day',24],['week',168],['month',720],['year',8760]]) {
     verify((await manager.api(endpoint,{ action: 'suspend', period })).status === 200, `${period} suspension succeeds`);
@@ -25749,9 +26018,66 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 };
 ```
 
+### File: `tests/backend/form-controls-browser.cjs`
+
+SHA-256: `cfbf4cf9190bda81c987b25cfdfb79ad58e3abc455f6e96b790313b9be77089c`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Browser checks with ephemeral isolated accounts. */
+const { chromium, expect } = require('@playwright/test');
+const fs = require('node:fs');
+module.exports = async function controlsBrowser({ manager, student, verify, url }) {
+  const browser = await chromium.launch({ headless:true });
+  const directory = 'docs/evidence/form-controls'; fs.mkdirSync(directory,{recursive:true});
+  try {
+    const page = await browser.newPage({ viewport:{ width:390,height:844 } });
+    page.setDefaultTimeout(15000);
+    const errors=[];page.on('pageerror', error=>errors.push(error.message));
+    await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);
+    await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+    await page.getByRole('radio',{name:'الاسم يبدأ بـ',exact:true}).check();
+    await page.getByRole('searchbox').fill('Zack');await page.getByRole('button',{name:'تطبيق البحث والفلاتر'}).click();
+    await expect(page).toHaveURL(/mode=prefix/);await expect(page.getByRole('radio',{name:'الاسم يبدأ بـ'})).toBeChecked();
+    verify(true,'Custom radio persists indexed search mode after navigation');
+    await page.getByRole('checkbox',{name:'المنضمون خلال آخر ٧ أيام'}).check();
+    await page.getByRole('button',{name:'تطبيق البحث والفلاتر'}).click();await expect(page).toHaveURL(/newcomers=1/);
+    verify(true,'Custom checkboxes combine with prefix search');
+    await page.screenshot({path:`${directory}/filters-390.png`,fullPage:true});
+    await page.goto(url+'/admin/dashboard?q='+encodeURIComponent(student.email));
+    await page.getByRole('button',{name:'إدارة الحساب',exact:true}).click();
+    const dialog = page.getByRole('dialog',{name:'إدارة الحساب',exact:true}), combo=dialog.getByRole('combobox');
+    for(const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1440,height:900}]) {
+      await page.setViewportSize(viewport);await combo.click();await expect(combo).toHaveAttribute('aria-expanded','true');
+      const menu=page.getByRole('listbox');await expect(menu).toBeVisible();
+      const rect=await menu.boundingBox();verify(rect.x>=0 && rect.y>=0 && rect.x+rect.width<=viewport.width+1 && rect.y+rect.height<=viewport.height+1,`Top-layer dropdown fits ${viewport.width}×${viewport.height}`);
+      await page.getByRole('option',{name:'أسبوع',exact:true}).click();await expect(combo).toContainText('أسبوع');
+      await expect(combo).toBeFocused();verify(true,'Dropdown selection works inside modal and restores trigger focus');
+      await combo.press('ArrowDown');await combo.press('End');await combo.press('Enter');await expect(combo).toContainText('سنة');
+      await combo.click();await page.keyboard.press('Escape');await expect(menu).not.toBeVisible();await expect(dialog).toBeVisible();
+      verify(true,'Keyboard selection and Escape close the dropdown while retaining its modal');
+      await page.screenshot({path:`${directory}/modal-${viewport.width}.png`});
+    }
+    await page.keyboard.press('Escape');await page.goto(url+'/admin/dashboard/courses/7days-freelance');
+    const category=page.getByRole('combobox');await expect(category).toBeVisible();
+    const before=await page.locator('select[name="category"]').inputValue();await category.click();await page.getByRole('option').filter({hasText:'تصميم جرافيك'}).first().click();
+    verify(await page.locator('select[name="category"]').inputValue()!==before,'Course custom dropdown updates the native form value');
+    await page.getByRole('checkbox').uncheck();verify(!(await page.getByRole('checkbox').isChecked()),'Course published checkbox uses native semantics');
+    verify(errors.length===0,'Custom controls produce no browser runtime errors');
+    await page.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(/login/);
+    await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
+    await page.goto(url+'/dashboard/profile');
+    const username=page.getByLabel('اسم المستخدم',{exact:true});await expect(username).toBeVisible();await username.fill('browser-chosen');
+    await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toBeVisible();await page.reload();
+    await expect(username).toHaveValue('browser-chosen');await page.setViewportSize({width:390,height:844});await page.screenshot({path:`${directory}/profile-390.png`,fullPage:true});verify(true,'Student can edit username and keep it after refresh');
+  } finally { await browser.close(); }
+};
+```
+
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `4e2074503d7d302dad74453a4aa995003e544180c3bfab6cae1de38be95fc945`
+SHA-256: `23d5bdfb05d7d30ba8c018d7cecb1623147e6a746a84725802bdc7ca9e30e469`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -25783,7 +26109,7 @@ function account() {
 }
 const parse = response => JSON.parse(response.data);
 async function provision(name) {
-  const email = `${name.toLowerCase().replaceAll(" ", "-")}-${Date.now()}@example.com`, password = 'Local-Test-Password-19!';
+  const email = `test-${require("node:crypto").randomUUID()}@example.com`, password = 'Local-Test-Password-19!';
   const result = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name } });
   assert.ok(!result.error, 'Local fixture user created'); identities.push(result.data.user.id);
   const direct = createClient(config.API_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -25798,6 +26124,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'username-controls') {
+    await require('./username-controls.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-user-search') {
     await require('./admin-user-search.cjs')({ admin, provision, anonymous, verify, url, config });
     return;
@@ -25889,6 +26219,63 @@ async function run() {
     server.kill('SIGTERM'); fs.closeSync(log);
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
+```
+
+### File: `tests/backend/username-controls.cjs`
+
+SHA-256: `f8f0ac2debcd1560e0f4c35e8e9b881ec1a7cd059c7bd5c66fef6aa4dbce0839`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real isolated database acceptance. */
+const { Client } = require('pg');
+module.exports = async function usernameControls({ admin, provision, anonymous, verify, url, config }) {
+  const manager = await provision('Control Manager');
+  await admin.from('admin_users').insert({ user_id: manager.id });
+  const students = await Promise.all(Array.from({ length: 12 }, () => provision('Zack Middle River')));
+  const profiles = (await admin.from('profiles').select('id,username').in('id',students.map(student => student.id))).data;
+  verify(profiles.length === 12 && profiles.every(profile => /^zackriver\d{6}$/.test(profile.username)), 'Concurrent same-name signups merge first and last names with six random digits');
+  verify(new Set(profiles.map(profile => profile.username)).size === 12, 'All concurrent generated usernames are unique');
+  const arabic = await provision('محمد أحمد خطاب'), single = await provision('Cher');
+  verify(/^محمدخطاب\d{6}$/.test(JSON.parse((await arabic.api('/api/profile')).data).username), 'Arabic first and last names generate a readable username');
+  verify(/^cher\d{6}$/.test(JSON.parse((await single.api('/api/profile')).data).username), 'Single-name accounts generate a valid username');
+  const [a,b] = students;
+  const change = (student, username) => student.api('/api/profile', { name: 'Zack Middle River', email: student.email, username });
+  verify((await change(a,' My-Custom_Name ')).status === 200, 'Student can choose a normalized username');
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Chosen username persists in profile');
+  await a.api('/api/profile', { name: 'New Name', email:a.email });
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'my-custom_name', 'Name-only profile upsert preserves chosen username');
+  await Promise.all([a.api('/api/profile',{name:'Concurrent Name',email:a.email}),change(a,'kept-during-upsert')]);
+  verify(JSON.parse((await a.api('/api/profile')).data).username === 'kept-during-upsert', 'Concurrent name-only upsert cannot overwrite a chosen username');
+  await change(a,'my-custom_name');
+  const duplicate = await change(b,'MY-CUSTOM_NAME');
+  verify(duplicate.status === 409 && JSON.parse(duplicate.data).code === 'USERNAME_TAKEN', 'Case-insensitive duplicate rename returns helpful conflict');
+  const racing = await Promise.all([change(a,'shared-race'),change(b,'shared-race')]);
+  verify(racing.filter(response => response.status === 200).length === 1 && racing.filter(response => response.status === 409).length === 1, 'Concurrent custom renames reserve a username atomically');
+  for (const invalid of ['ab','invalid name','x'.repeat(49),'../evil']) verify((await change(b,invalid)).status === 400, 'Invalid username rejected: '+invalid.slice(0,20));
+  verify((await anonymous('/api/profile',{ name:'New Name',email:a.email,username:'forged' })).status === 401, 'Anonymous cannot rename a profile');
+  verify((await b.direct.from('profiles').update({username:'forged'}).eq('id',a.id).select()).data?.length === 0, 'RLS blocks another account rename');
+  const db = new Client({ connectionString: config.DB_URL }); await db.connect();
+  try {
+    const result = await db.query("select private.username_base($1) as base, private.username_base($2) as fallback",[' ZACK   Middle River ','!!!']);
+    verify(result.rows[0].base === 'zackriver' && result.rows[0].fallback === 'user', 'Username helper handles whitespace, case and fallback');
+    const legacy = students[2], chosen = students[3];
+    await db.query("update public.profiles set username='user-' || replace(id::text,'-','') where id=$1",[legacy.id]);
+    await db.query("update public.profiles set username='chosen-keep' where id=$1",[chosen.id]);
+    await db.query("update public.profiles set username=private.generate_default_username(name) where username='user-' || replace(id::text,'-','')");
+    const migrated=await db.query('select id,username from public.profiles where id=any($1::uuid[])',[[legacy.id,chosen.id]]);
+    verify(migrated.rows.find(row=>row.id===chosen.id).username==='chosen-keep' && /^zackriver\d{6}$/.test(migrated.rows.find(row=>row.id===legacy.id).username), 'Migration backfills legacy defaults and preserves chosen usernames');
+    await db.query('set enable_seqscan=off');
+    const plan = await db.query("explain select id from public.profiles where lower(name) ^@ lower($1)", ['محمد']);
+    verify(plan.rows.some(row => row['QUERY PLAN'].includes('profiles_name_prefix_idx')), 'Actual parameterized prefix predicate can use the SP-GiST name index');
+  } finally { await db.end(); }
+  await a.api('/api/profile', { name:'Other Name',email:a.email });
+  const search = async value => JSON.parse((await manager.api('/api/admin/users?mode=prefix&q='+encodeURIComponent(value))).data);
+  verify((await search('محمد')).users.some(user => user.id === arabic.id), 'Arabic first-letter indexed search finds the right account');
+  verify((await search(a.email)).total === 0, 'Prefix mode searches names rather than email');
+  verify((await search('ZaCk')).total === 11, 'Name-prefix search ignores Latin case');
+  verify((await manager.api('/api/admin/users?mode=unknown')).status === 400, 'Unknown search mode rejected');
+  await require('./form-controls-browser.cjs')({ manager, student:b, verify, url });
+};
 ```
 
 ### File: `tests/countdown.spec.ts`
@@ -27351,6 +27738,33 @@ test("T25 T26 T27 T28 engine owns targets, future motion and ten clean lifecycle
 });
 ```
 
+### File: `tests/platform/fixtures/reuse/app/form-controls/page.tsx`
+
+SHA-256: `3dc9fbba0988cf3b356a18396559b86cc9e678d05672166be2a5b13de41cb3db`
+
+```tsx
+"use client";
+import { useState } from "react";
+import Select from "@khatab/design/ui/select";
+import { Checkbox, Radio } from "@khatab/design/ui/choice-controls";
+const options = [{ value: "alpha", label: "Alpha" }, { value: "beta", label: "Beta", disabled: true }, { value: "gamma", label: "Gamma" }];
+export default function ControlsFixture() {
+  const [controlled, setControlled] = useState("gamma"), [result, setResult] = useState("");
+  return <main className="lms-container"><h1>Shared form controls</h1>
+    <form className="lms-profile-form" onSubmit={event => { event.preventDefault(); setResult(JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)))); }}>
+      <Select label="Category" name="category" options={options} defaultValue="" required placeholder="Choose" validationMessage="Choose a category." />
+      <Select label="Controlled" name="controlled" options={options} value={controlled} defaultValue="alpha" onValueChange={setControlled} />
+      <Select label="Disabled" name="disabled" options={options} disabled />
+      <Checkbox label="Agree" name="agree" value="yes" />
+      <Checkbox label="Unavailable" name="unavailable" disabled />
+      <fieldset><legend>Choose a radio</legend><Radio label="First" name="choice" value="first" defaultChecked /><Radio label="Second" name="choice" value="second" /></fieldset>
+      <button className="btn-primary" type="submit">Submit</button><button className="lms-secondary-button" type="reset">Reset</button>
+      <output>{result}</output>
+    </form>
+  </main>;
+}
+```
+
 ### File: `tests/platform/fixtures/reuse/app/layout.tsx`
 
 SHA-256: `e6b207cfda7bc71b982d13e8228d8a5ab52d625fe191a3f35de579a245676233`
@@ -27437,7 +27851,7 @@ export default function Page() {
 
 ### File: `tests/platform/fixtures/reuse/app/reuse-fixture.tsx`
 
-SHA-256: `33e9ffab7436b218c9ef7cfe753da4b7414e6df73f320d757ca1949210de1f5b`
+SHA-256: `addd620439bfc2e558fd6febf7b0a804009ad0184051f6d47ef6644f15b9327c`
 
 ```tsx
 "use client";
@@ -27459,7 +27873,7 @@ import { notesKey } from "@platform/config/persistence";
 
 const profileCopy = {
   error: "INVALID",
-  name: "NAME",
+  name: "NAME", username: "USERNAME", usernameHint: "CHOOSE USERNAME",
   email: "EMAIL",
   emailPlaceholder: "EMAIL",
   saving: "SAVING",
@@ -27756,6 +28170,43 @@ SHA-256: `61c8e6e794b1c332813dc1bfb62ad4e3d77c600386c142b16130c6668070132a`
     "node_modules"
   ]
 }
+```
+
+### File: `tests/platform/form-controls.spec.ts`
+
+SHA-256: `f2ee8b06102dde0fe3bcbb62c33625e419b7de75fd14f0bbf35e48eb9300107e`
+
+```typescript
+import { test, expect } from "@playwright/test";
+const fixture = (process.env.REUSE_BASE_URL ?? "http://localhost:3043") + "/form-controls";
+test("shared controls preserve keyboard, validity, reset and native form data", async ({page}) => {
+  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));await page.goto(fixture);
+  const category=page.getByRole("combobox",{name:"Category",exact:true});
+  await expect(page.getByRole("combobox",{name:"Disabled",exact:true})).toBeDisabled();
+  await expect(page.getByRole("checkbox",{name:"Unavailable",exact:true})).toBeDisabled();
+  await page.getByRole("button",{name:"Submit",exact:true}).click();await expect(category).toBeFocused();
+  await expect(category).toHaveAttribute("aria-invalid","true");await expect(page.locator("form").getByRole("alert")).toHaveText("Choose a category.");
+  await category.press("ArrowDown");await category.press("Enter");await expect(category).toContainText("Alpha");
+  await expect(category).toHaveAttribute("aria-invalid","false");
+  await category.press("ArrowDown");await category.press("Enter");await expect(category).toContainText("Gamma");
+  await category.press("Home");await category.press("Enter");await expect(category).toContainText("Alpha");
+  await category.press("g");await category.press("Enter");await expect(category).toContainText("Gamma");
+  const agree=page.getByRole("checkbox",{name:"Agree",exact:true});await agree.focus();await page.keyboard.press("Space");await expect(agree).toBeChecked();
+  await page.getByRole("radio",{name:"First",exact:true}).focus();await page.keyboard.press("ArrowDown");await expect(page.getByRole("radio",{name:"Second",exact:true})).toBeChecked();
+  await page.getByRole("button",{name:"Submit",exact:true}).click();
+  await expect(page.locator("output")).toHaveText(JSON.stringify({category:"gamma",controlled:"gamma",agree:"yes",choice:"second"}));
+  await page.getByRole("button",{name:"Reset",exact:true}).click();await expect(category).toContainText("Choose");
+  await expect(page.getByRole("combobox",{name:"Controlled",exact:true})).toContainText("Alpha");await expect(agree).not.toBeChecked();
+  await category.click();await expect(page.getByRole("listbox")).toBeVisible();await page.getByRole("heading").click();await expect(category).toHaveAttribute("aria-expanded","false");
+  const ids=await page.locator("[id]").evaluateAll(nodes=>nodes.map(node=>node.id));expect(new Set(ids).size).toBe(ids.length);expect(errors).toEqual([]);
+});
+test("shared dropdown stays inside narrow viewports and respects reduced motion", async ({page})=>{
+  await page.setViewportSize({width:320,height:568});await page.emulateMedia({reducedMotion:"reduce"});await page.goto(fixture);
+  await page.getByRole("combobox",{name:"Controlled",exact:true}).click();const menu=page.getByRole("listbox");await expect(menu).toBeVisible();
+  const box=await menu.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(320);expect(box!.y+box!.height).toBeLessThanOrEqual(568);
+  await expect(menu).toHaveCSS("transition-duration","0s");await expect(menu.getByRole("option",{name:"Beta",exact:true})).toHaveAttribute("aria-disabled","true");
+  await page.keyboard.press("Escape");await expect(menu).not.toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
 ```
 
 ### File: `tests/platform/interaction-acceptance.spec.ts`

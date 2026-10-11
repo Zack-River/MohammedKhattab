@@ -17,7 +17,7 @@ import { notesKey } from "@platform/config/persistence";
 
 const profileCopy = {
   error: "INVALID",
-  name: "NAME",
+  name: "NAME", username: "USERNAME", usernameHint: "CHOOSE USERNAME",
   email: "EMAIL",
   emailPlaceholder: "EMAIL",
   saving: "SAVING",

@@ -43,6 +43,7 @@ export interface Course {
   featured?: boolean;
 }
 export interface Learner {
+  username?: string;
   name: string;
   email: string;
 }

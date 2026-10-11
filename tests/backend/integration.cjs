@@ -27,7 +27,7 @@ function account() {
 }
 const parse = response => JSON.parse(response.data);
 async function provision(name) {
-  const email = `${name.toLowerCase().replaceAll(" ", "-")}-${Date.now()}@example.com`, password = 'Local-Test-Password-19!';
+  const email = `test-${require("node:crypto").randomUUID()}@example.com`, password = 'Local-Test-Password-19!';
   const result = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name } });
   assert.ok(!result.error, 'Local fixture user created'); identities.push(result.data.user.id);
   const direct = createClient(config.API_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -42,6 +42,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'username-controls') {
+    await require('./username-controls.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-user-search') {
     await require('./admin-user-search.cjs')({ admin, provision, anonymous, verify, url, config });
     return;

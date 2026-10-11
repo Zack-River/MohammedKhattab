@@ -6,3 +6,4 @@ export const suspensionPeriods = [
 ] as const;
 export const userAdministration = { pageSize: 5, searchMaxLength: 100, newcomerDays: 7, permanentBanHours: 876000, refreshMs: 60000 } as const;
 export const userStatusFilters = ["suspended", "banned"] as const;
+export const userSearchModes = ["contains", "prefix"] as const;

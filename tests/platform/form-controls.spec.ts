@@ -1,0 +1,30 @@
+import { test, expect } from "@playwright/test";
+const fixture = (process.env.REUSE_BASE_URL ?? "http://localhost:3043") + "/form-controls";
+test("shared controls preserve keyboard, validity, reset and native form data", async ({page}) => {
+  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));await page.goto(fixture);
+  const category=page.getByRole("combobox",{name:"Category",exact:true});
+  await expect(page.getByRole("combobox",{name:"Disabled",exact:true})).toBeDisabled();
+  await expect(page.getByRole("checkbox",{name:"Unavailable",exact:true})).toBeDisabled();
+  await page.getByRole("button",{name:"Submit",exact:true}).click();await expect(category).toBeFocused();
+  await expect(category).toHaveAttribute("aria-invalid","true");await expect(page.locator("form").getByRole("alert")).toHaveText("Choose a category.");
+  await category.press("ArrowDown");await category.press("Enter");await expect(category).toContainText("Alpha");
+  await expect(category).toHaveAttribute("aria-invalid","false");
+  await category.press("ArrowDown");await category.press("Enter");await expect(category).toContainText("Gamma");
+  await category.press("Home");await category.press("Enter");await expect(category).toContainText("Alpha");
+  await category.press("g");await category.press("Enter");await expect(category).toContainText("Gamma");
+  const agree=page.getByRole("checkbox",{name:"Agree",exact:true});await agree.focus();await page.keyboard.press("Space");await expect(agree).toBeChecked();
+  await page.getByRole("radio",{name:"First",exact:true}).focus();await page.keyboard.press("ArrowDown");await expect(page.getByRole("radio",{name:"Second",exact:true})).toBeChecked();
+  await page.getByRole("button",{name:"Submit",exact:true}).click();
+  await expect(page.locator("output")).toHaveText(JSON.stringify({category:"gamma",controlled:"gamma",agree:"yes",choice:"second"}));
+  await page.getByRole("button",{name:"Reset",exact:true}).click();await expect(category).toContainText("Choose");
+  await expect(page.getByRole("combobox",{name:"Controlled",exact:true})).toContainText("Alpha");await expect(agree).not.toBeChecked();
+  await category.click();await expect(page.getByRole("listbox")).toBeVisible();await page.getByRole("heading").click();await expect(category).toHaveAttribute("aria-expanded","false");
+  const ids=await page.locator("[id]").evaluateAll(nodes=>nodes.map(node=>node.id));expect(new Set(ids).size).toBe(ids.length);expect(errors).toEqual([]);
+});
+test("shared dropdown stays inside narrow viewports and respects reduced motion", async ({page})=>{
+  await page.setViewportSize({width:320,height:568});await page.emulateMedia({reducedMotion:"reduce"});await page.goto(fixture);
+  await page.getByRole("combobox",{name:"Controlled",exact:true}).click();const menu=page.getByRole("listbox");await expect(menu).toBeVisible();
+  const box=await menu.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(320);expect(box!.y+box!.height).toBeLessThanOrEqual(568);
+  await expect(menu).toHaveCSS("transition-duration","0s");await expect(menu.getByRole("option",{name:"Beta",exact:true})).toHaveAttribute("aria-disabled","true");
+  await page.keyboard.press("Escape");await expect(menu).not.toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

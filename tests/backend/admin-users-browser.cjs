@@ -26,7 +26,8 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
     const management = page.getByRole('dialog', { name: 'إدارة الحساب', exact: true });
     await expect(management).toBeVisible();
-    await management.getByRole('combobox').selectOption('week');
+    await management.getByRole('combobox').click();
+    await page.getByRole('option', { name: 'أسبوع', exact: true }).click();
     await management.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'تأكيد الإجراء', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
@@ -61,7 +62,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
       const bounds = await management.boundingBox();
       verify(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 900, `Management dialog fits ${width}px viewport`);
       verify(Math.abs(bounds.x + bounds.width / 2 - width / 2) <= 1 && Math.abs(bounds.y + bounds.height / 2 - 450) <= 1, `Management dialog is centered at ${width}px`);
-      const targets = await management.locator('button, select').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+      const targets = await management.locator('button').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
       verify(targets.every(height => height >= 44), `Dialog controls have 44px touch targets at ${width}px`);
       await page.keyboard.press('Tab');
       verify(await management.evaluate(element => element.contains(document.activeElement)), `Keyboard focus remains inside dialog at ${width}px`);

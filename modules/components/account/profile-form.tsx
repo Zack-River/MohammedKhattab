@@ -3,7 +3,8 @@ import Action from "@khatab/design/ui/action";
 
 import type { ContentBindings } from "@platform/types/content";
 
-import { useId } from "react";
+import FormField from "@platform/components/ui/form-field";
+import { usernamePolicy } from "@platform/helpers/validation/username";
 import { useProfileSubmission } from "@platform/hooks/use-profile-submission";
 import type { Learner } from "@platform/types/lms";
 import { profilePolicy } from "@platform/features/profile/validation";
@@ -23,6 +24,8 @@ export default function ProfileForm({
     ContentBindings["copy"],
     | "error"
     | "name"
+    | "username"
+    | "usernameHint"
     | "email"
     | "emailPlaceholder"
     | "saving"
@@ -31,33 +34,15 @@ export default function ProfileForm({
     | "profileSaved"
   >;
 }) {
-  const id = useId();
   const { submit, pending, error, saved, emailChangePending } = useProfileSubmission(entry, copy.error);
   return (
     <form className="lms-profile-form" onSubmit={submit}>
-      <label htmlFor={`${id}-name`}>{copy.name}</label>
-      <input
-        id={`${id}-name`}
-        name="name"
-        defaultValue={entry ? "" : profile.name}
-        required
-        minLength={profilePolicy.nameMin}
-        maxLength={profilePolicy.nameMax}
-        autoComplete="name"
-        placeholder={interfaceCopy.namePlaceholder}
-      />
-      <label htmlFor={`${id}-email`}>{copy.email}</label>
-      <input
-        id={`${id}-email`}
-        name="email"
-        type="email"
-        dir="ltr"
-        defaultValue={profile.email}
-        required
-        maxLength={profilePolicy.emailMax}
-        autoComplete="email"
-        placeholder={copy.emailPlaceholder}
-      />
+      <FormField label={copy.name} name="name" defaultValue={entry ? "" : profile.name} required
+        minLength={profilePolicy.nameMin} maxLength={profilePolicy.nameMax} autoComplete="name" placeholder={interfaceCopy.namePlaceholder} />
+      {profile.username && <FormField label={copy.username} name="username" defaultValue={profile.username} required dir="auto"
+        minLength={usernamePolicy.min} maxLength={usernamePolicy.max} autoComplete="username" hint={copy.usernameHint} />}
+      <FormField label={copy.email} name="email" type="email" dir="ltr" defaultValue={profile.email} required
+        maxLength={profilePolicy.emailMax} autoComplete="email" placeholder={copy.emailPlaceholder} />
       <Action
         kind="button"
         className="btn-primary"

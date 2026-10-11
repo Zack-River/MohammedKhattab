@@ -2,6 +2,12 @@
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  --control-select-min-width: 200px;
+  --control-target-size: 44px;
+  --control-marker-size: 20px;
+  --control-radio-dot: 8px;
+  --control-menu-max-height: 288px;
+  --control-menu-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
   /* Reusable teaser-poster artwork; type scales with its container. */
   --coming-soon-title-size: clamp(2rem, 14cqi, 5.5rem);
   --coming-soon-ghost-size: clamp(3rem, 19cqi, 10rem);
