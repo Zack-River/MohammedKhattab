@@ -17,7 +17,7 @@ export const marketingNavigation = [
   { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },
-  { href: routes.portfolio, label: "تعرّف على مؤسس تعلّم" },
+  { href: routes.section("instructor"), label: "تعرّف على مؤسس تعلّم" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
@@ -47,6 +47,7 @@ export const instructor: InstructorContent = {
   },
   badge: "Editor & Graphic Designer",
   experience: "LEARN. CREATE. GROW.",
+  action: { href: routes.portfolio, label: "اعرف أكتر عن محمد خطاب" },
   stats: [
     { value: "01", label: "خطوة في كل مرة" },
     { value: "100%", label: "تعلّم بالتطبيق" },

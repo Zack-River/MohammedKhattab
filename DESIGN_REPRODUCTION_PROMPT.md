@@ -8922,7 +8922,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `d3c6af07f750347ce8abf56c4abb73beb10fccd201f4687ab7c6477f12bdeb54`
+SHA-256: `c0f9572d1443384503708d9127b18ccee3403e358b3ab0fec21e8e261226a403`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -8944,7 +8944,7 @@ export const marketingNavigation = [
   { href: routes.section("courses"), label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },
-  { href: routes.portfolio, label: "تعرّف على مؤسس تعلّم" },
+  { href: routes.section("instructor"), label: "تعرّف على مؤسس تعلّم" },
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
@@ -8974,6 +8974,7 @@ export const instructor: InstructorContent = {
   },
   badge: "Editor & Graphic Designer",
   experience: "LEARN. CREATE. GROW.",
+  action: { href: routes.portfolio, label: "اعرف أكتر عن محمد خطاب" },
   stats: [
     { value: "01", label: "خطوة في كل مرة" },
     { value: "100%", label: "تعلّم بالتطبيق" },
@@ -30370,7 +30371,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/navigation-links.spec.ts`
 
-SHA-256: `b7b39cdc71f6dbe1c64d76912a4d4b62f72c765d72adb2c96a8a4105ac34165f`
+SHA-256: `5c4044c753bedc82f6d061cd40152fecb8aadd19d51171d3b0bf951dc0602680`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -30385,13 +30386,20 @@ for (const width of [320, 1440]) {
     if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
     const courses = header.getByRole("link", { name: "الدورات", exact: true });
     await expect(courses).toHaveAttribute("href", "/#courses");
-    await expect(header.getByRole("link", { name: "تعرّف على مؤسس تعلّم", exact: true })).toHaveAttribute("href", "/founder");
+    await expect(header.getByRole("link", { name: "تعرّف على مؤسس تعلّم", exact: true })).toHaveAttribute("href", "/#instructor");
     await expect(header.getByRole("link", { name: "عن المدرب", exact: true })).toHaveCount(0);
     await courses.click();
     await expect(page).toHaveURL(/\/#courses$/);
     await expect(page.locator("#courses")).toBeInViewport();
     await expect(page.locator("#courses").getByRole("link", { name: "كل الدورات", exact: true })).toHaveAttribute("href", "/courses");
-    await page.goto("/founder");
+    if (width === 320) await header.getByRole("button", { name: "فتح قائمة التنقل", exact: true }).click();
+    await header.getByRole("link", { name: "تعرّف على مؤسس تعلّم", exact: true }).click();
+    await expect(page).toHaveURL(/\/#instructor$/);
+    await expect(page.locator("#instructor")).toBeInViewport();
+    const founderButton = page.locator("#instructor").getByRole("link", { name: "اعرف أكتر عن محمد خطاب", exact: true });
+    await expect(founderButton).toHaveAttribute("href", "/founder");
+    await founderButton.click();
+    await expect(page).toHaveURL(/\/founder$/);
     const founder = page.locator(".personal-header");
     if (width === 320) await founder.getByRole("button", { name: "فتح القائمة", exact: true }).click();
     const links = founder.locator("nav a");
