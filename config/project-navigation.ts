@@ -9,7 +9,6 @@ export const projectNavigation = {
   links: [
     { href: projectRoutes.portfolio, label: "محمد خطاب" },
     { href: projectRoutes.learning, label: "تعلّم" },
-    { href: projectRoutes.workshop, label: "ورشة التغيير" },
   ],
 };
 

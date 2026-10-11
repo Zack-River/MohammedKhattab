@@ -2,6 +2,7 @@
 import { useBelowBreakpoint } from "@khatab/design/hooks/use-below-breakpoint";
 import { routes } from "@platform/config/navigation";
 
+import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { ContentBindings } from "@platform/types/content";
 
 import Link from "next/link";
@@ -15,16 +16,17 @@ export default function SiteHeader({
   marketingNavigation,
   copy,
   site,
+  account = null,
   actions = {
     home: routes.home,
-    dashboard: routes.dashboard,
     start: routes.login,
   },
 }: {
-  actions?: { home: string; dashboard: string; start: string };
+  account?: NavigationAccount | null;
+  actions?: { home: string; start: string };
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],
-    "mainNavigationLabel" | "dashboardLabel"
+    "mainNavigationLabel"
   >;
   marketingNavigation: ContentBindings["marketingNavigation"];
   copy: Pick<ContentBindings["copy"], "start" | "close" | "menu">;
@@ -66,13 +68,8 @@ export default function SiteHeader({
             ))}
           </div>
           <div className="lms-nav-actions">
-            <Link href={actions.dashboard} className="lms-text-link">
-              {interfaceCopy.dashboardLabel}
-            </Link>
-            <Link href={actions.start} className="btn-primary lms-nav-button">
-              {copy.start}
-              <Symbol name="arrow" />
-            </Link>
+            {account ? <Link href={account.href} className="lms-text-link">{account.label}</Link> :
+              <Link href={actions.start} className="btn-primary lms-nav-button">{copy.start}<Symbol name="arrow" /></Link>}
             <button
               className="lms-mobile-toggle"
               ref={toggleRef}

@@ -1,4 +1,3 @@
-import { projectNavigation, projectRoutes } from "../../config/project-navigation";
 import { creatorIdentity, learningIdentity } from "../../config/identity";
 import { routes, sectionIds } from "@platform/config/navigation";
 import type {
@@ -15,7 +14,6 @@ export const site = {
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
-  ...projectNavigation.links.filter((link) => link.href === projectRoutes.workshop),
   { href: routes.courses, label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },

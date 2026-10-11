@@ -1,3 +1,4 @@
+import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { Course } from "@platform/types/lms";
 import { createHeaderModel } from "./models/header";
 import { createHeroModel } from "./models/hero";
@@ -9,9 +10,9 @@ import { workSamplesContent, testimonialsContent } from "../../../config/marketi
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { instructor, howItWorks, faq, skillStripItems } from "@platform/data/site";
 import LandingPage, { type LandingModel } from "@platform/components/marketing/landing-page";
-export function createLandingModel(courses: Course[]): LandingModel {
+export function createLandingModel(courses: Course[], account: NavigationAccount | null = null): LandingModel {
   return {
-    header: createHeaderModel(),
+    header: createHeaderModel(account),
     workSamples: { content: workSamplesContent, reveal: true },
     testimonials: { content: testimonialsContent, reveal: true },
     hero: createHeroModel(courses),

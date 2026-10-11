@@ -448,9 +448,10 @@ export default function ForgotPasswordPage() {
 
 ### File: `app/(public)/layout.tsx`
 
-SHA-256: `036efd7e6acea79bf3b63a4ec0b254c2c7f268f850b6f4c5dce88185eff2a21b`
+SHA-256: `62c53f0de28dd6324e575573e770002314750304c0318e225bd459a0d91f1ba9`
 
 ```tsx
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
 import { interfaceCopy } from "@platform/data/interface-copy";
@@ -459,7 +460,7 @@ import { copy } from "@platform/data/site";
 import { site } from "@platform/data/site";
 import SiteHeader from "@platform/components/layout/site-header";
 import SiteFooter from "@platform/components/layout/site-footer";
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -467,9 +468,9 @@ export default function PublicLayout({
   return (
     <>
       <SiteHeader
+        account={await readNavigationAccount()}
         interfaceCopy={{
           mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-          dashboardLabel: interfaceCopy.dashboardLabel,
         }}
         marketingNavigation={marketingNavigation}
         copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
@@ -3203,9 +3204,10 @@ export default function NotFound() {
 
 ### File: `app/page.tsx`
 
-SHA-256: `4db2beac9984fa9110452e1e8dbdcac3e83b4ac1cb3b1256c263a9172a32da69`
+SHA-256: `d40fccc0d63035e94c61c6e633b2b1c947b32725530c10ef61a34ab147645e2c`
 
 ```tsx
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { listCourses } from "@platform/features/catalog";
 import { createLandingModel } from "@platform/features/marketing/landing";
 import type { Metadata } from "next";
@@ -3216,7 +3218,8 @@ export const metadata: Metadata = {
   description: interfaceCopy.metadataDescription,
 };
 export default async function Ta3llamPage() {
-  return <Landing model={createLandingModel(await listCourses())} />;
+  const [courses, account] = await Promise.all([listCourses(), readNavigationAccount()]);
+  return <Landing model={createLandingModel(courses, account)} />;
 }
 ```
 
@@ -3937,7 +3940,7 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `1da5d41a7b715c42a6c7d334b8ce87774c653064f54844d9cd54317d199c5237`
+SHA-256: `04b3a746ac883c21623dc2fe5d7010b9b3b6d37cd33137682e807bf52f656853`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
@@ -3951,7 +3954,6 @@ export const projectNavigation = {
   links: [
     { href: projectRoutes.portfolio, label: "محمد خطاب" },
     { href: projectRoutes.learning, label: "تعلّم" },
-    { href: projectRoutes.workshop, label: "ورشة التغيير" },
   ],
 };
 
@@ -6083,13 +6085,14 @@ export default function SiteFooter({
 
 ### File: `modules/components/layout/site-header.tsx`
 
-SHA-256: `190405ddfbcac4359fb97ad4f148704efe66ebbb9e89a6e25e6352cdb1b96199`
+SHA-256: `0621db8fe6547384c8ca3152f2c3ccf7ab2b13c48cf22d46265bbec2d14744ea`
 
 ```tsx
 "use client";
 import { useBelowBreakpoint } from "@khatab/design/hooks/use-below-breakpoint";
 import { routes } from "@platform/config/navigation";
 
+import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { ContentBindings } from "@platform/types/content";
 
 import Link from "next/link";
@@ -6103,16 +6106,17 @@ export default function SiteHeader({
   marketingNavigation,
   copy,
   site,
+  account = null,
   actions = {
     home: routes.home,
-    dashboard: routes.dashboard,
     start: routes.login,
   },
 }: {
-  actions?: { home: string; dashboard: string; start: string };
+  account?: NavigationAccount | null;
+  actions?: { home: string; start: string };
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],
-    "mainNavigationLabel" | "dashboardLabel"
+    "mainNavigationLabel"
   >;
   marketingNavigation: ContentBindings["marketingNavigation"];
   copy: Pick<ContentBindings["copy"], "start" | "close" | "menu">;
@@ -6154,13 +6158,8 @@ export default function SiteHeader({
             ))}
           </div>
           <div className="lms-nav-actions">
-            <Link href={actions.dashboard} className="lms-text-link">
-              {interfaceCopy.dashboardLabel}
-            </Link>
-            <Link href={actions.start} className="btn-primary lms-nav-button">
-              {copy.start}
-              <Symbol name="arrow" />
-            </Link>
+            {account ? <Link href={account.href} className="lms-text-link">{account.label}</Link> :
+              <Link href={actions.start} className="btn-primary lms-nav-button">{copy.start}<Symbol name="arrow" /></Link>}
             <button
               className="lms-mobile-toggle"
               ref={toggleRef}
@@ -8911,10 +8910,9 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `5075bcb938cb5d49c42c9b3dd9be985aef2ddb0a67b751e85f51a35f609768da`
+SHA-256: `a2187fd89195ae7d8cf25dfbba687157b50c48fe5032929737694a7edd523540`
 
 ```typescript
-import { projectNavigation, projectRoutes } from "../../config/project-navigation";
 import { creatorIdentity, learningIdentity } from "../../config/identity";
 import { routes, sectionIds } from "@platform/config/navigation";
 import type {
@@ -8931,7 +8929,6 @@ export const site = {
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
-  ...projectNavigation.links.filter((link) => link.href === projectRoutes.workshop),
   { href: routes.courses, label: "الدورات" },
   { href: routes.section("steps"), label: "كيف تتعلّم؟" },
   { href: routes.section("coaching"), label: "الكوتشينج" },
@@ -10110,6 +10107,26 @@ export async function requireIdentity() {
 }
 ```
 
+### File: `modules/features/auth/server/navigation-account.ts`
+
+SHA-256: `ce1371d7a9c2f1a54a3b5c13e03a8e438fe2483c3467265981f10fe4d1eb2276`
+
+```typescript
+import "server-only";
+import { currentIdentity } from "./identity";
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { routes } from "@platform/config/navigation";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { adminUsersCopy } from "@platform/data/admin-users";
+import type { NavigationAccount } from "@platform/types/navigation-account";
+export async function readNavigationAccount(): Promise<NavigationAccount | null> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) return null;
+  if (!await currentIdentity()) return null;
+  const admin = await hasAdminAccess();
+  return { href: admin ? routes.adminDashboard : routes.dashboard, label: admin ? adminUsersCopy.dashboard : interfaceCopy.dashboardLabel };
+}
+```
+
 ### File: `modules/features/auth/server/page-identity.ts`
 
 SHA-256: `e4cbbaf236cd3fa5fba366335eb6d7becb8f598195fa273e1932317733572977`
@@ -10941,9 +10958,10 @@ export { default as Landing } from "./landing";
 
 ### File: `modules/features/marketing/landing.tsx`
 
-SHA-256: `3805a3bd8a07be6d8c8d9cd8cfdd411dc685a54f46918f839b892e78cf223134`
+SHA-256: `0bf68192c44c769774b8994b3d99a8c1cf31a6777944fc53fc64a3347cf8c15c`
 
 ```tsx
+import type { NavigationAccount } from "@platform/types/navigation-account";
 import type { Course } from "@platform/types/lms";
 import { createHeaderModel } from "./models/header";
 import { createHeroModel } from "./models/hero";
@@ -10955,9 +10973,9 @@ import { workSamplesContent, testimonialsContent } from "../../../config/marketi
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { instructor, howItWorks, faq, skillStripItems } from "@platform/data/site";
 import LandingPage, { type LandingModel } from "@platform/components/marketing/landing-page";
-export function createLandingModel(courses: Course[]): LandingModel {
+export function createLandingModel(courses: Course[], account: NavigationAccount | null = null): LandingModel {
   return {
-    header: createHeaderModel(),
+    header: createHeaderModel(account),
     workSamples: { content: workSamplesContent, reveal: true },
     testimonials: { content: testimonialsContent, reveal: true },
     hero: createHeroModel(courses),
@@ -11137,17 +11155,18 @@ export function createFooterModel(): LandingModel["footer"] {
 
 ### File: `modules/features/marketing/models/header.ts`
 
-SHA-256: `3eb3505be82e1adde576e9eb44127ed44e60275ac1a5fa5b47f9623649f3112f`
+SHA-256: `b895b6eab6aa87bde05b335383fe989b7a6d60a5dc1fe2091250298411af5e19`
 
 ```typescript
+import type { NavigationAccount } from "@platform/types/navigation-account";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { copy, site, marketingNavigation } from "@platform/data/site";
 import type { LandingModel } from "@platform/components/marketing/landing-page";
-export function createHeaderModel(): LandingModel["header"] {
+export function createHeaderModel(account: NavigationAccount | null = null): LandingModel["header"] {
   return {
+    account,
     interfaceCopy: {
       mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-      dashboardLabel: interfaceCopy.dashboardLabel,
     },
     marketingNavigation: marketingNavigation,
     copy: { start: copy.start, close: copy.close, menu: copy.menu },
@@ -16702,6 +16721,17 @@ export interface Resource {
   description: string;
   type: string;
   content: string;
+}
+```
+
+### File: `modules/types/navigation-account.ts`
+
+SHA-256: `6011cdc4d970f7c82478d68a53850eee0085319a0d38eb3d8acf51acf02f6333`
+
+```typescript
+export interface NavigationAccount {
+  href: string;
+  label: string;
 }
 ```
 
@@ -27343,7 +27373,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `dd06ad1f1f31e74f03fa23b3bfe09f75aaf8b10fa711dc4a7262f1b843b83305`
+SHA-256: `4d7e0f0d161f00b6682036b2a1d97f065bf3205815b8230e2abc84f4a01e2b89`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -27395,6 +27425,12 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'navigation') {
+    const manager=await provision('Navigation Manager'),student=await provision('Navigation Student');
+    assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+    await require('./navigation-browser.cjs')({url,manager,student,verify});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'account-settings-browser') {
     const manager=await provision('Account Manager'),student=await provision('Account Student');
     await admin.from('admin_users').insert({user_id:manager.id});
@@ -27502,6 +27538,54 @@ async function run() {
     server.kill('SIGTERM'); fs.closeSync(log);
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
+```
+
+### File: `tests/backend/navigation-browser.cjs`
+
+SHA-256: `a2ab3edf4d110afeae034204f37ff650cc838654733fa443cbdc76e274f5f508`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Session-aware navigation with isolated accounts. */
+const {chromium,expect}=require('@playwright/test');
+module.exports=async function navigation({url,manager,student,verify}) {
+ const browser=await chromium.launch();
+ try {
+  for(const identity of [null,student,{...manager,admin:true}]) {
+   const context=await browser.newContext(),page=await context.newPage(),errors=[];
+   page.on('pageerror',e=>errors.push(e.message));
+   page.on('console',message=>{if(message.type()==='error' && /hydrat|server rendered|didn't match/i.test(message.text())) errors.push(message.text());});
+   if(identity) {
+    await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(identity.email);
+    await page.getByLabel('كلمة المرور',{exact:true}).fill(identity.password);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
+    await expect(page).toHaveURL(url+(identity.admin?'/admin/dashboard':'/dashboard'));
+   }
+   const role=identity?(identity.admin?'admin':'student'):'guest';
+   for(const path of ['/','/courses','/login']) {
+    await page.goto(url+path);const header=page.locator('header.lms-site-header');
+    await expect(header.getByRole('link',{name:'ورشة التغيير',exact:true})).toHaveCount(0);
+    verify(true,role+' '+path+': workshop removed from navbar');
+    if(identity) {
+     await expect(header.getByRole('link',{name:'ابدأ التعلّم',exact:true})).toHaveCount(0);
+     const label=identity.admin?'لوحة الإدارة':'لوحة التعلّم',href=identity.admin?'/admin/dashboard':'/dashboard';
+     await expect(header.getByRole('link',{name:label,exact:true})).toHaveAttribute('href',href);
+     verify(true,role+' '+path+': only role-appropriate dashboard action shown');
+    } else {
+     await expect(header.getByRole('link',{name:'لوحة التعلّم',exact:true})).toHaveCount(0);
+     await expect(header.getByRole('link',{name:'لوحة الإدارة',exact:true})).toHaveCount(0);
+     await expect(header.getByRole('link',{name:'ابدأ التعلّم',exact:true})).toHaveAttribute('href','/login');
+     verify(true,'guest '+path+': learning action visible without dashboard action');
+    }
+    await page.setViewportSize({width:320,height:844});
+    verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),role+' '+path+': navbar fits 320px');
+    await page.setViewportSize({width:1440,height:900});
+   }
+   await page.goto(url+'/founder');await expect(page.locator('header').getByRole('link',{name:'ورشة التغيير',exact:true})).toHaveCount(0);
+   verify(true,role+': founder navbar has no workshop link');
+   verify(errors.length===0,role+': no navigation runtime or hydration errors');await context.close();
+  }
+ } finally {await browser.close();}
+};
 ```
 
 ### File: `tests/backend/username-controls.cjs`
@@ -29157,7 +29241,7 @@ export default function Page() {
 
 ### File: `tests/platform/fixtures/reuse/app/reuse-fixture.tsx`
 
-SHA-256: `addd620439bfc2e558fd6febf7b0a804009ad0184051f6d47ef6644f15b9327c`
+SHA-256: `ed195f1b21344e8ad4a2189256b8788c9c53c3bf2c02102dcc64a90c6b221a29`
 
 ```tsx
 "use client";
@@ -29211,7 +29295,6 @@ function alternate(base: LandingModel, prefix: string): LandingModel {
       actions: {
         home: `/${prefix}`,
         start: `/${prefix}/start`,
-        dashboard: `/${prefix}/dashboard`,
       },
     },
     hero: {

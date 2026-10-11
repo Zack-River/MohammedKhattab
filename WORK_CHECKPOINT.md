@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — session-aware public navbars
+
+- Removed the workshop link from shared navigation and marketing links, including the founder's navbar. Workshop/course pages remain available.
+- Guests see “ابدأ التعلّم” and no dashboard action. Signed-in students see “لوحة التعلّم” → `/dashboard`; admins see “لوحة الإدارة” → `/admin/dashboard`. The guest action is hidden for both signed-in roles. A small server adapter validates identity/access/admin membership and passes presentation-only link data to the reusable header.
+- Added home and email-auth routes to session-refresh matching. Existing mobile menu, colors, fonts and spacing are reused.
+- TypeScript, ESLint, architecture (**525 files / zero violations**), production build, secret scan and reusable landing fixture passed. Navigation browser acceptance passed **35 checks**; the actual local production build passed **33 read-only checks** for guest/student/admin navigation and 320px layouts. Local build **b9_G2piyYaTK3ZmqkJt74** is running at `http://localhost:3040`. Deployment verification is in progress.
+
 ## Latest checkpoint — account dropdown, settings and contact verification (implemented; Gmail setup pending)
 
 - Added reusable avatar/action menu with Profile, Settings, WhatsApp Support and Logout. Admin destinations remain inside `/admin/dashboard`; outside click/focus-leave, keyboard navigation and responsive placement are implemented.

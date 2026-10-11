@@ -49,7 +49,6 @@ function alternate(base: LandingModel, prefix: string): LandingModel {
       actions: {
         home: `/${prefix}`,
         start: `/${prefix}/start`,
-        dashboard: `/${prefix}/dashboard`,
       },
     },
     hero: {

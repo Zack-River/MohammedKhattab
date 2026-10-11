@@ -1,0 +1,40 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Navigation Manager: real login
+PASS 2: Navigation Student: real login
+PASS 3: guest /: workshop removed from navbar
+PASS 4: guest /: learning action visible without dashboard action
+PASS 5: guest /: navbar fits 320px
+PASS 6: guest /courses: workshop removed from navbar
+PASS 7: guest /courses: learning action visible without dashboard action
+PASS 8: guest /courses: navbar fits 320px
+PASS 9: guest /login: workshop removed from navbar
+PASS 10: guest /login: learning action visible without dashboard action
+PASS 11: guest /login: navbar fits 320px
+PASS 12: guest: founder navbar has no workshop link
+PASS 13: guest: no navigation runtime or hydration errors
+PASS 14: student /: workshop removed from navbar
+PASS 15: student /: only role-appropriate dashboard action shown
+PASS 16: student /: navbar fits 320px
+PASS 17: student /courses: workshop removed from navbar
+PASS 18: student /courses: only role-appropriate dashboard action shown
+PASS 19: student /courses: navbar fits 320px
+PASS 20: student /login: workshop removed from navbar
+PASS 21: student /login: only role-appropriate dashboard action shown
+PASS 22: student /login: navbar fits 320px
+PASS 23: student: founder navbar has no workshop link
+PASS 24: student: no navigation runtime or hydration errors
+PASS 25: admin /: workshop removed from navbar
+PASS 26: admin /: only role-appropriate dashboard action shown
+PASS 27: admin /: navbar fits 320px
+PASS 28: admin /courses: workshop removed from navbar
+PASS 29: admin /courses: only role-appropriate dashboard action shown
+PASS 30: admin /courses: navbar fits 320px
+PASS 31: admin /login: workshop removed from navbar
+PASS 32: admin /login: only role-appropriate dashboard action shown
+PASS 33: admin /login: navbar fits 320px
+PASS 34: admin: founder navbar has no workshop link
+PASS 35: admin: no navigation runtime or hydration errors
+Backend integration: 35 checks passed

@@ -1,3 +1,4 @@
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
 import { interfaceCopy } from "@platform/data/interface-copy";
@@ -6,7 +7,7 @@ import { copy } from "@platform/data/site";
 import { site } from "@platform/data/site";
 import SiteHeader from "@platform/components/layout/site-header";
 import SiteFooter from "@platform/components/layout/site-footer";
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -14,9 +15,9 @@ export default function PublicLayout({
   return (
     <>
       <SiteHeader
+        account={await readNavigationAccount()}
         interfaceCopy={{
           mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-          dashboardLabel: interfaceCopy.dashboardLabel,
         }}
         marketingNavigation={marketingNavigation}
         copy={{ start: copy.start, close: copy.close, menu: copy.menu }}

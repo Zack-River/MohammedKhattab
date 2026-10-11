@@ -1,3 +1,4 @@
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { listCourses } from "@platform/features/catalog";
 import { createLandingModel } from "@platform/features/marketing/landing";
 import type { Metadata } from "next";
@@ -8,5 +9,6 @@ export const metadata: Metadata = {
   description: interfaceCopy.metadataDescription,
 };
 export default async function Ta3llamPage() {
-  return <Landing model={createLandingModel(await listCourses())} />;
+  const [courses, account] = await Promise.all([listCourses(), readNavigationAccount()]);
+  return <Landing model={createLandingModel(courses, account)} />;
 }

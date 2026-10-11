@@ -47,6 +47,12 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'navigation') {
+    const manager=await provision('Navigation Manager'),student=await provision('Navigation Student');
+    assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+    await require('./navigation-browser.cjs')({url,manager,student,verify});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'account-settings-browser') {
     const manager=await provision('Account Manager'),student=await provision('Account Student');
     await admin.from('admin_users').insert({user_id:manager.id});
