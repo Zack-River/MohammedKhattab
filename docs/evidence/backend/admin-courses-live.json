@@ -1,13 +1,15 @@
 {
   "origin": "https://ta3allam.vercel.app",
-  "checkedAt": "2026-10-11T21:46:35.514Z",
+  "checkedAt": "2026-10-11T21:51:27.501Z",
   "checks": [
     "Guest list denied",
     "Eight course overview columns",
     "Authenticated database counts with bounded pagination",
     "Search finds exact course",
     "Responsive 320px",
+    "Stacked mobile heading 320px",
     "Responsive 390px",
+    "Stacked mobile heading 390px",
     "Responsive 768px",
     "Responsive 1440px",
     "Responsive 1920px",
