@@ -1,0 +1,14 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "checkedAt": "2026-10-11T21:06:57.120Z",
+  "checks": [
+    "Offscreen mobile chart is not mounted",
+    "Chart mounts near viewport",
+    "Admin panels use shared fade targets",
+    "Reduced motion skips reveal effects",
+    "Video stream is not retrieved before activation",
+    "Deferred player loads after activation",
+    "Instructor image uses Next optimization"
+  ],
+  "errors": []
+}

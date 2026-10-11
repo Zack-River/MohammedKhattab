@@ -19,6 +19,28 @@ The isolated backend suite passed 190 checks, including guest/student denial, co
 
 Reproduce timing collection with `TARGET_URL=https://ta3allam.vercel.app OUTPUT=docs/evidence/performance-2026-10-11/live-after.json node tests/backend/performance-live.cjs`, using the ignored local admin credentials. No personal data, tokens, or passwords are written to the report. The local production probe is recorded in `local-after.json`: all five admin hard navigations make zero browser session checks; account/admin reveal targets register correctly. Its first home image transfer was about 270KB versus the older live baseline of 960KB. These environments differ, so this is not a live speed comparison. Six media/responsive tests passed.
 
-Commit `48b33df` is pushed. GitHub’s latest recorded Vercel deployment still points to `75ef4df`; no deployment/check entry exists for `48b33df` at the time of checking. The attempted live comparison in `live-still-previous-build.json` still has the old initial session calls/image bytes and must not be presented as the new code. The user was asked for the Vercel deployment status/error; hosted region and speed verification remain pending.
+## Hosted verification — 2026-10-12
+
+GitHub now records successful Vercel deployments for application commit `48b33df` and checkpoint commit `5836f27`. The production response identifies `fra1::lhr1`, confirming London function execution. The earlier `live-still-previous-build.json` captured the previous deployment and is excluded from the comparison.
+
+The same read-only probe now records `live-after.json`, with zero browser runtime errors and zero initial browser session requests across all five admin routes. The first home image transfer is 269,557 bytes versus 959,982 bytes before (about 72% less). Observed load-event timings are shown below. These are single diagnostic runs on different days with browser-cache effects and variable network/server warmth; they are evidence of current behavior, not guaranteed timings or a Core Web Vitals score.
+
+| Route | Before load event | After load event |
+| --- | ---: | ---: |
+| `/` | 1680ms | 851ms |
+| `/courses` | 491ms | 381ms |
+| `/founder` | 1146ms | 966ms |
+| `/workshops/7days-freelance` | 460ms | 463ms |
+| `/login` | 446ms | 257ms |
+| `/signup` | 349ms | 146ms |
+| `/admin/dashboard` | 1239ms | 288ms |
+| `/admin/dashboard/users` | 1439ms | 345ms |
+| `/admin/dashboard/settings` | 1327ms | 355ms |
+| `/admin/dashboard/courses` | 1525ms | 302ms |
+| `/admin/dashboard/phone-confirmations` | 1678ms | 383ms |
+
+Hosted analytics and settings acceptance passed, including responsive widths, desktop card alignment, protected analytics API, period tabs and navigation. Seven further hosted viewport/media assertions passed (`live-viewport.json`): offscreen mobile chart absent, chart mounts near view, admin panels register fade targets, reduced motion skips effects, no MP4 retrieval before play, lazy player activates, and instructor image uses Next optimization. No runtime errors were observed.
+
+Optional heavy charts and playback code are deferred; images use browser lazy loading. Server-rendered text, links and forms remain available immediately. This avoids delaying searchable content or fragment navigation in pursuit of blanket component laziness.
 
 References: [Supabase SSR clients and verified claims](https://supabase.com/docs/guides/auth/server-side/creating-a-client?queryGroups=framework&framework=nextjs), [Vercel function regions](https://vercel.com/docs/functions/configuring-functions/region). Implementation followed installed Next 16.3.8 lazy-loading/image/caching documentation.

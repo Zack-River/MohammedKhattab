@@ -1,6 +1,6 @@
 # Work checkpoint — Khatab / Ta3llam
 
-Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
+Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
 ## Latest checkpoint — measured loading bottlenecks and viewport deferral
 
@@ -8,7 +8,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 - Initial server-authorized dashboards now render immediately; client navigation and history/BFCache restores still verify sessions. Cached role/student-state reads are request-scoped, and student layout reads run concurrently. Verified claims refresh in Proxy; live server authorization remains in place.
 - Configured London functions, enabled optimized local images/existing instructor WebP, split playback imports until play, and deferred chart plotting near view with reserved height. Extended the existing fade/reduced-motion engine to protected panels and public account screens.
 - Passed 190 isolated backend checks and 11 performance checks, production build/TypeScript, lint and architecture. Local production analytics/settings checks passed. Details and measurement limits: `docs/PERFORMANCE_LOADING.md`.
-- Application commit `48b33df` is pushed. Local production probe confirms zero initial session checks across all five admin pages; 6/6 media tests passed. Hosted verification is pending: GitHub/Vercel still records `75ef4df` as the latest deployment, with no new deployment entry. The live probe still sees old behavior, so no live performance improvement is claimed. Asked the user for Vercel deployment status/error.
+- Application commit `48b33df` and checkpoint `5836f27` are successfully deployed. Hosted response confirms London execution. Live comparison records zero initial session checks across all five admin pages and roughly 72% less first-home image transfer. Observed admin load events changed from 1.2–1.7s to 0.29–0.38s in single diagnostic runs, not a guaranteed benchmark. Hosted responsive analytics/settings checks and seven additional viewport/media checks passed with zero runtime errors. Local 6/6 media tests passed. Full results and limits are recorded in `docs/PERFORMANCE_LOADING.md` and `docs/evidence/performance-2026-10-11/`.
 
 ## Latest checkpoint — aligned settings card heights
 
