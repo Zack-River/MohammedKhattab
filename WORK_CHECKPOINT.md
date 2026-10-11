@@ -8,7 +8,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 - Simplified KPI cards, widened the primary chart, enlarged the plotting area, and added a prominent selected monthly total with an equal-duration comparison. Metric selection updates both the chart and summary. Course tabs/ranking accents and quieter revenue cards retain the approved dark/red identity; calculation details live in the expandable explanation.
 - Revenue remains unavailable; referral sources remain actual account attribution rather than visitor counts. No backend aggregation, permissions, payments, or dependency changes.
 - Production build, TypeScript, lint and architecture checks passed. The isolated analytics suite passed 27 checks, including source-copy removal, selected totals, permissions and four responsive widths. Updated screenshots are in `docs/evidence/admin-analytics/`. Local production runtime refreshed on port 3040.
-- Production deployment verification will be recorded after pushing this change.
+- Application commit `bf51743` is deployed. Live real-admin checks passed at `https://ta3allam.vercel.app`: technical source text absent, selected chart totals match the API, revenue unavailable, four viewport widths without overflow, period/user navigation working, and zero browser errors.
 
 ## Latest checkpoint — hosted email templates saved
 
