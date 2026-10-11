@@ -4298,7 +4298,7 @@ export default function AdminDialog({ title, closeLabel, pending = false, onClos
 
 ### File: `modules/components/admin/admin-pagination.tsx`
 
-SHA-256: `ec52c66111afa4b7b40fdef50b13c4feeee9064297a2ca1049fdaf2468b02c75`
+SHA-256: `50d4d62de7adc5984a330c85028611c3e06bbef91513fc8fcfc17f38a390313e`
 
 ```tsx
 import Link from "next/link";
@@ -4306,8 +4306,8 @@ import { routes } from "@platform/config/navigation";
 import type { AdminUsersLabels } from "@platform/types/admin-users";
 export default function AdminPagination({ page, hasNext, labels }: { page: number; hasNext: boolean; labels: AdminUsersLabels }) {
   return <nav className="lms-admin-pagination" aria-label={labels.users}>
-    {page > 1 && <Link href={`${routes.adminUsers}?page=${page - 1}`} className="btn-secondary">{labels.previous}</Link>}
-    <span>{page}</span>{hasNext && <Link href={`${routes.adminUsers}?page=${page + 1}`} className="btn-secondary">{labels.next}</Link>}
+    {page > 1 && <Link href={`${routes.adminUsers}?page=${page - 1}`} className="lms-secondary-button">{labels.previous}</Link>}
+    <span>{page}</span>{hasNext && <Link href={`${routes.adminUsers}?page=${page + 1}`} className="lms-secondary-button">{labels.next}</Link>}
   </nav>;
 }
 ```
