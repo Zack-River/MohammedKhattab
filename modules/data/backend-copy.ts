@@ -1,4 +1,7 @@
 export const backendCopy: Record<string, string> = {
+  IMAGE_STORAGE_UNAVAILABLE: "خدمة الصور غير متاحة حاليًا. حاول لاحقًا.",
+  INVALID_IMAGE: "اختر صورة JPG أو PNG أو WebP صالحة.",
+  IMAGE_TOO_LARGE: "حجم الصورة يجب ألا يتجاوز ٣ ميجابايت.",
   RECOVERY_EXPIRED: "رابط استعادة كلمة المرور غير صالح أو انتهت مدته. اطلب رابطًا جديدًا.",
   EMAIL_LOCKED: "البريد الإلكتروني لا يمكن تغييره من حساب الطالب.",
   CURRENT_PASSWORD_REQUIRED: "أدخل كلمة المرور الحالية لتغيير البيانات الحساسة.",

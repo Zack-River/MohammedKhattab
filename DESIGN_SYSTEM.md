@@ -337,3 +337,7 @@ Admin navigation includes `/admin/dashboard/phone-confirmations`. The pending qu
 ## Deferred loading and shared fades
 
 Playback implementations load on activation; chart plotting waits until within the shared viewport margin while preserving themed height. Static text and section anchors remain server-rendered. Local shared images use Next image optimization and lazy loading; arbitrary remote image links preserve their prior handling. Dashboard and public account scopes use the existing data-reveal engine and reduced-motion behavior. No new animation dependency was added. See `docs/PERFORMANCE_LOADING.md`.
+
+## Profile and course image uploads (2026-10-12)
+
+Cloudinary stores avatars and course thumbnails only; Drive remains the video provider. `ImageUpload` is the shared product upload control, with typed scope, supplied copy and an optional completion callback. The account adapter composes the existing Avatar and refreshes after save; the course adapter fills the editable URL and keeps the existing explicit course Save action. Theme tokens own its spacing, borders, focus and hover duration. Mobile uses the existing settings stack; desktop stretches both settings columns to preserve aligned card edges after adding the avatar. The native file input is disabled until React hydration, then stays keyboard accessible through the labelled control. Images are processed server-side and delivered using Cloudinary format/quality optimization. Folder policy, permissions and validation are documented in `docs/CLOUDINARY_IMAGES.md`.

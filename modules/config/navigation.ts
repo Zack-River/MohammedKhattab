@@ -58,6 +58,7 @@ export const routes = {
   },
 };
 export const endpoints = {
+  imageUpload: "/api/media/images",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,

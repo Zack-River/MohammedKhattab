@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — Cloudinary avatars and course thumbnails
+
+- Added authenticated, same-origin `POST /api/media/images`, accepting bounded JPEG/PNG/WebP images only. Destination folders derive from the environment and verified user ID or admin-authorized course slug. Videos remain on Drive; reference assets remain local. Credentials are ignored locally and server-only; the user confirmed saving them in Vercel Production.
+- Added reusable typed upload control to account Settings and course editing. Avatars immediately persist/refresh; thumbnails fill the URL and publish on course Save. Added hydration gating for native file-selection events, optimized delivery URLs, and preserved responsive settings card alignment.
+- Cloudinary credentials and actual Media Library folders verified. Four unit cases and 36 isolated image integration checks passed, including real Cloudinary uploads, owner isolation, banned/guest denial, MIME/size/video rejection, URL persistence/reload and responsive layouts. Temporary test images were deleted. Existing full backend suite passed 190 checks. Production build/TypeScript, lint and architecture (591 files / zero violations) passed; hosted verification is being completed.
+- No new dependencies or database schema changes. Existing profile and course metadata columns are reused. Documentation: `docs/CLOUDINARY_IMAGES.md`; evidence: `docs/evidence/image-uploads/`.
+
 ## Latest checkpoint — measured loading bottlenecks and viewport deferral
 
 - Baseline captured six public/five admin routes. Found duplicate initial client session checks hiding server-authorized dashboards (about 0.9–1.1s per check), repeated role/state queries, unoptimized images, eagerly imported playback/chart code, and US functions accessing a London database.

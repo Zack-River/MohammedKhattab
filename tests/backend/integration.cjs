@@ -17,8 +17,8 @@ function account() {
   const cookies = new Map();
   return async (path, body, options = {}) => {
     const headers = { Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join('; '), ...options.headers };
-    if (body !== undefined) { headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
-    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : JSON.stringify(body), redirect: 'manual' });
+    if (body !== undefined) { if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
+    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
     for (const value of response.headers.getSetCookie()) {
       const [pair] = value.split(';'); const index = pair.indexOf('='); cookies.set(pair.slice(0,index), pair.slice(index + 1));
     }
@@ -47,6 +47,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'image-uploads') {
+    await require('./image-uploads.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'performance') {
     await require('./performance.cjs')({admin,provision,verify,url});
     return;

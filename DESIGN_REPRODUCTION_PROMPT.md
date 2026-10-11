@@ -541,7 +541,7 @@ export default function SignupPage() { return <AuthPage model={authPages.signup}
 
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `ff9f3473d1f351673a980318dc0f547b1d2e283d7ec5b90938e64978337d9362`
+SHA-256: `4d3278f08318698c8637e070707c4a0eb55685c8d58301c40e5b93504c7a5bd2`
 
 ```tsx
 import Link from "next/link";
@@ -551,6 +551,7 @@ import { courseLessons } from "@platform/features/catalog/helpers";
 import CourseEditor from "@platform/components/admin/course-editor";
 import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
 import PageHeading from "@platform/components/ui/page-heading";
+import { thumbnailUploadCopy } from "@platform/data/image-upload";
 import { adminCopy } from "@platform/data/admin";
 import { categories } from "@platform/config/catalog";
 import { routes } from "@platform/config/navigation";
@@ -562,7 +563,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   if (!record) notFound();
   const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
   return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
-    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} categories={categories.filter(category => category.id !== "all")} /></section>
+    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></section>
     {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
   </>;
 }
@@ -1064,6 +1065,16 @@ SHA-256: `5f3b550830a93816babfb0bbf118e5524b14ed2fe12125fa3ca4df4868fba9ed`
 import { handleEnrollment } from "@platform/features/learning/handle-enrollment";
 export async function GET() { return handleEnrollment(); }
 export async function POST(request: Request) { return handleEnrollment(request); }
+```
+
+### File: `app/api/media/images/route.ts`
+
+SHA-256: `873ae056e5cbcfa6421668725e5cfa4e5411ad5f968acf67a237096b42ca7c17`
+
+```typescript
+import { handleImageUpload } from "@platform/features/media/handle-image-upload";
+export const runtime = "nodejs";
+export const POST = handleImageUpload;
 ```
 
 ### File: `app/api/profile/route.ts`
@@ -4617,6 +4628,25 @@ export default function ProfileView({ profile, labels, settingsHref, adminHref, 
 }
 ```
 
+### File: `modules/components/account/settings/avatar-upload.tsx`
+
+SHA-256: `3ef14e4f9b9981b83340e4fef1823a4ac1652b358cd73018b6a73cf25115dc1f`
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+import Avatar from "@khatab/design/ui/avatar";
+import ImageUpload from "@platform/components/ui/image-upload";
+import type { AccountProfile } from "@platform/types/account";
+import type { ImageUploadLabels } from "@platform/types/image-upload";
+export default function AvatarUpload({ profile, labels }: { profile: AccountProfile; labels: ImageUploadLabels }) {
+  const router = useRouter();
+  return <div className="lms-avatar-upload"><Avatar name={profile.name} url={profile.avatarUrl} label={labels.title} className="lms-avatar lms-avatar-large" />
+    <ImageUpload target={{ kind: "avatar" }} labels={labels} onUploaded={() => router.refresh()} />
+  </div>;
+}
+```
+
 ### File: `modules/components/account/settings/contact-fields.tsx`
 
 SHA-256: `b8a28e709f0214cebb4ae369cc84cdd10ebcdbebf2f990dcf11c68a000869f1f`
@@ -4753,18 +4783,20 @@ export default function SettingsForm({ profile, labels }: { profile: AccountProf
 
 ### File: `modules/components/account/settings/settings-view.tsx`
 
-SHA-256: `892073686f15bd0e7707e62f04557bde6d56f56bc7f82cd9dadea67900076859`
+SHA-256: `e2af476b7ce9538e4bc01e6e2425efa0e3171209268a928318f2a5845b150ced`
 
 ```tsx
+import AvatarUpload from "./avatar-upload";
+import type { ImageUploadLabels } from "@platform/types/image-upload";
 import PageHeading from "@platform/components/ui/page-heading";
 import SettingsForm from "./settings-form";
 import PasswordForm from "./password-form";
 import VerificationStatus from "../verification-status";
 import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
-export default function SettingsView({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
+export default function SettingsView({ profile, labels, supportHref, uploadLabels }: { profile: AccountProfile; labels: AccountLabels; supportHref: string; uploadLabels: ImageUploadLabels }) {
   return <><PageHeading title={labels.settingsTitle} /><div className="lms-account-stack lms-settings-layout">
-    <section data-reveal className="lms-profile-card lms-settings-identity"><SettingsForm profile={profile} labels={labels} /></section>
+    <section data-reveal className="lms-profile-card lms-settings-identity"><AvatarUpload profile={profile} labels={uploadLabels} /><SettingsForm profile={profile} labels={labels} /></section>
     <VerificationStatus profile={profile} labels={labels} supportHref={supportHref} />
     <section data-reveal className="lms-profile-card"><h2>{labels.passwordTitle}</h2><PasswordForm labels={labels} /></section>
   </div></>;
@@ -5025,20 +5057,21 @@ export default function TrendingCourses({ courses, period, labels }: { courses: 
 
 ### File: `modules/components/admin/course-editor.tsx`
 
-SHA-256: `8e416a6b4fbfc67b04e2383a4e256b2937abb98f33a7920bdef47d43ba93afdc`
+SHA-256: `eecc7863799d0ebb712c749c0f0f1138f5bf49bc7be74e35cdd70c687b0e37bc`
 
 ```tsx
 "use client";
+import type { ImageUploadLabels } from "@platform/types/image-upload";
 import { endpoints } from "@platform/config/navigation";
 import { useAdminSave } from "@platform/hooks/use-admin-save";
 import { readCourseEdit } from "@platform/features/admin/helpers/read-course-edit";
 import type { Course } from "@platform/types/lms";
 import CourseFields from "./course-fields";
 import SaveFeedback from "./save-feedback";
-export default function CourseEditor({ course, published, labels, categories }: { course: Course; published: boolean; labels: Record<string,string> & { save: string; saving: string; saved: string }; categories: readonly { id: string; label: string }[] }) {
+export default function CourseEditor({ course, published, labels, categories, uploadLabels }: { course: Course; published: boolean; labels: Record<string,string> & { save: string; saving: string; saved: string }; categories: readonly { id: string; label: string }[]; uploadLabels: ImageUploadLabels }) {
   const command = useAdminSave(endpoints.adminCourse(course.slug), labels.error);
   return <form className="lms-profile-form lms-admin-form" method="post" onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}>
-    <CourseFields course={course} published={published} labels={labels} categories={categories} />
+    <CourseFields course={course} published={published} labels={labels} categories={categories} uploadLabels={uploadLabels} />
     <SaveFeedback {...command} labels={labels} />
   </form>;
 }
@@ -5046,26 +5079,46 @@ export default function CourseEditor({ course, published, labels, categories }: 
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `b66f87be24e0e598d88f5cc4c12ef431ad2ee51c2421565da95c5fa61dfc6f50`
+SHA-256: `39d3204a7ed9b4a08f683f9c2742f64c44f2fefa149e03207e202dc941e8368a`
 
 ```tsx
 "use client";
+import CourseThumbnailField from "./course-thumbnail-field";
+import type { ImageUploadLabels } from "@platform/types/image-upload";
 import Select from "@khatab/design/ui/select";
 import { Checkbox } from "@khatab/design/ui/choice-controls";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { useId } from "react";
 import FormField from "@platform/components/ui/form-field";
 import type { Course } from "@platform/types/lms";
-export default function CourseFields({ course, published, labels, categories }: { course: Course; published: boolean; labels: Record<string,string>; categories: readonly { id: string; label: string }[] }) {
+export default function CourseFields({ course, published, labels, categories, uploadLabels }: { course: Course; published: boolean; labels: Record<string,string>; categories: readonly { id: string; label: string }[]; uploadLabels: ImageUploadLabels }) {
   const id = useId();
   return <>
     <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
     <label htmlFor={`${id}-description`}>{labels.descriptionLabel}</label><textarea id={`${id}-description`} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
     <FormField label={labels.price} name="amount" type="number" min={0} max={policy.amountMax} step="0.01" defaultValue={course.offer.amount} required />
     <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
-    <FormField label={labels.thumbnail} name="thumbnailUrl" dir="ltr" defaultValue={course.thumbnailUrl ?? ""} maxLength={policy.urlMax} />
+    <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
     <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
     <Checkbox label={labels.published} name="published" defaultChecked={published} />
+  </>;
+}
+```
+
+### File: `modules/components/admin/course-thumbnail-field.tsx`
+
+SHA-256: `e1bd171624ad36e61f50d69c07e8ec0fbc29b8a66a89a0bf7cfc4408ba5d2b22`
+
+```tsx
+"use client";
+import { useState } from "react";
+import FormField from "@platform/components/ui/form-field";
+import ImageUpload from "@platform/components/ui/image-upload";
+import type { ImageUploadLabels } from "@platform/types/image-upload";
+export default function CourseThumbnailField({ slug, initialUrl, label, maxLength, uploadLabels }: { slug: string; initialUrl: string; label: string; maxLength: number; uploadLabels: ImageUploadLabels }) {
+  const [url, setUrl] = useState(initialUrl);
+  return <><FormField label={label} name="thumbnailUrl" dir="ltr" value={url} onChange={event => setUrl(event.target.value)} maxLength={maxLength} />
+    <ImageUpload target={{ kind: "course", courseSlug: slug }} labels={uploadLabels} onUploaded={image => setUrl(image.url)} />
   </>;
 }
 ```
@@ -8219,6 +8272,37 @@ export default function FormField({ label, error, hint, control, ...input }: For
 }
 ```
 
+### File: `modules/components/ui/image-upload.tsx`
+
+SHA-256: `c7437b86168881109f2659eedd599b720c7da1f0ef997fec71774eb85ac939df`
+
+```tsx
+"use client";
+import { useId, useState, type ChangeEvent } from "react";
+import { useHydrated } from "@khatab/design/hooks/use-hydrated";
+import { imageUploadPolicy } from "@platform/config/image-upload";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { uploadImageFile } from "@platform/helpers/upload-image";
+import type { ImageUploadLabels, ImageUploadTarget, UploadedImage } from "@platform/types/image-upload";
+import FormFeedback from "@platform/components/account/form-feedback";
+export default function ImageUpload({ target, labels, onUploaded }: { target: ImageUploadTarget; labels: ImageUploadLabels; onUploaded?: (image: UploadedImage) => void }) {
+  const hydrated = useHydrated(), id = useId(), command = useAsyncCommand(labels.error), [saved, setSaved] = useState(false);
+  async function change(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]; event.currentTarget.value = "";
+    if (!file) return;
+    setSaved(false);
+    const image = await command.run(() => uploadImageFile(file, target, labels.error));
+    if (image) { setSaved(true); onUploaded?.(image); }
+  }
+  return <div className="lms-image-upload" aria-busy={command.pending}>
+    <span>{labels.title}</span><label className="lms-image-upload-trigger" htmlFor={id}>{command.pending ? labels.uploading : labels.choose}
+      <input id={id} type="file" accept={imageUploadPolicy.accept} disabled={!hydrated || command.pending} onChange={change} aria-describedby={`${id}-hint`} />
+    </label><small id={`${id}-hint`} className="lms-field-hint">{labels.hint}</small>
+    <FormFeedback error={command.error} message={saved ? labels.saved : ""} />
+  </div>;
+}
+```
+
 ### File: `modules/components/ui/page-heading.tsx`
 
 SHA-256: `c779ac0edd0f358d95440da6899cce90f319b90257b513f40e7923fede8ca065`
@@ -8474,9 +8558,24 @@ export const dashboardShellContent = {
 };
 ```
 
+### File: `modules/config/image-upload.ts`
+
+SHA-256: `ded6e106e418c288e35906a236cbf8a4ce0e345606c51314285a48e0e7767138`
+
+```typescript
+/** Shared browser/server image rules; visual values remain in the theme. */
+export const imageUploadPolicy = {
+  maxBytes: 3 * 1024 * 1024,
+  maxRequestBytes: 3 * 1024 * 1024 + 64 * 1024,
+  accept: "image/jpeg,image/png,image/webp", formats: "jpg,png,webp", timeoutMs: 20000,
+  avatarTransform: "c_fill,g_auto,h_512,w_512/fl_strip_profile",
+  thumbnailTransform: "c_limit,h_2048,w_2048/fl_strip_profile",
+} as const;
+```
+
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `6450dd11fa396a7c2951e3bb130eff7d828f82024478d746f1c0ac57736a6f9a`
+SHA-256: `524537d39491b4af7e599cb51b532a95845989503c2815b1a131cfd4b6abc832`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8539,6 +8638,7 @@ export const routes = {
   },
 };
 export const endpoints = {
+  imageUpload: "/api/media/images",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
@@ -8751,10 +8851,13 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `4e5cfe832beaa1f90f9f4781d82bf1a24c267d873b070c31e1804aafbb8cf932`
+SHA-256: `935c8aa5c5a796f0c96f51b81e00f7a5a7f7180773e271f51bb680238374d927`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  IMAGE_STORAGE_UNAVAILABLE: "خدمة الصور غير متاحة حاليًا. حاول لاحقًا.",
+  INVALID_IMAGE: "اختر صورة JPG أو PNG أو WebP صالحة.",
+  IMAGE_TOO_LARGE: "حجم الصورة يجب ألا يتجاوز ٣ ميجابايت.",
   RECOVERY_EXPIRED: "رابط استعادة كلمة المرور غير صالح أو انتهت مدته. اطلب رابطًا جديدًا.",
   EMAIL_LOCKED: "البريد الإلكتروني لا يمكن تغييره من حساب الطالب.",
   CURRENT_PASSWORD_REQUIRED: "أدخل كلمة المرور الحالية لتغيير البيانات الحساسة.",
@@ -9151,6 +9254,16 @@ export const courses: Course[] = [...records.map((course) => ({
     })),
   })),
 })), liveWorkshopCourse];
+```
+
+### File: `modules/data/image-upload.ts`
+
+SHA-256: `722d1ee10a90c6c3cd0a4ca6aa74aaca0ec68da9429f4ed86446db29ad981e81`
+
+```typescript
+const imageUploadCopy = { choose: "اختيار صورة", uploading: "جارٍ رفع الصورة…", hint: "JPG أو PNG أو WebP، بحد أقصى ٣ ميجابايت.", error: "تعذّر رفع الصورة. اختر ملفًا صالحًا وحاول مرة أخرى." };
+export const avatarUploadCopy = { ...imageUploadCopy, title: "الصورة الشخصية", saved: "تم تحديث صورتك الشخصية." };
+export const thumbnailUploadCopy = { ...imageUploadCopy, title: "رفع صورة الدورة", saved: "تم رفع الصورة. احفظ تغييرات الدورة لاعتمادها." };
 ```
 
 ### File: `modules/data/interface-copy.ts`
@@ -9960,15 +10073,16 @@ export async function saveSettings(input: AccountSettingsInput) {
 
 ### File: `modules/features/account/settings-page.tsx`
 
-SHA-256: `2a991589cda2b6432577a3f8076cb50d578cf2ce44e9d3985f89ae64f8fd06ce`
+SHA-256: `ffabaf525556656875d31bafd5a8322878b9a38b62918dedaecf09e39c4bef30`
 
 ```tsx
 import { readAccount } from "./repositories/read-account";
 import { accountCopy } from "@platform/data/account";
 import { creatorContacts } from "../../../config/creator-contacts";
+import { avatarUploadCopy } from "@platform/data/image-upload";
 import SettingsView from "@platform/components/account/settings/settings-view";
 export default async function AccountSettingsPage() {
-  return <SettingsView profile={await readAccount()} labels={accountCopy} supportHref={creatorContacts.whatsapp} />;
+  return <SettingsView profile={await readAccount()} labels={accountCopy} uploadLabels={avatarUploadCopy} supportHref={creatorContacts.whatsapp} />;
 }
 ```
 
@@ -11810,6 +11924,129 @@ export function workshopCourseContent(content: MarketingPageContent, course: Cou
 }
 ```
 
+### File: `modules/features/media/handle-image-upload.ts`
+
+SHA-256: `655dbe0e16a72406fabe74197d1c7f44c7096cb0fa572224f87778a7993dc724`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { sameOrigin } from "@platform/lib/server-request";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { readImageUpload } from "./helpers/read-image-upload";
+import { validateImage } from "./helpers/validate-image";
+import { uploadImage } from "./repositories/upload-image";
+import { saveAvatar } from "./repositories/save-avatar";
+export function handleImageUpload(request: Request) {
+  return apiResponse(async () => {
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const { user } = await requireIdentity(), input = await readImageUpload(request);
+    if (input.kind === "course") {
+      const { client } = await requireAdmin();
+      const course = await client.from("courses").select("slug").eq("slug", input.courseSlug).maybeSingle();
+      if (course.error) throw new ApiError(503, "INTERNAL_ERROR");
+      if (!course.data) throw new ApiError(404, "NOT_FOUND");
+    }
+    await validateImage(input.file);
+    const folder = input.kind === "avatar" ? `users/${user.id}/avatars` : `courses/${input.courseSlug}/thumbnails`;
+    const image = await uploadImage(input.file, folder, input.kind === "avatar");
+    if (input.kind === "avatar") await saveAvatar(user.id, image);
+    return Response.json(image, { status: 201 });
+  });
+}
+```
+
+### File: `modules/features/media/helpers/read-image-upload.ts`
+
+SHA-256: `ea880d25ded6a332cec9e8a68c02e4cc3816e518d85dc9050811b890d004c214`
+
+```typescript
+import { imageUploadPolicy as policy } from "@platform/config/image-upload";
+import { readRequestBytes } from "@platform/lib/read-request-bytes";
+import { ApiError } from "@platform/lib/api/error";
+export async function readImageUpload(request: Request) {
+  if (!request.headers.get("content-type")?.startsWith("multipart/form-data;")) throw new ApiError(400, "INVALID_IMAGE");
+  const bytes = await readRequestBytes(request, policy.maxRequestBytes);
+  if (!bytes) throw new ApiError(413, "IMAGE_TOO_LARGE");
+  const form = await new Response(new Blob([Uint8Array.from(bytes).buffer]), { headers: { "Content-Type": request.headers.get("content-type")! } }).formData().catch(() => null);
+  const file = form?.get("file"), kind = form?.get("kind"), courseSlug = form?.get("courseSlug");
+  if (!(file instanceof File) || !file.size || !["avatar", "course"].includes(String(kind))) throw new ApiError(400, "INVALID_IMAGE");
+  if (file.size > policy.maxBytes) throw new ApiError(413, "IMAGE_TOO_LARGE");
+  if (kind === "course" && (typeof courseSlug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(courseSlug))) throw new ApiError(400, "INVALID_INPUT");
+  return { file, kind: kind as "avatar" | "course", courseSlug: typeof courseSlug === "string" ? courseSlug : "" };
+}
+```
+
+### File: `modules/features/media/helpers/read-uploaded-image.ts`
+
+SHA-256: `04e5c567a2248a5354a56653187947e4b49c676a21cd02c342f50b2b63fd605e`
+
+```typescript
+import type { UploadedImage } from "@platform/types/image-upload";
+import { ApiError } from "@platform/lib/api/error";
+export function readUploadedImage(input: unknown): UploadedImage {
+  const value = input as Partial<UploadedImage> | null;
+  if (!value || typeof value.url !== "string" || !value.url.startsWith("https://res.cloudinary.com/") || typeof value.publicId !== "string" || typeof value.width !== "number" || typeof value.height !== "number" || !Number.isFinite(value.width) || !Number.isFinite(value.height) || value.width <= 0 || value.height <= 0) throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE");
+  return value as UploadedImage;
+}
+```
+
+### File: `modules/features/media/helpers/validate-image.ts`
+
+SHA-256: `861de2a8136263bfb9ad4e5748c5d5f9f65c2be982734f751bcfaa5739117887`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+/** Check content signatures as well as the browser-declared MIME; Cloudinary decodes it again. */
+export async function validateImage(file: File) {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const png = bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => bytes[index] === value);
+  const jpeg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+  const text = new TextDecoder().decode(bytes), webp = text.startsWith("RIFF") && text.slice(8, 12) === "WEBP";
+  if (!(png && file.type === "image/png" || jpeg && file.type === "image/jpeg" || webp && file.type === "image/webp")) throw new ApiError(400, "INVALID_IMAGE");
+}
+```
+
+### File: `modules/features/media/repositories/save-avatar.ts`
+
+SHA-256: `d795c44d82bea6b633f5ed8c53e99ed4e7ed662ea5421ae367a1316a5c33dde0`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { cloudinaryRequest } from "@platform/lib/cloudinary/request";
+import { ApiError } from "@platform/lib/api/error";
+import type { UploadedImage } from "@platform/types/image-upload";
+export async function saveAvatar(userId: string, image: UploadedImage) {
+  const { error, data } = await createAuthAdministrator().from("profiles").update({ avatar_url: image.url }).eq("id", userId).select("id").single();
+  if (error || !data) {
+    await cloudinaryRequest("destroy", { public_id: image.publicId, invalidate: "true" }).catch(() => null);
+    throw new ApiError(503, "INTERNAL_ERROR");
+  }
+}
+```
+
+### File: `modules/features/media/repositories/upload-image.ts`
+
+SHA-256: `8a320ef12cf16deee928c759f884ae378023b2a97547dd0bcb846b0b5c0232c1`
+
+```typescript
+import "server-only";
+import { randomUUID } from "node:crypto";
+import { cloudinaryEnvironment } from "@platform/lib/cloudinary/environment";
+import { cloudinaryRequest } from "@platform/lib/cloudinary/request";
+import { imageUploadPolicy as policy } from "@platform/config/image-upload";
+import { readUploadedImage } from "../helpers/read-uploaded-image";
+export async function uploadImage(file: File, folder: string, avatar: boolean) {
+  const { root } = cloudinaryEnvironment(), assetFolder = `${root}/${folder}`, publicId = `${assetFolder}/${randomUUID()}`;
+  const value = await cloudinaryRequest("upload", { asset_folder: assetFolder, public_id: publicId, overwrite: "false", allowed_formats: policy.formats, transformation: avatar ? policy.avatarTransform : policy.thumbnailTransform }, file);
+  const image = readUploadedImage({ url: value.secure_url, publicId: value.public_id, width: value.width, height: value.height });
+  if (image.publicId !== publicId) throw new Error("Unexpected image identifier");
+  return { ...image, url: image.url.replace("/image/upload/", "/image/upload/f_auto,q_auto/") };
+}
+```
+
 ### File: `modules/features/portfolio/index.ts`
 
 SHA-256: `acde105691dce07161bf77729b09c1dfb33da36c075ae692672e4467a0ccacf7`
@@ -12148,6 +12385,26 @@ export function readProfileResponse(input: unknown) {
   const profile = validateProfile(input);
   if (!profile) throw new Error("Invalid profile response");
   return profile;
+}
+```
+
+### File: `modules/helpers/upload-image.ts`
+
+SHA-256: `b4426e06e040da3471768bda444f88d0b4d14d9dc1e19fae1cb099847a5ddf11`
+
+```typescript
+import { endpoints } from "@platform/config/navigation";
+import { imageUploadPolicy } from "@platform/config/image-upload";
+import { readUploadedImage } from "@platform/features/media/helpers/read-uploaded-image";
+import type { ImageUploadTarget } from "@platform/types/image-upload";
+export async function uploadImageFile(file: File, target: ImageUploadTarget, failureLabel: string) {
+  if (!file.size || file.size > imageUploadPolicy.maxBytes || !imageUploadPolicy.accept.split(",").includes(file.type)) throw new Error(failureLabel);
+  const body = new FormData(); body.set("file", file); body.set("kind", target.kind);
+  if (target.kind === "course") body.set("courseSlug", target.courseSlug);
+  const response = await fetch(endpoints.imageUpload, { method: "POST", body }).catch(() => { throw new Error(failureLabel); });
+  const value: unknown = await response.json().catch(() => { throw new Error(failureLabel); });
+  if (!response.ok) throw new Error(value && typeof value === "object" && "error" in value && typeof value.error === "string" ? value.error : failureLabel);
+  return readUploadedImage(value);
 }
 ```
 
@@ -12697,6 +12954,47 @@ export function applicationOrigin() {
 }
 ```
 
+### File: `modules/lib/cloudinary/environment.ts`
+
+SHA-256: `d28d778882c5aac54cf8eee6fff33148b1afc3bcd79c4f7f545e1f134b3a8d17`
+
+```typescript
+import "server-only";
+import { ApiError } from "@platform/lib/api/error";
+export function cloudinaryEnvironment() {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME, apiKey = process.env.CLOUDINARY_API_KEY, secret = process.env.CLOUDINARY_API_SECRET;
+  if (!cloudName || !apiKey || !secret || !/^[a-z0-9_-]+$/i.test(cloudName)) throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE");
+  const environment = process.env.VERCEL_ENV ?? (process.env.NODE_ENV === "production" ? "production" : "development");
+  if (!["production", "preview", "development", "test"].includes(environment)) throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE");
+  return { cloudName, apiKey, secret, root: `ta3allam/${environment}` };
+}
+```
+
+### File: `modules/lib/cloudinary/request.ts`
+
+SHA-256: `22c53076c3b2df5987d1d3c20136a3776d917858f68c64d71764a0756f36bfbd`
+
+```typescript
+import "server-only";
+import { createHash } from "node:crypto";
+import { cloudinaryEnvironment } from "./environment";
+import { imageUploadPolicy } from "@platform/config/image-upload";
+import { ApiError } from "@platform/lib/api/error";
+export async function cloudinaryRequest(action: "upload" | "destroy", parameters: Record<string, string>, file?: File, fetcher = fetch) {
+  const { cloudName, apiKey, secret } = cloudinaryEnvironment();
+  const values = { ...parameters, timestamp: String(Math.floor(Date.now() / 1000)) };
+  const signature = createHash("sha256").update(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}=${value}`).join("&") + secret).digest("hex");
+  const body = new FormData();
+  for (const [key, value] of Object.entries(values)) body.set(key, value);
+  body.set("signature", signature); body.set("api_key", apiKey);
+  if (file) body.set("file", file, "image");
+  const response = await fetcher(`https://api.cloudinary.com/v1_1/${cloudName}/image/${action}`, { method: "POST", body, signal: AbortSignal.timeout(imageUploadPolicy.timeoutMs) }).catch(() => { throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE"); });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok || !data || typeof data !== "object") throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE");
+  return data as Record<string, unknown>;
+}
+```
+
 ### File: `modules/lib/http-error.ts`
 
 SHA-256: `74fe57252f56917794c69d446b01be6396907a07b28c9624897b65c5a5541c16`
@@ -12732,33 +13030,48 @@ export async function httpRequest<T>({ path, body, failureLabel, decode, fetcher
 }
 ```
 
-### File: `modules/lib/server-request.ts`
+### File: `modules/lib/read-request-bytes.ts`
 
-SHA-256: `a891eded91e4284d1ca62ee7ace9e1e162f11da5f141b380d2703b46ee307647`
+SHA-256: `6fdcd5def0fe9506a2bd4826eeed5767462ebeb245ef391d175f63a93c976661`
 
 ```typescript
-import { requestPolicy } from "@platform/config/request";
-export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
-  if (!request.body) return null;
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
+/** Read a bounded stream, including requests without a Content-Length header. */
+export async function readRequestBytes(request: Request, maxBytes: number): Promise<Uint8Array | null> {
+  if (!request.body || Number(request.headers.get("content-length")) > maxBytes) return null;
+  const reader = request.body.getReader(), chunks: Uint8Array[] = [];
   let length = 0;
   try {
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       length += value.byteLength;
-      if (length > requestPolicy.maxJsonBytes) { await reader.cancel(); return null; }
+      if (length > maxBytes) { await reader.cancel(); return null; }
       chunks.push(value);
     }
     const bytes = new Uint8Array(length);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    return bytes;
+  } finally { reader.releaseLock(); }
+}
+```
+
+### File: `modules/lib/server-request.ts`
+
+SHA-256: `5dd4e764ab7a7a824c259937c8405d67720caa0cf6601c2669ad210a743b8e50`
+
+```typescript
+import { readRequestBytes } from "./read-request-bytes";
+import { requestPolicy } from "@platform/config/request";
+export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const bytes = await readRequestBytes(request, requestPolicy.maxJsonBytes);
+    if (!bytes) return null;
     const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
     return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
   } catch { return null; }
-  finally { reader.releaseLock(); }
 }
+
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return true;
@@ -12915,7 +13228,7 @@ export const theme = palette;
 
 ### File: `modules/styles/account.css`
 
-SHA-256: `904e2226693246a1981486659d30c0b1f0a9c6c526bf69518f60bcdcdaf2d686`
+SHA-256: `e9b88c82469e171452b48182347dd8aa9c7d26d19abba52070eabed534f179aa`
 
 ```css
 .lms-account-stack { display: grid; gap: var(--space-lg); }
@@ -12937,7 +13250,7 @@ SHA-256: `904e2226693246a1981486659d30c0b1f0a9c6c526bf69518f60bcdcdaf2d686`
 .lms-recovery-page h1 { font-size: var(--size-1_5rem); }
 .lms-recovery-page .lms-text-link { display: inline-block; margin-top: var(--space-lg); }
 
-.lms-settings-layout { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.lms-settings-layout { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: stretch; }
 .lms-settings-layout > .lms-profile-card { max-width: none; min-width: 0; }
 .lms-settings-identity { grid-row: span 2; align-self: stretch; }
 .lms-phone-requests { display: grid; gap: var(--space-lg); grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -12950,6 +13263,15 @@ SHA-256: `904e2226693246a1981486659d30c0b1f0a9c6c526bf69518f60bcdcdaf2d686`
   .lms-settings-layout, .lms-phone-requests { grid-template-columns: minmax(0, 1fr); }
   .lms-settings-identity { grid-row: auto; }
 }
+
+.lms-avatar-upload { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-lg); margin-bottom: var(--space-xl); }
+.lms-image-upload { display: grid; gap: var(--space-sm); min-width: 0; }
+.lms-image-upload-trigger { position: relative; width: fit-content; padding: var(--space-sm) var(--space-md); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-primary); cursor: pointer; transition: color var(--transition-fast); }
+.lms-image-upload-trigger input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.lms-image-upload-trigger:focus-within { outline: 2px solid var(--primary-red); outline-offset: var(--space-xs); }
+.lms-image-upload-trigger:hover { color: var(--primary-red); }
+.lms-image-upload-trigger:has(input:disabled) { opacity: var(--player-disabled-opacity); cursor: wait; }
+.lms-image-upload-trigger input:disabled { cursor: wait; }
 ```
 
 ### File: `modules/styles/admin.css`
@@ -17351,6 +17673,16 @@ export const Constants = {
 } as const
 ```
 
+### File: `modules/types/image-upload.ts`
+
+SHA-256: `cac42da594e6c9f7b052fcacfa213c8eea039d99ddabc762400507df92083255`
+
+```typescript
+export type ImageUploadTarget = { kind: "avatar" } | { kind: "course"; courseSlug: string };
+export interface UploadedImage { url: string; publicId: string; width: number; height: number; }
+export interface ImageUploadLabels { title: string; choose: string; uploading: string; saved: string; hint: string; error: string; }
+```
+
 ### File: `modules/types/landing-hero.ts`
 
 SHA-256: `4671be5a6f2201f229d1b2cb90eca20a6341a66a968b19efa3ba98c7b7356a6e`
@@ -18858,6 +19190,20 @@ export function useFragmentNavigation({ rootRef, enabled = true }: {
       window.removeEventListener("hashchange", align);
     };
   }, [rootRef, enabled]);
+}
+```
+
+### File: `packages/design-system/hooks/use-hydrated.ts`
+
+SHA-256: `eecea62e00d20882e809ed8d43deec7f9aa8fac46373a8beaf5231328385577b`
+
+```typescript
+"use client";
+import { useSyncExternalStore } from "react";
+const subscribe = () => () => {};
+/** Gate controls whose native events cannot be replayed before React attaches. */
+export function useHydrated() {
+  return useSyncExternalStore(subscribe, () => true, () => false);
 }
 ```
 
@@ -28746,9 +29092,157 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 };
 ```
 
+### File: `tests/backend/image-upload-unit.test.ts`
+
+SHA-256: `4297f7179a8b9453eb9e2c328b443e71df64f76c5884448ba76cb24178b92be5`
+
+```typescript
+import test from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readRequestBytes } from "../../modules/lib/read-request-bytes";
+import { readImageUpload } from "../../modules/features/media/helpers/read-image-upload";
+import { validateImage } from "../../modules/features/media/helpers/validate-image";
+import { cloudinaryRequest } from "../../modules/lib/cloudinary/request";
+import { imageUploadPolicy } from "../../modules/config/image-upload";
+const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4hEAAAAASUVORK5CYII=", "base64");
+const file = (bytes: Uint8Array = png, type = "image/png") => new File([Uint8Array.from(bytes).buffer], "test.png", {type});
+const request = (image: File, kind = "avatar", slug?: string) => {
+ const form = new FormData();form.set("file",image);form.set("kind",kind);if(slug)form.set("courseSlug",slug);
+ return new Request("https://example.com/api/media/images",{method:"POST",body:form});
+};
+test("Bounded readers reject a streamed body without relying on Content-Length",async()=>{
+ const req = new Request("https://example.com",{method:"POST",body:new ReadableStream({start(controller){controller.enqueue(new Uint8Array(5));controller.enqueue(new Uint8Array(5));controller.close();}}),duplex:"half"} as RequestInit);
+ assert.equal(await readRequestBytes(req,8),null);
+});
+test("Multipart reader accepts image data and rejects invalid scope, paths and size",async()=>{
+ assert.equal((await readImageUpload(request(file()))).kind,"avatar");
+ for(const req of [request(file(),"video"),request(file(),"course","../victim"),request(file(),"course")]) await assert.rejects(readImageUpload(req));
+ await assert.rejects(readImageUpload(request(file(new Uint8Array(imageUploadPolicy.maxBytes+1)))),/IMAGE_TOO_LARGE/);
+ await assert.rejects(readImageUpload(new Request("https://example.com",{method:"POST",body:"broken",headers:{"Content-Type":"multipart/form-data; boundary=missing"}})),/INVALID_IMAGE/);
+});
+test("Image validation rejects MIME spoofing, SVG, videos and empty content",async()=>{
+ await validateImage(file());
+ for(const image of [file(png,"video/mp4"),file(Buffer.from("<svg></svg>"),"image/svg+xml"),file(Buffer.from("text")),file(new Uint8Array())]) await assert.rejects(validateImage(image),/INVALID_IMAGE/);
+});
+test("Cloudinary requests sign only server-approved parameters without exposing secrets",async()=>{
+ process.env.CLOUDINARY_CLOUD_NAME="test-cloud";process.env.CLOUDINARY_API_KEY="test-key";process.env.CLOUDINARY_API_SECRET="test-secret";
+ const fetcher: typeof fetch = async (input,init)=>{
+  assert.equal(input,"https://api.cloudinary.com/v1_1/test-cloud/image/upload");
+  const body=init!.body as FormData;
+  assert.equal(body.get("api_key"),"test-key");assert.equal(body.get("api_secret"),null);
+  const signed=`asset_folder=ta3allam/test/users/own/avatars&public_id=ta3allam/test/users/own/avatars/id&timestamp=${body.get("timestamp")}test-secret`;
+  assert.equal(body.get("signature"),createHash("sha256").update(signed).digest("hex"));
+  assert.ok(init!.signal);return Response.json({secure_url:"https://res.cloudinary.com/test-cloud/image/upload/id.png"});
+ };
+ await cloudinaryRequest("upload",{asset_folder:"ta3allam/test/users/own/avatars",public_id:"ta3allam/test/users/own/avatars/id"},file(),fetcher);
+ await assert.rejects(cloudinaryRequest("upload",{},file(),async()=>Response.json({error:{message:"private provider detail"}},{status:401})),/IMAGE_STORAGE_UNAVAILABLE/);
+});
+```
+
+### File: `tests/backend/image-uploads-live.cjs`
+
+SHA-256: `ee6f1f73d1d5f5e9d29651519b05d4350b5a05aeddfc839ebe8a30935bfb4265`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Live smoke upload is temporary; no account photo/course metadata changes. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');process.loadEnvFile('.env.local');
+(async()=>{const url=process.env.TARGET_URL||'https://ta3allam.vercel.app',browser=await chromium.launch();let image;const errors=[];
+ try{
+  const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard',{timeout:60000});
+  await page.goto(url+'/admin/dashboard/settings');await expect(page.locator('.lms-avatar-upload input[type=file]')).toBeEnabled();
+  await page.goto(url+'/admin/dashboard/courses/editing-foundations');await expect(page.locator('input[type=file]')).toBeEnabled();
+  const original=(await (await page.request.get(url+'/api/admin/courses/editing-foundations')).json()).course;
+  const uploaded=page.waitForResponse(r=>r.url().endsWith('/api/media/images')&&r.request().method()==='POST');
+  await page.locator('input[type=file]').setInputFiles({name:'temporary-smoke.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4hEAAAAASUVORK5CYII=','base64')});
+  const response=await uploaded;expect(response.status()).toBe(201);image=await response.json();expect(image.publicId).toMatch(/^ta3allam\/production\/courses\/editing-foundations\/thumbnails\//);
+  await expect(page.locator('input[name=thumbnailUrl]')).toHaveValue(image.url);
+  const current=(await (await page.request.get(url+'/api/admin/courses/editing-foundations')).json()).course;expect(current).toEqual(original);
+  expect(errors).toEqual([]);console.log('Hosted upload passed: production course folder, editable URL, published course unchanged, zero runtime errors.');
+ } finally{
+  await browser.close();
+  if(image){const query=new URLSearchParams({'public_ids[]':image.publicId});const removed=await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/resources/image/upload?${query}`,{method:'DELETE',headers:{Authorization:'Basic '+Buffer.from(process.env.CLOUDINARY_API_KEY+':'+process.env.CLOUDINARY_API_SECRET).toString('base64')}});expect(removed.ok).toBe(true);const body=await removed.json();expect(body.deleted[image.publicId]).toBe('deleted');
+   fs.writeFileSync('docs/evidence/image-uploads/live.json',JSON.stringify({origin:url,checkedAt:new Date().toISOString(),productionUploadPassed:true,publishedCourseUnchanged:true,temporaryImageDeleted:true,errors},null,2));
+  }
+ }
+})().catch(e=>{console.error(e.message);process.exitCode=1;});
+```
+
+### File: `tests/backend/image-uploads.cjs`
+
+SHA-256: `fae0c2578f7eac31b06ec9fc526b5e7be9abf7448b80bdc79aeb96bd985002ad`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated DB fixtures, real Cloudinary images; every uploaded test image is deleted. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs'),assert=require('node:assert/strict');
+module.exports=async function imageUploads({admin,provision,anonymous,verify,url}) {
+ const student=await provision('Image Student'),manager=await provision('Image Manager'),other=await provision('Image Other');
+ await admin.from('admin_users').insert({user_id:manager.id});
+ const originalCourse=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data;
+ const checks=[];let completed=false;const record=(condition,label)=>{verify(condition,label);checks.push(label);};
+ const images=[],png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4hEAAAAASUVORK5CYII=','base64');
+ const form=(kind='avatar',file=new File([png],'sample.png',{type:'image/png'}),slug='editing-foundations')=>{const f=new FormData();f.set('kind',kind);f.set('file',file);if(kind==='course')f.set('courseSlug',slug);return f;};
+ const upload=async(api,body,options)=>{const r=await api('/api/media/images',body,options);if(r.status===201)images.push(JSON.parse(r.data).publicId);return r;};
+ const browser=await chromium.launch();
+ try {
+  record((await upload(anonymous,form())).status===401,'Guest upload denied');
+  record((await upload(student.api,form(),{headers:{Origin:'https://other.example'}})).status===403,'Cross-origin upload denied');
+  record((await upload(student.api,form('course'))).status===403,'Student cannot upload course thumbnails');
+  record((await upload(student.api,form('avatar',new File(['<svg/>'],'fake.png',{type:'image/png'})))).status===400,'Spoofed image content rejected');
+  record((await upload(student.api,form('avatar',new File([png],'video.mp4',{type:'video/mp4'})))).status===400,'Videos rejected; Drive remains the video source');
+  record((await upload(student.api,form('avatar',new File([new Uint8Array(3*1024*1024+1)],'large.png',{type:'image/png'})))).status===413,'Oversized image rejected');
+  record((await upload(manager.api,form('course',undefined,'missing-course'))).status===404,'Unknown course rejected');
+  const own=form();own.set('userId',other.id);own.set('publicId','victim/path');own.set('folder','victim/path');
+  const result=await upload(student.api,own),image=JSON.parse(result.data);record(result.status===201,'Valid avatar uploaded through real Cloudinary');
+  record(image.publicId.startsWith(`ta3allam/development/users/${student.id}/avatars/`),'Server derives owner folder and ignores client folder/owner');
+  record((await admin.from('profiles').select('avatar_url').eq('id',student.id).single()).data.avatar_url===image.url,'Own avatar URL persists in isolated profile');
+  record((await admin.from('profiles').select('avatar_url').eq('id',other.id).single()).data.avatar_url===null,'Other profile is unchanged');
+  record(/no-store/.test(result.headers.get('cache-control')),'Upload responses never cached');
+  record(!/api_secret|signature|test-secret/.test(result.data),'Client response contains no provider credentials');
+  process.loadEnvFile('.env.local');const authorization='Basic '+Buffer.from(process.env.CLOUDINARY_API_KEY+':'+process.env.CLOUDINARY_API_SECRET).toString('base64');
+  const resource=await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/resources/image/upload/${encodeURIComponent(image.publicId)}`,{headers:{Authorization:authorization}});
+  const stored=await resource.json();record(resource.ok&&stored.asset_folder===image.publicId.slice(0,image.publicId.lastIndexOf('/')),'Cloudinary Media Library folder matches owner namespace');
+  const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard');
+  await page.goto(url+'/admin/dashboard/settings');
+  await expect(page.locator('.lms-avatar-upload input[type=file]')).toHaveCount(1);
+  for(const width of [320,390,768,1440,1920]){await page.setViewportSize({width,height:1000});record(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Avatar settings do not overflow at ${width}px`);}
+  await expect.poll(()=>page.locator('.lms-settings-layout').evaluate(el=>Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
+  record(true,'Desktop settings card heights remain aligned');
+  await expect(page.locator('.lms-avatar-upload input[type=file]')).toBeEnabled();
+  const avatarResponse=page.waitForResponse(r=>r.url().endsWith('/api/media/images')&&r.request().method()==='POST');
+  await page.locator('.lms-avatar-upload input[type=file]').setInputFiles({name:'avatar.png',mimeType:'image/png',buffer:png});
+  const avatarUpload=await avatarResponse;assert.equal(avatarUpload.status(),201);const managerImage=await avatarUpload.json();images.push(managerImage.publicId);
+  await expect(page.locator('.lms-avatar-upload img')).toHaveAttribute('src',managerImage.url);record(true,'Avatar uploader refreshes the saved profile image');
+  await page.goto(url+'/admin/dashboard/courses/editing-foundations');
+  await expect(page.locator('input[type=file]')).toBeEnabled();
+  const responsePromise=page.waitForResponse(r=>r.url().endsWith('/api/media/images')&&r.request().method()==='POST');
+  await page.locator('input[type=file]').setInputFiles({name:'course.png',mimeType:'image/png',buffer:png});
+  const response=await responsePromise;assert.equal(response.status(),201);const thumbnail=await response.json();images.push(thumbnail.publicId);
+  record(thumbnail.publicId.startsWith('ta3allam/development/courses/editing-foundations/thumbnails/'),'Course thumbnail is in its course folder');
+  await expect(page.locator('input[name=thumbnailUrl]')).toHaveValue(thumbnail.url);record(true,'Reusable uploader fills the editable thumbnail URL');
+  for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:1000});record(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Course uploader does not overflow at ${width}px`);}
+  await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).first().click();
+  await expect.poll(async()=>(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata.thumbnailUrl).toBe(thumbnail.url);
+  record(true,'Saving the course persists the uploaded thumbnail');
+  await page.reload();await expect(page.locator('input[name=thumbnailUrl]')).toHaveValue(thumbnail.url);record(true,'Saved thumbnail survives reload');
+  record(errors.length===0,'No upload UI runtime errors');
+  record((await manager.api(`/api/admin/users/${student.id}`,{action:'ban'})).status===200,'Fixture student banned');
+  record((await upload(student.api,form())).status===401,'Banned session cannot upload');
+  record((await manager.api(`/api/admin/users/${student.id}`,{action:'restore'})).status===200,'Fixture student restored');
+  completed=true;
+ } finally {
+  await browser.close();await admin.from('courses').update({metadata:originalCourse.metadata}).eq('slug','editing-foundations');process.loadEnvFile('.env.local');
+  if(images.length){const parameters=new URLSearchParams();images.forEach(id=>parameters.append('public_ids[]',id));const r=await fetch(`https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/resources/image/upload?${parameters}`,{method:'DELETE',headers:{Authorization:'Basic '+Buffer.from(process.env.CLOUDINARY_API_KEY+':'+process.env.CLOUDINARY_API_SECRET).toString('base64')}});assert.ok(r.ok,'Test Cloudinary images removed');}
+  fs.mkdirSync('docs/evidence/image-uploads',{recursive:true});fs.writeFileSync('docs/evidence/image-uploads/acceptance.json',JSON.stringify({checkedAt:new Date().toISOString(),passed:completed,checks,cloudImagesCleaned:images.length},null,2));
+ }
+};
+```
+
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `9e235200723ee0862e805350253ce2d23ef139c97fc127d00748336d58541d90`
+SHA-256: `0cb2b014b629ecbb4879d5255c8809a51b723f8d3fdd39e9297690de8521e6b8`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -28770,8 +29264,8 @@ function account() {
   const cookies = new Map();
   return async (path, body, options = {}) => {
     const headers = { Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join('; '), ...options.headers };
-    if (body !== undefined) { headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
-    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : JSON.stringify(body), redirect: 'manual' });
+    if (body !== undefined) { if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
+    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
     for (const value of response.headers.getSetCookie()) {
       const [pair] = value.split(';'); const index = pair.indexOf('='); cookies.set(pair.slice(0,index), pair.slice(index + 1));
     }
@@ -28800,6 +29294,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'image-uploads') {
+    await require('./image-uploads.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'performance') {
     await require('./performance.cjs')({admin,provision,verify,url});
     return;
