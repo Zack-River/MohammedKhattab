@@ -1,0 +1,230 @@
+[
+  {
+    "role": "admin",
+    "width": 320,
+    "label": "لوحة الإدارة",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 9.5,
+      "width": 60,
+      "height": 44,
+      "top": 9.5,
+      "right": 126,
+      "bottom": 53.5,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "admin",
+    "width": 390,
+    "label": "لوحة الإدارة",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 9.5,
+      "width": 60,
+      "height": 44,
+      "top": 9.5,
+      "right": 126,
+      "bottom": 53.5,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "admin",
+    "width": 768,
+    "label": "لوحة الإدارة",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 74,
+      "y": 9.5,
+      "width": 60,
+      "height": 44,
+      "top": 9.5,
+      "right": 134,
+      "bottom": 53.5,
+      "left": 74
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "admin",
+    "width": 1440,
+    "label": "لوحة الإدارة",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 144,
+      "y": 19.25,
+      "width": 60,
+      "height": 24.484375,
+      "top": 19.25,
+      "right": 204,
+      "bottom": 43.734375,
+      "left": 144
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "student",
+    "width": 320,
+    "label": "لوحة التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 9.5,
+      "width": 64,
+      "height": 44,
+      "top": 9.5,
+      "right": 130,
+      "bottom": 53.5,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "student",
+    "width": 390,
+    "label": "لوحة التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 9.5,
+      "width": 64,
+      "height": 44,
+      "top": 9.5,
+      "right": 130,
+      "bottom": 53.5,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "student",
+    "width": 768,
+    "label": "لوحة التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 74,
+      "y": 9.5,
+      "width": 64,
+      "height": 44,
+      "top": 9.5,
+      "right": 138,
+      "bottom": 53.5,
+      "left": 74
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "student",
+    "width": 1440,
+    "label": "لوحة التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 144,
+      "y": 19.25,
+      "width": 64,
+      "height": 24.484375,
+      "top": 19.25,
+      "right": 208,
+      "bottom": 43.734375,
+      "left": 144
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "guest",
+    "width": 320,
+    "label": "ابدأ التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 8.90625,
+      "width": 91,
+      "height": 45.1875,
+      "top": 8.90625,
+      "right": 157,
+      "bottom": 54.09375,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "guest",
+    "width": 390,
+    "label": "ابدأ التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 66,
+      "y": 8.90625,
+      "width": 91,
+      "height": 45.1875,
+      "top": 8.90625,
+      "right": 157,
+      "bottom": 54.09375,
+      "left": 66
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "guest",
+    "width": 768,
+    "label": "ابدأ التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 74,
+      "y": 8.90625,
+      "width": 121,
+      "height": 45.1875,
+      "top": 8.90625,
+      "right": 195,
+      "bottom": 54.09375,
+      "left": 74
+    },
+    "overflow": false,
+    "clickPassed": true
+  },
+  {
+    "role": "guest",
+    "width": 1440,
+    "label": "ابدأ التعلّم",
+    "display": "flex",
+    "visible": true,
+    "rect": {
+      "x": 144,
+      "y": 6.90625,
+      "width": 133,
+      "height": 49.1875,
+      "top": 6.90625,
+      "right": 277,
+      "bottom": 56.09375,
+      "left": 144
+    },
+    "overflow": false,
+    "clickPassed": true
+  }
+]

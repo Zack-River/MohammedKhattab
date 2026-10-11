@@ -6,7 +6,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 
 - Reproduced the live bug: the account link was present in authenticated HTML but explicitly `display: none` at 320px, 390px and 768px. Removed that mobile hiding rule and kept the account link non-wrapping/non-shrinking with the shared 44px touch target beside the menu toggle.
 - Added mobile visibility/in-viewport assertions for guest/student/admin actions to the existing navigation regression. No authorization or session logic changed.
-- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Real-account browser checks passed for admin/student/guest at 320/390/768/1440px: all 12 action links visible and clickable, correct destination, no navbar overflow; mobile account targets are 44px high. Local build: **KVgXVWyfzQMz-C57c1V5q**. Live verification pending. Evidence: `docs/evidence/mobile-dashboard-access/`.
+- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Real-account browser checks passed for admin/student/guest at 320/390/768/1440px: all 12 action links visible and clickable, correct destination, no navbar overflow; mobile account targets are 44px high. Local build: **KVgXVWyfzQMz-C57c1V5q**. Application commit **b981acd** deployed successfully. All 12 live admin/student/guest checks passed at `https://ta3allam.vercel.app`: dashboard/learning actions visible and clickable at all four widths, correct destinations, and zero navbar overflow. Evidence: `docs/evidence/mobile-dashboard-access/`.
 
 ## Latest checkpoint — shared interactive cursors
 
