@@ -1,0 +1,235 @@
+{
+  "origin": "http://localhost:3040",
+  "centered": false,
+  "checks": [
+    {
+      "width": 1440,
+      "height": 900,
+      "name": "management",
+      "box": {
+        "x": 880,
+        "y": 0,
+        "width": 560,
+        "height": 840.765625
+      },
+      "offset": {
+        "x": 440,
+        "y": -29.6171875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "name": "confirmation",
+      "box": {
+        "x": 880,
+        "y": 0,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 440,
+        "y": -321.3046875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "name": "management",
+      "box": {
+        "x": 720,
+        "y": 0,
+        "width": 560,
+        "height": 688
+      },
+      "offset": {
+        "x": 360,
+        "y": -16
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 1280,
+      "height": 720,
+      "name": "confirmation",
+      "box": {
+        "x": 720,
+        "y": 0,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 360,
+        "y": -231.3046875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "name": "management",
+      "box": {
+        "x": 208,
+        "y": 0,
+        "width": 560,
+        "height": 844.15625
+      },
+      "offset": {
+        "x": 104,
+        "y": -89.921875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "name": "confirmation",
+      "box": {
+        "x": 208,
+        "y": 0,
+        "width": 560,
+        "height": 309.390625
+      },
+      "offset": {
+        "x": 104,
+        "y": -357.3046875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "name": "management",
+      "box": {
+        "x": 32,
+        "y": 0,
+        "width": 358,
+        "height": 812
+      },
+      "offset": {
+        "x": 16,
+        "y": -16
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "name": "confirmation",
+      "box": {
+        "x": 32,
+        "y": 0,
+        "width": 358,
+        "height": 309.390625
+      },
+      "offset": {
+        "x": 16,
+        "y": -267.3046875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "name": "management",
+      "box": {
+        "x": 32,
+        "y": 0,
+        "width": 288,
+        "height": 536
+      },
+      "offset": {
+        "x": 16,
+        "y": -16
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "name": "confirmation",
+      "box": {
+        "x": 32,
+        "y": 0,
+        "width": 288,
+        "height": 333.1875
+      },
+      "offset": {
+        "x": 16,
+        "y": -117.40625
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "name": "management",
+      "box": {
+        "x": 284,
+        "y": 0,
+        "width": 560,
+        "height": 358
+      },
+      "offset": {
+        "x": 142,
+        "y": -16
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "name": "confirmation",
+      "box": {
+        "x": 284,
+        "y": 0,
+        "width": 560,
+        "height": 257.390625
+      },
+      "offset": {
+        "x": 142,
+        "y": -66.3046875
+      },
+      "style": {
+        "margin": "0px",
+        "position": "fixed"
+      }
+    }
+  ],
+  "javascriptErrors": []
+}

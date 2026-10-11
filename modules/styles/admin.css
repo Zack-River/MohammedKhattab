@@ -41,7 +41,7 @@
 .lms-admin-user-details dl { display: grid; gap: var(--space-md); margin: 0; }
 .lms-admin-user-details dt { color: var(--text-muted); }
 .lms-admin-user-details dd { margin: 0; overflow-wrap: anywhere; }
-.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-lg); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-lg); width: var(--lms-size-560px); max-width: calc(100% - var(--space-xl)); max-height: calc(100dvh - var(--space-xl)); overflow-y: auto; overscroll-behavior: contain; }
+.lms-admin-dialog { position: fixed; inset: 0; margin: auto; background: var(--bg-surface); color: var(--text-primary); padding: var(--space-lg); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-lg); width: var(--lms-size-560px); max-width: calc(100% - var(--space-xl)); max-height: calc(100dvh - var(--space-xl)); overflow-y: auto; overscroll-behavior: contain; }
 .lms-admin-dialog::backdrop { background: var(--color-rgba-0-0-0-0-8); }
 body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 .lms-admin-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }

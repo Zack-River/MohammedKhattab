@@ -285,3 +285,5 @@ Supabase Auth now verifies credentials and owns password hashing and sessions. L
 ## Administrator search and pagination (2026-10-11)
 
 The account list returns at most five users per page at every viewport, so phone pages never contain more than five account cards. Above the table, a token-based dark search/filter panel uses the shared primary and secondary buttons. Checkbox labels provide 44px touch targets and red selection feedback. Controls wrap on larger screens and form a two-column grid at 480px and below. A GET form combines name/username/email search with Suspended, Banned, Admin-only and last-seven-days Newcomers filters. The URL owns applied choices; submit resets page one, pagination retains filters, Clear resets all, and the result total is calculated before pagination. New content remains in `modules/data/admin-users.ts`; behavior/limits remain in configuration and query helpers.
+
+Administrator management and confirmation dialogs explicitly use fixed positioning, zero viewport insets and automatic margins. This restores native two-axis centering after the shared zero-margin reset; viewport height bounds and internal scrolling still apply.

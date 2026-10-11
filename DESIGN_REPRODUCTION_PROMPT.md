@@ -11430,7 +11430,7 @@ export const theme = palette;
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `d24d15d0100b5f38d0e2b0d40b39519a234094841a76419ea025908bea97eb0c`
+SHA-256: `f214ef61bf6a3094367ca05bd1f1bc0bef0206fb7a880945ccbad238f00b2980`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -11476,7 +11476,7 @@ SHA-256: `d24d15d0100b5f38d0e2b0d40b39519a234094841a76419ea025908bea97eb0c`
 .lms-admin-user-details dl { display: grid; gap: var(--space-md); margin: 0; }
 .lms-admin-user-details dt { color: var(--text-muted); }
 .lms-admin-user-details dd { margin: 0; overflow-wrap: anywhere; }
-.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-lg); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-lg); width: var(--lms-size-560px); max-width: calc(100% - var(--space-xl)); max-height: calc(100dvh - var(--space-xl)); overflow-y: auto; overscroll-behavior: contain; }
+.lms-admin-dialog { position: fixed; inset: 0; margin: auto; background: var(--bg-surface); color: var(--text-primary); padding: var(--space-lg); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-lg); width: var(--lms-size-560px); max-width: calc(100% - var(--space-xl)); max-height: calc(100dvh - var(--space-xl)); overflow-y: auto; overscroll-behavior: contain; }
 .lms-admin-dialog::backdrop { background: var(--color-rgba-0-0-0-0-8); }
 body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 .lms-admin-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
@@ -25390,7 +25390,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `1330ceeb38a59aa9d0fa702302eeab33f2fbae7a012f6dac926fe1e53da04ef7`
+SHA-256: `146b096990b940c2196f6dfb8b9e65ccb19eb4ae9a3d58c4f8215561dc47fe0d`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25455,6 +25455,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
       await expect(management).toBeVisible();
       const bounds = await management.boundingBox();
       verify(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 900, `Management dialog fits ${width}px viewport`);
+      verify(Math.abs(bounds.x + bounds.width / 2 - width / 2) <= 1 && Math.abs(bounds.y + bounds.height / 2 - 450) <= 1, `Management dialog is centered at ${width}px`);
       const targets = await management.locator('button, select').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
       verify(targets.every(height => height >= 44), `Dialog controls have 44px touch targets at ${width}px`);
       await page.keyboard.press('Tab');
