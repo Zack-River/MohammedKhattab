@@ -1,0 +1,73 @@
+{
+  "verifiedAt": "2026-10-11T00:57:08.427Z",
+  "origin": "https://ta3allam.vercel.app",
+  "revision": "eb13e56b49a8ca67870b80372511dafd7b33700f",
+  "deployment": "success",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/founder",
+      "status": 200
+    },
+    {
+      "path": "/courses",
+      "status": 200
+    },
+    {
+      "path": "/courses/editing-foundations",
+      "status": 200
+    },
+    {
+      "path": "/workshops/7days-freelance",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/signup",
+      "status": 200
+    },
+    {
+      "path": "/ta3allam",
+      "status": 308,
+      "location": "/"
+    },
+    {
+      "path": "/ta3allam/courses?category=motion",
+      "status": 308,
+      "location": "/courses?category=motion"
+    },
+    {
+      "path": "/ta3allam/7days-freelance",
+      "status": 308,
+      "location": "/workshops/7days-freelance"
+    },
+    {
+      "path": "/portfolio",
+      "status": 307,
+      "location": "/founder"
+    },
+    {
+      "path": "/dashboard",
+      "status": 307,
+      "location": "/login"
+    },
+    {
+      "path": "/api/auth/callback",
+      "status": 307,
+      "location": "https://ta3allam.vercel.app/login"
+    }
+  ],
+  "student": [
+    "Signed-in student cannot use admin course APIs",
+    "Lost session cannot navigate through a retained dashboard layout",
+    "Back after logout cannot restore cached dashboard content",
+    "Logout removes access before dashboard rendering"
+  ],
+  "browserErrors": []
+}
