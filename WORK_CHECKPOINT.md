@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — responsive administrator account UI
+
+- Researched Carbon data tables, NN/G record tasks and WCAG reflow before implementing a restrained admin layout using the approved dark/red/Arabic identity. Sources and component contracts are documented in `docs/ADMIN_DASHBOARD.md`.
+- Desktop aligns avatar/name/role, bounded username, email, status and actions. At 1024px and below records stack; tablet username/email fields share a row. Long account identifiers remain unchanged and fully available in private details. Neutral hover replaces the full-row red wash.
+- Fixed an unstyled `btn-secondary` reference by using the actual shared `lms-secondary-button`. Moved moderation into a reusable native management dialog with access, permission and deletion groups; View stays visible. Separate confirmation remains for suspension, ban, promotion and deletion. Protected admins have a concise label. Restoring access remains available before expiry.
+- Added shared dialog and identity components plus focused moderation controls. Verified 44px control heights, viewport-fitting dialogs, background scroll locking, nested Escape cancellation, keyboard containment and focus restoration. Fixed the desktop column-width rule that squeezed mobile names.
+- Focused isolated moderation suite: **91 checks passed**. Final responsive browser suite: **31 checks passed** at 320, 390, 768, 1024 and 1440px, including meaningful identity width, actual suspension/restore, admin entry and student isolation. TypeScript, ESLint, architecture (457 files, zero violations) and final production build passed. Reproduction snapshot refreshed (555 source files); credential scan: 1175 files, zero violations. No schema or dependency changes.
+- Final local production browser verification passed: real hosted-admin login, Users/Courses navigation, account/details, layout and management-modal focus at all five widths, and logout protection; zero JavaScript errors. Deployment verification is pending. Local production artifact: `JFIAfsLIKN26-cZZBZeY8`. Evidence: `docs/evidence/admin-dashboard/redesign-*.log` and local account/management screenshots.
+
 ## Latest checkpoint — administrator entry route
 
 - Reproduced the reported issue: `admin@ta3allam.com` has trusted administrator membership and its deployed users API returns 200, but the shared login destination `/dashboard` previously rendered student content. This was an entry-routing error, not a missing role.

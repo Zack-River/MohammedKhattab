@@ -9,6 +9,16 @@
 
 The existing dashboard shell, form/buttons, font and theme are reused. User presentation receives typed label props; account data, moderation configuration, validation and server repositories remain separate. `modules/styles/admin.css` uses canonical theme tokens.
 
+## Responsive account presentation
+
+The design follows [Carbon's table guidance](https://www.carbondesignsystem.com/building-blocks/core/components/data-table/guidelines) for consistent rows and progressive disclosure, [NN/G's record-focused tasks](https://www.nngroup.com/articles/data-tables/), and [WCAG reflow guidance](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html). The direction is restrained and utilitarian: white names, muted secondary data, neutral row hover, and the existing red identity for meaningful emphasis. No new dependencies or palette are introduced.
+
+Desktop keeps five aligned columns: avatar/name/role, username, email, status and actions. Long identifiers are visually truncated; their complete values remain in the cell title and private detail page. Existing usernames are not changed. At 1024px and below, the same semantic table becomes stacked account records; 480–1024px places username and email beside each other. All fields and actions remain available without horizontal scrolling. Explicit table/row/cell roles preserve table semantics when display styles change.
+
+Each student has View and Manage actions. Manage opens a native modal with account identity and grouped access, administrator permission and deletion controls. Suspension duration lives inside this modal. Restricting, promoting and deleting still require a separate confirmation; Restore remains immediate. Escape cancels the current modal and restores focus to its opener, keyboard focus stays within the active modal, and pending requests prevent cancellation. Protected administrators show a concise protected-account label with the explanation in its title. Shared dialog, identity and moderation-control components are reusable on private details.
+
+Controls have a minimum 44px height. Dialogs fit the viewport, scroll internally and lock background scrolling. Browser acceptance checks 320, 390, 768, 1024 and 1440px, record-name width, nested cancellation, focus restoration, keyboard containment, touch targets and actual suspension/restoration. UI checks complement the unchanged API/RLS authorization tests.
+
 ## Accounts and moderation
 
 Name, username and optional HTTPS avatar are read from profiles; email, confirmation and restrictions are read from Supabase Auth. Existing accounts receive unique `user-<UUID>` usernames. Missing images display an initial instead of an invented profile photo.

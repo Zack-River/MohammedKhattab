@@ -4270,6 +4270,32 @@ export default function ProfileForm({
 }
 ```
 
+### File: `modules/components/admin/admin-dialog.tsx`
+
+SHA-256: `d10aa147f88d8dfec6f4870528190db3714260ebd2436395e1c7be462c88d83e`
+
+```tsx
+"use client";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+export default function AdminDialog({ title, closeLabel, pending = false, onClose, children }: {
+  title: string; closeLabel: string; pending?: boolean; onClose: () => void; children: ReactNode;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null), titleId = useId();
+  useEffect(() => {
+    const element = dialog.current;
+    const opener = document.activeElement;
+    element?.showModal();
+    return () => { element?.close(); if (opener instanceof HTMLElement && opener.isConnected) opener.focus(); };
+  }, []);
+  return <dialog ref={dialog} className="lms-admin-dialog" aria-labelledby={titleId}
+    onCancel={event => { event.preventDefault(); if (!pending) onClose(); }}>
+    <header className="lms-admin-dialog-header"><h2 id={titleId}>{title}</h2>
+      <button type="button" className="lms-admin-close" aria-label={closeLabel} disabled={pending} onClick={onClose}><span aria-hidden="true">×</span></button>
+    </header>{children}
+  </dialog>;
+}
+```
+
 ### File: `modules/components/admin/admin-pagination.tsx`
 
 SHA-256: `ec52c66111afa4b7b40fdef50b13c4feeee9064297a2ca1049fdaf2468b02c75`
@@ -4353,27 +4379,60 @@ export default function LessonVideoEditor({ slug, lesson, labels }: { slug: stri
 
 ### File: `modules/components/admin/moderation-confirmation.tsx`
 
-SHA-256: `c643ef4918d52aac32193d76978af929e61f90cb83f391b2bcb207763bb48eec`
+SHA-256: `5c42c944a6e8e6b6b0e890a1ed2d103a3ba86640e25984176079d17008505707`
 
 ```tsx
 "use client";
-import { useEffect, useRef, useId } from "react";
 import type { AdminUsersLabels } from "@platform/types/admin-users";
 import { suspensionPeriods } from "@platform/config/user-moderation";
 import type { UserModeration } from "@platform/types/admin-users";
+import AdminDialog from "./admin-dialog";
 export default function ModerationConfirmation({ change, name, labels, pending, error, onConfirm, onCancel }: {
   change: UserModeration; name: string; labels: AdminUsersLabels; pending: boolean; error: string | null;
   onConfirm: () => void; onCancel: () => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null), titleId = useId();
-  useEffect(() => { dialog.current?.showModal(); }, []);
   const description = change.action === "remove" ? labels.confirmRemove : change.action === "promote" ? labels.confirmPromote : labels.confirmRestriction;
-  return <dialog ref={dialog} className="lms-admin-dialog" aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (!pending) onCancel(); }}>
-    <h2 id={titleId}>{labels.confirmTitle}</h2><p>{name}</p><p><strong>{labels[change.action]}</strong>{change.action === "suspend" && ` · ${suspensionPeriods.find(item => item.id === change.period)?.label}`}</p><p>{description}</p>
+  return <AdminDialog title={labels.confirmTitle} closeLabel={labels.close} pending={pending} onClose={onCancel}>
+    <p>{name}</p><p><strong>{labels[change.action]}</strong>{change.action === "suspend" && ` · ${suspensionPeriods.find(item => item.id === change.period)?.label}`}</p><p>{description}</p>
     {error && <p role="alert" className="lms-error">{error}</p>}
     <div className="lms-admin-actions"><button className="btn-primary" onClick={onConfirm} disabled={pending}>{pending ? labels.pending : labels.confirm}</button>
-      <button className="btn-secondary" onClick={onCancel} disabled={pending}>{labels.cancel}</button></div>
-  </dialog>;
+      <button className="lms-secondary-button" onClick={onCancel} disabled={pending}>{labels.cancel}</button></div>
+  </AdminDialog>;
+}
+```
+
+### File: `modules/components/admin/moderation-controls.tsx`
+
+SHA-256: `775875f6eae94e7559d7c07928799f8d85891426d77126b371692fe175612fc6`
+
+```tsx
+import { useId } from "react";
+import { suspensionPeriods } from "@platform/config/user-moderation";
+import type { AdminUser, AdminUsersLabels, SuspensionPeriod, UserModeration } from "@platform/types/admin-users";
+export default function ModerationControls({ user, labels, period, pending, onPeriod, onAction }: {
+  user: AdminUser; labels: AdminUsersLabels; period: SuspensionPeriod; pending: boolean;
+  onPeriod: (period: SuspensionPeriod) => void; onAction: (change: UserModeration) => void;
+}) {
+  const periodId = useId();
+  return <div className="lms-admin-controls">
+    <fieldset disabled={pending}><legend>{labels.access}</legend><p>{labels.accessHint}</p>
+      <label htmlFor={periodId}>{labels.period}</label>
+      <div className="lms-admin-suspend"><select id={periodId} value={period} onChange={event => onPeriod(event.target.value as SuspensionPeriod)}>
+        {suspensionPeriods.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+      </select><button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "suspend", period })}>{labels.suspend}</button></div>
+      <div className="lms-admin-actions">
+        {user.suspendedUntil && <button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "restore" })}>{labels.restore}</button>}
+        <button type="button" className="lms-admin-danger" onClick={() => onAction({ action: "ban" })}>{labels.ban}</button>
+      </div>
+    </fieldset>
+    <fieldset disabled={pending || !user.confirmed}><legend>{labels.permissions}</legend><p>{labels.confirmPromote}</p>
+      <button type="button" className="lms-secondary-button" onClick={() => onAction({ action: "promote" })}>{labels.promote}</button>
+      {!user.confirmed && <p>{labels.unconfirmed}</p>}
+    </fieldset>
+    <fieldset disabled={pending} className="lms-admin-destructive"><legend>{labels.danger}</legend><p>{labels.confirmRemove}</p>
+      <button type="button" className="lms-admin-danger" onClick={() => onAction({ action: "remove" })}>{labels.remove}</button>
+    </fieldset>
+  </div>;
 }
 ```
 
@@ -4391,33 +4450,37 @@ export default function SaveFeedback({ pending, saved, error, labels }: { pendin
 
 ### File: `modules/components/admin/user-actions.tsx`
 
-SHA-256: `3e6a4e7b1f994bbe9d02ad9e278c40ed809246453e09de29f10fb84d74689269`
+SHA-256: `6886635fe231293d067606391a71504d409d1c28b1a3bb71162ef591078f80a2`
 
 ```tsx
 "use client";
-import { useId, useState } from "react";
+import { useState } from "react";
 import type { AdminUser, SuspensionPeriod, UserModeration } from "@platform/types/admin-users";
-import { suspensionPeriods } from "@platform/config/user-moderation";
 import type { AdminUsersLabels } from "@platform/types/admin-users";
 import { useUserModeration } from "@platform/hooks/use-user-moderation";
 import ModerationConfirmation from "./moderation-confirmation";
+import AdminDialog from "./admin-dialog";
+import ModerationControls from "./moderation-controls";
+import UserIdentity from "./user-identity";
+import UserStatus from "./user-status";
 export default function UserActions({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
-  const periodId = useId();
+  const [open, setOpen] = useState(false);
   const [period, setPeriod] = useState<SuspensionPeriod>("day"), [change, setChange] = useState<UserModeration | null>(null);
   const command = useUserModeration(user.id, labels.error);
-  const confirm = async () => { if (change && await command.execute(change)) setChange(null); };
-  if (user.admin) return <small>{labels.protectedAdmin}</small>;
-  return <div className="lms-admin-actions">
-    <label className="lms-visually-hidden" htmlFor={periodId}>{labels.period}: {user.name}</label>
-    <select id={periodId} value={period} onChange={event => setPeriod(event.target.value as SuspensionPeriod)} disabled={command.pending}>
-      {suspensionPeriods.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
-    </select>
-    <button className="btn-secondary" disabled={command.pending} onClick={() => setChange({ action: "suspend", period })}>{labels.suspend}</button>
-    <button className="btn-secondary" disabled={command.pending} onClick={() => setChange({ action: "ban" })}>{labels.ban}</button>
-    {user.suspendedUntil && <button className="btn-secondary" onClick={() => void command.execute({ action: "restore" })} disabled={command.pending}>{labels.restore}</button>}
-    <button className="btn-secondary" disabled={command.pending || !user.confirmed} onClick={() => setChange({ action: "promote" })}>{labels.promote}</button>
-    <button className="lms-admin-danger" disabled={command.pending} onClick={() => setChange({ action: "remove" })}>{labels.remove}</button>
-    {command.error && !change && <p role="alert" className="lms-error">{command.error}</p>}
+  const confirm = async () => { if (change && await command.execute(change)) { setChange(null); setOpen(false); } };
+  const action = async (next: UserModeration) => {
+    if (next.action === "restore") { if (await command.execute(next)) setOpen(false); }
+    else setChange(next);
+  };
+  if (user.admin) return <span className="lms-admin-protected" title={labels.protectedAdmin}>{labels.protected}</span>;
+  return <div className="lms-admin-user-actions">
+    <button type="button" className="lms-secondary-button lms-admin-manage" aria-haspopup="dialog" onClick={() => setOpen(true)}>{labels.manage}</button>
+    {open && <AdminDialog title={labels.manage} closeLabel={labels.close} pending={command.pending} onClose={() => setOpen(false)}>
+      <UserIdentity user={user} labels={labels} /><p className="lms-admin-account-email" dir="ltr">{user.email}</p>
+      <UserStatus user={user} labels={labels} />
+      <ModerationControls user={user} labels={labels} period={period} pending={command.pending} onPeriod={setPeriod} onAction={next => void action(next)} />
+      {command.error && !change && <p role="alert" className="lms-error">{command.error}</p>}
+    </AdminDialog>}
     {change && <ModerationConfirmation labels={labels} change={change} name={`${user.name} · ${user.email}`} pending={command.pending} error={command.error} onConfirm={() => void confirm()} onCancel={() => setChange(null)} />}
   </div>;
 }
@@ -4456,6 +4519,25 @@ export default function UserDetails({ user, labels }: { user: AdminUser; labels:
       <div key={label}><dt>{label}</dt><dd dir={label === labels.name ? undefined : "auto"}>{value}</dd></div>)}</dl>
     <UserStatus user={user} labels={labels} /><UserActions user={user} labels={labels} />
   </section>;
+}
+```
+
+### File: `modules/components/admin/user-identity.tsx`
+
+SHA-256: `5fd87943608de3b0d557cc384a0741779effc793097d9ee6a71e09a5cfaa5274`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import type { AdminUser, AdminUsersLabels } from "@platform/types/admin-users";
+import UserAvatar from "./user-avatar";
+export default function UserIdentity({ user, labels }: { user: AdminUser; labels: AdminUsersLabels }) {
+  return <div className="lms-admin-identity">
+    <UserAvatar name={user.name} url={user.avatarUrl} labels={labels} />
+    <div><Link href={routes.adminUser(user.id)} className="lms-admin-name">{user.name}</Link>
+      <span className="lms-admin-role">{user.admin ? labels.admin : labels.student}</span>
+    </div>
+  </div>;
 }
 ```
 
@@ -4506,7 +4588,7 @@ export default function UserSubscriptions({ subscriptions, labels }: { subscript
 
 ### File: `modules/components/admin/users-table.tsx`
 
-SHA-256: `283c5f2cb5f40e67933d730ffc9b2512759e2485eb31f20cc83bcea6c9be1021`
+SHA-256: `6ac5d98f6a5bd47fb9cfef3ecea2bef9baeff143c56ca162e16966dda4a83884`
 
 ```tsx
 import Link from "next/link";
@@ -4515,16 +4597,19 @@ import { routes } from "@platform/config/navigation";
 import type { AdminUsersLabels } from "@platform/types/admin-users";
 import UserStatus from "./user-status";
 import UserActions from "./user-actions";
+import UserIdentity from "./user-identity";
 export default function UsersTable({ users, labels }: { users: AdminUser[]; labels: AdminUsersLabels }) {
-  return <><p className="lms-admin-table-hint">{labels.tableHint}</p><div className="lms-admin-table-wrap" role="region" aria-label={labels.heading} tabIndex={0}><table className="lms-admin-table">
+  return <div className="lms-admin-table-wrap"><table className="lms-admin-table" role="table">
     <caption className="lms-visually-hidden">{labels.heading}</caption>
     <thead><tr>{[labels.name, labels.username, labels.email, labels.status, labels.actions].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
-    <tbody>{users.map(user => <tr key={user.id}>
-      <th scope="row"><Link href={routes.adminUser(user.id)} className="lms-text-link">{user.name}</Link><small>{user.admin ? labels.admin : labels.student}</small></th>
-      <td dir="ltr">{user.username}</td><td><span dir="ltr">{user.email}</span>{!user.confirmed && <small>{labels.unconfirmed}</small>}</td>
-      <td><UserStatus user={user} labels={labels} /></td><td><Link href={routes.adminUser(user.id)} className="lms-text-link">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
+    <tbody role="rowgroup">{users.map(user => <tr key={user.id} role="row">
+      <th scope="row" role="rowheader"><UserIdentity user={user} labels={labels} /></th>
+      <td role="cell" data-label={labels.username}><span className="lms-admin-truncate" dir="ltr" title={user.username}>{user.username}</span></td>
+      <td role="cell" data-label={labels.email}><span className="lms-admin-truncate" dir="ltr" title={user.email}>{user.email}</span>{!user.confirmed && <small>{labels.unconfirmed}</small>}</td>
+      <td role="cell" data-label={labels.status}><UserStatus user={user} labels={labels} /></td>
+      <td role="cell" className="lms-admin-row-actions"><Link href={routes.adminUser(user.id)} className="lms-admin-view">{labels.view}</Link><UserActions user={user} labels={labels} /></td>
     </tr>)}</tbody>
-  </table>{!users.length && <p>{labels.empty}</p>}</div></>;
+  </table>{!users.length && <p className="lms-admin-empty">{labels.empty}</p>}</div>;
 }
 ```
 
@@ -7682,7 +7767,7 @@ export const userAdministration = { pageSize: 20, permanentBanHours: 876000, ref
 
 ### File: `modules/data/admin-users.ts`
 
-SHA-256: `24f113a3cbac5c148dfbfbe0e8a099f3bac1bc5642dcd9ea85fd19cc954d24b6`
+SHA-256: `851a53a13c39ad11d2afae6e20ead37c07cf5bc8541537a8bf4edb4335a36077`
 
 ```typescript
 export const adminUsersCopy = {
@@ -7698,7 +7783,9 @@ export const adminUsersCopy = {
   confirmTitle: "تأكيد الإجراء", confirm: "تأكيد", cancel: "إلغاء", confirmRemove: "سيُحذف الحساب واشتراكاته وتقدمه نهائيًا.",
   confirmPromote: "سيتمكّن هذا المستخدم من إدارة المستخدمين والدورات.", confirmRestriction: "سيتوقف وصول هذا المستخدم إلى حسابه ودوراته.",
   protectedAdmin: "حسابات المديرين محمية من الحظر والحذف.",
-  tableHint: "اسحب الجدول أفقيًا لعرض بيانات الحساب والإجراءات.",
+  manage: "إدارة الحساب", close: "إغلاق", protected: "حساب محمي",
+  access: "صلاحيات الوصول", accessHint: "اختر مدة التعليق، أو استعد الوصول قبل انتهاء المدة.",
+  permissions: "صلاحية الإدارة", danger: "حذف الحساب", managementHint: "تُراجع الإجراءات قبل تطبيقها على الحساب.",
 } as const;
 ```
 
@@ -11246,40 +11333,93 @@ export const theme = palette;
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `2b0261e54345e959c44963a335fe19747683cf979f1dca4c45dc44c10ca3cffb`
+SHA-256: `fbad00b82a7cd1160dba60ebef97edded20d55def85402196d9d3b8278fcdb6a`
 
 ```css
-.lms-admin-table-wrap { overflow-x: auto; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
-.lms-admin-table { width: 100%; border-collapse: collapse; text-align: start; }
-.lms-admin-table th, .lms-admin-table td { padding: var(--space-md); vertical-align: top; border-bottom: var(--size-1px) solid var(--border-subtle); }
-.lms-admin-table thead { background: var(--bg-section-alt); }
+/* Account records share one semantic table; narrow layouts reflow each record. */
+.lms-admin-table-wrap { position: relative; min-width: 0; max-width: 100%; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); }
+.lms-admin-table { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: start; font-size: var(--font-size-caption); }
+.lms-admin-table th, .lms-admin-table td { padding: var(--space-md); text-align: start; vertical-align: middle; border-bottom: var(--size-1px) solid var(--border-subtle); }
+.lms-admin-table thead { background: var(--bg-section-alt); color: var(--text-muted); }
+.lms-admin-table thead th { font-weight: var(--font-weight-label); padding-block: var(--space-md); }
+.lms-admin-table th:nth-child(1) { width: 20%; }
+.lms-admin-table th:nth-child(2) { width: 19%; }
+.lms-admin-table th:nth-child(3) { width: 25%; }
+.lms-admin-table th:nth-child(4) { width: 17%; }
+.lms-admin-table th:nth-child(5) { width: 19%; }
 .lms-admin-table tbody tr { transition: background-color var(--transition-smooth); }
-.lms-admin-table tbody tr:hover { background: var(--primary-red-subtle); }
-.lms-admin-table small, .lms-admin-status small { display: block; color: var(--text-muted); margin-top: var(--space-xs); }
+.lms-admin-table tbody tr:hover { background: var(--bg-section-alt); }
+.lms-admin-table tbody tr:last-child > * { border-bottom: 0; }
+.lms-admin-table small, .lms-admin-status small { display: block; color: var(--text-muted); margin-top: var(--space-xs); font-size: var(--font-size-caption); font-weight: var(--font-weight-body); overflow-wrap: anywhere; }
+.lms-admin-identity { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
+.lms-admin-identity > div:last-child { min-width: 0; flex: 1; }
+.lms-admin-name { display: block; color: var(--text-primary); font-weight: var(--font-weight-action); overflow-wrap: anywhere; transition: color var(--transition-smooth); }
+.lms-admin-name:hover { color: var(--primary-red); }
+.lms-admin-role { display: block; color: var(--text-muted); font-size: var(--font-size-caption); font-weight: var(--font-weight-body); margin-top: var(--space-xs); }
+.lms-admin-truncate { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; color: var(--text-secondary); }
+.lms-admin-table .lms-admin-avatar, .lms-admin-dialog .lms-admin-avatar { width: var(--size-40px); height: var(--size-40px); flex-shrink: 0; font-size: var(--font-size-control); }
+.lms-admin-row-actions > * { display: flex; width: 100%; justify-content: center; align-items: center; min-height: var(--size-44px); }
+.lms-admin-row-actions > * + * { margin-top: var(--space-xs); }
+.lms-admin-user-actions > .lms-admin-manage { width: 100%; }
+.lms-admin-view { color: var(--text-primary); font-weight: var(--font-weight-label); transition: color var(--transition-smooth); }
+.lms-admin-view:hover { color: var(--primary-red); }
+.lms-admin-manage.lms-secondary-button { padding: var(--space-sm) var(--space-md); min-height: var(--size-44px); font-size: var(--font-size-caption); white-space: nowrap; }
+.lms-admin-protected { color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-admin-status strong { display: inline-flex; align-items: center; gap: var(--space-sm); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-full); padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-caption); font-weight: var(--font-weight-label); white-space: nowrap; }
+.lms-admin-status strong::before { content: ''; width: var(--size-6px); height: var(--size-6px); border-radius: var(--radius-full); background: currentColor; }
+.lms-admin-status[data-blocked] strong { color: var(--text-accent-readable); border-color: var(--primary-red); background: var(--primary-red-subtle); }
 .lms-admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin-top: var(--space-sm); }
-.lms-admin-actions .btn-secondary, .lms-admin-actions .btn-primary { padding: var(--space-sm) var(--space-md); font-size: var(--font-size-body); }
-.lms-admin-actions select { background: var(--bg-main); color: var(--text-primary); padding: var(--space-sm); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); font: inherit; }
-.lms-admin-danger { border: 0; background: transparent; color: var(--primary-red); font: inherit; cursor: pointer; padding: var(--space-sm); transition: color var(--transition-smooth); }
-.lms-admin-danger:hover { color: var(--text-primary); }
-.lms-admin-status[data-blocked] strong { color: var(--primary-red); }
+.lms-admin-actions .lms-secondary-button, .lms-admin-actions .btn-primary, .lms-admin-controls .lms-secondary-button { padding: var(--space-sm) var(--space-md); min-height: var(--size-44px); font-size: var(--font-size-body); }
+.lms-admin-danger { min-height: var(--size-44px); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); background: transparent; color: var(--text-accent-readable); font: inherit; cursor: pointer; padding: var(--space-sm) var(--space-md); transition: background-color var(--transition-smooth), border-color var(--transition-smooth); }
+.lms-admin-danger:hover { background: var(--primary-red-subtle); border-color: var(--primary-red); }
 .lms-admin-pagination { display: flex; justify-content: center; align-items: center; gap: var(--space-md); margin-block: var(--space-lg); }
-.lms-admin-avatar { width: var(--size-80px); height: var(--size-80px); border-radius: var(--radius-full); overflow: hidden; background: var(--primary-red-subtle); display: grid; place-items: center; font-size: var(--size-2rem); }
+.lms-admin-avatar { width: var(--size-80px); height: var(--size-80px); border-radius: var(--radius-full); overflow: hidden; background: var(--primary-red-subtle); color: var(--text-primary); display: grid; place-items: center; font-size: var(--size-2rem); }
 .lms-admin-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .lms-admin-user-details { display: grid; gap: var(--space-lg); }
 .lms-admin-user-details dl { display: grid; gap: var(--space-md); margin: 0; }
 .lms-admin-user-details dt { color: var(--text-muted); }
 .lms-admin-user-details dd { margin: 0; overflow-wrap: anywhere; }
-.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-xl); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); max-width: min(var(--lms-size-560px), calc(100% - var(--space-xl))); }
+.lms-admin-dialog { background: var(--bg-surface); color: var(--text-primary); padding: var(--space-lg); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-lg); width: var(--lms-size-560px); max-width: calc(100% - var(--space-xl)); max-height: calc(100dvh - var(--space-xl)); overflow-y: auto; overscroll-behavior: contain; }
 .lms-admin-dialog::backdrop { background: var(--color-rgba-0-0-0-0-8); }
-.lms-admin-dialog p { margin-block: var(--space-md); }
-.lms-admin-actions button:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+body:has(.lms-admin-dialog[open]) { overflow: hidden; }
+.lms-admin-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); }
+.lms-admin-dialog-header h2 { font-size: var(--lms-size-1_4rem); margin: 0; }
+.lms-admin-close { width: var(--size-44px); height: var(--size-44px); flex-shrink: 0; background: transparent; color: var(--text-secondary); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); cursor: pointer; font-size: var(--size-2rem); transition: color var(--transition-smooth), background-color var(--transition-smooth); }
+.lms-admin-close:hover { color: var(--text-primary); background: var(--bg-section-alt); }
+.lms-admin-dialog p { margin-block: var(--space-sm); overflow-wrap: anywhere; }
+.lms-admin-account-email { color: var(--text-muted); font-size: var(--font-size-caption); text-align: start; }
+.lms-admin-controls { display: grid; gap: var(--space-lg); margin-top: var(--space-lg); }
+.lms-admin-controls fieldset { min-width: 0; margin: 0; padding: var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); }
+.lms-admin-controls legend { color: var(--text-primary); font-weight: var(--font-weight-action); padding-inline: var(--space-xs); }
+.lms-admin-controls p { color: var(--text-muted); font-size: var(--font-size-caption); margin-bottom: var(--space-md); }
+.lms-admin-controls label { display: block; margin-bottom: var(--space-xs); font-size: var(--font-size-caption); color: var(--text-secondary); }
+.lms-admin-suspend { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.lms-admin-suspend > * { flex: 1; }
+.lms-admin-controls select { min-width: 0; min-height: var(--size-44px); background: var(--bg-main); color: var(--text-primary); padding: var(--space-sm); border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); font: inherit; }
+.lms-admin-controls .lms-admin-destructive { border-color: var(--primary-red); }
+.lms-admin-dialog button:disabled { opacity: var(--player-disabled-opacity); cursor: not-allowed; }
+.lms-admin-table-wrap :focus-visible, .lms-admin-dialog :focus-visible { outline: var(--size-2px) solid var(--text-primary); outline-offset: var(--size-2px); }
+.lms-admin-empty { padding: var(--space-xl); text-align: center; color: var(--text-muted); }
 .lms-visually-hidden { position: absolute; width: var(--size-1px); height: var(--size-1px); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.lms-admin-table { min-width: var(--size-980px); }
-.lms-admin-table-wrap { min-width: 0; max-width: 100%; }
-.lms-admin-table td:last-child { min-width: var(--lms-size-320px); }
-.lms-admin-table-wrap { position: relative; }
-.lms-admin-table-hint { display: none; margin-bottom: var(--space-sm); color: var(--text-muted); }
-@media (max-width: 768px) { .lms-admin-table-hint { display: block; } }
+@media (max-width: 1024px) {
+  .lms-admin-table-wrap { border: 0; background: transparent; }
+  .lms-admin-table, .lms-admin-table tbody { display: block; }
+  .lms-admin-table thead { position: absolute; width: var(--size-1px); height: var(--size-1px); overflow: hidden; clip-path: inset(50%); }
+  .lms-admin-table tbody { display: grid; gap: var(--space-md); }
+  .lms-admin-table tbody tr { display: block; min-width: 0; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--bg-surface); padding: var(--space-md); }
+  .lms-admin-table tbody tr > * { display: block; width: 100%; padding: 0; border: 0; }
+  .lms-admin-table tbody th:nth-child(1) { width: 100%; }
+  .lms-admin-table tbody td { margin-top: var(--space-md); }
+  .lms-admin-table td[data-label]::before { content: attr(data-label); display: block; color: var(--text-muted); font-size: var(--font-size-caption); margin-bottom: var(--space-xs); }
+  .lms-admin-table .lms-admin-row-actions { display: flex; align-items: center; gap: var(--space-sm); border-top: var(--size-1px) solid var(--border-subtle); padding-top: var(--space-md); }
+  .lms-admin-row-actions > * { flex: 1; min-width: 0; }
+  .lms-admin-row-actions > * + * { margin-top: 0; }
+  .lms-admin-table .lms-admin-name { font-size: var(--font-size-body); }
+}
+@media (min-width: 480px) and (max-width: 1024px) {
+  .lms-admin-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-lg); }
+  .lms-admin-table tbody th, .lms-admin-table tbody td:nth-child(4), .lms-admin-table .lms-admin-row-actions { grid-column: 1 / -1; }
+}
 ```
 
 ### File: `modules/styles/auth.css`
@@ -25030,7 +25170,7 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `bbd40ea726bf5a9d279e6d83dd1ddbd2e74c50953e07c3c569bc78fcd675eec8`
+SHA-256: `082689a5f4eda2eb6d46d6a51b2141ffa0abecd1f4936ff53d2c738d9f5c397f`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25055,16 +25195,24 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
     const row = page.getByRole('row').filter({ hasText: target.email });
     await expect(row).toContainText('Moderation Student');
-    await row.getByRole('combobox').selectOption('week');
-    await row.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
+    const management = page.getByRole('dialog', { name: 'إدارة الحساب', exact: true });
+    await expect(management).toBeVisible();
+    await management.getByRole('combobox').selectOption('week');
+    await management.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'تأكيد الإجراء', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'تأكيد الإجراء', exact: true })).toHaveCount(0);
+    await expect(management.getByRole('button', { name: 'تعليق الحساب', exact: true })).toBeFocused();
+    await management.getByRole('button', { name: 'تعليق الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تأكيد', exact: true }).click();
-    await expect(page.getByRole('dialog')).not.toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(row).toContainText('المتبقي:');
     await row.getByRole('link', { name: 'عرض المستخدم', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'الدورات المشترك بها', exact: true })).toBeVisible();
     await expect(page.getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
     await expect(page.getByText('المتبقي:', { exact: false })).toBeVisible();
+    await page.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'استعادة الوصول', exact: true }).click();
     await expect(page.getByText('نشط', { exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 900 });
@@ -25072,8 +25220,28 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.goto(url + '/admin/dashboard');
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByRole('row').filter({ hasText: target.email })).toBeVisible();
-    const viewport = await page.evaluate(() => ({ root: document.documentElement.scrollWidth, body: document.body.scrollWidth, width: innerWidth }));
-    verify(Math.max(viewport.root, viewport.body) <= viewport.width, `User table scrolls within mobile viewport (${JSON.stringify(viewport)})`);
+    for (const width of [320, 390, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const viewport = await page.evaluate(() => ({ root: document.documentElement.scrollWidth, body: document.body.scrollWidth, width: innerWidth }));
+      verify(Math.max(viewport.root, viewport.body) <= viewport.width, `Account records fit viewport (${JSON.stringify(viewport)})`);
+      if (width <= 1024) {
+        const name = await row.locator('.lms-admin-name').boundingBox();
+        verify(name.width >= 150, `Account identity has readable width at ${width}px`);
+      }
+      await row.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
+      await expect(management).toBeVisible();
+      const bounds = await management.boundingBox();
+      verify(bounds.x >= 0 && bounds.x + bounds.width <= width && bounds.y >= 0 && bounds.y + bounds.height <= 900, `Management dialog fits ${width}px viewport`);
+      const targets = await management.locator('button, select').evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+      verify(targets.every(height => height >= 44), `Dialog controls have 44px touch targets at ${width}px`);
+      await page.keyboard.press('Tab');
+      verify(await management.evaluate(element => element.contains(document.activeElement)), `Keyboard focus remains inside dialog at ${width}px`);
+      if (width === 390) await page.screenshot({ path: 'docs/evidence/backend/admin-users-management-390.png', fullPage: true });
+      await page.keyboard.press('Escape');
+      await expect(management).not.toBeVisible();
+      await expect(row.getByRole('button', { name: 'إدارة الحساب', exact: true })).toBeFocused();
+    }
+    await page.setViewportSize({ width: 390, height: 900 });
     await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
     verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();

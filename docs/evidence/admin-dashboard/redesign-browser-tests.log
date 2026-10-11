@@ -1,0 +1,36 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: User Manager: real login
+PASS 2: Moderation Student: real login
+PASS 3: Administrator login automatically opens administrator dashboard
+PASS 4: Generic dashboard link resolves to administrator dashboard
+PASS 5: User detail fits mobile viewport
+PASS 6: Account records fit viewport ({"root":320,"body":320,"width":320})
+PASS 7: Account identity has readable width at 320px
+PASS 8: Management dialog fits 320px viewport
+PASS 9: Dialog controls have 44px touch targets at 320px
+PASS 10: Keyboard focus remains inside dialog at 320px
+PASS 11: Account records fit viewport ({"root":390,"body":390,"width":390})
+PASS 12: Account identity has readable width at 390px
+PASS 13: Management dialog fits 390px viewport
+PASS 14: Dialog controls have 44px touch targets at 390px
+PASS 15: Keyboard focus remains inside dialog at 390px
+PASS 16: Account records fit viewport ({"root":768,"body":768,"width":768})
+PASS 17: Account identity has readable width at 768px
+PASS 18: Management dialog fits 768px viewport
+PASS 19: Dialog controls have 44px touch targets at 768px
+PASS 20: Keyboard focus remains inside dialog at 768px
+PASS 21: Account records fit viewport ({"root":1024,"body":1024,"width":1024})
+PASS 22: Account identity has readable width at 1024px
+PASS 23: Management dialog fits 1024px viewport
+PASS 24: Dialog controls have 44px touch targets at 1024px
+PASS 25: Keyboard focus remains inside dialog at 1024px
+PASS 26: Account records fit viewport ({"root":1440,"body":1440,"width":1440})
+PASS 27: Management dialog fits 1440px viewport
+PASS 28: Dialog controls have 44px touch targets at 1440px
+PASS 29: Keyboard focus remains inside dialog at 1440px
+PASS 30: Admin users dashboard has no browser JavaScript errors
+PASS 31: Student login stays on student dashboard without administrator navigation
+Backend integration: 31 checks passed

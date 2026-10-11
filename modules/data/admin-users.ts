@@ -11,5 +11,7 @@ export const adminUsersCopy = {
   confirmTitle: "تأكيد الإجراء", confirm: "تأكيد", cancel: "إلغاء", confirmRemove: "سيُحذف الحساب واشتراكاته وتقدمه نهائيًا.",
   confirmPromote: "سيتمكّن هذا المستخدم من إدارة المستخدمين والدورات.", confirmRestriction: "سيتوقف وصول هذا المستخدم إلى حسابه ودوراته.",
   protectedAdmin: "حسابات المديرين محمية من الحظر والحذف.",
-  tableHint: "اسحب الجدول أفقيًا لعرض بيانات الحساب والإجراءات.",
+  manage: "إدارة الحساب", close: "إغلاق", protected: "حساب محمي",
+  access: "صلاحيات الوصول", accessHint: "اختر مدة التعليق، أو استعد الوصول قبل انتهاء المدة.",
+  permissions: "صلاحية الإدارة", danger: "حذف الحساب", managementHint: "تُراجع الإجراءات قبل تطبيقها على الحساب.",
 } as const;

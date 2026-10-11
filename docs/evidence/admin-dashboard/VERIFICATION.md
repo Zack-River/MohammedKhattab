@@ -17,3 +17,7 @@
 The administrator role was already correct; shared `/dashboard` entry incorrectly rendered student content. The entry route now resolves trusted admin membership before rendering student content. Admin login and generic dashboard links automatically open `/admin/dashboard`; students stay on `/dashboard`.
 
 162 full backend checks, 18 auth/access regressions, TypeScript/lint/architecture and production build passed. The real hosted admin account also passed the role-based entry checks against the local production artifact (`entry-local-verification.json`). Application commit `e094a4a8cbc0310b37be2d168669fd12d06c2121` deployed successfully. The real `admin@ta3allam.com` account now logs in directly to `/admin/dashboard`; entering `/dashboard` also resolves to the administrator dashboard. Live Users/Courses navigation, details, mobile and logout checks passed with zero JavaScript errors (`entry-live-verification.json`).
+
+## Responsive account UI redesign
+
+Research and responsive contracts: `docs/ADMIN_DASHBOARD.md`. Focused moderation: 91 checks (`redesign-moderation-tests.log`). Final browser/layout: 31 checks (`redesign-browser-tests.log`), including 320/390/768/1024/1440px, meaningful account-name width, 44px controls, nested cancellation, focus containment/return, suspension/restore and student isolation. TypeScript, ESLint, architecture (457 files, zero violations) and final production build passed. No database or dependency changes. Live verification is pending.
