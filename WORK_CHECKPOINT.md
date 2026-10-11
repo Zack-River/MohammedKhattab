@@ -5,7 +5,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 ## Latest checkpoint — aligned settings card heights
 
 - Stretched the desktop identity/contact card across its two grid rows, aligning its top with the verification card and its bottom with the password card. Mobile remains stacked.
-- Production build/TypeScript, targeted lint and diff checks passed. Existing responsive acceptance now checks both top and bottom alignment at 1440px and 1920px, in addition to small-screen overflow checks.
+- Production build/TypeScript, targeted lint and diff checks passed. Local and live responsive acceptance passed, checking both top and bottom alignment at 1440px and 1920px plus small-screen overflow. Application commit `84a80ab` is deployed.
 
 ## Latest checkpoint — responsive settings and manual phone-confirmation queue
 
