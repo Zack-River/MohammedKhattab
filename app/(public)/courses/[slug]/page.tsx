@@ -5,7 +5,7 @@ import { site } from "@platform/data/site";
 import { offerCopy } from "@platform/data/offers";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { findCourse, courseLessons } from "@platform/features/catalog";
 import { readLearningState, courseProgress } from "@platform/features/learning";
 import Curriculum from "@platform/components/courses/curriculum";
@@ -29,6 +29,7 @@ export default async function CoursePage({
   const { slug } = await params;
   const course = await findCourse(slug);
   if (!course) notFound();
+  if (course.delivery === "live") redirect(routes.workshopPage(slug));
   const state = await readLearningState();
   const progress = courseProgress(course, state);
   return (

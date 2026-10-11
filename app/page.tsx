@@ -1,8 +1,12 @@
+import { listCourses } from "@platform/features/catalog";
+import { createLandingModel } from "@platform/features/marketing/landing";
 import type { Metadata } from "next";
-import { PortfolioPage } from "@platform/features/portfolio";
-import content from "@/config/personal-portfolio.json";
+import { Landing } from "@platform/features/marketing";
+import { interfaceCopy } from "@platform/data/interface-copy";
 export const metadata: Metadata = {
-  title: { absolute: content.metadataTitle },
-  description: content.hero.description,
+  title: { absolute: interfaceCopy.metadataTitle },
+  description: interfaceCopy.metadataDescription,
 };
-export default PortfolioPage;
+export default async function Ta3llamPage() {
+  return <Landing model={createLandingModel(await listCourses())} />;
+}

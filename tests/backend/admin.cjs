@@ -20,7 +20,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     verify((await manager.api(endpoint,saved)).status === 200, 'Admin edits name description price category and media');
     const publicCourse = JSON.parse((await anonymous('/api/courses/7days-freelance')).data);
     verify(publicCourse.title === saved.title && publicCourse.offer.amount === 777 && publicCourse.category === 'editing', 'Database edits appear in public catalog');
-    verify((await anonymous('/ta3allam/7days-freelance')).data.includes(saved.title), 'Workshop landing reads database changes');
+    verify((await anonymous('/workshops/7days-freelance')).data.includes(saved.title), 'Workshop landing reads database changes');
     verify((await manager.api(endpoint,{ ...saved, thumbnailUrl: 'javascript:alert(1)' })).status === 400, 'Unsafe media URL rejected');
     verify((await manager.api(endpoint,{ ...saved, amount: -1 })).status === 400, 'Negative price rejected');
     verify((await manager.api(endpoint,saved,{ headers: { Origin: 'https://attacker.example' } })).status === 403, 'Cross-origin admin mutation rejected');
@@ -32,12 +32,12 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     const browser = await chromium.launch({ headless: true });
     try {
       const page = await browser.newPage();
-      await page.goto(url + '/ta3allam/login');
+      await page.goto(url + '/login');
       await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
       await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
       await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
       await expect(page.getByRole('link', { name: 'إدارة الدورات', exact: true })).toBeVisible();
-      await page.goto(url + '/ta3allam/dashboard/admin/courses/7days-freelance');
+      await page.goto(url + '/dashboard/admin/courses/7days-freelance');
       await page.getByLabel('اسم الدورة', { exact: true }).fill('ورشة محفوظة من لوحة التحكم');
       await page.getByLabel('السعر (ج.م)', { exact: true }).fill('888');
       await page.getByRole('button', { name: 'حفظ التغييرات', exact: true }).click();
@@ -51,7 +51,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     } finally { await browser.close(); }
     const driveCourse = { ...saved, introVideoUrl: 'https://drive.google.com/file/d/1ZHecu6hIzcXtpyMxa-Rexq0csHcmOKJt/view' };
     verify((await manager.api(endpoint,driveCourse)).status === 200, 'Google Drive link persists in admin editor');
-    const view = await anonymous('/ta3allam/7days-freelance');
+    const view = await anonymous('/workshops/7days-freelance');
     verify(view.data.includes('/api/courses/7days-freelance/intro'), 'Drive intro uses the custom streaming player');
     const media = await fetch(url + '/api/courses/7days-freelance/intro', { headers: { Range: 'bytes=0-1023' }, signal: AbortSignal.timeout(15000) });
     const reader = media.body.getReader();
@@ -67,7 +67,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     } finally { await admin.from('lessons').update({ video_url: initial }).eq('course_slug','editing-foundations').eq('id','first-cut'); }
   } finally { await admin.from('courses').update(original).eq('slug','7days-freelance'); }
   const response = await anonymous('/7days-freelance?test=1');
-  verify(response.status === 308 && response.headers.get('location').includes('/ta3allam/7days-freelance?test=1'), 'Legacy workshop redirects with query preserved');
+  verify(response.status === 308 && response.headers.get('location').includes('/workshops/7days-freelance?test=1'), 'Legacy workshop redirects with query preserved');
   const legacyDetail = await anonymous('/ta3allam/courses/7days-freelance');
   verify(legacyDetail.status === 308, 'Generic workshop detail URL redirects to approved landing');
   const copy = { ...original.metadata, slug: 'test-live-free', offer: { ...original.metadata.offer, amount: 0 } };

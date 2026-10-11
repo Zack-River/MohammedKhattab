@@ -73,7 +73,7 @@ test("T35 transitive imports, cycles and each planned ownership mutation are rej
     [
       [
         "modules/lib/duplicate.ts",
-        "export const course=(slug:string)=>`/ta3allam/courses/${slug}`;",
+        "export const course=(slug:string)=>`/courses/${slug}`;",
       ],
     ],
     [

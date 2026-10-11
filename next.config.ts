@@ -1,6 +1,6 @@
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
-import { projectRoutes, legacyLearningSections } from "./config/project-navigation";
+import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -8,13 +8,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: `${projectRoutes.learning}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: "/ta3llam/:path*", destination: `${projectRoutes.learning}/:path*`, permanent: false },
-      ...legacyLearningSections.map((section) => ({
-        source: `/${section}/:path*`,
-        destination: `${projectRoutes.learning}/${section}/:path*`,
-        permanent: false,
-      })),
+      { source: `/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+      ...legacyLearningNamespaces.flatMap((namespace) => [
+        { source: `/${namespace}/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+        { source: `/${namespace}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+        { source: `/${namespace}`, destination: projectRoutes.learning, permanent: true },
+        { source: `/${namespace}/:path+`, destination: "/:path+", permanent: true },
+      ]),
       { source: "/portfolio", destination: projectRoutes.portfolio, permanent: false },
       { source: "/workshop", destination: projectRoutes.workshop, permanent: false },
     ];

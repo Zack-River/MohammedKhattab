@@ -27,12 +27,12 @@ export default function CourseCard({
   site: Pick<ContentBindings["site"], "englishName">;
   offerCopy: Pick<ContentBindings["offerCopy"], "price">;
 }) {
-  const detailHref = routes.course(course.slug);
+  const detailHref = routes.course(course.slug, course.delivery);
   const actionHref = progress
     ? progress.next
       ? routes.lesson(course.slug, progress.next.id)
-      : routes.course(course.slug)
-    : routes.enrollment(course.slug);
+      : routes.course(course.slug, course.delivery)
+    : routes.enrollment(course.slug, course.delivery);
   return (
     <article className="lms-course-card">
       <h3 className="lms-card-title">

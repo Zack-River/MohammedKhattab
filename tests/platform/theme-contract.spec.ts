@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("T06 radius does not control spacing or footer measure", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const measure = () =>
     page
@@ -48,7 +48,7 @@ test("T06 radius does not control spacing or footer measure", async ({
 test("T08 palette follows primary without changing production identity", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const tokens = () =>
     page.evaluate(() => {
       const sample = document.createElement("div");

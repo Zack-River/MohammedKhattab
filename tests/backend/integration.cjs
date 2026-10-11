@@ -50,8 +50,8 @@ async function run() {
   const playback = lesson => `/api/courses/${course.slug}/lessons/${lesson.id}/playback`;
   for (const path of ['/api/profile','/api/progress','/api/enrollments','/api/auth/session',`/api/certificates/${course.slug}`])
     verify((await anonymous(path)).status === 401, `Anonymous denied ${path}`);
-  const protectedPage = await anonymous('/ta3allam/dashboard');
-  verify(protectedPage.headers.get('location')?.includes('/ta3allam/login') || (protectedPage.data.includes('NEXT_REDIRECT') && protectedPage.data.includes('/ta3allam/login')), 'Protected dashboard redirects (including streamed redirects)');
+  const protectedPage = await anonymous('/dashboard');
+  verify(protectedPage.headers.get('location')?.includes('/login') || (protectedPage.data.includes('NEXT_REDIRECT') && protectedPage.data.includes('/login')), 'Protected dashboard redirects (including streamed redirects)');
   verify((await anonymous(playback(privateLesson))).status === 403, 'Private playback denied without enrollment');
   verify((await anonymous(playback(preview))).status === 200, 'Published preview playback is public');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' })).status === 401, 'Wrong password rejected');

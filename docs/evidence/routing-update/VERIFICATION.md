@@ -1,0 +1,10 @@
+# Ta3allam root routing — 2026-10-11
+
+- `/`: existing Ta3allam landing; `/founder`: existing personal portfolio; `/courses/[slug]`: recorded courses; `/workshops/[slug]`: published live workshops. Public user profiles explicitly deferred, with no schema changes.
+- Private dashboard `/dashboard/*`, lessons `/learn/*`, login `/login`, signup `/signup`. All session checks moved with the routes. API URLs and the provider callback endpoint are unchanged.
+- Old namespace and workshop links redirect without losing queries/anchors; internal links use centralized canonical builders. Course cards and admin preview links choose workshop routes for live delivery.
+- `backend-tests.log`: **91 checks passed** against isolated local Supabase, including signup/email callback, login/logout, student/admin isolation, browser history, editor persistence, protected playback/progress/resources and Drive streaming.
+- `browser-tests.log`: **47 targeted checks passed**, including unified routes/redirects, absence of public user profiles, dashboard HTTP/RSC denial, auth layouts, workshop copy and the founder's preserved copy/media/design/responsiveness.
+- Production and isolated reuse builds, TypeScript, ESLint and architecture boundaries passed. Architecture inspected 421 files with no violations; credential scan found no secret matches. No packages, visual tokens, video resources or database schemas were changed.
+- The first targeted run passed 46 checks and failed one assertion expecting HTTP 404 for streamed dynamic notFound(). Local Next.js docs specify HTTP 200 after streaming begins. The final test enforces the 404 fallback, noindex metadata and absent course/workshop content; `/users/student` still requires HTTP 404.
+- The full historical demo LMS suite is not claimed green. Production verification is pending until the application deployment succeeds.

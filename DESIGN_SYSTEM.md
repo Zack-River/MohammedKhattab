@@ -5,7 +5,7 @@ The client chose these two sites as the visual reference for this project and fu
 - [Workshop](https://warshataltagheer.vercel.app/)
 - [Personal brand](https://mohamedkhattab.vercel.app/)
 
-Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. The personal portfolio is the unified app’s home page `/`; Ta3llam is `/ta3allam` and the workshop is `/ta3allam/7days-freelance`.
+Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. Ta3allam is the unified app’s home page `/`; the personal portfolio is `/founder` and the workshop is `/workshops/7days-freelance`.
 
 ## Shared foundation
 
@@ -242,11 +242,11 @@ The revised coming-soon poster takes conceptual inspiration from online typograp
 
 ## Unified application routes
 
-One root `app/` owns every route, layout and API handler. Portfolio `/`, Ta3llam `/ta3allam` and workshop `/ta3allam/7days-freelance` retain their approved page compositions and share the root font/theme/player styles. `/portfolio` and `/workshop` are compatibility redirects. `config/project-navigation.ts` owns main-page destinations and cross-page labels; `modules/config/navigation.ts` derives its home/portfolio/workshop links from that source. Headers keep page-specific section navigation, while the data-driven shared `ProjectNavigation` footer component connects all three pages. Existing source-copy assertions exclude only these user-authorized cross-page links and prior media changes.
+One root `app/` owns every route, layout and API handler. Portfolio `/founder`, Ta3allam `/` and workshop `/workshops/7days-freelance` retain their approved page compositions and share the root font/theme/player styles. `/portfolio` and `/workshop` are compatibility redirects. `config/project-navigation.ts` owns main-page destinations and cross-page labels; `modules/config/navigation.ts` derives its home/portfolio/workshop links from that source. Headers keep page-specific section navigation, while the data-driven shared `ProjectNavigation` footer component connects all three pages. Existing source-copy assertions exclude only these user-authorized cross-page links and prior media changes.
 
 The portfolio and LMS layers remain under `modules/` using `@platform/*` imports; workshop layers remain under `app/components`, `app/data` and `app/hooks`. These are feature modules in a single app. Root `public/` is the canonical asset directory, with `modules/public` a compatibility symlink. Build and start from the repository root. There is no iframe or separate app build behind the new pages.
 
-All LMS UI routes live below `app/ta3allam/`: the landing page, grouped public catalog/login pages, dashboard and lesson pages. The learning prefix is owned by `projectRoutes.learning`; `modules/config/navigation.ts` derives every LMS page destination from it. Shared `/api/*` handlers remain in the root app. Old root-level learning URLs and `/ta3llam/*` are compatibility redirects; query filters remain intact. This routing change does not alter the approved page designs.
+Root `app/page.tsx` is the Ta3allam landing. Catalog and auth pages live in `app/(public)/`; protected dashboard and lessons live in `app/dashboard/` and `app/learn/`. Founder and workshops have independent page compositions under `app/founder/` and `app/workshops/[slug]/`. Route builders remain centralized in `modules/config/navigation.ts`. Old `/ta3allam/*` and `/ta3llam/*` URLs redirect once, preserving queries and anchors. Public user profiles are deferred. This routing change does not alter the approved page designs.
 
 Instructor sections accept an optional `action` record. The workshop supplies a primary portfolio action below its statistics; the destination comes from `projectRoutes.portfolio`, the Arabic label from the workshop content model, and spacing from the shared theme. Consumers that omit the action keep their existing layout.
 
@@ -272,7 +272,7 @@ Theme cleanup removes obsolete captured literals, not published semantic contrac
 
 ## Supabase account screens
 
-`/ta3allam/login` and `/ta3allam/signup` use the existing two-column account layout: a large Arabic heading with the shared `text-red` accent, a dark bordered form card, full-width primary action, and mobile stacking. No new palette, typeface, animation library or dependency is introduced. `modules/styles/auth.css` references the existing canonical theme tokens.
+`/login` and `/signup` use the existing two-column account layout: a large Arabic heading with the shared `text-red` accent, a dark bordered form card, full-width primary action, and mobile stacking. No new palette, typeface, animation library or dependency is introduced. `modules/styles/auth.css` references the existing canonical theme tokens.
 
 `modules/data/auth.ts` owns both page models, labels, hints, error messages and account/confirmation notices; `modules/config/auth.ts` owns field lists and validation limits. `AuthPage`, `AuthForm` and `AuthFieldInput` compose the screens; reusable `FormField` and `PasswordField` own accessible labels, error descriptions and visibility controls. `useAuthForm` coordinates form events, request state and navigation; pure validation/normalization/response helpers live in `modules/features/auth/helpers/`. The same validator is used by both forms and thin Next.js POST adapters at `/api/auth/login` and `/api/auth/signup`.
 

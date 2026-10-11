@@ -29,7 +29,7 @@ test("auth APIs reject invalid payloads and cross-origin writes", async ({ reque
 
 });
 test("signup errors, field focus, blur, confirmation and password visibility", async ({ page }) => {
-  await page.goto("/ta3allam/signup");
+  await page.goto("/signup");
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
   const name = page.getByLabel("اسمك", { exact: true });
   await expect(name).toBeFocused();
@@ -51,10 +51,10 @@ test("signup errors, field focus, blur, confirmation and password visibility", a
   await page.route("**/api/auth/signup", route => route.fulfill({ json: { status: "confirmation_required" } }));
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "راجع بريدك الإلكتروني" })).toBeVisible();
-  await expect(page).toHaveURL(/\/ta3allam\/signup$/);
+  await expect(page).toHaveURL(/\/signup$/);
 });
 test("login provides pending feedback, recovers from errors and links to signup", async ({ page }) => {
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await expect(page.locator(".lms-auth-form input")).toHaveCount(2);
   await expect(page.getByText(authCopy.errors.passwordRequired, { exact: true })).toHaveCount(0);
   await fill(page);
@@ -73,18 +73,18 @@ test("login provides pending feedback, recovers from errors and links to signup"
   await page.route("**/api/auth/login", route => route.fulfill({ status: 401, json: { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة." } }));
   await submit.click();
   await expect(page.getByText("البريد الإلكتروني أو كلمة المرور غير صحيحة.", { exact: true })).toBeVisible();
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await page.getByRole("link", { name: "أنشئ حسابًا", exact: true }).click();
-  await expect(page).toHaveURL(/\/ta3allam\/signup$/);
+  await expect(page).toHaveURL(/\/signup$/);
   await page.getByRole("link", { name: "سجّل الدخول", exact: true }).click();
-  await expect(page).toHaveURL(/\/ta3allam\/login$/);
+  await expect(page).toHaveURL(/\/login$/);
 });
 for (const width of [320, 390, 768, 1440]) test(`auth layouts remain readable without overflow at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   for (const route of ["login", "signup"]) {
-    await page.goto(`/ta3allam/${route}`);
+    await page.goto(`/${route}`);
     await expect(page.locator(".lms-auth-card")).toBeVisible();
     await expect(page.locator(".lms-login-message .text-red")).toHaveCSS("color", "rgb(252, 53, 34)");
     await expect(page.locator(".lms-auth-card").getByText("حساب تعلّم", { exact: true })).toBeVisible();
@@ -95,7 +95,7 @@ for (const width of [320, 390, 768, 1440]) test(`auth layouts remain readable wi
   expect(errors).toEqual([]);
 });
 for (const failure of ["network", "malformed"]) test(`login displays an Arabic retry message for ${failure} failures`, async ({ page }) => {
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await fill(page);
   await page.route("**/api/auth/login", route => failure === "network" ? route.abort("failed") : route.fulfill({ status: 200, body: "not JSON", contentType: "application/json" }));
   await page.getByRole("button", { name: "تسجيل الدخول", exact: true }).click();

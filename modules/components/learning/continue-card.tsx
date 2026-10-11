@@ -43,7 +43,7 @@ export default function ContinueCard({
           href={
             progress.next
               ? routes.lesson(course.slug, progress.next.id)
-              : routes.course(course.slug)
+              : routes.course(course.slug, course.delivery)
           }
           className="btn-primary"
         >

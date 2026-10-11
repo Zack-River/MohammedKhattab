@@ -15,17 +15,17 @@ Open **http://localhost:3040**. For production, run `npm run build` followed by 
 
 | URL | Page |
 | --- | --- |
-| `/` | Mohammed Khattab portfolio |
-| `/ta3allam` | Ta3llam landing |
-| `/ta3allam/7days-freelance` | Seven-day live freelance workshop |
-| `/ta3allam/dashboard/admin/courses` | Admin course editor |
-| `/ta3allam/courses`, `/ta3allam/courses/[slug]` | Catalog and course details |
-| `/ta3allam/dashboard/*` | Student account |
-| `/ta3allam/learn/[slug]/[lessonId]` | Learning player |
-| `/ta3allam/login`, `/ta3allam/signup` | Supabase account entry |
+| `/` | Ta3allam landing |
+| `/founder` | Mohammed Khattab portfolio |
+| `/workshops/7days-freelance` | Seven-day live freelance workshop |
+| `/dashboard/admin/courses` | Admin course editor |
+| `/courses`, `/courses/[slug]` | Catalog and course details |
+| `/dashboard/*` | Student account |
+| `/learn/[slug]/[lessonId]` | Learning player |
+| `/login`, `/signup` | Supabase account entry |
 | `/api/*` | Auth, catalog and protected learning APIs |
 
-Existing `/portfolio`, `/workshop`, `/ta3llam/*` and top-level learning URLs redirect to the corresponding canonical pages, preserving query parameters.
+Existing `/portfolio`, `/workshop`, `/ta3allam/*` and `/ta3llam/*` URLs redirect to the corresponding canonical pages, preserving query parameters.
 
 ## Workspace
 
@@ -79,3 +79,5 @@ See [backend plan and acceptance](docs/architecture/BACKEND_PLAN.md) and [backen
 Admin membership is server-controlled through the private email allowlist and verified account identity. Supabase Auth stores bcrypt password hashes. `scripts/backend/provision-admins.cjs` is a one-time operational tool using `SUPABASE_SECRET_KEY` and password environment variables named in `config/admin-accounts.json`; keep these in ignored `.env.local`. They are not required by the deployed app and must never use a public prefix. The workshop starts at 499 ج.م and retains WhatsApp booking; a catalog entry does not grant enrollment. Public Google Drive video links can be streamed through the shared player; private Drive permissions remain the file owner’s responsibility.
 
 Dashboard access is enforced before rendering in the session proxy and authenticated student data reader. The client dashboard also verifies the server session on navigation and browser restoration so cached UI cannot survive logout. Login/logout use document navigation to discard route caches. Public course previews remain accessible; admin membership remains server-controlled.
+
+Public `/users/[username]` pages are deferred. Account details remain private under `/dashboard/profile`. Live courses link to `/workshops/[slug]`; recorded courses link to `/courses/[slug]`.

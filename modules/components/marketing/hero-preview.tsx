@@ -33,7 +33,7 @@ export default function HeroPreview({ interfaceCopy, preview, artworkLessonLabel
                     </div>
                   ))}
                   <Link
-                    href={actions.preview ?? routes.course(preview.course.slug)}
+                    href={actions.preview ?? routes.course(preview.course.slug, preview.course.delivery)}
                   >
                     {interfaceCopy.heroPreviewAction}
                     <Symbol name="arrow" />

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("approved identity and landing content", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await expect(page.locator("h1")).toContainText("خطوة صغيرة اليوم");
   await expect(page.locator(".lms-course-card")).toHaveCount(3);
   await expect(page.locator(".faq-item")).toHaveCount(5);
@@ -24,11 +24,11 @@ test("approved identity and landing content", async ({ page }) => {
 });
 
 test("catalog filters and search", async ({ page }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(6);
   await page.getByRole("link", { name: "موشن جرافيك", exact: true }).click();
   await expect(page.locator(".lms-course-card")).toHaveCount(1);
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await page.getByRole("searchbox").fill("Photoshop");
   await page.getByRole("button", { name: "ابحث", exact: true }).click();
   await expect(page.locator(".lms-course-card")).toHaveCount(1);
@@ -40,7 +40,7 @@ test("catalog filters and search", async ({ page }) => {
 });
 
 test("enrollment and progress persist", async ({ page }) => {
-  await page.goto("/ta3allam/courses/motion-essentials");
+  await page.goto("/courses/motion-essentials");
   await page.getByRole("button", { name: "جرّب التسجيل في الدورة" }).click();
   await expect(page).toHaveURL(/learn\/motion-essentials\/motion-workspace/);
   await page.getByRole("button", { name: "أتممت هذا الدرس" }).click();
@@ -51,7 +51,7 @@ test("enrollment and progress persist", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "تم إتمام الدرس", exact: true }),
   ).toBeVisible();
-  await page.goto("/ta3allam/dashboard/courses");
+  await page.goto("/dashboard/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(2);
   await expect(
     page.locator(".lms-course-card").filter({ hasText: "After Effects" }),
@@ -62,7 +62,7 @@ test("deferred video and saved lesson notes", async ({ page }) => {
   await page.route("https://www.youtube-nocookie.com/**", (route) =>
     route.fulfill({ contentType: "text/html", body: "<title>Preview</title>" }),
   );
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   await expect(page.locator("iframe")).toHaveCount(0);
   await page
     .getByLabel("ملاحظاتك", { exact: true })
@@ -79,7 +79,7 @@ test("deferred video and saved lesson notes", async ({ page }) => {
 });
 
 test("demo entry and profile updates", async ({ page }) => {
-  await page.goto("/ta3allam/signup");
+  await page.goto("/signup");
   await page.getByLabel("اسمك", { exact: true }).fill("طالب التجربة");
   await page
     .getByLabel("البريد الإلكتروني", { exact: true })
@@ -89,7 +89,7 @@ test("demo entry and profile updates", async ({ page }) => {
   await page.getByRole("button", { name: "إنشاء حساب تجريبي" }).click();
   await expect(page).toHaveURL(/dashboard$/);
   await expect(page.locator(".lms-page-heading")).toContainText("طالب التجربة");
-  await page.goto("/ta3allam/dashboard/profile");
+  await page.goto("/dashboard/profile");
   await expect(page.getByLabel("اسمك", { exact: true })).toHaveValue(
     "طالب التجربة",
   );
@@ -177,16 +177,16 @@ for (const width of [320, 768, 1440])
         errors.push(message.text());
     });
     for (const route of [
-      "/ta3allam",
-      "/ta3allam/courses",
-      "/ta3allam/courses/editing-foundations",
-      "/ta3allam/dashboard",
-      "/ta3allam/dashboard/courses",
-      "/ta3allam/dashboard/resources",
-      "/ta3allam/dashboard/certificates",
-      "/ta3allam/dashboard/profile",
-      "/ta3allam/learn/editing-foundations/first-cut",
-      "/ta3allam/login",
+      "/",
+      "/courses",
+      "/courses/editing-foundations",
+      "/dashboard",
+      "/dashboard/courses",
+      "/dashboard/resources",
+      "/dashboard/certificates",
+      "/dashboard/profile",
+      "/learn/editing-foundations/first-cut",
+      "/login",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -200,14 +200,14 @@ for (const width of [320, 768, 1440])
 
 test("mobile navigation and FAQ", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await page.getByRole("button", { name: "فتح قائمة التنقل" }).click();
   await page
     .locator(".lms-marketing-links")
     .getByRole("link", { name: "الدورات", exact: true })
     .click();
   await expect(page).toHaveURL(/courses$/);
-  await page.goto("/ta3allam/dashboard");
+  await page.goto("/dashboard");
   await page.getByRole("button", { name: "فتح قائمة التنقل" }).click();
   await page
     .locator(".lms-sidebar nav")
@@ -219,7 +219,7 @@ test("mobile navigation and FAQ", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const question = page.locator(".faq-question-btn").first();
   await question.click();
   await expect(question).toHaveAttribute("aria-expanded", "true");
@@ -228,11 +228,11 @@ test("mobile navigation and FAQ", async ({ page }) => {
 });
 
 test("invalid routes show 404", async ({ page }) => {
-  const response = await page.goto("/ta3allam/courses/missing");
+  const response = await page.goto("/courses/missing");
   // This dynamic layout streams before notFound; Next returns 200 + fallback/noindex.
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading")).toContainText("الصفحة مش موجودة");
-  const lessonResponse = await page.goto("/ta3allam/learn/editing-foundations/missing");
+  const lessonResponse = await page.goto("/learn/editing-foundations/missing");
   expect(lessonResponse?.status()).toBe(200);
   await expect(page.getByRole("heading")).toContainText("الصفحة مش موجودة");
   await expect(
@@ -245,7 +245,7 @@ test("course cards prioritize mock price and registration", async ({
 }) => {
   // This case checks static hierarchy; live motion/hover ownership has its own cases.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const card = page.locator(".lms-course-card").first();
   await expect(card.locator(".lms-course-price strong")).toContainText("499");
   await expect(
@@ -270,11 +270,11 @@ test("course cards prioritize mock price and registration", async ({
   expect(priceBox!.x + priceBox!.width).toBeLessThanOrEqual(metaBox!.x);
   await expect(card.locator("h3 a")).toHaveAttribute(
     "href",
-    "/ta3allam/courses/editing-foundations",
+    "/courses/editing-foundations",
   );
   await expect(card.locator(".lms-card-cover")).toHaveAttribute(
     "href",
-    "/ta3allam/courses/editing-foundations",
+    "/courses/editing-foundations",
   );
   await action.click();
   await expect(page).toHaveURL(/editing-foundations#course-enrollment/);
@@ -337,7 +337,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
           contrast: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
         };
       });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const action = page.locator(".lms-card-action").first();
   for (const hover of [false, true]) {
     if (hover) await action.hover();
@@ -357,7 +357,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
   expect(
     (await readability(".lms-search button")).contrast,
   ).toBeGreaterThanOrEqual(4.5);
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   const status = await readability(".lms-outline-module a small");
   expect(status.size).toBeGreaterThanOrEqual(14);
   expect(status.contrast).toBeGreaterThanOrEqual(4.5);
@@ -370,7 +370,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
   expect(
     (await readability(".lms-notes textarea")).size,
   ).toBeGreaterThanOrEqual(16);
-  await page.goto("/ta3allam/dashboard/profile");
+  await page.goto("/dashboard/profile");
   expect(
     (await readability(".lms-profile-form input")).size,
   ).toBeGreaterThanOrEqual(16);
@@ -379,7 +379,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
 test("FAQ transitions finish and reduced motion exposes reveal content", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const question = page.locator(".faq-question-btn").first();
   const panel = page.locator(".faq-answer-panel").first();
   await question.scrollIntoViewIfNeeded();
@@ -426,7 +426,7 @@ test("landing hero visibly enters on load and respects reduced motion", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const heading = page.locator(".hero-headline");
   await expect
     .poll(() =>
@@ -464,7 +464,7 @@ test("course entrances and hover movement are visible and independent", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 720 });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const entrance = page.locator(".lms-card-entrance").last();
   await expect
     .poll(() =>

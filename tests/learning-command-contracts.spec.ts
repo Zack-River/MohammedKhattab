@@ -53,7 +53,7 @@ test("R07 completion locks the entire two-request workflow and allows retry afte
     calls.push("progress");
     await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "TRY AGAIN" }) });
   });
-  await page.goto("/ta3allam/learn/first-client/portfolio");
+  await page.goto("/learn/first-client/portfolio");
   const button = page.getByRole("button", { name: "أتممت هذا الدرس", exact: true });
   await button.evaluate((element) => { (element as HTMLButtonElement).click(); (element as HTMLButtonElement).click(); });
   await expect.poll(() => calls).toEqual(["enroll"]);

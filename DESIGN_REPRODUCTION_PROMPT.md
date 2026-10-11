@@ -6,7 +6,7 @@ Approved visual baseline: **2026-10-07**; maintained unified architecture snapsh
 
 > Reproduce the approved Arabic RTL workshop design using this document. Treat the embedded source, content, CSS cascade, component tree, interaction logic, and asset manifest as the specification. First inventory the available files and compare them with the manifest. Reuse the existing implementation when present. If creating a fresh project, materialize the source blocks at their exact indicated paths and use the original visual assets and dependency lockfile. Preserve the approved design; do not redesign, paraphrase, simplify, reorder sections, invent assets, replace fonts/icons, change dependencies, or approximate values. Read this entire specification, including responsive rules and behavioral source, before implementing. Run the specified validation. Report actual differences and missing inputs; do not assert pixel equality without a measured comparison. A new page may change only the inputs explicitly requested by its user, while retaining these existing patterns and theme.
 
-The source appendix includes one Next.js application with three main pages and the private shared package. The portfolio is `/`, Ta3llam is `/ta3allam`, and the workshop is `/ta3allam/7days-freelance`; routes/API handlers live under root `app/`. `modules/` contains namespaced feature modules, not another app. Root `public/` owns assets; `modules/public` is a compatibility symlink. Preserve canonical ownership; never reconstruct a second base theme or primitive implementation inside the LMS. User-authorized changes include the recorded FAQ/duration corrections, real media/player improvements, uncaptioned reels, reusable coming-soon poster artwork, and unified routing with shared cross-page links. The 2026-10-07 pixel results below remain historical reference evidence, not a claim about an untested current reconstruction.
+The source appendix includes one Next.js application with three main pages and the private shared package. The portfolio is `/founder`, Ta3allam is `/`, and the workshop is `/workshops/7days-freelance`; routes/API handlers live under root `app/`. `modules/` contains namespaced feature modules, not another app. Root `public/` owns assets; `modules/public` is a compatibility symlink. Preserve canonical ownership; never reconstruct a second base theme or primitive implementation inside the LMS. User-authorized changes include the recorded FAQ/duration corrections, real media/player improvements, uncaptioned reels, reusable coming-soon poster artwork, and unified routing with shared cross-page links. The 2026-10-07 pixel results below remain historical reference evidence, not a claim about an untested current reconstruction.
 
 **Default task mode: exact workshop replication.** A request to create a different page authorizes the specified content changes, not an aesthetic redesign. With changed content, compare shared patterns and responsive behavior; do not claim that the new page has identical whole-page pixels or height to this workshop.
 
@@ -251,6 +251,238 @@ Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompress
 ## 14. Exact embedded implementation and verification files
 
 Current shared architecture snapshot. Materialize all paths together; run npm ci once at the root using the companion lockfile, then prebuild generation. The separate test fixture is not a shipped application route. Generated .next/node_modules and server font JSON are excluded. Source hashes verify reconstruction, not visual approval.
+
+### File: `app/(public)/courses/[slug]/page.tsx`
+
+SHA-256: `1bf830b157b0ddf4f4371d08f71a67b36585830868dcf495eb6005b08297b5b6`
+
+```tsx
+import EnrollmentPanel from "@platform/components/courses/enrollment-panel";
+import CourseOutcomes from "@platform/components/courses/course-outcomes";
+import { routes } from "@platform/config/navigation";
+import { site } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { findCourse, courseLessons } from "@platform/features/catalog";
+import { readLearningState, courseProgress } from "@platform/features/learning";
+import Curriculum from "@platform/components/courses/curriculum";
+import CourseOverview from "@platform/components/courses/course-overview";
+import { copy } from "@platform/data/site";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  return {
+    title: (await findCourse(slug))?.title ?? interfaceCopy.courseNotFound,
+  };
+}
+export default async function CoursePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const course = await findCourse(slug);
+  if (!course) notFound();
+  if (course.delivery === "live") redirect(routes.workshopPage(slug));
+  const state = await readLearningState();
+  const progress = courseProgress(course, state);
+  return (
+    <main className="container lms-public-main">
+      <div className="lms-breadcrumb">
+        <Link href={routes.courses}>{interfaceCopy.courseBreadcrumb}</Link>
+        <span>/</span>
+        <span>{course.categoryLabel}</span>
+      </div>
+      <div className="lms-course-detail">
+        <CourseOverview
+          course={course}
+          instructorName={interfaceCopy.instructorName}
+          lessonCount={courseLessons(course).length}
+          lessonsLabel={copy.lessons}
+        >
+          <CourseOutcomes copy={{ outcome: copy.outcome }} course={course} />
+          <div className="lms-content-heading">
+            <h2>{copy.courseContent}</h2>
+            <p>{copy.curriculumIntro}</p>
+          </div>
+          <Curriculum
+            copy={{ lessons: copy.lessons, preview: copy.preview }}
+            course={course}
+          />
+        </CourseOverview>
+        <EnrollmentPanel
+          site={{ englishName: site.englishName }}
+          offerCopy={{ price: offerCopy.price }}
+          interfaceCopy={{
+            courseNotesBenefit: interfaceCopy.courseNotesBenefit,
+            courseProgressBenefit: interfaceCopy.courseProgressBenefit,
+          }}
+          copy={{
+            artworkLessonLabel: copy.artworkLessonLabel,
+            demoVideo: copy.demoVideo,
+            error: copy.error,
+            saving: copy.saving,
+            continue: copy.continue,
+            enrollLabel: copy.enrollLabel,
+          }}
+          course={course}
+          slug={slug}
+          progress={progress}
+          enrolled={state.enrolled.includes(slug)}
+        />
+      </div>
+    </main>
+  );
+}
+```
+
+### File: `app/(public)/courses/page.tsx`
+
+SHA-256: `a6777cdd220cdf49e1148ca865fab4f5a00a80e3a9a1668d966847d950ba3154`
+
+```tsx
+import { routes } from "@platform/config/navigation";
+import { categories } from "@platform/data/courses";
+import { site } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { Suspense } from "react";
+import CatalogFilters from "@platform/components/courses/catalog-filters";
+import CourseGrid from "@platform/components/courses/course-grid";
+import EmptyState from "@platform/components/ui/empty-state";
+import PageHeading from "@platform/components/ui/page-heading";
+import { listCourses } from "@platform/features/catalog";
+import { copy } from "@platform/data/site";
+export const metadata = { title: interfaceCopy.courseBreadcrumb };
+export default async function CoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string }>;
+}) {
+  const search = await searchParams;
+  const q = typeof search.q === "string" ? search.q : "";
+  const category =
+    typeof search.category === "string" ? search.category : "all";
+  const courses = await listCourses(q, category);
+  return (
+    <main className="lms-public-main container">
+      <PageHeading
+        title={copy.coursesTitle}
+        description={copy.coursesDescription}
+      />
+      <Suspense>
+        <CatalogFilters
+          interfaceCopy={{ categoryLabel: interfaceCopy.categoryLabel }}
+          categories={categories}
+          copy={{ search: copy.search, searchButton: copy.searchButton }}
+          query={q}
+          category={category}
+        />
+      </Suspense>
+      <div className="lms-results-meta">
+        <span>
+          {courses.length} {interfaceCopy.catalogTitle}
+        </span>
+        <span>{interfaceCopy.catalogDemoLabel}</span>
+      </div>
+      {courses.length ? (
+        <CourseGrid
+          copy={{
+            lessons: copy.lessons,
+            continue: copy.continue,
+            progress: copy.progress,
+          }}
+          site={{ englishName: site.englishName }}
+          offerCopy={{ price: offerCopy.price }}
+          courses={courses}
+        />
+      ) : (
+        <EmptyState
+          title={copy.noResults}
+          description={copy.noResultsBody}
+          href={routes.courses}
+          label={copy.reset}
+        />
+      )}
+    </main>
+  );
+}
+```
+
+### File: `app/(public)/layout.tsx`
+
+SHA-256: `036efd7e6acea79bf3b63a4ec0b254c2c7f268f850b6f4c5dce88185eff2a21b`
+
+```tsx
+import { designerCredit } from "@/config/designer";
+import { projectNavigation } from "@/config/project-navigation";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { marketingNavigation } from "@platform/data/site";
+import { copy } from "@platform/data/site";
+import { site } from "@platform/data/site";
+import SiteHeader from "@platform/components/layout/site-header";
+import SiteFooter from "@platform/components/layout/site-footer";
+export default function PublicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <SiteHeader
+        interfaceCopy={{
+          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
+          dashboardLabel: interfaceCopy.dashboardLabel,
+        }}
+        marketingNavigation={marketingNavigation}
+        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
+        site={{ name: site.name, englishName: site.englishName }}
+      />
+      {children}
+      <SiteFooter
+        credit={designerCredit}
+        projectNavigation={projectNavigation}
+        interfaceCopy={{ contactLabel: interfaceCopy.contactLabel }}
+        copy={{ footer: copy.footer, copyright: copy.copyright }}
+        site={{
+          email: site.email,
+          demoLabel: site.demoLabel,
+          name: site.name,
+          englishName: site.englishName,
+        }}
+        marketingNavigation={marketingNavigation}
+      />
+    </>
+  );
+}
+```
+
+### File: `app/(public)/login/page.tsx`
+
+SHA-256: `38112bc605f3406e6ee9cd5a16e5d422f5828d4f6d0b05f56082b27134a68c2c`
+
+```tsx
+import AuthPage from "@platform/components/account/auth/page";
+import { authPages } from "@platform/data/auth";
+export const metadata = { title: authPages.login.title };
+export default function LoginPage() { return <AuthPage model={authPages.login} />; }
+```
+
+### File: `app/(public)/signup/page.tsx`
+
+SHA-256: `12cd188c4505bbe3167702fd8d953c65e0344829ae05e7248c315851c457ef92`
+
+```tsx
+import AuthPage from "@platform/components/account/auth/page";
+import { authPages } from "@platform/data/auth";
+export const metadata = { title: authPages.signup.title };
+export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
+```
 
 ### File: `app/api/admin/courses/[slug]/lessons/[lessonId]/route.ts`
 
@@ -1381,6 +1613,429 @@ export const workshopMetadata: Metadata = {
 };
 ```
 
+### File: `app/dashboard/admin/courses/[slug]/page.tsx`
+
+SHA-256: `1bc3d8661a54dbfe643bea1b1a7aa36b8d7e9ec82e1516861598709d2cd7cfb1`
+
+```tsx
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
+import { courseLessons } from "@platform/features/catalog/helpers";
+import CourseEditor from "@platform/components/admin/course-editor";
+import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
+import PageHeading from "@platform/components/ui/page-heading";
+import { adminCopy } from "@platform/data/admin";
+import { categories } from "@platform/config/catalog";
+import { routes } from "@platform/config/navigation";
+export default async function EditCoursePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const record = (await readAdminCourses(slug))[0];
+  if (!record) notFound();
+  const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
+  return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
+    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} categories={categories.filter(category => category.id !== "all")} /></section>
+    {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
+  </>;
+}
+```
+
+### File: `app/dashboard/admin/courses/page.tsx`
+
+SHA-256: `068b923d8db40fe8230e2a5caeab078e90d0c4131b1fa1708494c3e25120aab6`
+
+```tsx
+import Link from "next/link";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { routes } from "@platform/config/navigation";
+import { adminCopy } from "@platform/data/admin";
+import PageHeading from "@platform/components/ui/page-heading";
+export default async function AdminCoursesPage() {
+  const records = await readAdminCourses();
+  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
+    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
+  )}</div></>;
+}
+```
+
+### File: `app/dashboard/admin/layout.tsx`
+
+SHA-256: `52102109843fcb9fe7ba2d24be6455bace9fb450638a9832271528f58efa5e13`
+
+```tsx
+import { redirect } from "next/navigation";
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { routes } from "@platform/config/navigation";
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  if (!await hasAdminAccess()) redirect(routes.dashboard);
+  return children;
+}
+```
+
+### File: `app/dashboard/certificates/page.tsx`
+
+SHA-256: `62fb0f663b0485da89ba1140404739bf32997b481770119863160b8fd92f9240`
+
+```tsx
+import CertificateCard from "@platform/components/certificates/certificate-card";
+import { routes } from "@platform/config/navigation";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import PageHeading from "@platform/components/ui/page-heading";
+import EmptyState from "@platform/components/ui/empty-state";
+import { listCourses } from "@platform/features/catalog";
+import { copy, site } from "@platform/data/site";
+import { readStudentState, courseProgress } from "@platform/features/learning";
+export const metadata = {
+  title: interfaceCopy.certificatesPageTitle,
+};
+export default async function CertificatesPage() {
+  const state = await readStudentState();
+  const courses = await listCourses();
+  const earned = courses.filter(
+    (course) =>
+      state.enrolled.includes(course.slug) &&
+      courseProgress(course, state).percent === 100,
+  );
+  return (
+    <>
+      <PageHeading
+        title={copy.certificateTitle}
+        description={copy.certificateDescription}
+      />
+      {earned.length ? (
+        <div className="lms-resource-grid">
+          {earned.map((course) => (
+            <CertificateCard
+              interfaceCopy={{
+                certificateHeading: interfaceCopy.certificateHeading,
+              }}
+              copy={{ print: copy.print }}
+              site={{ name: site.name, demoLabel: site.demoLabel }}
+              key={course.slug}
+              course={course}
+              learnerName={state.profile.name}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title={copy.emptyCertificates}
+          description={copy.emptyCertificatesBody}
+          href={routes.library}
+          label={copy.continue}
+        />
+      )}
+    </>
+  );
+}
+```
+
+### File: `app/dashboard/courses/page.tsx`
+
+SHA-256: `b8031dac024c64e267b98a512186d290a5fd6e681696bc63492e17c71ac0a4e3`
+
+```tsx
+import { routes } from "@platform/config/navigation";
+import { site } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import PageHeading from "@platform/components/ui/page-heading";
+import EmptyState from "@platform/components/ui/empty-state";
+import CourseGrid from "@platform/components/courses/course-grid";
+import { listCourses } from "@platform/features/catalog";
+import { readStudentState, courseProgress } from "@platform/features/learning";
+import { copy } from "@platform/data/site";
+export const metadata = { title: interfaceCopy.libraryPageTitle };
+export default async function MyCourses() {
+  const state = await readStudentState();
+  const courses = await listCourses();
+  const enrolled = courses.filter((course) =>
+    state.enrolled.includes(course.slug),
+  );
+  return (
+    <>
+      <PageHeading
+        title={interfaceCopy.libraryTitle}
+        description={interfaceCopy.libraryDescription}
+      />
+      {enrolled.length ? (
+        <CourseGrid
+          courses={enrolled}
+          layout="dashboard"
+          progress={Object.fromEntries(
+            enrolled.map((course) => [
+              course.slug,
+              courseProgress(course, state),
+            ]),
+          )}
+          copy={{
+            lessons: copy.lessons,
+            continue: copy.continue,
+            progress: copy.progress,
+          }}
+          site={{ englishName: site.englishName }}
+          offerCopy={{ price: offerCopy.price }}
+        />
+      ) : (
+        <EmptyState
+          title={copy.emptyCourses}
+          description={copy.coursesDescription}
+          href={routes.courses}
+          label={copy.browse}
+        />
+      )}
+    </>
+  );
+}
+```
+
+### File: `app/dashboard/layout.tsx`
+
+SHA-256: `b143a1d70dda69dafddb81b8dfbfc1440b85e63d6c69b6866cb7b82284994070`
+
+```tsx
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { adminCopy } from "@platform/data/admin";
+import { routes } from "@platform/config/navigation";
+import { backendCopy } from "@platform/data/backend-copy";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { dashboardNavigation } from "@platform/data/site";
+import { site } from "@platform/data/site";
+import { copy } from "@platform/data/site";
+import DashboardShell from "@platform/components/layout/dashboard-shell";
+import { readStudentState } from "@platform/features/learning";
+export default async function StudentLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const state = await readStudentState();
+  const admin = await hasAdminAccess();
+  return (
+    <DashboardShell
+      interfaceCopy={{
+        studentNavigationLabel: interfaceCopy.studentNavigationLabel,
+        sidebarTitle: interfaceCopy.sidebarTitle,
+        sidebarDescription: interfaceCopy.sidebarDescription,
+        homeLabel: interfaceCopy.homeLabel,
+      }}
+      dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.admin, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}
+      site={{
+        demoLabel: backendCopy.ACCOUNT_LABEL,
+        name: site.name,
+        englishName: site.englishName,
+      }}
+      copy={{
+        logout: backendCopy.LOGOUT,
+        error: backendCopy.INTERNAL_ERROR,
+        browse: copy.browse,
+        profileTitle: copy.profileTitle,
+        menu: copy.menu,
+        demoAccount: backendCopy.ACCOUNT_LABEL,
+      }}
+      name={state.profile.name}
+    >
+      {children}
+    </DashboardShell>
+  );
+}
+```
+
+### File: `app/dashboard/page.tsx`
+
+SHA-256: `1691ddcb1bc68e8f940071556e0ceca430716e2bb0ffbd4949de741c9a02646e`
+
+```tsx
+import { dashboardStats } from "@platform/features/learning/helpers/dashboard-stats";
+import { selectCourses } from "@platform/features/catalog/helpers";
+import { catalogSettings } from "@platform/data/catalog-settings";
+import { routes } from "@platform/config/navigation";
+import { site } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import Link from "next/link";
+import PageHeading from "@platform/components/ui/page-heading";
+import EmptyState from "@platform/components/ui/empty-state";
+import DashboardStats from "@platform/components/learning/dashboard-stats";
+import ContinueCard from "@platform/components/learning/continue-card";
+import CourseGrid from "@platform/components/courses/course-grid";
+import { readStudentState, courseProgress } from "@platform/features/learning";
+import { listCourses } from "@platform/features/catalog";
+import { copy } from "@platform/data/site";
+export const metadata = { title: interfaceCopy.dashboardLabel };
+export default async function DashboardPage() {
+  const state = await readStudentState();
+  const courses = await listCourses();
+  const enrolled = courses.filter((course) =>
+    state.enrolled.includes(course.slug),
+  );
+  const active =
+    enrolled.find((course) => courseProgress(course, state).percent < 100) ??
+    enrolled[0];
+  return (
+    <>
+      <PageHeading
+        eyebrow={`${interfaceCopy.greeting} ${state.profile.name}`}
+        title={copy.dashboardTitle}
+        description={copy.dashboardDescription}
+      />
+      <DashboardStats stats={dashboardStats({ state, courses: enrolled, labels: copy })} />
+      {active ? (
+        <ContinueCard
+          interfaceCopy={{ continueContext: interfaceCopy.continueContext }}
+          copy={{
+            artworkLessonLabel: copy.artworkLessonLabel,
+            continue: copy.continue,
+            progress: copy.progress,
+            lessons: copy.lessons,
+          }}
+          site={{ englishName: site.englishName }}
+          course={active}
+          progress={courseProgress(active, state)}
+        />
+      ) : (
+        <EmptyState
+          title={copy.emptyCourses}
+          description={copy.coursesDescription}
+          href={routes.courses}
+          label={copy.browse}
+        />
+      )}
+      <div className="lms-section-top lms-dashboard-section">
+        <h2>{copy.myCourses}</h2>
+        <Link href={routes.library} className="lms-text-link">
+          {interfaceCopy.libraryAction}
+        </Link>
+      </div>
+      <CourseGrid
+        courses={enrolled}
+        layout="dashboard"
+        progress={Object.fromEntries(
+          enrolled.map((course) => [
+            course.slug,
+            courseProgress(course, state),
+          ]),
+        )}
+        copy={{
+          lessons: copy.lessons,
+          continue: copy.continue,
+          progress: copy.progress,
+        }}
+        site={{ englishName: site.englishName }}
+        offerCopy={{ price: offerCopy.price }}
+      />
+      <div className="lms-section-top lms-dashboard-section">
+        <h2>{copy.recommendations}</h2>
+        <Link href={routes.courses} className="lms-text-link">
+          {copy.allCourses}
+        </Link>
+      </div>
+      <CourseGrid
+        courses={selectCourses(courses, catalogSettings.recommendationIds)
+          .filter((course) => !state.enrolled.includes(course.slug))
+          .slice(0, catalogSettings.recommendationLimit)}
+        layout="dashboard"
+        copy={{
+          lessons: copy.lessons,
+          continue: copy.continue,
+          progress: copy.progress,
+        }}
+        site={{ englishName: site.englishName }}
+        offerCopy={{ price: offerCopy.price }}
+      />
+    </>
+  );
+}
+```
+
+### File: `app/dashboard/profile/page.tsx`
+
+SHA-256: `983decadcd91cad920c0e03d71c222d60fd52537fbc71e07ff4ae6068f37f767`
+
+```tsx
+import { backendCopy } from "@platform/data/backend-copy";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import PageHeading from "@platform/components/ui/page-heading";
+import ProfileForm from "@platform/components/account/profile-form";
+import { readStudentState } from "@platform/features/learning";
+import { copy } from "@platform/data/site";
+export const metadata = { title: interfaceCopy.profilePageTitle };
+export default async function ProfilePage() {
+  const state = await readStudentState();
+  return (
+    <>
+      <PageHeading
+        eyebrow={backendCopy.ACCOUNT_LABEL}
+        title={copy.profileTitle}
+        description={copy.profileDescription}
+      />
+      <section className="lms-profile-card">
+        <div className="lms-profile-card-heading">
+          <span className="lms-avatar lms-avatar-large">
+            {state.profile.name.slice(0, 1)}
+          </span>
+          <div>
+            <h2>{state.profile.name}</h2>
+            <span className="lms-demo-label">{backendCopy.ACCOUNT_LABEL}</span>
+          </div>
+        </div>
+        <ProfileForm
+          emailPendingMessage={backendCopy.EMAIL_CHANGE_PENDING}
+          interfaceCopy={{ namePlaceholder: interfaceCopy.namePlaceholder }}
+          copy={{
+            error: copy.error,
+            name: copy.name,
+            email: copy.email,
+            emailPlaceholder: copy.emailPlaceholder,
+            saving: copy.saving,
+            enterDemo: copy.enterDemo,
+            save: copy.save,
+            profileSaved: copy.profileSaved,
+          }}
+          profile={state.profile}
+        />
+        
+      </section>
+    </>
+  );
+}
+```
+
+### File: `app/dashboard/resources/page.tsx`
+
+SHA-256: `69d538a5f42d755d7231b9d7a529a1277563c3d2618c8e5c19145e9f62c2c167`
+
+```tsx
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import ResourceCard from "@platform/components/resources/resource-card";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import PageHeading from "@platform/components/ui/page-heading";
+import { listResources } from "@platform/features/resources/service";
+import { copy } from "@platform/data/site";
+export const metadata = { title: interfaceCopy.resourcesPageTitle };
+export default async function ResourcePage() {
+  await requirePageIdentity();
+  const resources = await listResources();
+  return (
+    <>
+      <PageHeading
+        title={copy.resources}
+        description={interfaceCopy.resourcesDescription}
+      />
+      <div className="lms-resource-grid">
+        {resources.map((resource) => (
+          <ResourceCard
+            key={resource.id}
+            copy={{ download: copy.download }}
+            resource={resource}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+```
+
 ### File: `app/data/workshop.ts`
 
 SHA-256: `6356b93fb73720d01757bff3d950340edb6a4ff03128620e59a7e9ede8a8115e`
@@ -1849,6 +2504,21 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 }
 ```
 
+### File: `app/founder/page.tsx`
+
+SHA-256: `c81a7cd516677acc0d64e7c51acd8875f3241ce931f781e14dcee5b3fcd87670`
+
+```tsx
+import type { Metadata } from "next";
+import { PortfolioPage } from "@platform/features/portfolio";
+import content from "@/config/personal-portfolio.json";
+export const metadata: Metadata = {
+  title: { absolute: content.metadataTitle },
+  description: content.hero.description,
+};
+export default PortfolioPage;
+```
+
 ### File: `app/globals.css`
 
 SHA-256: `df1f48a07cfec9bedb4ee79f4862886c30c59d2b4a2c9589d7b152a537a1f87e`
@@ -2144,6 +2814,47 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+### File: `app/learn/[slug]/[lessonId]/page.tsx`
+
+SHA-256: `aa10c0cb9efa69682fbb700f0967fe7bd920772d1a0dcb0cffef5698c6fe6f91`
+
+```tsx
+import Link from "next/link";
+import { readLessonContext } from "@platform/features/learning/read-lesson-context";
+import { lessonPlaybackModel } from "@platform/features/learning/models/lesson-playback";
+import { lessonInformationModel } from "@platform/features/learning/models/lesson-information";
+import { lessonShellModel } from "@platform/features/learning/models/lesson-shell";
+import LessonInformation from "@platform/components/learning/lesson-information";
+import LessonActions from "@platform/components/learning/lesson-actions";
+import LessonTitle from "@platform/components/learning/lesson-title";
+import LearningHeader from "@platform/components/learning/learning-header";
+import LessonOutline from "@platform/components/learning/lesson-outline";
+import LessonPlayer from "@platform/components/learning/lesson-player";
+import { routes } from "@platform/config/navigation";
+import { copy } from "@platform/data/site";
+export default async function LessonPage({ params }: { params: Promise<{ slug: string; lessonId: string }> }) {
+  const { slug, lessonId } = await params;
+  const context = await readLessonContext(slug, lessonId);
+  const playback = lessonPlaybackModel(context);
+  const shell = lessonShellModel(context);
+  return (
+    <div className="lms-learn">
+      <LearningHeader {...shell.header} />
+      <div className="lms-learn-grid">
+        <LessonOutline {...shell.outline} />
+        <main className="lms-lesson-main">
+          <Link href={routes.course(slug)} className="lms-breadcrumb">{copy.back}</Link>
+          <LessonTitle {...playback.title} />
+          <LessonPlayer {...playback.player} />
+          <LessonActions {...playback.actions} />
+          <LessonInformation {...lessonInformationModel(context)} />
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+
 ### File: `app/lib/countdown.ts`
 
 SHA-256: `80dc44af7481869112a1610853a4099bcab6b1db0056a57e698899e4ae39f8cf`
@@ -2259,17 +2970,21 @@ export default function NotFound() {
 
 ### File: `app/page.tsx`
 
-SHA-256: `c81a7cd516677acc0d64e7c51acd8875f3241ce931f781e14dcee5b3fcd87670`
+SHA-256: `4db2beac9984fa9110452e1e8dbdcac3e83b4ac1cb3b1256c263a9172a32da69`
 
 ```tsx
+import { listCourses } from "@platform/features/catalog";
+import { createLandingModel } from "@platform/features/marketing/landing";
 import type { Metadata } from "next";
-import { PortfolioPage } from "@platform/features/portfolio";
-import content from "@/config/personal-portfolio.json";
+import { Landing } from "@platform/features/marketing";
+import { interfaceCopy } from "@platform/data/interface-copy";
 export const metadata: Metadata = {
-  title: { absolute: content.metadataTitle },
-  description: content.hero.description,
+  title: { absolute: interfaceCopy.metadataTitle },
+  description: interfaceCopy.metadataDescription,
 };
-export default PortfolioPage;
+export default async function Ta3llamPage() {
+  return <Landing model={createLandingModel(await listCourses())} />;
+}
 ```
 
 ### File: `app/styles/theme-server.json`
@@ -2316,741 +3031,31 @@ SHA-256: `fce48b8d3894060f92c19608724647c79f19c30ed95cb67cd23462858ebe7fd6`
 @import "../../packages/design-system/styles/theme.css";
 ```
 
-### File: `app/ta3allam/(public)/courses/[slug]/page.tsx`
+### File: `app/workshops/[slug]/page.tsx`
 
-SHA-256: `ff72a1faf9702c12fff0164beb9089c0e545679a3ba99b27fa97c2bedc2a4d63`
-
-```tsx
-import EnrollmentPanel from "@platform/components/courses/enrollment-panel";
-import CourseOutcomes from "@platform/components/courses/course-outcomes";
-import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
-import { offerCopy } from "@platform/data/offers";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { findCourse, courseLessons } from "@platform/features/catalog";
-import { readLearningState, courseProgress } from "@platform/features/learning";
-import Curriculum from "@platform/components/courses/curriculum";
-import CourseOverview from "@platform/components/courses/course-overview";
-import { copy } from "@platform/data/site";
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  return {
-    title: (await findCourse(slug))?.title ?? interfaceCopy.courseNotFound,
-  };
-}
-export default async function CoursePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const course = await findCourse(slug);
-  if (!course) notFound();
-  const state = await readLearningState();
-  const progress = courseProgress(course, state);
-  return (
-    <main className="container lms-public-main">
-      <div className="lms-breadcrumb">
-        <Link href={routes.courses}>{interfaceCopy.courseBreadcrumb}</Link>
-        <span>/</span>
-        <span>{course.categoryLabel}</span>
-      </div>
-      <div className="lms-course-detail">
-        <CourseOverview
-          course={course}
-          instructorName={interfaceCopy.instructorName}
-          lessonCount={courseLessons(course).length}
-          lessonsLabel={copy.lessons}
-        >
-          <CourseOutcomes copy={{ outcome: copy.outcome }} course={course} />
-          <div className="lms-content-heading">
-            <h2>{copy.courseContent}</h2>
-            <p>{copy.curriculumIntro}</p>
-          </div>
-          <Curriculum
-            copy={{ lessons: copy.lessons, preview: copy.preview }}
-            course={course}
-          />
-        </CourseOverview>
-        <EnrollmentPanel
-          site={{ englishName: site.englishName }}
-          offerCopy={{ price: offerCopy.price }}
-          interfaceCopy={{
-            courseNotesBenefit: interfaceCopy.courseNotesBenefit,
-            courseProgressBenefit: interfaceCopy.courseProgressBenefit,
-          }}
-          copy={{
-            artworkLessonLabel: copy.artworkLessonLabel,
-            demoVideo: copy.demoVideo,
-            error: copy.error,
-            saving: copy.saving,
-            continue: copy.continue,
-            enrollLabel: copy.enrollLabel,
-          }}
-          course={course}
-          slug={slug}
-          progress={progress}
-          enrolled={state.enrolled.includes(slug)}
-        />
-      </div>
-    </main>
-  );
-}
-```
-
-### File: `app/ta3allam/(public)/courses/page.tsx`
-
-SHA-256: `a6777cdd220cdf49e1148ca865fab4f5a00a80e3a9a1668d966847d950ba3154`
-
-```tsx
-import { routes } from "@platform/config/navigation";
-import { categories } from "@platform/data/courses";
-import { site } from "@platform/data/site";
-import { offerCopy } from "@platform/data/offers";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import { Suspense } from "react";
-import CatalogFilters from "@platform/components/courses/catalog-filters";
-import CourseGrid from "@platform/components/courses/course-grid";
-import EmptyState from "@platform/components/ui/empty-state";
-import PageHeading from "@platform/components/ui/page-heading";
-import { listCourses } from "@platform/features/catalog";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.courseBreadcrumb };
-export default async function CoursesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; category?: string }>;
-}) {
-  const search = await searchParams;
-  const q = typeof search.q === "string" ? search.q : "";
-  const category =
-    typeof search.category === "string" ? search.category : "all";
-  const courses = await listCourses(q, category);
-  return (
-    <main className="lms-public-main container">
-      <PageHeading
-        title={copy.coursesTitle}
-        description={copy.coursesDescription}
-      />
-      <Suspense>
-        <CatalogFilters
-          interfaceCopy={{ categoryLabel: interfaceCopy.categoryLabel }}
-          categories={categories}
-          copy={{ search: copy.search, searchButton: copy.searchButton }}
-          query={q}
-          category={category}
-        />
-      </Suspense>
-      <div className="lms-results-meta">
-        <span>
-          {courses.length} {interfaceCopy.catalogTitle}
-        </span>
-        <span>{interfaceCopy.catalogDemoLabel}</span>
-      </div>
-      {courses.length ? (
-        <CourseGrid
-          copy={{
-            lessons: copy.lessons,
-            continue: copy.continue,
-            progress: copy.progress,
-          }}
-          site={{ englishName: site.englishName }}
-          offerCopy={{ price: offerCopy.price }}
-          courses={courses}
-        />
-      ) : (
-        <EmptyState
-          title={copy.noResults}
-          description={copy.noResultsBody}
-          href={routes.courses}
-          label={copy.reset}
-        />
-      )}
-    </main>
-  );
-}
-```
-
-### File: `app/ta3allam/(public)/layout.tsx`
-
-SHA-256: `036efd7e6acea79bf3b63a4ec0b254c2c7f268f850b6f4c5dce88185eff2a21b`
-
-```tsx
-import { designerCredit } from "@/config/designer";
-import { projectNavigation } from "@/config/project-navigation";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import { marketingNavigation } from "@platform/data/site";
-import { copy } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import SiteHeader from "@platform/components/layout/site-header";
-import SiteFooter from "@platform/components/layout/site-footer";
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <SiteHeader
-        interfaceCopy={{
-          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-          dashboardLabel: interfaceCopy.dashboardLabel,
-        }}
-        marketingNavigation={marketingNavigation}
-        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
-        site={{ name: site.name, englishName: site.englishName }}
-      />
-      {children}
-      <SiteFooter
-        credit={designerCredit}
-        projectNavigation={projectNavigation}
-        interfaceCopy={{ contactLabel: interfaceCopy.contactLabel }}
-        copy={{ footer: copy.footer, copyright: copy.copyright }}
-        site={{
-          email: site.email,
-          demoLabel: site.demoLabel,
-          name: site.name,
-          englishName: site.englishName,
-        }}
-        marketingNavigation={marketingNavigation}
-      />
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/(public)/login/page.tsx`
-
-SHA-256: `38112bc605f3406e6ee9cd5a16e5d422f5828d4f6d0b05f56082b27134a68c2c`
-
-```tsx
-import AuthPage from "@platform/components/account/auth/page";
-import { authPages } from "@platform/data/auth";
-export const metadata = { title: authPages.login.title };
-export default function LoginPage() { return <AuthPage model={authPages.login} />; }
-```
-
-### File: `app/ta3allam/(public)/signup/page.tsx`
-
-SHA-256: `12cd188c4505bbe3167702fd8d953c65e0344829ae05e7248c315851c457ef92`
-
-```tsx
-import AuthPage from "@platform/components/account/auth/page";
-import { authPages } from "@platform/data/auth";
-export const metadata = { title: authPages.signup.title };
-export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
-```
-
-### File: `app/ta3allam/7days-freelance/page.tsx`
-
-SHA-256: `32c607feb0c0100de6a70e92c36de14a8cc788c788c3ca811e4f4a6b8b07f50f`
+SHA-256: `a44e0d3035c8a991d9eaa2928906d9a857d9e6810ff418ca03c0c9d78f20e451`
 
 ```tsx
 import { WorkshopPage } from "@/app/components/workshop";
 import { workshopPage } from "@/app/data/workshop";
 import { workshopMetadata } from "@/app/config/workshop-metadata";
 import { findCourse } from "@platform/features/catalog/service";
-import { workshopCourseConfig } from "@/config/workshop-course";
+import { routes } from "@platform/config/navigation";
 import { liveWorkshopCourse } from "@platform/data/workshop-course";
 import { workshopCourseContent } from "@platform/features/marketing/models/workshop-course";
 import { notFound } from "next/navigation";
-export async function generateMetadata() {
-  const course = await findCourse(workshopCourseConfig.slug);
-  return { ...workshopMetadata, title: { absolute: course?.title ?? liveWorkshopCourse.title }, description: course?.description ?? workshopMetadata.description };
-}
-export default async function FreelanceWorkshopPage() {
-  const course = await findCourse(workshopCourseConfig.slug);
-  if (!course) notFound();
-  return <WorkshopPage content={workshopCourseContent(workshopPage,course,liveWorkshopCourse)} />;
-}
-```
-
-### File: `app/ta3allam/dashboard/admin/courses/[slug]/page.tsx`
-
-SHA-256: `cb81727c908ff57912a7bf6b828478bd09d3f0b0902b2937c3336800b1906137`
-
-```tsx
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
-import { courseLessons } from "@platform/features/catalog/helpers";
-import CourseEditor from "@platform/components/admin/course-editor";
-import LessonVideoEditor from "@platform/components/admin/lesson-video-editor";
-import PageHeading from "@platform/components/ui/page-heading";
-import { adminCopy } from "@platform/data/admin";
-import { categories } from "@platform/config/catalog";
-import { routes } from "@platform/config/navigation";
-export default async function EditCoursePage({ params }: { params: Promise<{ slug: string }> }) {
+type WorkshopParams = { params: Promise<{ slug: string }> };
+export async function generateMetadata({ params }: WorkshopParams) {
   const { slug } = await params;
-  const record = (await readAdminCourses(slug))[0];
-  if (!record) notFound();
-  const lessons = await readAdminLessons(slug), metadata = courseLessons(record.course);
-  return <><PageHeading title={record.course.title} description={adminCopy.description}><Link href={routes.course(slug)} className="lms-text-link">{adminCopy.publicPage}</Link></PageHeading>
-    <section className="lms-profile-card"><CourseEditor {...record} labels={adminCopy} categories={categories.filter(category => category.id !== "all")} /></section>
-    {lessons.length > 0 && <><PageHeading title={adminCopy.lessons} />{lessons.map(lesson => <LessonVideoEditor key={lesson.id} slug={slug} lesson={{ ...lesson, title: metadata.find(item => item.id === lesson.id)?.title ?? lesson.id }} labels={adminCopy} />)}</>}
-  </>;
+  const course = await findCourse(slug);
+  if (!course || course.delivery !== "live") notFound();
+  return { ...workshopMetadata, alternates: { canonical: routes.workshopPage(slug) }, title: { absolute: course?.title ?? liveWorkshopCourse.title }, description: course?.description ?? workshopMetadata.description };
 }
-```
-
-### File: `app/ta3allam/dashboard/admin/courses/page.tsx`
-
-SHA-256: `068b923d8db40fe8230e2a5caeab078e90d0c4131b1fa1708494c3e25120aab6`
-
-```tsx
-import Link from "next/link";
-import { readAdminCourses } from "@platform/features/admin/repositories/courses";
-import { routes } from "@platform/config/navigation";
-import { adminCopy } from "@platform/data/admin";
-import PageHeading from "@platform/components/ui/page-heading";
-export default async function AdminCoursesPage() {
-  const records = await readAdminCourses();
-  return <><PageHeading title={adminCopy.heading} description={adminCopy.description} /><div className="lms-resource-grid">{records.map(({ course }) =>
-    <section key={course.slug} className="lms-resource-card"><h2>{course.title}</h2><p>{course.categoryLabel}</p><Link href={routes.adminCourse(course.slug)} className="btn-primary">{adminCopy.edit}</Link></section>
-  )}</div></>;
-}
-```
-
-### File: `app/ta3allam/dashboard/admin/layout.tsx`
-
-SHA-256: `52102109843fcb9fe7ba2d24be6455bace9fb450638a9832271528f58efa5e13`
-
-```tsx
-import { redirect } from "next/navigation";
-import { hasAdminAccess } from "@platform/features/admin/identity";
-import { routes } from "@platform/config/navigation";
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  if (!await hasAdminAccess()) redirect(routes.dashboard);
-  return children;
-}
-```
-
-### File: `app/ta3allam/dashboard/certificates/page.tsx`
-
-SHA-256: `62fb0f663b0485da89ba1140404739bf32997b481770119863160b8fd92f9240`
-
-```tsx
-import CertificateCard from "@platform/components/certificates/certificate-card";
-import { routes } from "@platform/config/navigation";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import PageHeading from "@platform/components/ui/page-heading";
-import EmptyState from "@platform/components/ui/empty-state";
-import { listCourses } from "@platform/features/catalog";
-import { copy, site } from "@platform/data/site";
-import { readStudentState, courseProgress } from "@platform/features/learning";
-export const metadata = {
-  title: interfaceCopy.certificatesPageTitle,
-};
-export default async function CertificatesPage() {
-  const state = await readStudentState();
-  const courses = await listCourses();
-  const earned = courses.filter(
-    (course) =>
-      state.enrolled.includes(course.slug) &&
-      courseProgress(course, state).percent === 100,
-  );
-  return (
-    <>
-      <PageHeading
-        title={copy.certificateTitle}
-        description={copy.certificateDescription}
-      />
-      {earned.length ? (
-        <div className="lms-resource-grid">
-          {earned.map((course) => (
-            <CertificateCard
-              interfaceCopy={{
-                certificateHeading: interfaceCopy.certificateHeading,
-              }}
-              copy={{ print: copy.print }}
-              site={{ name: site.name, demoLabel: site.demoLabel }}
-              key={course.slug}
-              course={course}
-              learnerName={state.profile.name}
-            />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title={copy.emptyCertificates}
-          description={copy.emptyCertificatesBody}
-          href={routes.library}
-          label={copy.continue}
-        />
-      )}
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/dashboard/courses/page.tsx`
-
-SHA-256: `b8031dac024c64e267b98a512186d290a5fd6e681696bc63492e17c71ac0a4e3`
-
-```tsx
-import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
-import { offerCopy } from "@platform/data/offers";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import PageHeading from "@platform/components/ui/page-heading";
-import EmptyState from "@platform/components/ui/empty-state";
-import CourseGrid from "@platform/components/courses/course-grid";
-import { listCourses } from "@platform/features/catalog";
-import { readStudentState, courseProgress } from "@platform/features/learning";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.libraryPageTitle };
-export default async function MyCourses() {
-  const state = await readStudentState();
-  const courses = await listCourses();
-  const enrolled = courses.filter((course) =>
-    state.enrolled.includes(course.slug),
-  );
-  return (
-    <>
-      <PageHeading
-        title={interfaceCopy.libraryTitle}
-        description={interfaceCopy.libraryDescription}
-      />
-      {enrolled.length ? (
-        <CourseGrid
-          courses={enrolled}
-          layout="dashboard"
-          progress={Object.fromEntries(
-            enrolled.map((course) => [
-              course.slug,
-              courseProgress(course, state),
-            ]),
-          )}
-          copy={{
-            lessons: copy.lessons,
-            continue: copy.continue,
-            progress: copy.progress,
-          }}
-          site={{ englishName: site.englishName }}
-          offerCopy={{ price: offerCopy.price }}
-        />
-      ) : (
-        <EmptyState
-          title={copy.emptyCourses}
-          description={copy.coursesDescription}
-          href={routes.courses}
-          label={copy.browse}
-        />
-      )}
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/dashboard/layout.tsx`
-
-SHA-256: `b143a1d70dda69dafddb81b8dfbfc1440b85e63d6c69b6866cb7b82284994070`
-
-```tsx
-import { hasAdminAccess } from "@platform/features/admin/identity";
-import { adminCopy } from "@platform/data/admin";
-import { routes } from "@platform/config/navigation";
-import { backendCopy } from "@platform/data/backend-copy";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import { dashboardNavigation } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import { copy } from "@platform/data/site";
-import DashboardShell from "@platform/components/layout/dashboard-shell";
-import { readStudentState } from "@platform/features/learning";
-export default async function StudentLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const state = await readStudentState();
-  const admin = await hasAdminAccess();
-  return (
-    <DashboardShell
-      interfaceCopy={{
-        studentNavigationLabel: interfaceCopy.studentNavigationLabel,
-        sidebarTitle: interfaceCopy.sidebarTitle,
-        sidebarDescription: interfaceCopy.sidebarDescription,
-        homeLabel: interfaceCopy.homeLabel,
-      }}
-      dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.admin, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}
-      site={{
-        demoLabel: backendCopy.ACCOUNT_LABEL,
-        name: site.name,
-        englishName: site.englishName,
-      }}
-      copy={{
-        logout: backendCopy.LOGOUT,
-        error: backendCopy.INTERNAL_ERROR,
-        browse: copy.browse,
-        profileTitle: copy.profileTitle,
-        menu: copy.menu,
-        demoAccount: backendCopy.ACCOUNT_LABEL,
-      }}
-      name={state.profile.name}
-    >
-      {children}
-    </DashboardShell>
-  );
-}
-```
-
-### File: `app/ta3allam/dashboard/page.tsx`
-
-SHA-256: `1691ddcb1bc68e8f940071556e0ceca430716e2bb0ffbd4949de741c9a02646e`
-
-```tsx
-import { dashboardStats } from "@platform/features/learning/helpers/dashboard-stats";
-import { selectCourses } from "@platform/features/catalog/helpers";
-import { catalogSettings } from "@platform/data/catalog-settings";
-import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
-import { offerCopy } from "@platform/data/offers";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import Link from "next/link";
-import PageHeading from "@platform/components/ui/page-heading";
-import EmptyState from "@platform/components/ui/empty-state";
-import DashboardStats from "@platform/components/learning/dashboard-stats";
-import ContinueCard from "@platform/components/learning/continue-card";
-import CourseGrid from "@platform/components/courses/course-grid";
-import { readStudentState, courseProgress } from "@platform/features/learning";
-import { listCourses } from "@platform/features/catalog";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.dashboardLabel };
-export default async function DashboardPage() {
-  const state = await readStudentState();
-  const courses = await listCourses();
-  const enrolled = courses.filter((course) =>
-    state.enrolled.includes(course.slug),
-  );
-  const active =
-    enrolled.find((course) => courseProgress(course, state).percent < 100) ??
-    enrolled[0];
-  return (
-    <>
-      <PageHeading
-        eyebrow={`${interfaceCopy.greeting} ${state.profile.name}`}
-        title={copy.dashboardTitle}
-        description={copy.dashboardDescription}
-      />
-      <DashboardStats stats={dashboardStats({ state, courses: enrolled, labels: copy })} />
-      {active ? (
-        <ContinueCard
-          interfaceCopy={{ continueContext: interfaceCopy.continueContext }}
-          copy={{
-            artworkLessonLabel: copy.artworkLessonLabel,
-            continue: copy.continue,
-            progress: copy.progress,
-            lessons: copy.lessons,
-          }}
-          site={{ englishName: site.englishName }}
-          course={active}
-          progress={courseProgress(active, state)}
-        />
-      ) : (
-        <EmptyState
-          title={copy.emptyCourses}
-          description={copy.coursesDescription}
-          href={routes.courses}
-          label={copy.browse}
-        />
-      )}
-      <div className="lms-section-top lms-dashboard-section">
-        <h2>{copy.myCourses}</h2>
-        <Link href={routes.library} className="lms-text-link">
-          {interfaceCopy.libraryAction}
-        </Link>
-      </div>
-      <CourseGrid
-        courses={enrolled}
-        layout="dashboard"
-        progress={Object.fromEntries(
-          enrolled.map((course) => [
-            course.slug,
-            courseProgress(course, state),
-          ]),
-        )}
-        copy={{
-          lessons: copy.lessons,
-          continue: copy.continue,
-          progress: copy.progress,
-        }}
-        site={{ englishName: site.englishName }}
-        offerCopy={{ price: offerCopy.price }}
-      />
-      <div className="lms-section-top lms-dashboard-section">
-        <h2>{copy.recommendations}</h2>
-        <Link href={routes.courses} className="lms-text-link">
-          {copy.allCourses}
-        </Link>
-      </div>
-      <CourseGrid
-        courses={selectCourses(courses, catalogSettings.recommendationIds)
-          .filter((course) => !state.enrolled.includes(course.slug))
-          .slice(0, catalogSettings.recommendationLimit)}
-        layout="dashboard"
-        copy={{
-          lessons: copy.lessons,
-          continue: copy.continue,
-          progress: copy.progress,
-        }}
-        site={{ englishName: site.englishName }}
-        offerCopy={{ price: offerCopy.price }}
-      />
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/dashboard/profile/page.tsx`
-
-SHA-256: `983decadcd91cad920c0e03d71c222d60fd52537fbc71e07ff4ae6068f37f767`
-
-```tsx
-import { backendCopy } from "@platform/data/backend-copy";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import PageHeading from "@platform/components/ui/page-heading";
-import ProfileForm from "@platform/components/account/profile-form";
-import { readStudentState } from "@platform/features/learning";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.profilePageTitle };
-export default async function ProfilePage() {
-  const state = await readStudentState();
-  return (
-    <>
-      <PageHeading
-        eyebrow={backendCopy.ACCOUNT_LABEL}
-        title={copy.profileTitle}
-        description={copy.profileDescription}
-      />
-      <section className="lms-profile-card">
-        <div className="lms-profile-card-heading">
-          <span className="lms-avatar lms-avatar-large">
-            {state.profile.name.slice(0, 1)}
-          </span>
-          <div>
-            <h2>{state.profile.name}</h2>
-            <span className="lms-demo-label">{backendCopy.ACCOUNT_LABEL}</span>
-          </div>
-        </div>
-        <ProfileForm
-          emailPendingMessage={backendCopy.EMAIL_CHANGE_PENDING}
-          interfaceCopy={{ namePlaceholder: interfaceCopy.namePlaceholder }}
-          copy={{
-            error: copy.error,
-            name: copy.name,
-            email: copy.email,
-            emailPlaceholder: copy.emailPlaceholder,
-            saving: copy.saving,
-            enterDemo: copy.enterDemo,
-            save: copy.save,
-            profileSaved: copy.profileSaved,
-          }}
-          profile={state.profile}
-        />
-        
-      </section>
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/dashboard/resources/page.tsx`
-
-SHA-256: `69d538a5f42d755d7231b9d7a529a1277563c3d2618c8e5c19145e9f62c2c167`
-
-```tsx
-import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
-import ResourceCard from "@platform/components/resources/resource-card";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import PageHeading from "@platform/components/ui/page-heading";
-import { listResources } from "@platform/features/resources/service";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.resourcesPageTitle };
-export default async function ResourcePage() {
-  await requirePageIdentity();
-  const resources = await listResources();
-  return (
-    <>
-      <PageHeading
-        title={copy.resources}
-        description={interfaceCopy.resourcesDescription}
-      />
-      <div className="lms-resource-grid">
-        {resources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            copy={{ download: copy.download }}
-            resource={resource}
-          />
-        ))}
-      </div>
-    </>
-  );
-}
-```
-
-### File: `app/ta3allam/learn/[slug]/[lessonId]/page.tsx`
-
-SHA-256: `aa10c0cb9efa69682fbb700f0967fe7bd920772d1a0dcb0cffef5698c6fe6f91`
-
-```tsx
-import Link from "next/link";
-import { readLessonContext } from "@platform/features/learning/read-lesson-context";
-import { lessonPlaybackModel } from "@platform/features/learning/models/lesson-playback";
-import { lessonInformationModel } from "@platform/features/learning/models/lesson-information";
-import { lessonShellModel } from "@platform/features/learning/models/lesson-shell";
-import LessonInformation from "@platform/components/learning/lesson-information";
-import LessonActions from "@platform/components/learning/lesson-actions";
-import LessonTitle from "@platform/components/learning/lesson-title";
-import LearningHeader from "@platform/components/learning/learning-header";
-import LessonOutline from "@platform/components/learning/lesson-outline";
-import LessonPlayer from "@platform/components/learning/lesson-player";
-import { routes } from "@platform/config/navigation";
-import { copy } from "@platform/data/site";
-export default async function LessonPage({ params }: { params: Promise<{ slug: string; lessonId: string }> }) {
-  const { slug, lessonId } = await params;
-  const context = await readLessonContext(slug, lessonId);
-  const playback = lessonPlaybackModel(context);
-  const shell = lessonShellModel(context);
-  return (
-    <div className="lms-learn">
-      <LearningHeader {...shell.header} />
-      <div className="lms-learn-grid">
-        <LessonOutline {...shell.outline} />
-        <main className="lms-lesson-main">
-          <Link href={routes.course(slug)} className="lms-breadcrumb">{copy.back}</Link>
-          <LessonTitle {...playback.title} />
-          <LessonPlayer {...playback.player} />
-          <LessonActions {...playback.actions} />
-          <LessonInformation {...lessonInformationModel(context)} />
-        </main>
-      </div>
-    </div>
-  );
-}
-```
-
-### File: `app/ta3allam/page.tsx`
-
-SHA-256: `4db2beac9984fa9110452e1e8dbdcac3e83b4ac1cb3b1256c263a9172a32da69`
-
-```tsx
-import { listCourses } from "@platform/features/catalog";
-import { createLandingModel } from "@platform/features/marketing/landing";
-import type { Metadata } from "next";
-import { Landing } from "@platform/features/marketing";
-import { interfaceCopy } from "@platform/data/interface-copy";
-export const metadata: Metadata = {
-  title: { absolute: interfaceCopy.metadataTitle },
-  description: interfaceCopy.metadataDescription,
-};
-export default async function Ta3llamPage() {
-  return <Landing model={createLandingModel(await listCourses())} />;
+export default async function FreelanceWorkshopPage({ params }: WorkshopParams) {
+  const { slug } = await params;
+  const course = await findCourse(slug);
+  if (!course || course.delivery !== "live") notFound();
+  return <WorkshopPage content={workshopCourseContent(workshopPage,course,liveWorkshopCourse)} />;
 }
 ```
 
@@ -3699,14 +3704,14 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `49bb4a6e22f00a9616771259f51a6ff541c9c9b632e4a63b0fe5d07f296dbac3`
+SHA-256: `1da5d41a7b715c42a6c7d334b8ce87774c653064f54844d9cd54317d199c5237`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
 export const projectRoutes = {
-  portfolio: "/",
-  learning: "/ta3allam",
-  workshop: `/ta3allam/${workshopCourseConfig.slug}`,
+  portfolio: "/founder",
+  learning: "/",
+  workshop: `/workshops/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",
@@ -3717,8 +3722,8 @@ export const projectNavigation = {
   ],
 };
 
-/** Former top-level learning routes retained as redirects. */
-export const legacyLearningSections = ["courses", "dashboard", "learn", "login"] as const;
+/** Former platform namespaces retained as compatibility redirects. */
+export const legacyLearningNamespaces = ["ta3allam", "ta3llam"] as const;
 ```
 
 ### File: `config/student-reviews.ts`
@@ -4612,7 +4617,7 @@ export default function CourseArtwork({
 
 ### File: `modules/components/courses/course-card.tsx`
 
-SHA-256: `61451b15b66cdf1e6d75f27c9f8748c5ef9f9c481e8f43eca710f38e8836e9f6`
+SHA-256: `f42d3c8902d664ed6014ea876eb56317220dd0a28af03272b042ed6a68891f67`
 
 ```tsx
 import { courseLessons } from "@platform/features/catalog/helpers";
@@ -4644,12 +4649,12 @@ export default function CourseCard({
   site: Pick<ContentBindings["site"], "englishName">;
   offerCopy: Pick<ContentBindings["offerCopy"], "price">;
 }) {
-  const detailHref = routes.course(course.slug);
+  const detailHref = routes.course(course.slug, course.delivery);
   const actionHref = progress
     ? progress.next
       ? routes.lesson(course.slug, progress.next.id)
-      : routes.course(course.slug)
-    : routes.enrollment(course.slug);
+      : routes.course(course.slug, course.delivery)
+    : routes.enrollment(course.slug, course.delivery);
   return (
     <article className="lms-course-card">
       <h3 className="lms-card-title">
@@ -5449,7 +5454,7 @@ export default function CompletionButton({
 
 ### File: `modules/components/learning/continue-card.tsx`
 
-SHA-256: `74164f2fb039878ffecab27a43346141da3e2bdb0223b09435e368d26acff731`
+SHA-256: `42844456731eda47f30a16ff30410c85ea0b6d4806344d033ec0c3753ef5361e`
 
 ```tsx
 import { routes } from "@platform/config/navigation";
@@ -5497,7 +5502,7 @@ export default function ContinueCard({
           href={
             progress.next
               ? routes.lesson(course.slug, progress.next.id)
-              : routes.course(course.slug)
+              : routes.course(course.slug, course.delivery)
           }
           className="btn-primary"
         >
@@ -6079,7 +6084,7 @@ export default function CourseShowcase({
 
 ### File: `modules/components/marketing/hero-preview.tsx`
 
-SHA-256: `b9fcdcd13efa5a6e8e8687220b842311eab992ac4fea7029040f68b8295df6f6`
+SHA-256: `5b74d8976c8d757d8499d3864c1bc0390d903264a51a55b9e29f5ef4e81d7b10`
 
 ```tsx
 import { numbered } from "@platform/features/catalog/helpers/numbered";
@@ -6117,7 +6122,7 @@ export default function HeroPreview({ interfaceCopy, preview, artworkLessonLabel
                     </div>
                   ))}
                   <Link
-                    href={actions.preview ?? routes.course(preview.course.slug)}
+                    href={actions.preview ?? routes.course(preview.course.slug, preview.course.delivery)}
                   >
                     {interfaceCopy.heroPreviewAction}
                     <Symbol name="arrow" />
@@ -7266,12 +7271,13 @@ export type ArtworkKind = (typeof artworkKinds)[number];
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `cd48cab8d27290c7e00907ba86bdd06e1c52e152ff5f58cb2fcce9ebb994262f`
+SHA-256: `455da27f56abbe7a77d040aeb89ae4198de0264498607ca068cb214968dce61c`
 
 ```typescript
 import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
+const learningBase = projectRoutes.learning === "/" ? "" : projectRoutes.learning;
 const segment = (value: string) => {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
     throw new Error(`Invalid route segment: ${value}`);
@@ -7289,21 +7295,22 @@ export const routes = {
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
-  courses: `${projectRoutes.learning}/courses`,
-  dashboard: `${projectRoutes.learning}/dashboard`,
-  login: `${projectRoutes.learning}/login`,
-  signup: `${projectRoutes.learning}/signup`,
-  library: `${projectRoutes.learning}/dashboard/courses`,
-  resources: `${projectRoutes.learning}/dashboard/resources`,
-  certificates: `${projectRoutes.learning}/dashboard/certificates`,
-  profile: `${projectRoutes.learning}/dashboard/profile`,
-  admin: `${projectRoutes.learning}/dashboard/admin/courses`,
+  courses: `${learningBase}/courses`,
+  dashboard: `${learningBase}/dashboard`,
+  login: `${learningBase}/login`,
+  signup: `${learningBase}/signup`,
+  library: `${learningBase}/dashboard/courses`,
+  resources: `${learningBase}/dashboard/resources`,
+  certificates: `${learningBase}/dashboard/certificates`,
+  profile: `${learningBase}/dashboard/profile`,
+  admin: `${learningBase}/dashboard/admin/courses`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
-  course: (slug: string) => slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${projectRoutes.learning}/courses/${segment(slug)}`,
+  workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
+  course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
   lesson: (slug: string, id: string) =>
-    `${projectRoutes.learning}/learn/${segment(slug)}/${segment(id)}`,
-  enrollment: (slug: string) =>
-    slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${routes.course(slug)}#${sectionIds.enrollment}`,
+    `${learningBase}/learn/${segment(slug)}/${segment(id)}`,
+  enrollment: (slug: string, delivery?: "recorded" | "live") =>
+    delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${routes.course(slug)}#${sectionIds.enrollment}`,
   section: (id: keyof typeof sectionIds) => `${projectRoutes.learning}#${sectionIds[id]}`,
   catalog: (query = "", category = "all") => {
     const params = new URLSearchParams();
@@ -14810,12 +14817,12 @@ export type PortfolioAction = {
 
 ### File: `next.config.ts`
 
-SHA-256: `aa2f6f92d795f75196295830970e942cfb62a5a92f726332423d9d89cf94d487`
+SHA-256: `fd0208a608736271ca28e8c9a9392a26db188e12f07b264f4e433f745c0e3978`
 
 ```typescript
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
-import { projectRoutes, legacyLearningSections } from "./config/project-navigation";
+import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -14823,13 +14830,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: `${projectRoutes.learning}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: "/ta3llam/:path*", destination: `${projectRoutes.learning}/:path*`, permanent: false },
-      ...legacyLearningSections.map((section) => ({
-        source: `/${section}/:path*`,
-        destination: `${projectRoutes.learning}/${section}/:path*`,
-        permanent: false,
-      })),
+      { source: `/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+      ...legacyLearningNamespaces.flatMap((namespace) => [
+        { source: `/${namespace}/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+        { source: `/${namespace}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
+        { source: `/${namespace}`, destination: projectRoutes.learning, permanent: true },
+        { source: `/${namespace}/:path+`, destination: "/:path+", permanent: true },
+      ]),
       { source: "/portfolio", destination: projectRoutes.portfolio, permanent: false },
       { source: "/workshop", destination: projectRoutes.workshop, permanent: false },
     ];
@@ -23551,7 +23558,7 @@ fs.writeFileSync(
 
 ### File: `scripts/measure-route-performance.cjs`
 
-SHA-256: `caf945aff45ec0bc39fb506565ea7b4d996d6f861ebc6afe963d1a6fff62ce5a`
+SHA-256: `3ad047e01af84a265012768b1b56146b5b523900cfe2d60442a932ad593ea4c8`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Production browser measurements, separate from screenshot capture. */
@@ -23563,20 +23570,20 @@ const destination = path.resolve(
   "../docs/evidence/architecture-acceptance/final",
 );
 const routes = [
-  "/ta3allam",
-  "/ta3allam/courses",
-  "/ta3allam/courses?category=motion",
-  "/ta3allam/courses?q=missing-term",
-  "/ta3allam/courses/editing-foundations",
-  "/ta3allam/courses/motion-essentials",
-  "/ta3allam/login",
-  "/ta3allam/dashboard",
-  "/ta3allam/dashboard/courses",
-  "/ta3allam/dashboard/profile",
-  "/ta3allam/dashboard/resources",
-  "/ta3allam/dashboard/certificates",
-  "/ta3allam/learn/editing-foundations/first-cut",
-  "/ta3allam/courses/unknown-course",
+  "/",
+  "/courses",
+  "/courses?category=motion",
+  "/courses?q=missing-term",
+  "/courses/editing-foundations",
+  "/courses/motion-essentials",
+  "/login",
+  "/dashboard",
+  "/dashboard/courses",
+  "/dashboard/profile",
+  "/dashboard/resources",
+  "/dashboard/certificates",
+  "/learn/editing-foundations/first-cut",
+  "/courses/unknown-course",
 ];
 (async () => {
   const browser = await chromium.launch();
@@ -24002,7 +24009,7 @@ if (failures.length) {
 
 ### File: `tests/acceptance-architecture.spec.ts`
 
-SHA-256: `a0ac85860a626587928c1df152d1afbe9340f095e09c9164ebc79dd86b4e89a7`
+SHA-256: `329b30618f20f9698eefd0fa4eb26175be5de5697a4d7df91011c020b9616a05`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -24080,7 +24087,7 @@ test("T35 transitive imports, cycles and each planned ownership mutation are rej
     [
       [
         "modules/lib/duplicate.ts",
-        "export const course=(slug:string)=>`/ta3allam/courses/${slug}`;",
+        "export const course=(slug:string)=>`/courses/${slug}`;",
       ],
     ],
     [
@@ -24238,7 +24245,7 @@ test("reusable modules do not create accidental Next.js special-file routes", ()
 
 ### File: `tests/auth.spec.ts`
 
-SHA-256: `40b6c432d0eeb1f145d64126901dfc5129058d3fad7f6b4ffd2aa1db0b9e7761`
+SHA-256: `60c645ed0a461b9d8ec65a0a395eb337c397b5c340da15095ff64d40f10e307c`
 
 ```typescript
 import { test, expect, type Page } from "@playwright/test";
@@ -24272,7 +24279,7 @@ test("auth APIs reject invalid payloads and cross-origin writes", async ({ reque
 
 });
 test("signup errors, field focus, blur, confirmation and password visibility", async ({ page }) => {
-  await page.goto("/ta3allam/signup");
+  await page.goto("/signup");
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
   const name = page.getByLabel("اسمك", { exact: true });
   await expect(name).toBeFocused();
@@ -24294,10 +24301,10 @@ test("signup errors, field focus, blur, confirmation and password visibility", a
   await page.route("**/api/auth/signup", route => route.fulfill({ json: { status: "confirmation_required" } }));
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "راجع بريدك الإلكتروني" })).toBeVisible();
-  await expect(page).toHaveURL(/\/ta3allam\/signup$/);
+  await expect(page).toHaveURL(/\/signup$/);
 });
 test("login provides pending feedback, recovers from errors and links to signup", async ({ page }) => {
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await expect(page.locator(".lms-auth-form input")).toHaveCount(2);
   await expect(page.getByText(authCopy.errors.passwordRequired, { exact: true })).toHaveCount(0);
   await fill(page);
@@ -24316,18 +24323,18 @@ test("login provides pending feedback, recovers from errors and links to signup"
   await page.route("**/api/auth/login", route => route.fulfill({ status: 401, json: { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة." } }));
   await submit.click();
   await expect(page.getByText("البريد الإلكتروني أو كلمة المرور غير صحيحة.", { exact: true })).toBeVisible();
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await page.getByRole("link", { name: "أنشئ حسابًا", exact: true }).click();
-  await expect(page).toHaveURL(/\/ta3allam\/signup$/);
+  await expect(page).toHaveURL(/\/signup$/);
   await page.getByRole("link", { name: "سجّل الدخول", exact: true }).click();
-  await expect(page).toHaveURL(/\/ta3allam\/login$/);
+  await expect(page).toHaveURL(/\/login$/);
 });
 for (const width of [320, 390, 768, 1440]) test(`auth layouts remain readable without overflow at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   for (const route of ["login", "signup"]) {
-    await page.goto(`/ta3allam/${route}`);
+    await page.goto(`/${route}`);
     await expect(page.locator(".lms-auth-card")).toBeVisible();
     await expect(page.locator(".lms-login-message .text-red")).toHaveCSS("color", "rgb(252, 53, 34)");
     await expect(page.locator(".lms-auth-card").getByText("حساب تعلّم", { exact: true })).toBeVisible();
@@ -24338,7 +24345,7 @@ for (const width of [320, 390, 768, 1440]) test(`auth layouts remain readable wi
   expect(errors).toEqual([]);
 });
 for (const failure of ["network", "malformed"]) test(`login displays an Arabic retry message for ${failure} failures`, async ({ page }) => {
-  await page.goto("/ta3allam/login");
+  await page.goto("/login");
   await fill(page);
   await page.route("**/api/auth/login", route => failure === "network" ? route.abort("failed") : route.fulfill({ status: 200, body: "not JSON", contentType: "application/json" }));
   await page.getByRole("button", { name: "تسجيل الدخول", exact: true }).click();
@@ -24351,7 +24358,7 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 
 ### File: `tests/backend/admin.cjs`
 
-SHA-256: `8cd51e6d7dfe16322419427a13cb7539091908b2634394b3c36b5fe3890fa988`
+SHA-256: `d76539f6bde40325d29852a56df0b501e7d9b2c3f60a677f84e2bac1a2455e4f`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated admin/RLS and editor checks. */
@@ -24376,7 +24383,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     verify((await manager.api(endpoint,saved)).status === 200, 'Admin edits name description price category and media');
     const publicCourse = JSON.parse((await anonymous('/api/courses/7days-freelance')).data);
     verify(publicCourse.title === saved.title && publicCourse.offer.amount === 777 && publicCourse.category === 'editing', 'Database edits appear in public catalog');
-    verify((await anonymous('/ta3allam/7days-freelance')).data.includes(saved.title), 'Workshop landing reads database changes');
+    verify((await anonymous('/workshops/7days-freelance')).data.includes(saved.title), 'Workshop landing reads database changes');
     verify((await manager.api(endpoint,{ ...saved, thumbnailUrl: 'javascript:alert(1)' })).status === 400, 'Unsafe media URL rejected');
     verify((await manager.api(endpoint,{ ...saved, amount: -1 })).status === 400, 'Negative price rejected');
     verify((await manager.api(endpoint,saved,{ headers: { Origin: 'https://attacker.example' } })).status === 403, 'Cross-origin admin mutation rejected');
@@ -24388,12 +24395,12 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     const browser = await chromium.launch({ headless: true });
     try {
       const page = await browser.newPage();
-      await page.goto(url + '/ta3allam/login');
+      await page.goto(url + '/login');
       await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
       await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
       await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
       await expect(page.getByRole('link', { name: 'إدارة الدورات', exact: true })).toBeVisible();
-      await page.goto(url + '/ta3allam/dashboard/admin/courses/7days-freelance');
+      await page.goto(url + '/dashboard/admin/courses/7days-freelance');
       await page.getByLabel('اسم الدورة', { exact: true }).fill('ورشة محفوظة من لوحة التحكم');
       await page.getByLabel('السعر (ج.م)', { exact: true }).fill('888');
       await page.getByRole('button', { name: 'حفظ التغييرات', exact: true }).click();
@@ -24407,7 +24414,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     } finally { await browser.close(); }
     const driveCourse = { ...saved, introVideoUrl: 'https://drive.google.com/file/d/1ZHecu6hIzcXtpyMxa-Rexq0csHcmOKJt/view' };
     verify((await manager.api(endpoint,driveCourse)).status === 200, 'Google Drive link persists in admin editor');
-    const view = await anonymous('/ta3allam/7days-freelance');
+    const view = await anonymous('/workshops/7days-freelance');
     verify(view.data.includes('/api/courses/7days-freelance/intro'), 'Drive intro uses the custom streaming player');
     const media = await fetch(url + '/api/courses/7days-freelance/intro', { headers: { Range: 'bytes=0-1023' }, signal: AbortSignal.timeout(15000) });
     const reader = media.body.getReader();
@@ -24423,7 +24430,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     } finally { await admin.from('lessons').update({ video_url: initial }).eq('course_slug','editing-foundations').eq('id','first-cut'); }
   } finally { await admin.from('courses').update(original).eq('slug','7days-freelance'); }
   const response = await anonymous('/7days-freelance?test=1');
-  verify(response.status === 308 && response.headers.get('location').includes('/ta3allam/7days-freelance?test=1'), 'Legacy workshop redirects with query preserved');
+  verify(response.status === 308 && response.headers.get('location').includes('/workshops/7days-freelance?test=1'), 'Legacy workshop redirects with query preserved');
   const legacyDetail = await anonymous('/ta3allam/courses/7days-freelance');
   verify(legacyDetail.status === 308, 'Generic workshop detail URL redirects to approved landing');
   const copy = { ...original.metadata, slug: 'test-live-free', offer: { ...original.metadata.offer, amount: 0 } };
@@ -24446,7 +24453,7 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
 
 ### File: `tests/backend/browser.cjs`
 
-SHA-256: `7da078267cd583948672c409b09d039d5661b608f4e0827ac0bc484c50cda8ab`
+SHA-256: `fb1e6eb41b66ea6dfd3a22e68a9759d9134854d1d4d6b505ffe55d6429a4959c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks against isolated local accounts. */
@@ -24459,16 +24466,16 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
   page.on('pageerror', error => errors.push(error.message));
   fs.mkdirSync('docs/evidence/backend', { recursive: true });
   try {
-    await page.goto(url + '/ta3allam/login');
+    await page.goto(url + '/login');
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(student.email);
     await page.getByLabel('كلمة المرور', { exact: true }).fill(student.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Browser login navigates to protected dashboard');
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
-    await expect(page).toHaveURL(/\/ta3allam\/login$/);
+    await expect(page).toHaveURL(/\/login$/);
     verify(true, 'Browser logout returns to login');
-    await page.goto(url + '/ta3allam/signup');
+    await page.goto(url + '/signup');
     await page.getByRole('button', { name: 'إنشاء حساب', exact: true }).click();
     await expect(page.getByLabel('اسمك', { exact: true })).toBeFocused();
     verify(true, 'Invalid browser signup focuses first field');
@@ -24491,11 +24498,11 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
     const link = mail.HTML.match(/href="([^"]+\/auth\/v1\/verify[^\"]+)"/)?.[1].replaceAll('&amp;', '&');
     verify(Boolean(link), 'Confirmation email includes valid Auth verification link');
     await page.goto(link);
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Email verification and PKCE callback establish browser session');
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(url + '/ta3allam/login');
+      await page.goto(url + '/login');
       await expect(page.locator('.lms-auth-card')).toBeVisible();
       verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Auth layout fits ${width}px`);
       await page.screenshot({ path: `docs/evidence/backend/login-${width}.png`, fullPage: true });
@@ -24507,7 +24514,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 
 ### File: `tests/backend/dashboard-access.cjs`
 
-SHA-256: `6ab1caaadfecabc41b1b8f6d9bd62b939cb419a1138229765b889d3f10cb1df2`
+SHA-256: `aaf7fd5654565f27dc6745e9787617d797de665ffcc940d9c87e88a4dfa8e524`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-account access regression. */
@@ -24517,30 +24524,30 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
   const context = await browser.newContext();
   const page = await context.newPage();
   const login = async () => {
-    await page.goto(url + '/ta3allam/login');
+    await page.goto(url + '/login');
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(student.email);
     await page.getByLabel('كلمة المرور', { exact: true }).fill(student.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
   };
   try {
     await login();
     const admin = await context.request.get(url + '/api/admin/courses/7days-freelance');
     verify(admin.status() === 403, 'Signed-in student cannot use admin course APIs');
     await context.clearCookies();
-    await page.locator('a[href="/ta3allam/dashboard/profile"]').first().click();
-    await expect(page, 'Lost session navigation').toHaveURL(/\/ta3allam\/login$/);
+    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await expect(page, 'Lost session navigation').toHaveURL(/\/login$/);
     verify(true, 'Lost session cannot navigate through a retained dashboard layout');
     await login();
-    await page.locator('a[href="/ta3allam/dashboard/profile"]').first().click();
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard\/profile$/);
+    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await expect(page).toHaveURL(/\/dashboard\/profile$/);
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
-    await expect(page, 'Logout navigation').toHaveURL(/\/ta3allam\/login$/);
+    await expect(page, 'Logout navigation').toHaveURL(/\/login$/);
     await page.waitForLoadState('load');
     await page.goBack();
-    await expect(page, 'Back navigation after logout').toHaveURL(/\/ta3allam\/login$/);
+    await expect(page, 'Back navigation after logout').toHaveURL(/\/login$/);
     verify(true, 'Back after logout cannot restore cached dashboard content');
-    const response = await context.request.get(url + '/ta3allam/dashboard', { maxRedirects: 0 });
+    const response = await context.request.get(url + '/dashboard', { maxRedirects: 0 });
     verify(response.status() === 307 && !(await response.text()).includes('lms-dashboard'), 'Logout removes access before dashboard rendering');
   } finally { await browser.close(); }
 };
@@ -24548,7 +24555,7 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `96c7aed1543d6253fbfe301add504ca5b5f478bd0a1fcdbf270076fa2b9c0f93`
+SHA-256: `352f9148765644813106db419ab83ba589fc8fe4629ff78484a7b3c99f72d291`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -24603,8 +24610,8 @@ async function run() {
   const playback = lesson => `/api/courses/${course.slug}/lessons/${lesson.id}/playback`;
   for (const path of ['/api/profile','/api/progress','/api/enrollments','/api/auth/session',`/api/certificates/${course.slug}`])
     verify((await anonymous(path)).status === 401, `Anonymous denied ${path}`);
-  const protectedPage = await anonymous('/ta3allam/dashboard');
-  verify(protectedPage.headers.get('location')?.includes('/ta3allam/login') || (protectedPage.data.includes('NEXT_REDIRECT') && protectedPage.data.includes('/ta3allam/login')), 'Protected dashboard redirects (including streamed redirects)');
+  const protectedPage = await anonymous('/dashboard');
+  verify(protectedPage.headers.get('location')?.includes('/login') || (protectedPage.data.includes('NEXT_REDIRECT') && protectedPage.data.includes('/login')), 'Protected dashboard redirects (including streamed redirects)');
   verify((await anonymous(playback(privateLesson))).status === 403, 'Private playback denied without enrollment');
   verify((await anonymous(playback(preview))).status === 200, 'Published preview playback is public');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' })).status === 401, 'Wrong password rejected');
@@ -24904,7 +24911,7 @@ test("hero reports media failure and retries", async ({ page }) => {
 
 ### File: `tests/dashboard-access.spec.ts`
 
-SHA-256: `18f49aec18aaf01483458987f488d2949d9be9046dad672b2d01d1d1b57740e1`
+SHA-256: `3e1bf1b46d0af2bccc0f7ddccdd4771add4a3c9220f17718f3ce981f16394abe`
 
 ```typescript
 import { test, expect } from "@playwright/test";
@@ -24913,19 +24920,19 @@ const protectedPages = [routes.dashboard, routes.library, routes.profile, routes
 for (const path of protectedPages) test(`logged-out requests cannot render ${path}`, async ({ request, page }) => {
   const response = await request.get(path, { maxRedirects: 0 });
   expect(response.status()).toBe(307);
-  expect(response.headers().location).toMatch(/\/ta3allam\/login$/);
+  expect(response.headers().location).toMatch(/\/login$/);
   expect(await response.text()).not.toContain("lms-dashboard");
   const rsc = await request.get(path, { maxRedirects: 0, headers: { RSC: "1" } });
   expect(rsc.status()).toBe(307);
   expect(await rsc.text()).not.toContain("lms-dashboard");
   await page.goto(path);
-  await expect(page).toHaveURL(/\/ta3allam\/login$/);
+  await expect(page).toHaveURL(/\/login$/);
   await expect(page.locator(".lms-dashboard-stats")).toHaveCount(0);
 });
 test("forged session and old demo cookies cannot unlock the dashboard", async ({ request }) => {
   const response = await request.get(routes.dashboard, { maxRedirects: 0, headers: { Cookie: "ta3allam-session=forged; ta3allam-learning=forged; sb-tatseklsvfdpuxuepbfo-auth-token=forged" } });
   expect(response.status()).toBe(307);
-  expect(response.headers().location).toMatch(/\/ta3allam\/login$/);
+  expect(response.headers().location).toMatch(/\/login$/);
 });
 ```
 
@@ -25282,7 +25289,7 @@ test("extension-injected body attributes do not warn or prevent hydration", asyn
 
 ### File: `tests/learning-command-contracts.spec.ts`
 
-SHA-256: `5cd4ff659b9e8b78905201a4dfc4cb9e7f8438567219bd8604ddc8ce84053abf`
+SHA-256: `6da1ce81f66e6390faa5046e2ebd15c72a0c5b4c7f462c570eb1e7e7997ef437`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -25340,7 +25347,7 @@ test("R07 completion locks the entire two-request workflow and allows retry afte
     calls.push("progress");
     await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "TRY AGAIN" }) });
   });
-  await page.goto("/ta3allam/learn/first-client/portfolio");
+  await page.goto("/learn/first-client/portfolio");
   const button = page.getByRole("button", { name: "أتممت هذا الدرس", exact: true });
   await button.evaluate((element) => { (element as HTMLButtonElement).click(); (element as HTMLButtonElement).click(); });
   await expect.poll(() => calls).toEqual(["enroll"]);
@@ -25552,7 +25559,7 @@ for (const previousState of ["playing", "paused"] as const)
 
 ### File: `tests/platform/acceptance-motion.spec.ts`
 
-SHA-256: `659f2be5b1716c4b21292e93ce5ed44b4443d814e6f7c9d093c4e85801b0f96e`
+SHA-256: `e080e2dd086034321500cb01a50abd2429afad8caaafe81598bcbe43205a8c54`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -25560,7 +25567,7 @@ import { expect, test } from "@playwright/test";
 test("T24 filtered replacements enter on the retained grid", async ({
   page,
 }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(6);
   // Remove motion cards first: retained occurrences must not replay.
   await page.getByRole("link", { name: "مونتاج الفيديو", exact: true }).click();
@@ -25602,7 +25609,7 @@ test("T27 reduced-motion initial load subscribes to preference changes", async (
     };
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute(
     "data-motion-subscribed",
     "true",
@@ -25632,7 +25639,7 @@ test("T27 reduced-motion initial load subscribes to preference changes", async (
 test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const panel = page.locator(".faq-answer-panel").first();
   await expect(panel).toHaveAttribute("aria-hidden", "true");
   expect(
@@ -25653,7 +25660,7 @@ test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
 test("T30 production reveal timing is milliseconds after CSS optimization", async ({
   page,
 }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const entrance = page.locator(".lms-card-entrance").last();
   await expect
     .poll(() =>
@@ -25711,7 +25718,7 @@ test("T33 renderer escapes learner/issuer XML and receives concrete palette", ()
 
 ### File: `tests/platform/contracts.typecheck.tsx`
 
-SHA-256: `8721643dffe7f6a9a6db21f3ea05491595eb966f34547e708e03623f20b359d4`
+SHA-256: `1190c1d8c672ce857a2c2edeb10de8382fb0074d43e50e600d5ba9189167b469`
 
 ```tsx
 import Action from "@khatab/design/ui/action";
@@ -25721,9 +25728,9 @@ import type {Course} from "../../modules/types/lms";
 /** Compile-only negative contracts; unexpected acceptance fails TypeScript. */
 export function verifyTypeContracts(course:Course){
  // @ts-expect-error a navigation action cannot be an unlabeled empty-state link
- const empty=<EmptyState title="EMPTY" description="BODY" href="/ta3allam/courses"/>;
+ const empty=<EmptyState title="EMPTY" description="BODY" href="/courses"/>;
  // @ts-expect-error a button cannot receive a navigation destination
- const button=<Action kind="button" href="/ta3allam/courses">START</Action>;
+ const button=<Action kind="button" href="/courses">START</Action>;
  // @ts-expect-error icon names are a closed product vocabulary
  const icon=<Symbol name="unknown"/>;
  // @ts-expect-error published artwork kinds are exhaustive
@@ -25734,7 +25741,7 @@ export function verifyTypeContracts(course:Course){
 
 ### File: `tests/platform/defensive-ui.spec.ts`
 
-SHA-256: `dc7031beb558cd20880a9aea9283426595ed7e8141f9408600818802fe7673d6`
+SHA-256: `8108b17794b325041cdc52dc753409aada150b1a226fd23b6b16ed4a92f28783`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -25770,7 +25777,7 @@ test("T22 T32 invalid supplied presentation models fail clearly", () => {
     EmptyState({
       title: "EMPTY",
       description: "DETAIL",
-      href: "/ta3allam/courses",
+      href: "/courses",
       label: " ",
     }),
   ).toThrow("Invalid empty-state action");
@@ -25792,7 +25799,7 @@ test("T22 T32 invalid supplied presentation models fail clearly", () => {
 
 ### File: `tests/platform/domain.spec.ts`
 
-SHA-256: `f6c66b80122dffb8c929bb552f4b0bb14297f45a89f80870ad25df8b8e7f12cf`
+SHA-256: `3d787bc7dcfad7bbad62de84cb2fcf0d6bf20b49fd551a83e6e11ca162809749`
 
 ```typescript
 import { publicCourse } from "../../modules/features/catalog/helpers/public-course";
@@ -25832,7 +25839,7 @@ test("T11 T12 explicit selections and associated resources survive reorder", () 
 });
 test("T13 route builders reject path injection and preserve query values", () => {
   expect(routes.lesson("editing-foundations", "first-cut")).toBe(
-    "/ta3allam/learn/editing-foundations/first-cut",
+    "/learn/editing-foundations/first-cut",
   );
   expect(endpoints.resource("project-checklist")).toBe(
     "/api/resources/project-checklist",
@@ -26537,12 +26544,12 @@ SHA-256: `61c8e6e794b1c332813dc1bfb62ad4e3d77c600386c142b16130c6668070132a`
 
 ### File: `tests/platform/interaction-acceptance.spec.ts`
 
-SHA-256: `9d9d4fd0134e0e0d9e975affd8f1bfebfacaf63eb9cf6f21278c24e62adc8f74`
+SHA-256: `c769fbd5f948d21a2d6d0c9498413c53d063dd65d5344aaf748663bcdf3ade0b`
 
 ```typescript
 import {expect,test} from "@playwright/test";
 for(const width of [320,390,768,1440])test(`T29 FAQ expansion, collapse and rapid keyboard toggles at ${width}`,async({page})=>{
- await page.setViewportSize({width,height:900});await page.goto("/ta3allam");
+ await page.setViewportSize({width,height:900});await page.goto("/");
  const button=page.locator(".faq-question-btn").first(),panel=page.locator(".faq-answer-panel").first();
  await button.scrollIntoViewIfNeeded();await expect(panel).toHaveAttribute("inert","");
  expect(await panel.evaluate(element=>element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
@@ -26561,7 +26568,7 @@ for(const width of [320,390,768,1440])test(`T29 FAQ expansion, collapse and rapi
  await expect.poll(()=>panel.evaluate(element=>element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
 });
 test("T24 retained occurrences do not replay; removal, search and history remain usable",async({page})=>{
- await page.goto("/ta3allam/courses?category=motion");const item=page.locator(".lms-card-entrance").first();
+ await page.goto("/courses?category=motion");const item=page.locator(".lms-card-entrance").first();
  await expect.poll(()=>item.evaluate(element=>element.getAnimations().some(animation=>animation.playState==="running"))).toBe(true);
  await expect.poll(()=>item.evaluate(element=>element.getAnimations().length)).toBe(0);
  const original=await item.elementHandle();
@@ -26589,16 +26596,16 @@ test("T30 actual localhost:3040 entrance, surface timing and live hover interpol
 });
 test("T09 T30 touch has no sticky hover movement",async({browser})=>{
  const context=await browser.newContext({viewport:{width:390,height:900},isMobile:true,hasTouch:true,reducedMotion:"reduce"});const page=await context.newPage();
- await page.goto((process.env.TEST_BASE_URL??"http://localhost:3040")+"/ta3allam/courses");await page.emulateMedia({reducedMotion:"no-preference"});
+ await page.goto((process.env.TEST_BASE_URL??"http://localhost:3040")+"/courses");await page.emulateMedia({reducedMotion:"no-preference"});
  const card=page.locator(".lms-course-card").first();await card.locator(".lms-card-meta").tap();
  expect(await page.evaluate(()=>matchMedia("(hover:hover) and (pointer:fine)").matches)).toBe(false);
  await expect(card).toHaveCSS("transform","none");await context.close();
 });
 test("T07 T31 breakpoint boundaries and keyboard focus",async({page})=>{
- await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/ta3allam");
+ await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
  const toggle=page.locator(".lms-mobile-toggle");
  for(const width of [1023,1024,1025]){await page.setViewportSize({width,height:900});if(width<=1024)await expect(toggle).toBeVisible();else await expect(toggle).toBeHidden();}
- await page.goto("/ta3allam/courses");await page.keyboard.press("Tab");
+ await page.goto("/courses");await page.keyboard.press("Tab");
  expect(await page.evaluate(()=>{const node=document.activeElement!;const css=getComputedStyle(node);return {tag:node.tagName,visible:css.outlineStyle!=="none"&&parseFloat(css.outlineWidth)>0};})).toMatchObject({tag:"A",visible:true});
  const filter=page.getByRole("link",{name:"موشن جرافيك",exact:true});await filter.focus();await page.keyboard.press("Enter");await expect(page.locator(".lms-course-card")).toHaveCount(1);
  const action=page.locator(".lms-card-action");await action.focus();await page.keyboard.press("Enter");await expect(page).toHaveURL(/motion-essentials#course-enrollment/);
@@ -26607,13 +26614,13 @@ test("T07 T31 breakpoint boundaries and keyboard focus",async({page})=>{
 
 ### File: `tests/platform/lms.spec.ts`
 
-SHA-256: `b691e4ff8f7325a873b5786b90c0e83a6c75167f1aba6f58d45d363664ffa7aa`
+SHA-256: `4f729424d5931f6e5419b7669330b3dd22e05c2f51fa99bc26a20d7179ff6abc`
 
 ```typescript
 import { expect, test } from "@playwright/test";
 
 test("approved identity and landing content", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await expect(page.locator("h1")).toContainText("خطوة صغيرة اليوم");
   await expect(page.locator(".lms-course-card")).toHaveCount(3);
   await expect(page.locator(".faq-item")).toHaveCount(5);
@@ -26636,11 +26643,11 @@ test("approved identity and landing content", async ({ page }) => {
 });
 
 test("catalog filters and search", async ({ page }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(6);
   await page.getByRole("link", { name: "موشن جرافيك", exact: true }).click();
   await expect(page.locator(".lms-course-card")).toHaveCount(1);
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await page.getByRole("searchbox").fill("Photoshop");
   await page.getByRole("button", { name: "ابحث", exact: true }).click();
   await expect(page.locator(".lms-course-card")).toHaveCount(1);
@@ -26652,7 +26659,7 @@ test("catalog filters and search", async ({ page }) => {
 });
 
 test("enrollment and progress persist", async ({ page }) => {
-  await page.goto("/ta3allam/courses/motion-essentials");
+  await page.goto("/courses/motion-essentials");
   await page.getByRole("button", { name: "جرّب التسجيل في الدورة" }).click();
   await expect(page).toHaveURL(/learn\/motion-essentials\/motion-workspace/);
   await page.getByRole("button", { name: "أتممت هذا الدرس" }).click();
@@ -26663,7 +26670,7 @@ test("enrollment and progress persist", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "تم إتمام الدرس", exact: true }),
   ).toBeVisible();
-  await page.goto("/ta3allam/dashboard/courses");
+  await page.goto("/dashboard/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(2);
   await expect(
     page.locator(".lms-course-card").filter({ hasText: "After Effects" }),
@@ -26674,7 +26681,7 @@ test("deferred video and saved lesson notes", async ({ page }) => {
   await page.route("https://www.youtube-nocookie.com/**", (route) =>
     route.fulfill({ contentType: "text/html", body: "<title>Preview</title>" }),
   );
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   await expect(page.locator("iframe")).toHaveCount(0);
   await page
     .getByLabel("ملاحظاتك", { exact: true })
@@ -26691,7 +26698,7 @@ test("deferred video and saved lesson notes", async ({ page }) => {
 });
 
 test("demo entry and profile updates", async ({ page }) => {
-  await page.goto("/ta3allam/signup");
+  await page.goto("/signup");
   await page.getByLabel("اسمك", { exact: true }).fill("طالب التجربة");
   await page
     .getByLabel("البريد الإلكتروني", { exact: true })
@@ -26701,7 +26708,7 @@ test("demo entry and profile updates", async ({ page }) => {
   await page.getByRole("button", { name: "إنشاء حساب تجريبي" }).click();
   await expect(page).toHaveURL(/dashboard$/);
   await expect(page.locator(".lms-page-heading")).toContainText("طالب التجربة");
-  await page.goto("/ta3allam/dashboard/profile");
+  await page.goto("/dashboard/profile");
   await expect(page.getByLabel("اسمك", { exact: true })).toHaveValue(
     "طالب التجربة",
   );
@@ -26789,16 +26796,16 @@ for (const width of [320, 768, 1440])
         errors.push(message.text());
     });
     for (const route of [
-      "/ta3allam",
-      "/ta3allam/courses",
-      "/ta3allam/courses/editing-foundations",
-      "/ta3allam/dashboard",
-      "/ta3allam/dashboard/courses",
-      "/ta3allam/dashboard/resources",
-      "/ta3allam/dashboard/certificates",
-      "/ta3allam/dashboard/profile",
-      "/ta3allam/learn/editing-foundations/first-cut",
-      "/ta3allam/login",
+      "/",
+      "/courses",
+      "/courses/editing-foundations",
+      "/dashboard",
+      "/dashboard/courses",
+      "/dashboard/resources",
+      "/dashboard/certificates",
+      "/dashboard/profile",
+      "/learn/editing-foundations/first-cut",
+      "/login",
     ]) {
       await page.goto(route);
       await expect(page.locator("h1")).toBeVisible();
@@ -26812,14 +26819,14 @@ for (const width of [320, 768, 1440])
 
 test("mobile navigation and FAQ", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await page.getByRole("button", { name: "فتح قائمة التنقل" }).click();
   await page
     .locator(".lms-marketing-links")
     .getByRole("link", { name: "الدورات", exact: true })
     .click();
   await expect(page).toHaveURL(/courses$/);
-  await page.goto("/ta3allam/dashboard");
+  await page.goto("/dashboard");
   await page.getByRole("button", { name: "فتح قائمة التنقل" }).click();
   await page
     .locator(".lms-sidebar nav")
@@ -26831,7 +26838,7 @@ test("mobile navigation and FAQ", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(toggle).toBeFocused();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const question = page.locator(".faq-question-btn").first();
   await question.click();
   await expect(question).toHaveAttribute("aria-expanded", "true");
@@ -26840,11 +26847,11 @@ test("mobile navigation and FAQ", async ({ page }) => {
 });
 
 test("invalid routes show 404", async ({ page }) => {
-  const response = await page.goto("/ta3allam/courses/missing");
+  const response = await page.goto("/courses/missing");
   // This dynamic layout streams before notFound; Next returns 200 + fallback/noindex.
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading")).toContainText("الصفحة مش موجودة");
-  const lessonResponse = await page.goto("/ta3allam/learn/editing-foundations/missing");
+  const lessonResponse = await page.goto("/learn/editing-foundations/missing");
   expect(lessonResponse?.status()).toBe(200);
   await expect(page.getByRole("heading")).toContainText("الصفحة مش موجودة");
   await expect(
@@ -26857,7 +26864,7 @@ test("course cards prioritize mock price and registration", async ({
 }) => {
   // This case checks static hierarchy; live motion/hover ownership has its own cases.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const card = page.locator(".lms-course-card").first();
   await expect(card.locator(".lms-course-price strong")).toContainText("499");
   await expect(
@@ -26882,11 +26889,11 @@ test("course cards prioritize mock price and registration", async ({
   expect(priceBox!.x + priceBox!.width).toBeLessThanOrEqual(metaBox!.x);
   await expect(card.locator("h3 a")).toHaveAttribute(
     "href",
-    "/ta3allam/courses/editing-foundations",
+    "/courses/editing-foundations",
   );
   await expect(card.locator(".lms-card-cover")).toHaveAttribute(
     "href",
-    "/ta3allam/courses/editing-foundations",
+    "/courses/editing-foundations",
   );
   await action.click();
   await expect(page).toHaveURL(/editing-foundations#course-enrollment/);
@@ -26949,7 +26956,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
           contrast: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
         };
       });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const action = page.locator(".lms-card-action").first();
   for (const hover of [false, true]) {
     if (hover) await action.hover();
@@ -26969,7 +26976,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
   expect(
     (await readability(".lms-search button")).contrast,
   ).toBeGreaterThanOrEqual(4.5);
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   const status = await readability(".lms-outline-module a small");
   expect(status.size).toBeGreaterThanOrEqual(14);
   expect(status.contrast).toBeGreaterThanOrEqual(4.5);
@@ -26982,7 +26989,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
   expect(
     (await readability(".lms-notes textarea")).size,
   ).toBeGreaterThanOrEqual(16);
-  await page.goto("/ta3allam/dashboard/profile");
+  await page.goto("/dashboard/profile");
   expect(
     (await readability(".lms-profile-form input")).size,
   ).toBeGreaterThanOrEqual(16);
@@ -26991,7 +26998,7 @@ test("readable action labels, metadata and lesson status on mobile", async ({
 test("FAQ transitions finish and reduced motion exposes reveal content", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const question = page.locator(".faq-question-btn").first();
   const panel = page.locator(".faq-answer-panel").first();
   await question.scrollIntoViewIfNeeded();
@@ -27038,7 +27045,7 @@ test("landing hero visibly enters on load and respects reduced motion", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const heading = page.locator(".hero-headline");
   await expect
     .poll(() =>
@@ -27076,7 +27083,7 @@ test("course entrances and hover movement are visible and independent", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 720 });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const entrance = page.locator(".lms-card-entrance").last();
   await expect
     .poll(() =>
@@ -27137,7 +27144,7 @@ test("course entrances and hover movement are visible and independent", async ({
 
 ### File: `tests/platform/marketing-media.spec.ts`
 
-SHA-256: `ac1b88dd8a13b12d8539b55fd5b8e169d949267adc6d6a418140e76a5483a8cc`
+SHA-256: `86aae180f5583375d4ffe19abada521d02a0e31c0efeabf9a052504fa9de3916`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -27147,7 +27154,7 @@ test("supplied intro and four curated samples use the shared deferred player and
   const requests: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (request.url().endsWith(".mp4")) requests.push(request.url()); });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const reels = page.locator(".reel-card");
   await expect(reels).toHaveCount(4);
   await expect(reels.locator(".client-work-title, .client-work-sub, .reel-info")).toHaveCount(0);
@@ -27181,7 +27188,7 @@ test("supplied intro and four curated samples use the shared deferred player and
 });
 
 test("manual fullscreen preserves portrait framing and completion restores the thumbnail", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const reel = page.locator(".reel-card").first();
   await reel.locator(".media-player-poster").click();
   const video = reel.locator("video");
@@ -27200,7 +27207,7 @@ test("manual fullscreen preserves portrait framing and completion restores the t
 });
 
 test("featured testimonial plus three reviews expands through the primary show-more action", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const section = page.locator("#testimonials");
   await expect(section.locator(".featured-review-card")).toHaveCount(1);
   await expect(section.locator(".review-card")).toHaveCount(3);
@@ -27216,7 +27223,7 @@ test("featured testimonial plus three reviews expands through the primary show-m
 for (const width of [320, 390, 1440]) {
   test(`shared media stays responsive and the supplied assets exist at ${width}px`, async ({ page, request }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/ta3allam");
+    await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const heroRatio = await page.locator(".hero-video-shell").evaluate(node => { const rect = node.getBoundingClientRect(); return rect.width / rect.height; });
     expect(heroRatio).toBeCloseTo(16 / 9, 2);
@@ -27241,7 +27248,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/portfolio.spec.ts`
 
-SHA-256: `7dbc99d45d47858f11fbb28ebc2197913f9d5f4f5d34280abd84da8b00176a0c`
+SHA-256: `d1b2f23c647b4393ab378f5423b0b19b30e7bc60002a045fa18cc1e94cab90cf`
 
 ```typescript
 import { readFileSync } from "node:fs";
@@ -27253,7 +27260,7 @@ test("portfolio preserves reference sections, copy, links and real media", async
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page).toHaveTitle(/محمد خطاب/);
   await expect(page.locator("main > section")).toHaveCount(7);
   for (const content of [
@@ -27290,7 +27297,7 @@ for (const width of [320, 390, 768, 1440])
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/#courses");
+    await page.goto("/founder#courses");
     await expect(page.locator("#courses")).toBeInViewport();
     expect(
       await page.evaluate(
@@ -27333,7 +27340,7 @@ test("portfolio player remains inline and resets the prior sample", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/#portfolio");
+  await page.goto("/founder#portfolio");
   const cards = page.locator(".personal-work-card");
   await cards.nth(0).getByRole("button", { name: /تشغيل/ }).click();
   await expect(cards.nth(0).locator("video")).toBeVisible();
@@ -27349,7 +27356,7 @@ test("portfolio shares smooth hover and progressing timeline with reduced motion
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page.locator(".personal-work-card").first()).toHaveCSS(
     "transition-duration",
     "0.5s",
@@ -27380,7 +27387,7 @@ test("original section copy is preserved apart from authorized reel and upcoming
     "docs/evidence/portfolio-reference/source.html",
     "utf8",
   );
-  await page.goto("/");
+  await page.goto("/founder");
   const differences = await page.evaluate((html) => {
     const reference = new DOMParser().parseFromString(html, "text/html");
     // HTML formatting inserts whitespace between blocks; React does not.
@@ -27431,7 +27438,7 @@ test("navigation clears the previous section highlight when returning to the ori
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/#courses");
+  await page.goto("/founder#courses");
   await expect(
     page.locator("[id^=personal-navigation-] a[href='#courses']"),
   ).toHaveAttribute("aria-current", "location");
@@ -27445,7 +27452,7 @@ test("navigation clears the previous section highlight when returning to the ori
 });
 
 test("reels have no visible captions and the upcoming course uses shared artwork", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page.locator(".p-ref-reel-title, .p-ref-reel-stats, .personal-work-caption")).toHaveCount(0);
   await expect(page.locator(".personal-work-card .media-player-poster")).toHaveCount(4);
   const upcoming = page.locator(".personal-course-upcoming");
@@ -27460,7 +27467,7 @@ test("reels have no visible captions and the upcoming course uses shared artwork
 
 ### File: `tests/platform/production-contracts.spec.ts`
 
-SHA-256: `a3481a077758699d1e2d891a47dae144b1bd94e0ed9265283c9444a33d8b1300`
+SHA-256: `5fd727b0021f504b7c6c418525c02db7e7dacc4cff6f9daa4617095f1821ed41`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -27482,7 +27489,7 @@ test("T05 T21 T33 T37 server-only export assets and standalone artifact identity
     "utf8",
   ).trim();
   expect(stagedId).toBe(sourceId);
-  const html = await (await request.get("/ta3allam")).text();
+  const html = await (await request.get("/")).text();
   expect(html).toContain(stagedId);
   expect(html).toContain('as="font"');
   expect(html).toContain("/assets/fonts/ibm-plex-arabic-700.ttf");
@@ -27492,7 +27499,7 @@ test("T05 T21 T33 T37 server-only export assets and standalone artifact identity
   ).toEqual(portrait);
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const image = page.locator(".instructor-photo-img");
   await image.scrollIntoViewIfNeeded();
   await expect
@@ -27778,7 +27785,7 @@ test("T25 standalone section markers remain effective with alternate identifiers
 
 ### File: `tests/platform/theme-contract.spec.ts`
 
-SHA-256: `556c9e9eedfbaafb2dcb2ec43d74f0fd315aa98210f5d58fbc9dce5edb1f20b6`
+SHA-256: `33f72b9726baeffa38a82220d492f68c539b2a77253097b0b289593eab6e05c3`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -27786,7 +27793,7 @@ import { expect, test } from "@playwright/test";
 test("T06 radius does not control spacing or footer measure", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const measure = () =>
     page
@@ -27831,7 +27838,7 @@ test("T06 radius does not control spacing or footer measure", async ({
 test("T08 palette follows primary without changing production identity", async ({
   page,
 }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const tokens = () =>
     page.evaluate(() => {
       const sample = document.createElement("div");
@@ -27914,7 +27921,7 @@ test("Escape exits fullscreen; finishing restores poster and exits fullscreen", 
 
 ### File: `tests/player-provider-parity.spec.ts`
 
-SHA-256: `92a3258dd2d92c69e1050c3ca44e120977ef1ed2bee3618aa0bcf47016ae6518`
+SHA-256: `40df733a12013b2a954f95ebf9ca1b03edc874a199c5e7b5846b9f51f69b1c4f`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -27960,7 +27967,7 @@ test("R02 YouTube honors overlay and both end policies and releases exclusive se
 test("R01 learner uses custom controls, resets on viewport exit and on completion", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 500 });
   await installSdk(page);
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   const poster = page.getByRole("button", { name: /تشغيل أول كات/ });
   await poster.click();
   const player = page.locator(".lms-lesson-player .custom-video-player");
@@ -29115,103 +29122,99 @@ test("fullscreen action is hidden until hover or keyboard focus; play remains in
 
 ### File: `tests/unified-project.spec.ts`
 
-SHA-256: `56315a06394e32bc1f067715c3af4c88949e771759e71318991570f4af939819`
+SHA-256: `334e7d4845fd094d8173f9341528be83bb9a8c0a95f70f7ced1d4d4c41fc1f00`
 
 ```typescript
 import { expect, test } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { courses } from "../modules/data/courses";
 import { projectRoutes } from "../config/project-navigation";
+import { routes } from "../modules/config/navigation";
 
-test("one Next.js router owns all pages and the previous URLs redirect", async ({ page, request }) => {
-  expect(existsSync("lms")).toBe(false);
-  for (const file of ["modules/package.json", "modules/package-lock.json", "modules/node_modules", "modules/.next", "modules/tsconfig.json", "modules/public"]) expect(existsSync(file), file).toBe(false);
-  expect(existsSync("modules/app")).toBe(false);
-  expect(existsSync("modules/next.config.ts")).toBe(false);
+test("one Next.js router serves the new platform, founder and workshop URLs", async ({ page, request }) => {
+  for (const file of ["lms", "modules/package.json", "modules/node_modules", "modules/.next", "modules/app", "modules/next.config.ts", "app/users"]) expect(existsSync(file), file).toBe(false);
   const build = readFileSync(".next/BUILD_ID", "utf8").trim();
   for (const path of Object.values(projectRoutes)) {
-    const response = await request.get(path);
+    const response = await request.get(path, { maxRedirects: 0 });
     expect(response.status()).toBe(200);
-    const html = await response.text();
-    expect(html).toContain(build);
-    expect(html).toContain('dir="rtl"');
+    expect(await response.text()).toContain(build);
   }
+  await page.goto("/");
+  await expect(page.locator(".lms-course-card")).toHaveCount(3);
+  await expect(page.locator(".personal-site")).toHaveCount(0);
   await page.goto("/portfolio");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/founder$/);
   await expect(page.locator("h1")).toHaveText("محمد خطاب");
   await page.goto("/workshop");
-  await expect(page).toHaveURL(/\/7days-freelance$/);
+  await expect(page).toHaveURL(new RegExp(projectRoutes.workshop + "$"));
 });
-
-for (const width of [390, 1440]) {
-  test(`all three pages are connected on the same origin at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto(projectRoutes.portfolio);
-    const origin = new URL(page.url()).origin;
-    await expect(page.locator(".personal-site")).toBeVisible();
-    await page.locator("[data-project-navigation] a[href='/ta3allam']").click();
-    await expect(page).toHaveURL(`${origin}${projectRoutes.learning}`);
-    await expect(page.locator(".lms-course-card")).toHaveCount(3);
-    await page.locator("[data-project-navigation] a[href='/ta3allam/7days-freelance']").click();
-    await expect(page).toHaveURL(`${origin}${projectRoutes.workshop}`);
-    await expect(page.getByText("ينتهي الخصم خلال :", { exact: true })).toBeVisible();
-    await expect(page.locator(".reel-card")).toHaveCount(4);
-    await page.locator("[data-project-navigation] a[href='/']").click();
-    await expect(page).toHaveURL(`${origin}/`);
-    await expect(page.locator(".personal-site")).toBeVisible();
-    expect(errors).toEqual([]);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await expect(page.locator(".personal-course:not(.personal-course-upcoming)")).toHaveAttribute("href", projectRoutes.workshop);
-    await expect(page.locator(".personal-course:not(.personal-course-upcoming)")).not.toHaveAttribute("target", "_blank");
-  });
-}
-
-test("LMS endpoints and player assets share the page origin", async ({ request }) => {
-  const response = await request.get("/api/courses");
-  expect(response.status()).toBe(200);
-  expect((await response.json()).courses).toHaveLength(courses.length);
-  expect((await request.get("/assets/images/personal/portrait.png")).status()).toBe(200);
-  const media = await request.get("/assets/video/portfolio/work-01.mp4", { headers: { Range: "bytes=0-1023" } });
-  expect(media.status()).toBe(206);
-  expect((await media.body()).length).toBe(1024);
+for (const width of [390, 1440]) test(`platform, founder and workshop links connect at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto(projectRoutes.portfolio);
+  const origin = new URL(page.url()).origin;
+  await page.locator(`[data-project-navigation] a[href='${projectRoutes.learning}']`).click();
+  await expect(page).toHaveURL(`${origin}/`);
+  await expect(page.locator(".lms-course-card")).toHaveCount(3);
+  await page.locator(`[data-project-navigation] a[href='${projectRoutes.workshop}']`).click();
+  await expect(page).toHaveURL(`${origin}${projectRoutes.workshop}`);
+  await expect(page.getByText("ينتهي الخصم خلال :", { exact: true })).toBeVisible();
+  await expect(page.locator(".reel-card")).toHaveCount(4);
+  await page.locator(`[data-project-navigation] a[href='${projectRoutes.portfolio}']`).click();
+  await expect(page).toHaveURL(`${origin}${projectRoutes.portfolio}`);
+  await expect(page.locator(".personal-site")).toBeVisible();
+  await expect(page.locator(".personal-course:not(.personal-course-upcoming)")).toHaveAttribute("href", projectRoutes.workshop);
+  expect(errors).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
-
-test("Ta3allam owns its catalog, account and learning routes; legacy redirects retain queries", async ({ page, request }) => {
+test("legacy namespaces redirect once and preserve queries and anchors", async ({ page, request }) => {
   for (const [before, after] of [
-    ["/ta3llam", "/ta3allam"],
-    ["/ta3llam/courses?category=motion", "/ta3allam/courses?category=motion"],
-    ["/courses?category=motion&q=After", "/ta3allam/courses?category=motion&q=After"],
-    ["/courses/motion-essentials", "/ta3allam/courses/motion-essentials"],
-    ["/dashboard/profile", "/ta3allam/dashboard/profile"],
-    ["/login", "/ta3allam/login"],
-    ["/learn/editing-foundations/first-cut", "/ta3allam/learn/editing-foundations/first-cut"],
+    ["/ta3allam", "/"], ["/ta3llam", "/"],
+    ["/ta3llam/courses?category=motion", "/courses?category=motion"],
+    ["/ta3allam/courses?category=motion&q=After", "/courses?category=motion&q=After"],
+    ["/ta3allam/courses/motion-essentials", "/courses/motion-essentials"],
+    ["/ta3allam/dashboard/profile", "/dashboard/profile"],
+    ["/ta3allam/login", "/login"],
+    ["/ta3allam/learn/editing-foundations/first-cut", "/learn/editing-foundations/first-cut"],
+    ["/ta3allam/7days-freelance?source=old", `${projectRoutes.workshop}?source=old`],
+    ["/ta3llam/courses/7days-freelance", projectRoutes.workshop],
+    ["/courses/7days-freelance", projectRoutes.workshop],
   ]) {
     const response = await request.get(before, { maxRedirects: 0 });
-    expect(response.status()).toBe(307);
-    const location = new URL(response.headers().location, response.url());
-    const expected = new URL(after, response.url());
-    expect(location.pathname).toBe(expected.pathname);
-    expect([...location.searchParams.entries()].sort()).toEqual([...expected.searchParams.entries()].sort());
+    expect(response.status()).toBe(308);
+    expect(new URL(response.headers().location, response.url()).href).toBe(new URL(after, response.url()).href);
   }
-  await page.goto("/ta3allam");
-  const course = page.locator(".lms-course-card").first();
-  await expect(course.locator("a").first()).toHaveAttribute("href", /^\/ta3allam\/courses\//);
-  await page.getByRole("link", { name: "الدورات", exact: true }).first().click();
-  await expect(page).toHaveURL(/\/ta3allam\/courses$/);
+  await page.goto("/ta3allam#how-it-works");
+  await expect(page).toHaveURL(/\/#how-it-works$/);
+  await page.goto(routes.courses);
   await expect(page.locator(".lms-course-card")).toHaveCount(courses.length);
-  const links = await page.locator("a[href]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")));
-  expect(links.some((href) => /^\/(courses|dashboard|learn|login)(?:\/|$|[?#])/.test(href ?? ""))).toBe(false);
-  await page.getByRole("link", { name: "كيف تتعلّم؟", exact: true }).first().click();
-  await expect(page).toHaveURL(/\/ta3allam#how-it-works$/);
+  const links = await page.locator("a[href]").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  expect(links.some(href => /^\/ta3a?llam(?:\/|$|[?#])/.test(href ?? ""))).toBe(false);
+});
+test("course pages are root routes, workshop type is enforced and user profiles are absent", async ({ request }) => {
+  expect((await request.get(routes.course("editing-foundations"), { maxRedirects: 0 })).status()).toBe(200);
+  expect((await request.get("/users/student")).status()).toBe(404);
+  for (const path of ["/workshops/editing-foundations", "/workshops/missing", "/courses/missing"]) {
+    const response = await request.get(path);
+    const html = await response.text();
+    // Next.js streams notFound() with HTTP 200 after headers have been sent.
+    expect([200, 404]).toContain(response.status());
+    expect(html).toContain("NEXT_HTTP_ERROR_FALLBACK;404");
+    expect(html).toContain('name="robots" content="noindex"');
+    expect(html).not.toContain('class="hero-section');
+    expect(html).not.toContain('class="lms-course-detail');
+  }
+  expect((await request.get("/api/courses")).status()).toBe(200);
+  const media = await request.get("/assets/video/portfolio/work-01.mp4", { headers: { Range: "bytes=0-1023" } });
+  expect(media.status()).toBe(206);
 });
 ```
 
 ### File: `tests/workshop-course.spec.ts`
 
-SHA-256: `3344979e0933cc9c930988364aa059f0e96d1f92e2bfecae218eb10a7ccc2cd2`
+SHA-256: `1e6d17d8c8ea1542b0b3f16591baabb59917b1578e40c05d8153cbdc503f36a1`
 
 ```typescript
 import { test, expect } from "@playwright/test";
@@ -29225,7 +29228,7 @@ test("workshop is a live database course with the approved landing and working c
   const response = await request.get(`/api/courses/${workshopCourseConfig.slug}`);
   const course = await response.json();
   expect(course).toMatchObject({ slug: workshopCourseConfig.slug, delivery: "live", duration: "7 أيام", modules: [] });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(courses.length);
   const card = page.locator(".lms-course-card").filter({ hasText: course.title });
   await expect(card).toContainText("Live + مسجل");

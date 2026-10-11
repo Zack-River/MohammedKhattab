@@ -5,7 +5,7 @@ test("supplied intro and four curated samples use the shared deferred player and
   const requests: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (request.url().endsWith(".mp4")) requests.push(request.url()); });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const reels = page.locator(".reel-card");
   await expect(reels).toHaveCount(4);
   await expect(reels.locator(".client-work-title, .client-work-sub, .reel-info")).toHaveCount(0);
@@ -39,7 +39,7 @@ test("supplied intro and four curated samples use the shared deferred player and
 });
 
 test("manual fullscreen preserves portrait framing and completion restores the thumbnail", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const reel = page.locator(".reel-card").first();
   await reel.locator(".media-player-poster").click();
   const video = reel.locator("video");
@@ -58,7 +58,7 @@ test("manual fullscreen preserves portrait framing and completion restores the t
 });
 
 test("featured testimonial plus three reviews expands through the primary show-more action", async ({ page }) => {
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const section = page.locator("#testimonials");
   await expect(section.locator(".featured-review-card")).toHaveCount(1);
   await expect(section.locator(".review-card")).toHaveCount(3);
@@ -74,7 +74,7 @@ test("featured testimonial plus three reviews expands through the primary show-m
 for (const width of [320, 390, 1440]) {
   test(`shared media stays responsive and the supplied assets exist at ${width}px`, async ({ page, request }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/ta3allam");
+    await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     const heroRatio = await page.locator(".hero-video-shell").evaluate(node => { const rect = node.getBoundingClientRect(); return rect.width / rect.height; });
     expect(heroRatio).toBeCloseTo(16 / 9, 2);

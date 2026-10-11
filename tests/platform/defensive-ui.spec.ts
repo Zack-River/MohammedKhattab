@@ -31,7 +31,7 @@ test("T22 T32 invalid supplied presentation models fail clearly", () => {
     EmptyState({
       title: "EMPTY",
       description: "DETAIL",
-      href: "/ta3allam/courses",
+      href: "/courses",
       label: " ",
     }),
   ).toThrow("Invalid empty-state action");

@@ -1,8 +1,8 @@
 import { workshopCourseConfig } from "./workshop-course";
 export const projectRoutes = {
-  portfolio: "/",
-  learning: "/ta3allam",
-  workshop: `/ta3allam/${workshopCourseConfig.slug}`,
+  portfolio: "/founder",
+  learning: "/",
+  workshop: `/workshops/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",
@@ -13,5 +13,5 @@ export const projectNavigation = {
   ],
 };
 
-/** Former top-level learning routes retained as redirects. */
-export const legacyLearningSections = ["courses", "dashboard", "learn", "login"] as const;
+/** Former platform namespaces retained as compatibility redirects. */
+export const legacyLearningNamespaces = ["ta3allam", "ta3llam"] as const;

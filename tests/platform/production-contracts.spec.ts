@@ -17,7 +17,7 @@ test("T05 T21 T33 T37 server-only export assets and standalone artifact identity
     "utf8",
   ).trim();
   expect(stagedId).toBe(sourceId);
-  const html = await (await request.get("/ta3allam")).text();
+  const html = await (await request.get("/")).text();
   expect(html).toContain(stagedId);
   expect(html).toContain('as="font"');
   expect(html).toContain("/assets/fonts/ibm-plex-arabic-700.ttf");
@@ -27,7 +27,7 @@ test("T05 T21 T33 T37 server-only export assets and standalone artifact identity
   ).toEqual(portrait);
   await page.setViewportSize({ width: 320, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const image = page.locator(".instructor-photo-img");
   await image.scrollIntoViewIfNeeded();
   await expect

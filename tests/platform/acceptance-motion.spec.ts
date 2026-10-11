@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("T24 filtered replacements enter on the retained grid", async ({
   page,
 }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(6);
   // Remove motion cards first: retained occurrences must not replay.
   await page.getByRole("link", { name: "مونتاج الفيديو", exact: true }).click();
@@ -45,7 +45,7 @@ test("T27 reduced-motion initial load subscribes to preference changes", async (
     };
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute(
     "data-motion-subscribed",
     "true",
@@ -75,7 +75,7 @@ test("T27 reduced-motion initial load subscribes to preference changes", async (
 test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/ta3allam");
+  await page.goto("/");
   const panel = page.locator(".faq-answer-panel").first();
   await expect(panel).toHaveAttribute("aria-hidden", "true");
   expect(
@@ -96,7 +96,7 @@ test("T29 mobile FAQ panel has zero closed height", async ({ page }) => {
 test("T30 production reveal timing is milliseconds after CSS optimization", async ({
   page,
 }) => {
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   const entrance = page.locator(".lms-card-entrance").last();
   await expect
     .poll(() =>

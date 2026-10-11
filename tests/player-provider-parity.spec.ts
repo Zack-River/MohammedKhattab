@@ -41,7 +41,7 @@ test("R02 YouTube honors overlay and both end policies and releases exclusive se
 test("R01 learner uses custom controls, resets on viewport exit and on completion", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 500 });
   await installSdk(page);
-  await page.goto("/ta3allam/learn/editing-foundations/first-cut");
+  await page.goto("/learn/editing-foundations/first-cut");
   const poster = page.getByRole("button", { name: /تشغيل أول كات/ });
   await poster.click();
   const player = page.locator(".lms-lesson-player .custom-video-player");

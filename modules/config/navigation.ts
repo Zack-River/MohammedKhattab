@@ -1,6 +1,7 @@
 import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
+const learningBase = projectRoutes.learning === "/" ? "" : projectRoutes.learning;
 const segment = (value: string) => {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
     throw new Error(`Invalid route segment: ${value}`);
@@ -18,21 +19,22 @@ export const routes = {
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
-  courses: `${projectRoutes.learning}/courses`,
-  dashboard: `${projectRoutes.learning}/dashboard`,
-  login: `${projectRoutes.learning}/login`,
-  signup: `${projectRoutes.learning}/signup`,
-  library: `${projectRoutes.learning}/dashboard/courses`,
-  resources: `${projectRoutes.learning}/dashboard/resources`,
-  certificates: `${projectRoutes.learning}/dashboard/certificates`,
-  profile: `${projectRoutes.learning}/dashboard/profile`,
-  admin: `${projectRoutes.learning}/dashboard/admin/courses`,
+  courses: `${learningBase}/courses`,
+  dashboard: `${learningBase}/dashboard`,
+  login: `${learningBase}/login`,
+  signup: `${learningBase}/signup`,
+  library: `${learningBase}/dashboard/courses`,
+  resources: `${learningBase}/dashboard/resources`,
+  certificates: `${learningBase}/dashboard/certificates`,
+  profile: `${learningBase}/dashboard/profile`,
+  admin: `${learningBase}/dashboard/admin/courses`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
-  course: (slug: string) => slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${projectRoutes.learning}/courses/${segment(slug)}`,
+  workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
+  course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
   lesson: (slug: string, id: string) =>
-    `${projectRoutes.learning}/learn/${segment(slug)}/${segment(id)}`,
-  enrollment: (slug: string) =>
-    slug === workshopCourseConfig.slug ? projectRoutes.workshop : `${routes.course(slug)}#${sectionIds.enrollment}`,
+    `${learningBase}/learn/${segment(slug)}/${segment(id)}`,
+  enrollment: (slug: string, delivery?: "recorded" | "live") =>
+    delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${routes.course(slug)}#${sectionIds.enrollment}`,
   section: (id: keyof typeof sectionIds) => `${projectRoutes.learning}#${sectionIds[id]}`,
   catalog: (query = "", category = "all") => {
     const params = new URLSearchParams();

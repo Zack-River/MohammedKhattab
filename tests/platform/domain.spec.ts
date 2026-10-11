@@ -35,7 +35,7 @@ test("T11 T12 explicit selections and associated resources survive reorder", () 
 });
 test("T13 route builders reject path injection and preserve query values", () => {
   expect(routes.lesson("editing-foundations", "first-cut")).toBe(
-    "/ta3allam/learn/editing-foundations/first-cut",
+    "/learn/editing-foundations/first-cut",
   );
   expect(endpoints.resource("project-checklist")).toBe(
     "/api/resources/project-checklist",

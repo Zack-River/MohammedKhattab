@@ -1,6 +1,6 @@
 import {expect,test} from "@playwright/test";
 for(const width of [320,390,768,1440])test(`T29 FAQ expansion, collapse and rapid keyboard toggles at ${width}`,async({page})=>{
- await page.setViewportSize({width,height:900});await page.goto("/ta3allam");
+ await page.setViewportSize({width,height:900});await page.goto("/");
  const button=page.locator(".faq-question-btn").first(),panel=page.locator(".faq-answer-panel").first();
  await button.scrollIntoViewIfNeeded();await expect(panel).toHaveAttribute("inert","");
  expect(await panel.evaluate(element=>element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
@@ -19,7 +19,7 @@ for(const width of [320,390,768,1440])test(`T29 FAQ expansion, collapse and rapi
  await expect.poll(()=>panel.evaluate(element=>element.getBoundingClientRect().height)).toBeLessThanOrEqual(1);
 });
 test("T24 retained occurrences do not replay; removal, search and history remain usable",async({page})=>{
- await page.goto("/ta3allam/courses?category=motion");const item=page.locator(".lms-card-entrance").first();
+ await page.goto("/courses?category=motion");const item=page.locator(".lms-card-entrance").first();
  await expect.poll(()=>item.evaluate(element=>element.getAnimations().some(animation=>animation.playState==="running"))).toBe(true);
  await expect.poll(()=>item.evaluate(element=>element.getAnimations().length)).toBe(0);
  const original=await item.elementHandle();
@@ -47,16 +47,16 @@ test("T30 actual localhost:3040 entrance, surface timing and live hover interpol
 });
 test("T09 T30 touch has no sticky hover movement",async({browser})=>{
  const context=await browser.newContext({viewport:{width:390,height:900},isMobile:true,hasTouch:true,reducedMotion:"reduce"});const page=await context.newPage();
- await page.goto((process.env.TEST_BASE_URL??"http://localhost:3040")+"/ta3allam/courses");await page.emulateMedia({reducedMotion:"no-preference"});
+ await page.goto((process.env.TEST_BASE_URL??"http://localhost:3040")+"/courses");await page.emulateMedia({reducedMotion:"no-preference"});
  const card=page.locator(".lms-course-card").first();await card.locator(".lms-card-meta").tap();
  expect(await page.evaluate(()=>matchMedia("(hover:hover) and (pointer:fine)").matches)).toBe(false);
  await expect(card).toHaveCSS("transform","none");await context.close();
 });
 test("T07 T31 breakpoint boundaries and keyboard focus",async({page})=>{
- await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/ta3allam");
+ await page.emulateMedia({reducedMotion:"reduce"});await page.goto("/");
  const toggle=page.locator(".lms-mobile-toggle");
  for(const width of [1023,1024,1025]){await page.setViewportSize({width,height:900});if(width<=1024)await expect(toggle).toBeVisible();else await expect(toggle).toBeHidden();}
- await page.goto("/ta3allam/courses");await page.keyboard.press("Tab");
+ await page.goto("/courses");await page.keyboard.press("Tab");
  expect(await page.evaluate(()=>{const node=document.activeElement!;const css=getComputedStyle(node);return {tag:node.tagName,visible:css.outlineStyle!=="none"&&parseFloat(css.outlineWidth)>0};})).toMatchObject({tag:"A",visible:true});
  const filter=page.getByRole("link",{name:"موشن جرافيك",exact:true});await filter.focus();await page.keyboard.press("Enter");await expect(page.locator(".lms-course-card")).toHaveCount(1);
  const action=page.locator(".lms-card-action");await action.focus();await page.keyboard.press("Enter");await expect(page).toHaveURL(/motion-essentials#course-enrollment/);

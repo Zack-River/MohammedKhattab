@@ -9,7 +9,7 @@ test("workshop is a live database course with the approved landing and working c
   const response = await request.get(`/api/courses/${workshopCourseConfig.slug}`);
   const course = await response.json();
   expect(course).toMatchObject({ slug: workshopCourseConfig.slug, delivery: "live", duration: "7 أيام", modules: [] });
-  await page.goto("/ta3allam/courses");
+  await page.goto("/courses");
   await expect(page.locator(".lms-course-card")).toHaveCount(courses.length);
   const card = page.locator(".lms-course-card").filter({ hasText: course.title });
   await expect(card).toContainText("Live + مسجل");

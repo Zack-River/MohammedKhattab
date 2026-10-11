@@ -2,6 +2,14 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — Ta3allam root routes
+
+- User moved Ta3allam to `/`, recorded courses to `/courses/[slug]`, workshops to `/workshops/[slug]`, and Mohammed's portfolio to `/founder`. The subsequent public user-profile request was explicitly cancelled; no `/users` pages, profile schema or migration were added.
+- Moved route files into the root App Router and retained existing feature components, copy, styles and media. Public catalog/auth pages keep their shared route-group layout; landing, founder and workshop keep their own approved compositions. Private dashboard and lesson routes are `/dashboard/*` and `/learn/*`; account entry is `/login` and `/signup`.
+- Central route builders now produce the new URLs; live course links select workshop routes. Workshop routing accepts only published live-course records. Old `/ta3allam/*`, `/ta3llam/*`, workshop detail and short links redirect without losing query parameters or anchors. `/portfolio` opens `/founder`.
+- Session proxy matching and protected-session/data checks cover the new dashboard paths. The Auth callback endpoint remains `/api/auth/callback`, so the existing provider origin/callback configuration remains valid.
+- Backend suite: **91 checks passed** after the route change. Production and isolated reuse builds passed. Final targeted browser checks: **47 passed**, covering canonical routes, query/anchor redirects, login/dashboard guards, founder copy/responsiveness/media and workshop copy. TypeScript, lint and architecture (421 files, zero violations) passed; credential scan found zero violations. Evidence: `docs/evidence/routing-update/`. The initial not-found status assertion was corrected to the documented Next.js streaming behavior while enforcing noindex and absent course/workshop content. Deployment is not yet claimed complete.
+
 ## Deployment follow-up — 2026-10-11
 
 - Confirmed code and verification commits are pushed, working tree was clean, and Vercel reports successful deployment of `40a89f8`.

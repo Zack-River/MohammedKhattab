@@ -7,7 +7,7 @@ test("portfolio preserves reference sections, copy, links and real media", async
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page).toHaveTitle(/محمد خطاب/);
   await expect(page.locator("main > section")).toHaveCount(7);
   for (const content of [
@@ -44,7 +44,7 @@ for (const width of [320, 390, 768, 1440])
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/#courses");
+    await page.goto("/founder#courses");
     await expect(page.locator("#courses")).toBeInViewport();
     expect(
       await page.evaluate(
@@ -87,7 +87,7 @@ test("portfolio player remains inline and resets the prior sample", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/#portfolio");
+  await page.goto("/founder#portfolio");
   const cards = page.locator(".personal-work-card");
   await cards.nth(0).getByRole("button", { name: /تشغيل/ }).click();
   await expect(cards.nth(0).locator("video")).toBeVisible();
@@ -103,7 +103,7 @@ test("portfolio shares smooth hover and progressing timeline with reduced motion
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page.locator(".personal-work-card").first()).toHaveCSS(
     "transition-duration",
     "0.5s",
@@ -134,7 +134,7 @@ test("original section copy is preserved apart from authorized reel and upcoming
     "docs/evidence/portfolio-reference/source.html",
     "utf8",
   );
-  await page.goto("/");
+  await page.goto("/founder");
   const differences = await page.evaluate((html) => {
     const reference = new DOMParser().parseFromString(html, "text/html");
     // HTML formatting inserts whitespace between blocks; React does not.
@@ -185,7 +185,7 @@ test("navigation clears the previous section highlight when returning to the ori
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/#courses");
+  await page.goto("/founder#courses");
   await expect(
     page.locator("[id^=personal-navigation-] a[href='#courses']"),
   ).toHaveAttribute("aria-current", "location");
@@ -199,7 +199,7 @@ test("navigation clears the previous section highlight when returning to the ori
 });
 
 test("reels have no visible captions and the upcoming course uses shared artwork", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/founder");
   await expect(page.locator(".p-ref-reel-title, .p-ref-reel-stats, .personal-work-caption")).toHaveCount(0);
   await expect(page.locator(".personal-work-card .media-player-poster")).toHaveCount(4);
   const upcoming = page.locator(".personal-course-upcoming");

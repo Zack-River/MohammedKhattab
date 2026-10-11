@@ -8,16 +8,16 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
   page.on('pageerror', error => errors.push(error.message));
   fs.mkdirSync('docs/evidence/backend', { recursive: true });
   try {
-    await page.goto(url + '/ta3allam/login');
+    await page.goto(url + '/login');
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(student.email);
     await page.getByLabel('كلمة المرور', { exact: true }).fill(student.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Browser login navigates to protected dashboard');
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
-    await expect(page).toHaveURL(/\/ta3allam\/login$/);
+    await expect(page).toHaveURL(/\/login$/);
     verify(true, 'Browser logout returns to login');
-    await page.goto(url + '/ta3allam/signup');
+    await page.goto(url + '/signup');
     await page.getByRole('button', { name: 'إنشاء حساب', exact: true }).click();
     await expect(page.getByLabel('اسمك', { exact: true })).toBeFocused();
     verify(true, 'Invalid browser signup focuses first field');
@@ -40,11 +40,11 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
     const link = mail.HTML.match(/href="([^"]+\/auth\/v1\/verify[^\"]+)"/)?.[1].replaceAll('&amp;', '&');
     verify(Boolean(link), 'Confirmation email includes valid Auth verification link');
     await page.goto(link);
-    await expect(page).toHaveURL(/\/ta3allam\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Email verification and PKCE callback establish browser session');
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(url + '/ta3allam/login');
+      await page.goto(url + '/login');
       await expect(page.locator('.lms-auth-card')).toBeVisible();
       verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Auth layout fits ${width}px`);
       await page.screenshot({ path: `docs/evidence/backend/login-${width}.png`, fullPage: true });
