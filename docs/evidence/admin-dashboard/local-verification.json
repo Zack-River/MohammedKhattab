@@ -1,6 +1,6 @@
 {
   "origin": "http://localhost:3040",
-  "checkedAt": "2026-10-11T01:54:39.036Z",
+  "checkedAt": "2026-10-11T01:57:23.123Z",
   "checks": [
     "Administrator login automatically opens administrator dashboard",
     "Generic dashboard link resolves to administrator dashboard",
@@ -13,6 +13,7 @@
     "Records, management dialog and focus restoration verified at 768px",
     "Records, management dialog and focus restoration verified at 1024px",
     "Records, management dialog and focus restoration verified at 1440px",
+    "Pagination uses shared button styling and navigates correctly",
     "Courses tab retains editor",
     "Logged-out administrator cannot reopen dashboard"
   ],
