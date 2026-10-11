@@ -8,7 +8,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 - Scoped settings to a two-column desktop layout using the available content width; cards stack below 1024px. Contact current-password inputs are absent on initial load and appear only for a phone/email edit; password changes retain their required current password. Name-only changes save without it.
 - Added admin navigation/page `/admin/dashboard/phone-confirmations`, automatically listing saved unverified numbers, five accounts per page. User links open their admin detail; admins confirm only after private inquiry. Extracted a shared confirmation button for queue and existing detail. The existing exact-value API, verification audit and enrollment restrictions stay in place. No schema changes or dependencies.
 - New isolated suite passed **29 checks**, including guest/student denial, five-account pagination, stale-number rejection, confirmation persistence/removal, 320/390/768/1440 queue layouts and 1920px desktop settings. Existing account/security/email suite passed **86 checks**. Build, TypeScript, lint and architecture passed. Evidence: `docs/evidence/phone-confirmations/`.
-- Local production runtime refreshed on port 3040. Live verification will be recorded after deployment.
+- Local production checks passed on port 3040. Application commit `cae3a87` deployed; read-only real-admin live checks passed at `https://ta3allam.vercel.app`: generic placeholder, initially absent contact-password field, adjacent desktop columns, five-card pending queue, responsive settings/queue and zero runtime errors.
 
 ## Latest checkpoint — Admin Home hierarchy and source-caption cleanup
 
