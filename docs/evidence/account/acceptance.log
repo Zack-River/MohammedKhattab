@@ -1,0 +1,91 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Account Manager: real login
+PASS 2: Account Student: real login
+PASS 3: Email confirmation is automatic; initial phone is unverified
+PASS 4: Settings require authentication
+PASS 5: Anonymous settings writes are rejected
+PASS 6: Cross-origin settings writes rejected
+PASS 7: Reject invalid phone 01201024880
+PASS 8: Reject invalid phone +201201024880
+PASS 9: Reject invalid phone +20-9999999999
+PASS 10: Reject invalid phone +999-1201024880
+PASS 11: Reject invalid phone +20-1201024880 ext 2
+PASS 12: Phone changes require current password
+PASS 13: Incorrect current password rejected
+PASS 14: Students cannot change email through settings
+PASS 15: Legacy profile endpoint cannot bypass email lock
+PASS 16: Valid phone saves in canonical display format and remains unverified
+PASS 17: Non-critical profile changes do not require a password
+PASS 18: Normalized name fields remain consistent with display name
+PASS 19: Duplicate username rejects the entire settings save
+PASS 20: Failed settings save cannot partially change name or phone
+PASS 21: Atomic settings RPC is server-only
+PASS 22: Student cannot forge verification timestamps
+PASS 23: Student cannot call admin confirmation RPC
+PASS 24: Contact RLS hides other users
+PASS 25: Unverified phone blocks free enrollment API
+PASS 26: Database blocks direct unverified enrollment
+PASS 27: Database also guards trusted new grants
+PASS 28: Student cannot confirm their own phone through API
+PASS 29: Stale phone confirmation rejects wrong number
+PASS 30: Email confirmation cannot be replaced by manual admin approval
+PASS 31: Admin confirms the exact phone after private inquiry
+PASS 32: Manual phone confirmation persists
+PASS 33: Verification audit records reviewer, field and value
+PASS 34: Verified contacts unlock new enrollment
+PASS 35: Phone edit automatically removes prior confirmation
+PASS 36: Existing course remains accessible after phone edit
+PASS 37: Phone edit blocks another new course
+PASS 38: Pending email immediately loses verification
+PASS 39: Pending email blocks new enrollment globally
+PASS 40: Pending email preserves previously purchased courses
+PASS 41: Verified email status restores only when Auth clears pending change
+PASS 42: First-name prefix search can use its index
+PASS 43: Password confirmation mismatch rejected
+PASS 44: Password change verifies current password
+PASS 45: Ordinary login session cannot bypass current-password requirement via recovery endpoint
+PASS 46: Current-password authenticated change succeeds
+PASS 47: Old password stops working
+PASS 48: New password authenticates
+PASS 49: Avatar menu fits 320×568
+PASS 50: Avatar menu has Profile, Settings, Support and Logout
+PASS 51: Click outside dismisses the menu
+PASS 52: Keyboard open and Escape restore focus
+PASS 53: Avatar menu fits 390×844
+PASS 54: Avatar menu has Profile, Settings, Support and Logout
+PASS 55: Click outside dismisses the menu
+PASS 56: Keyboard open and Escape restore focus
+PASS 57: Avatar menu fits 844×390
+PASS 58: Avatar menu has Profile, Settings, Support and Logout
+PASS 59: Click outside dismisses the menu
+PASS 60: Keyboard open and Escape restore focus
+PASS 61: Avatar menu fits 1440×900
+PASS 62: Avatar menu has Profile, Settings, Support and Logout
+PASS 63: Click outside dismisses the menu
+PASS 64: Keyboard open and Escape restore focus
+PASS 65: Moving focus outside closes the account menu
+PASS 66: Admin profile omits student course list
+PASS 67: Admin email is editable in its own dashboard
+PASS 68: Admin email change is pending and unverified while old identity remains usable
+PASS 69: Secure email change sends confirmation to both old and new addresses
+PASS 70: Admin email confirmation preserves account role
+PASS 71: Old admin email no longer grants administrator access
+PASS 72: Both confirmation links update the trusted Auth identity
+PASS 73: Confirming both email links restores verified email automatically
+PASS 74: Support points to Mohammed Khattab WhatsApp
+PASS 75: Student email is locked
+PASS 76: Settings has no horizontal overflow at 320
+PASS 77: Settings has no horizontal overflow at 390
+PASS 78: Settings has no horizontal overflow at 1440
+PASS 79: Student profile includes its course area
+PASS 80: Recovery email reaches the local email inbox
+PASS 81: Recovery email contains provider verification link
+PASS 82: Email recovery callback grants a protected reset session
+PASS 83: Recovery link allows a password reset without current password
+PASS 84: Recovery authorization is consumed once
+PASS 85: Recovered password signs in successfully
+PASS 86: Account screens produce no browser runtime errors
+Backend integration: 86 checks passed

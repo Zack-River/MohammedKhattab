@@ -48,12 +48,12 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     verify(await page.locator('select[name="category"]').inputValue()!==before,'Course custom dropdown updates the native form value');
     await page.getByRole('checkbox').uncheck();verify(!(await page.getByRole('checkbox').isChecked()),'Course published checkbox uses native semantics');
     verify(errors.length===0,'Custom controls produce no browser runtime errors');
-    await page.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(/login/);
+    await page.getByRole('button',{name:'قائمة الحساب',exact:true}).click();await page.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(/login/);
     await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);
     await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
-    await page.goto(url+'/dashboard/profile');
+    await page.goto(url+'/dashboard/settings');
     const username=page.getByLabel('اسم المستخدم',{exact:true});await expect(username).toBeVisible();await username.fill('browser-chosen');
-    await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toBeVisible();await page.reload();
+    const settingsForm=page.locator('.lms-account-stack form').first();await settingsForm.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(settingsForm.getByRole('status')).toBeVisible();await page.reload();
     await expect(username).toHaveValue('browser-chosen');await page.setViewportSize({width:390,height:844});await page.screenshot({path:`${directory}/profile-390.png`,fullPage:true});verify(true,'Student can edit username and keep it after refresh');
   } finally { await browser.close(); }
 };

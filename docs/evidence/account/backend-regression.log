@@ -1,0 +1,195 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Anonymous catalog is database-backed
+PASS 2: Public metadata excludes playback URLs
+PASS 3: Anonymous denied /api/profile
+PASS 4: Anonymous denied /api/progress
+PASS 5: Anonymous denied /api/enrollments
+PASS 6: Anonymous denied /api/auth/session
+PASS 7: Anonymous denied /api/certificates/editing-foundations
+PASS 8: Protected dashboard redirects (including streamed redirects)
+PASS 9: Private playback denied without enrollment
+PASS 10: Published preview playback is public
+PASS 11: Wrong password rejected
+PASS 12: Invalid signup rejected
+PASS 13: Oversized JSON payload rejected
+PASS 14: Cross-origin login rejected
+PASS 15: Forged demo cookie grants no authority
+PASS 16: Student A: real login
+PASS 17: Student B: real login
+PASS 18: Verified session endpoint
+PASS 19: Browser login navigates to protected dashboard
+PASS 20: Browser logout returns to login
+PASS 21: Invalid browser signup focuses first field
+PASS 22: Signup waits for email confirmation
+PASS 23: Signup creates an unconfirmed real account
+PASS 24: Supabase sends confirmation email to local Mailpit
+PASS 25: Confirmation email includes valid Auth verification link
+PASS 26: Email verification and PKCE callback establish browser session
+PASS 27: Auth layout fits 390px
+PASS 28: Auth layout fits 1440px
+PASS 29: Real authentication browser flows have no JavaScript errors
+PASS 30: Signed-in student cannot use admin course APIs
+PASS 31: Lost session cannot navigate through a retained dashboard layout
+PASS 32: Back after logout cannot restore cached dashboard content
+PASS 33: Logout removes access before dashboard rendering
+PASS 34: Anonymous cannot access course editor API
+PASS 35: Student cannot access course editor API
+PASS 36: Student cannot assign own admin role
+PASS 37: Student cannot add admin allowlist email
+PASS 38: User metadata cannot grant admin privileges
+PASS 39: Live workshop cannot self-enroll directly
+PASS 40: Course Manager: real login
+PASS 41: Trusted admin membership assigned
+PASS 42: Admin reads course editor data
+PASS 43: Admin edits name description price category and media
+PASS 44: Database edits appear in public catalog
+PASS 45: Workshop landing reads database changes
+PASS 46: Unsafe media URL rejected
+PASS 47: Negative price rejected
+PASS 48: Cross-origin admin mutation rejected
+PASS 49: Student cannot mutate through admin API
+PASS 50: Admin unpublishes course
+PASS 51: Unpublished course disappears publicly
+PASS 52: Admin retains unpublished course access
+PASS 53: Browser editor persists changes across refresh
+PASS 54: Admin editor fits mobile
+PASS 55: Google Drive link persists in admin editor
+PASS 56: Drive intro uses the custom streaming player
+PASS 57: Drive streaming retrieves actual MP4 bytes and supports cancellation
+PASS 58: Admin can edit protected lesson video
+PASS 59: Student cannot edit protected lesson video
+PASS 60: Protected stream enforces enrollment before retrieving Drive bytes
+PASS 61: Legacy workshop redirects with query preserved
+PASS 62: Generic workshop detail URL redirects to approved landing
+PASS 63: RLS also blocks zero-price live self-enrollment
+PASS 64: Verified allowlisted email receives role through trusted trigger
+PASS 65: Confirmed email change preserves the administrator account role
+PASS 66: User Manager: real login
+PASS 67: Moderation Student: real login
+PASS 68: Anonymous cannot list private users
+PASS 69: Anonymous admin dashboard redirects to login
+PASS 70: Student cannot list private users
+PASS 71: Student admin page redirects to private student dashboard
+PASS 72: Student cannot read another user detail
+PASS 73: Student cannot promote users
+PASS 74: Database rejects direct student role promotion
+PASS 75: Admin sees names usernames and emails
+PASS 76: User listing exposes only selected public account fields
+PASS 77: User data is never cached
+PASS 78: Invalid pagination rejected
+PASS 79: Empty pagination is handled
+PASS 80: Malformed user ID rejected
+PASS 81: Unknown user returns 404
+PASS 82: Unsupported suspension duration rejected
+PASS 83: Cross-origin user deletion rejected
+PASS 84: Admin cannot delete self
+PASS 85: Admin cannot ban self
+PASS 86: Database prevents administrator ban races
+PASS 87: User detail contains real profile and username
+PASS 88: User detail reads actual subscribed courses
+PASS 89: day suspension succeeds
+PASS 90: day suspension has correct expiry
+PASS 91: Suspension blocks previously issued API session
+PASS 92: Suspension blocks direct Data API with existing JWT
+PASS 93: Suspension blocks direct course playback retrieval
+PASS 94: Admin restores access before expiry
+PASS 95: Restored account regains authorized session access
+PASS 96: week suspension succeeds
+PASS 97: week suspension has correct expiry
+PASS 98: Suspension blocks previously issued API session
+PASS 99: Suspension blocks direct Data API with existing JWT
+PASS 100: Suspension blocks direct course playback retrieval
+PASS 101: Admin restores access before expiry
+PASS 102: Restored account regains authorized session access
+PASS 103: month suspension succeeds
+PASS 104: month suspension has correct expiry
+PASS 105: Suspension blocks previously issued API session
+PASS 106: Suspension blocks direct Data API with existing JWT
+PASS 107: Suspension blocks direct course playback retrieval
+PASS 108: Admin restores access before expiry
+PASS 109: Restored account regains authorized session access
+PASS 110: year suspension succeeds
+PASS 111: year suspension has correct expiry
+PASS 112: Suspension blocks previously issued API session
+PASS 113: Suspension blocks direct Data API with existing JWT
+PASS 114: Suspension blocks direct course playback retrieval
+PASS 115: Admin restores access before expiry
+PASS 116: Restored account regains authorized session access
+PASS 117: Permanent ban succeeds
+PASS 118: Permanent ban has separate status from suspension
+PASS 119: Banned account cannot sign in
+PASS 120: Expired suspension automatically restores access
+PASS 121: Administrator login automatically opens administrator dashboard
+PASS 122: Generic dashboard link resolves to administrator dashboard
+PASS 123: User detail fits mobile viewport
+PASS 124: Account records fit viewport ({"root":320,"body":320,"width":320})
+PASS 125: Account identity has readable width at 320px
+PASS 126: Management dialog fits 320px viewport
+PASS 127: Management dialog is centered at 320px
+PASS 128: Dialog controls have 44px touch targets at 320px
+PASS 129: Keyboard focus remains inside dialog at 320px
+PASS 130: Account records fit viewport ({"root":390,"body":390,"width":390})
+PASS 131: Account identity has readable width at 390px
+PASS 132: Management dialog fits 390px viewport
+PASS 133: Management dialog is centered at 390px
+PASS 134: Dialog controls have 44px touch targets at 390px
+PASS 135: Keyboard focus remains inside dialog at 390px
+PASS 136: Account records fit viewport ({"root":768,"body":768,"width":768})
+PASS 137: Account identity has readable width at 768px
+PASS 138: Management dialog fits 768px viewport
+PASS 139: Management dialog is centered at 768px
+PASS 140: Dialog controls have 44px touch targets at 768px
+PASS 141: Keyboard focus remains inside dialog at 768px
+PASS 142: Account records fit viewport ({"root":1024,"body":1024,"width":1024})
+PASS 143: Account identity has readable width at 1024px
+PASS 144: Management dialog fits 1024px viewport
+PASS 145: Management dialog is centered at 1024px
+PASS 146: Dialog controls have 44px touch targets at 1024px
+PASS 147: Keyboard focus remains inside dialog at 1024px
+PASS 148: Account records fit viewport ({"root":1440,"body":1440,"width":1440})
+PASS 149: Management dialog fits 1440px viewport
+PASS 150: Management dialog is centered at 1440px
+PASS 151: Dialog controls have 44px touch targets at 1440px
+PASS 152: Keyboard focus remains inside dialog at 1440px
+PASS 153: Admin users dashboard has no browser JavaScript errors
+PASS 154: Student login stays on student dashboard without administrator navigation
+PASS 155: Admin can delete student account
+PASS 156: Deleted user disappears from private detail
+PASS 157: Delete cascades subscribed courses
+PASS 158: Deleted user existing session is denied
+PASS 159: Deleted user old JWT cannot pass database access check
+PASS 160: Promoted User: real login
+PASS 161: Admin promotes confirmed student
+PASS 162: Promoted user gains admin access
+PASS 163: Promotion persists after provider email confirmation updates
+PASS 164: Other administrators are protected
+PASS 165: Paid course cannot self-enroll through API
+PASS 166: RLS blocks direct paid enrollment
+PASS 167: RLS blocks profile ownership forgery
+PASS 168: RLS hides other student profile
+PASS 169: Students cannot alter prices
+PASS 170: Progress requires enrollment
+PASS 171: Free enrollment succeeds
+PASS 172: Free enrollment is idempotent
+PASS 173: Trusted grant unlocks private playback
+PASS 174: Grant never unlocks another account
+PASS 175: Direct requests hide another account enrollment
+PASS 176: Concurrent progress updates succeed
+PASS 177: Concurrent progress preserves both lessons
+PASS 178: RLS hides another account progress
+PASS 179: RLS rejects forged progress owner
+PASS 180: Unknown lesson rejected
+PASS 181: Incomplete course certificate denied
+PASS 182: Completed enrolled course certificate allowed
+PASS 183: Enrolled student can download resource
+PASS 184: Other student cannot download resource
+PASS 185: Own profile updates persist
+PASS 186: Personalized responses never cached
+PASS 187: Student email change is locked on the legacy endpoint
+PASS 188: Revoked grant immediately denies playback
+PASS 189: Logout succeeds
+PASS 190: Logout removes authenticated session
+Backend integration: 190 checks passed

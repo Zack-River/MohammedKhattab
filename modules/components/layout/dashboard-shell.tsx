@@ -12,6 +12,8 @@ import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
   children,
   name,
+  avatarUrl,
+  accountMenu,
   interfaceCopy,
   dashboardNavigation,
   site,
@@ -27,7 +29,7 @@ export default function DashboardShell({
   if (!verified) return null;
   return (
     <div className="lms-app">
-      <DashboardHeader showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
+      <DashboardHeader accountMenu={accountMenu} avatarUrl={avatarUrl} showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
         <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
         <main className="lms-app-main">{children}</main>

@@ -1,3 +1,4 @@
+import { authorizeRecovery } from "@platform/features/account/repositories/recovery-grant";
 import { applicationOrigin } from "@platform/lib/application-origin";
 import { NextResponse } from "next/server";
 import { createDatabaseClient } from "@platform/lib/supabase/server";
@@ -11,7 +12,9 @@ export async function GET(request: Request) {
     const { data, error } = await client.auth.exchangeCodeForSession(code);
     if (!error && data.user) {
       await ensureProfile(client, data.user);
-      return NextResponse.redirect(new URL(routes.dashboard, origin), { headers: { "Cache-Control": "private, no-store" } });
+      const recovery = "redirectType" in data && data.redirectType === "recovery";
+      if (recovery) await authorizeRecovery(client, data.user.id);
+      return NextResponse.redirect(new URL(recovery ? routes.resetPassword : routes.dashboard, origin), { headers: { "Cache-Control": "private, no-store" } });
     }
   }
   return NextResponse.redirect(new URL(routes.login, origin), { headers: { "Cache-Control": "private, no-store" } });

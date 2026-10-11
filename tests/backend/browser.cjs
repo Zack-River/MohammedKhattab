@@ -14,6 +14,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Browser login navigates to protected dashboard');
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await expect(page).toHaveURL(/\/login$/);
     verify(true, 'Browser logout returns to login');

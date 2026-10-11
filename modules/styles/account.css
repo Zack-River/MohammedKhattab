@@ -1,0 +1,18 @@
+.lms-account-stack { display: grid; gap: var(--space-lg); }
+.lms-account-stack h2 { font-size: var(--size-1_25rem); margin-bottom: var(--space-lg); }
+.lms-account-data { display: grid; gap: var(--space-md); }
+.lms-account-data > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-md); }
+.lms-account-data dt { color: var(--text-secondary); }
+.lms-account-data dd { margin: 0; overflow-wrap: anywhere; }
+.lms-profile-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: var(--space-md); }
+.lms-settings-name-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.lms-profile-form input:read-only { color: var(--text-muted); background: var(--bg-main); }
+.lms-verification-card p { margin-block: var(--space-md); color: var(--text-secondary); }
+.lms-unverified { color: var(--text-accent-readable); }
+.lms-verification-card { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .lms-settings-name-grid { grid-template-columns: 1fr; } .lms-account-data > div { grid-template-columns: 1fr; gap: var(--space-xs); } }
+
+.lms-recovery-page { min-height: var(--lms-size-70vh); display: grid; place-items: center; padding-block: var(--space-2xl); }
+.lms-recovery-page .lms-auth-card { width: 100%; max-width: var(--lms-size-560px); }
+.lms-recovery-page h1 { font-size: var(--size-1_5rem); }
+.lms-recovery-page .lms-text-link { display: inline-block; margin-top: var(--space-lg); }

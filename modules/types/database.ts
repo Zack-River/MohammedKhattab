@@ -2,28 +2,52 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
-  "graphql_public": {
+
+  "public": {
           Tables: {
-            [_ in never]: never
-          }
-          Views: {
-            [_ in never]: never
-          }
-          Functions: {
-            "graphql":
-{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
-                           }
-          }
-          Enums: {
-            [_ in never]: never
-          }
-          CompositeTypes: {
-            [_ in never]: never
-          }
-        },"public": {
-          Tables: {
-            "admin_allowlist": {
+            "account_contacts": {
+                  Row: {
+                    "email": string,"email_verified_at": string | null,"pending_email": string | null,"phone_e164": string | null,"phone_verified_at": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email": string,"email_verified_at"?: string | null,"pending_email"?: string | null,"phone_e164"?: string | null,"phone_verified_at"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "email"?: string,"email_verified_at"?: string | null,"pending_email"?: string | null,"phone_e164"?: string | null,"phone_verified_at"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"account_recovery_grants": {
+                  Row: {
+                    "expires_at": string,"session_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "expires_at": string,"session_id": string,"user_id": string
+                  }
+                  Update: {
+                    "expires_at"?: string,"session_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"account_verification_events": {
+                  Row: {
+                    "field": string,"id": number,"reviewer_id": string | null,"user_id": string,"value": string,"verified_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "field": string,"id"?: never,"reviewer_id"?: string | null,"user_id": string,"value": string,"verified_at"?: string
+                  }
+                  Update: {
+                    "field"?: string,"id"?: never,"reviewer_id"?: string | null,"user_id"?: string,"value"?: string,"verified_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"admin_allowlist": {
                   Row: {
                     "email": string
                   }
@@ -35,7 +59,7 @@ export type Database = {
                     "email"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"admin_users": {
                   Row: {
@@ -49,7 +73,7 @@ export type Database = {
                     "user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"courses": {
                   Row: {
@@ -63,7 +87,7 @@ export type Database = {
                     "amount"?: number,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"enrollments": {
                   Row: {
@@ -159,17 +183,17 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "avatar_url": string | null,"id": string,"name": string,"username": string
+                    "avatar_url": string | null,"first_name": string,"id": string,"last_name": string,"name": string,"username": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "avatar_url"?: string | null,"id": string,"name": string,"username"?: string
+                    "avatar_url"?: string | null,"first_name"?: string,"id": string,"last_name"?: string,"name": string,"username"?: string
                   }
                   Update: {
-                    "avatar_url"?: string | null,"id"?: string,"name"?: string,"username"?: string
+                    "avatar_url"?: string | null,"first_name"?: string,"id"?: string,"last_name"?: string,"name"?: string,"username"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"resources": {
                   Row: {
@@ -183,7 +207,7 @@ isOneToOne: false
                     "content"?: string,"description"?: string,"id"?: string,"title"?: string,"type"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
@@ -194,8 +218,17 @@ isOneToOne: false
             "account_access_allowed":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"confirm_account_contact":
+{ Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
+                           },
+"contacts_verified":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
+                           },
+"save_account_settings":
+{ Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
@@ -316,13 +349,9 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "graphql_public": {
+  "public": {
           Enums: {
-            
-          }
-        },"public": {
-          Enums: {
-            
+
           }
         }
 } as const

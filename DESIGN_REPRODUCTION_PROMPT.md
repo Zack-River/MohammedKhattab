@@ -199,7 +199,7 @@ The source `package.json` is included exactly. Preserve the companion `package-l
 | `eslint-config-next` | `^16.3.8` | `16.3.8` |
 | `typescript` | `^5.9.2` | `5.9.3` |
 
-Companion `package-lock.json`: **252603 bytes**; SHA-256 `4d709233c50d8d20b4e9ab8faad4e7b2b1fb0db1a43baa3656859f099d9c1f47`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
+Companion `package-lock.json`: **252957 bytes**; SHA-256 `bd7f87b7da45927c3370653162f06d81bbece0786604defbc0eb746cef1f99e8`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
 ## 13. Original asset manifest
 
 Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompression, different flags, transparent padding, image cropping, and alternative font builds can change pixels. Unused alternative assets remain listed to preserve the available theme/media inventory. Names, alt text, rendered dimensions, and class treatment are defined by the embedded data/components; dimensions in a binary are not a substitute for the rendered dimensions. Font licenses/provenance remain in the original asset folder.
@@ -251,6 +251,22 @@ Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompress
 ## 14. Exact embedded implementation and verification files
 
 Current shared architecture snapshot. Materialize all paths together; run npm ci once at the root using the companion lockfile, then prebuild generation. The separate test fixture is not a shipped application route. Generated .next/node_modules and server font JSON are excluded. Source hashes verify reconstruction, not visual approval.
+
+### File: `app/(public)/confirm-email/page.tsx`
+
+SHA-256: `c235dcb0a6376a09d16c347336eaddca3918b28acbb1a5864ba3e57707951b4d`
+
+```tsx
+import Link from "next/link";
+import { accountCopy as labels } from "@platform/data/account";
+import { routes } from "@platform/config/navigation";
+import RecoveryRequest from "@platform/components/account/settings/recovery-request";
+export default function ConfirmEmailPage() {
+  return <main className="container lms-recovery-page"><section className="lms-login-card lms-auth-card"><h1>{labels.confirmEmailTitle}</h1><p>{labels.confirmEmailHint}</p>
+    <RecoveryRequest labels={labels} confirmation /><Link className="lms-text-link" href={routes.login}>{labels.backLogin}</Link>
+  </section></main>;
+}
+```
 
 ### File: `app/(public)/courses/[slug]/page.tsx`
 
@@ -414,6 +430,22 @@ export default async function CoursesPage({
 }
 ```
 
+### File: `app/(public)/forgot-password/page.tsx`
+
+SHA-256: `a91f6b7e159954efdc820d283f21943d49146c568bfe7b0cf5a151b62a4be524`
+
+```tsx
+import Link from "next/link";
+import { accountCopy as labels } from "@platform/data/account";
+import { routes } from "@platform/config/navigation";
+import RecoveryRequest from "@platform/components/account/settings/recovery-request";
+export default function ForgotPasswordPage() {
+  return <main className="container lms-recovery-page"><section className="lms-login-card lms-auth-card"><h1>{labels.forgotTitle}</h1><p>{labels.recoveryHint}</p>
+    <RecoveryRequest labels={labels} /><Link className="lms-text-link" href={routes.login}>{labels.backLogin}</Link>
+  </section></main>;
+}
+```
+
 ### File: `app/(public)/layout.tsx`
 
 SHA-256: `036efd7e6acea79bf3b63a4ec0b254c2c7f268f850b6f4c5dce88185eff2a21b`
@@ -471,6 +503,27 @@ import AuthPage from "@platform/components/account/auth/page";
 import { authPages } from "@platform/data/auth";
 export const metadata = { title: authPages.login.title };
 export default function LoginPage() { return <AuthPage model={authPages.login} />; }
+```
+
+### File: `app/(public)/reset-password/page.tsx`
+
+SHA-256: `e5a9dea77f33c0aa798f8f1642fb2c3e0588b6fc11f006f7d175c6a41b01828b`
+
+```tsx
+import Link from "next/link";
+import { accountCopy as labels } from "@platform/data/account";
+import { routes } from "@platform/config/navigation";
+import PasswordForm from "@platform/components/account/settings/password-form";
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { hasRecoveryGrant } from "@platform/features/account/repositories/recovery-grant";
+import { redirect } from "next/navigation";
+export default async function ResetPasswordPage() {
+  const { client, user } = await requirePageIdentity();
+  if (!await hasRecoveryGrant(client, user.id)) redirect(routes.forgotPassword);
+  return <main className="container lms-recovery-page"><section className="lms-login-card lms-auth-card"><h1>{labels.resetTitle}</h1>
+    <PasswordForm labels={labels} recovery /><Link className="lms-text-link" href={routes.login}>{labels.backLogin}</Link>
+  </section></main>;
+}
 ```
 
 ### File: `app/(public)/signup/page.tsx`
@@ -535,9 +588,11 @@ export default async function AdminCoursesPage() {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `b2ef07e24b31e1cfaa35a98df6200e226a9c0fba625bb4662f4d4da95a90a62d`
+SHA-256: `4caa57b4edd3396c5afec3279d6f6a538996615549f1032c3039239573377e6f`
 
 ```tsx
+import { adminAccountMenuContent } from "@platform/config/account-menu";
+import { readAccount } from "@platform/features/account/repositories/read-account";
 import type { Metadata } from "next";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
@@ -546,8 +601,9 @@ import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user } = await requireAdminPage();
-  return <DashboardShell {...dashboardShellContent} name={user.user_metadata.name ?? labels.admin}
+  await requireAdminPage();
+  const account = await readAccount();
+  return <DashboardShell {...dashboardShellContent} name={account.name} avatarUrl={account.avatarUrl} accountMenu={adminAccountMenuContent}
     showSidebarHelp={false} showBrowseLink={false}
     sessionEndpoint={endpoints.adminUsers + "/session"}
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
@@ -582,11 +638,35 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
 }
 ```
 
-### File: `app/admin/dashboard/users/[username]/page.tsx`
+### File: `app/admin/dashboard/profile/page.tsx`
 
-SHA-256: `68c8344c0f87f4a3d044e6c8709fca9540c02125e6eedeced32cd599f98eb1d3`
+SHA-256: `544fe52c42be04844cbda14c5307c783446ecf32cb772f3406f8439b2132657b`
 
 ```tsx
+import AccountProfilePage from "@platform/features/account/profile-page";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+export default async function ProfilePage() { await requireAdminPage(); return <AccountProfilePage />; }
+```
+
+### File: `app/admin/dashboard/settings/page.tsx`
+
+SHA-256: `070588410403374b213113bbc5ebdb3b84cf849e95910a5b733ccf381a30001a`
+
+```tsx
+import AccountSettingsPage from "@platform/features/account/settings-page";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+export default async function SettingsPage() { await requireAdminPage(); return <AccountSettingsPage />; }
+```
+
+### File: `app/admin/dashboard/users/[username]/page.tsx`
+
+SHA-256: `4e29a4fe5c2817412aa3a75a1edceb368e637cde7a620c509afdba20d1aafd73`
+
+```tsx
+import AdminContactVerification from "@platform/components/account/admin-contact-verification";
+import { readUserContacts } from "@platform/features/account/repositories/read-user-contacts";
+import { displayPhoneNumber } from "@platform/features/account/helpers/phone-number";
+import { accountCopy } from "@platform/data/account";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PageHeading from "@platform/components/ui/page-heading";
@@ -604,10 +684,40 @@ export default async function AdminUserPage({ params }: { params: Promise<{ user
   const user = await resolveAdminUser(username).catch(error => { if (error instanceof ApiError && error.status === 404) notFound(); throw error; });
   if (username !== user.username) redirect(routes.adminUser(user.username));
   const subscriptions = await readUserSubscriptions(user.id);
+  const contact = await readUserContacts(user.id);
   return <><PageHeading title={user.name}><Link className="lms-text-link" href={routes.adminUsers}>{labels.back}</Link></PageHeading>
-    <UserDetails labels={labels} user={user} /><UserSubscriptions labels={labels} subscriptions={subscriptions} />
+    <UserDetails labels={labels} user={user} /><AdminContactVerification userId={user.id} email={contact.pending_email ?? contact.email} phone={displayPhoneNumber(contact.phone_e164)} phoneValue={contact.phone_e164} emailVerified={Boolean(contact.email_verified_at && !contact.pending_email)} phoneVerified={Boolean(contact.phone_verified_at)} labels={accountCopy} />
+    <UserSubscriptions labels={labels} subscriptions={subscriptions} />
   </>;
 }
+```
+
+### File: `app/api/account/password/route.ts`
+
+SHA-256: `608b6518da10b2ac0dc0b4d696b15f64cd086637a04fed9d5153c13d54c7781f`
+
+```typescript
+import { handlePassword } from "@platform/features/account/handle-password";
+export function POST(request: Request) { return handlePassword(request); }
+```
+
+### File: `app/api/account/settings/route.ts`
+
+SHA-256: `8ecc07e4fc52ed4344abadd0750a17b6b715c1715302795b738ea9b6688fec09`
+
+```typescript
+import { handleSettings } from "@platform/features/account/handle-settings";
+export function GET() { return handleSettings(); }
+export function POST(request: Request) { return handleSettings(request); }
+```
+
+### File: `app/api/account/verification/route.ts`
+
+SHA-256: `a833ecdea6d6888ef9532bc9ab6d0e21342a475d6ff6bd6851d333ec69bd3619`
+
+```typescript
+import { handleEmailConfirmation } from "@platform/features/account/handle-email-confirmation";
+export function POST(request: Request) { return handleEmailConfirmation(request); }
 ```
 
 ### File: `app/api/admin/courses/[slug]/lessons/[lessonId]/route.ts`
@@ -644,6 +754,17 @@ export async function GET(_: Request, context: Context) { return handleAdminUser
 export async function POST(request: Request, context: Context) { return handleAdminUser((await context.params).id, request); }
 ```
 
+### File: `app/api/admin/users/[id]/verification/route.ts`
+
+SHA-256: `cff8a15ceb28ec8c426b21af0b7eaf64b8e6d9945a3e33d3f68277a789894740`
+
+```typescript
+import { handleConfirmation } from "@platform/features/account/handle-confirmation";
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  return handleConfirmation(request, (await params).id);
+}
+```
+
 ### File: `app/api/admin/users/route.ts`
 
 SHA-256: `d61ea8de083330ddd6a01cc074d6cffd09cdd23cf3c1c8bab6b1ac13108591de`
@@ -669,9 +790,10 @@ export async function GET() { return apiResponse(async () => { await requireAdmi
 
 ### File: `app/api/auth/callback/route.ts`
 
-SHA-256: `8aa1f55bdc83959e264dd025910d8280ee89d9682075960794e8685f3943c96d`
+SHA-256: `eee39758f6681e6930e28e48fa1013dfb9de8f9ea6081c2465b4dcb4af63e894`
 
 ```typescript
+import { authorizeRecovery } from "@platform/features/account/repositories/recovery-grant";
 import { applicationOrigin } from "@platform/lib/application-origin";
 import { NextResponse } from "next/server";
 import { createDatabaseClient } from "@platform/lib/supabase/server";
@@ -685,11 +807,22 @@ export async function GET(request: Request) {
     const { data, error } = await client.auth.exchangeCodeForSession(code);
     if (!error && data.user) {
       await ensureProfile(client, data.user);
-      return NextResponse.redirect(new URL(routes.dashboard, origin), { headers: { "Cache-Control": "private, no-store" } });
+      const recovery = "redirectType" in data && data.redirectType === "recovery";
+      if (recovery) await authorizeRecovery(client, data.user.id);
+      return NextResponse.redirect(new URL(recovery ? routes.resetPassword : routes.dashboard, origin), { headers: { "Cache-Control": "private, no-store" } });
     }
   }
   return NextResponse.redirect(new URL(routes.login, origin), { headers: { "Cache-Control": "private, no-store" } });
 }
+```
+
+### File: `app/api/auth/forgot-password/route.ts`
+
+SHA-256: `f26ce8516ed05e839aec9192398b8a4085004dafe2beb1822d58c2e9ee3505f8`
+
+```typescript
+import { handleRecovery } from "@platform/features/account/handle-recovery";
+export function POST(request: Request) { return handleRecovery(request, "request"); }
 ```
 
 ### File: `app/api/auth/login/route.ts`
@@ -719,6 +852,15 @@ export async function POST(request: Request) {
     return Response.json({ status: "signed_out" });
   });
 }
+```
+
+### File: `app/api/auth/reset-password/route.ts`
+
+SHA-256: `7ff0ef7e483f4bf9279b0443b3c35a108a4b598cca9c715896f6c43c4d60ddf6`
+
+```typescript
+import { handleRecovery } from "@platform/features/account/handle-recovery";
+export function POST(request: Request) { return handleRecovery(request, "reset"); }
 ```
 
 ### File: `app/api/auth/session/route.ts`
@@ -1926,9 +2068,10 @@ export default async function MyCourses() {
 
 ### File: `app/dashboard/layout.tsx`
 
-SHA-256: `62427e558b119e8aae9300ae36aa5304b69275295c544d84ed4c6b2f258b4758`
+SHA-256: `0edf9eb954248ad5c5c58b12958afb2f28ce203a9d17b799d909d238c1df4232`
 
 ```tsx
+import { readAccount } from "@platform/features/account/repositories/read-account";
 import { hasAdminAccess } from "@platform/features/admin/identity";
 import { adminUsersCopy } from "@platform/data/admin-users";
 import { routes } from "@platform/config/navigation";
@@ -1937,8 +2080,8 @@ import { dashboardNavigation } from "@platform/data/site";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { readStudentState } from "@platform/features/learning";
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
-  const state = await readStudentState(), admin = await hasAdminAccess();
-  return <DashboardShell {...dashboardShellContent} name={state.profile.name}
+  const state = await readStudentState(), admin = await hasAdminAccess(), account = await readAccount();
+  return <DashboardShell {...dashboardShellContent} name={state.profile.name} avatarUrl={account.avatarUrl}
     dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.adminDashboard, label: adminUsersCopy.dashboard, symbol: "grid" }] : dashboardNavigation}>
     {children}
   </DashboardShell>;
@@ -2054,54 +2197,18 @@ export default async function DashboardPage() {
 
 ### File: `app/dashboard/profile/page.tsx`
 
-SHA-256: `07c1e8c017f7a47af31582d35e07c1bbdd3d04a83d01712c23166975a596fe89`
+SHA-256: `e4444ade48bca2c0feb4dc0f2d1238f0a4a2d5585f8c49ce0f087f2ff74e9395`
 
 ```tsx
-import { backendCopy } from "@platform/data/backend-copy";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import PageHeading from "@platform/components/ui/page-heading";
-import ProfileForm from "@platform/components/account/profile-form";
-import { readStudentState } from "@platform/features/learning";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.profilePageTitle };
+import AccountProfilePage from "@platform/features/account/profile-page";
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { redirect } from "next/navigation";
+import { routes } from "@platform/config/navigation";
 export default async function ProfilePage() {
-  const state = await readStudentState();
-  return (
-    <>
-      <PageHeading
-        eyebrow={backendCopy.ACCOUNT_LABEL}
-        title={copy.profileTitle}
-        description={copy.profileDescription}
-      />
-      <section className="lms-profile-card">
-        <div className="lms-profile-card-heading">
-          <span className="lms-avatar lms-avatar-large">
-            {state.profile.name.slice(0, 1)}
-          </span>
-          <div>
-            <h2>{state.profile.name}</h2>
-            <span className="lms-demo-label">{backendCopy.ACCOUNT_LABEL}</span>
-          </div>
-        </div>
-        <ProfileForm
-          emailPendingMessage={backendCopy.EMAIL_CHANGE_PENDING}
-          interfaceCopy={{ namePlaceholder: interfaceCopy.namePlaceholder }}
-          copy={{
-            error: copy.error,
-            name: copy.name, username: copy.username, usernameHint: copy.usernameHint,
-            email: copy.email,
-            emailPlaceholder: copy.emailPlaceholder,
-            saving: copy.saving,
-            enterDemo: copy.enterDemo,
-            save: copy.save,
-            profileSaved: copy.profileSaved,
-          }}
-          profile={state.profile}
-        />
-        
-      </section>
-    </>
-  );
+  await requirePageIdentity();
+  if (await hasAdminAccess()) redirect(routes.adminProfile);
+  return <AccountProfilePage />;
 }
 ```
 
@@ -2137,6 +2244,23 @@ export default async function ResourcePage() {
       </div>
     </>
   );
+}
+```
+
+### File: `app/dashboard/settings/page.tsx`
+
+SHA-256: `dd0cf97b7ec3da5b1041a0a25b668b51ed3747ba48ac1f5138913d8359b34524`
+
+```tsx
+import AccountSettingsPage from "@platform/features/account/settings-page";
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { redirect } from "next/navigation";
+import { routes } from "@platform/config/navigation";
+export default async function SettingsPage() {
+  await requirePageIdentity();
+  if (await hasAdminAccess()) redirect(routes.adminSettings);
+  return <AccountSettingsPage />;
 }
 ```
 
@@ -2625,7 +2749,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `6ded27bfbe042ce685b7c23e5374a3ea03ef064030888b32ffe1ffebfcc83709`
+SHA-256: `8a757e45cb3631689e5b3522a161df05f64b786d8bb4b05e0e08d48f6018211e`
 
 ```css
 @import "./styles/theme.css";
@@ -2641,6 +2765,9 @@ SHA-256: `6ded27bfbe042ce685b7c23e5374a3ea03ef064030888b32ffe1ffebfcc83709`
 @import "../modules/styles/auth.css";
 @import "../modules/styles/admin.css";
 @import "../packages/design-system/styles/form-controls.css";
+
+@import "../packages/design-system/styles/action-menu.css";
+@import "../modules/styles/account.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -4096,6 +4223,71 @@ export default defineConfig([
 ]);
 ```
 
+### File: `modules/components/account/account-menu.tsx`
+
+SHA-256: `c4c7b7c931c97ba7aaec3064f08fd7665b193e797da1858516ba74548de38e19`
+
+```tsx
+"use client";
+import Avatar from "@khatab/design/ui/avatar";
+import ActionMenu from "@khatab/design/ui/action-menu";
+import { useLogout } from "@platform/hooks/use-logout";
+import type { accountMenuContent } from "@platform/config/account-menu";
+export default function AccountMenu({ name, avatarUrl, content }: { name: string; avatarUrl?: string | null; content: typeof accountMenuContent }) {
+  const { logout, pending, error } = useLogout(content.errorLabel);
+  return <ActionMenu label={content.label} links={content.links} error={error}
+    trigger={<Avatar name={name} url={avatarUrl} label={content.imageLabel} className="lms-avatar" />}
+    action={{ label: content.logoutLabel, onSelect: logout, disabled: pending }} />;
+}
+```
+
+### File: `modules/components/account/account-summary.tsx`
+
+SHA-256: `99f931303741e54927d4aadd21d4688ff03eaf56cd6ec0c9a8d9412b62e06a04`
+
+```tsx
+import Avatar from "@khatab/design/ui/avatar";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function AccountSummary({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
+  return <section className="lms-profile-card">
+    <div className="lms-profile-card-heading"><Avatar name={profile.name} url={profile.avatarUrl} label={labels.image} className="lms-avatar lms-avatar-large" /><div><h2>{profile.name}</h2><span>{profile.admin ? labels.admin : labels.student}</span></div></div>
+    <dl className="lms-account-data">{[[labels.name, profile.name], [labels.username, profile.username], [labels.email, profile.email], [labels.phone, profile.phone || labels.missing]].map(([label, value]) =>
+      <div key={label}><dt>{label}</dt><dd dir="auto">{value}</dd></div>)}</dl>
+  </section>;
+}
+```
+
+### File: `modules/components/account/admin-contact-verification.tsx`
+
+SHA-256: `fd143e097d42df26f2e95a640e969dd731e1e4ced1b7f12729178f109a1f3115`
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+import { endpoints } from "@platform/config/navigation";
+import type { AccountLabels } from "@platform/types/account-copy";
+import FormFeedback from "./form-feedback";
+export default function AdminContactVerification({ userId, email, phone, phoneValue, emailVerified, phoneVerified, labels }: {
+  userId: string; email: string; phone: string; phoneValue: string | null; emailVerified: boolean; phoneVerified: boolean; labels: AccountLabels;
+}) {
+  const router = useRouter(), command = useAsyncCommand(labels.error);
+  async function confirm() {
+    const result = await command.run(() => httpRequest({ path: endpoints.contactVerification(userId), body: { field: "phone", value: phoneValue }, failureLabel: labels.error, decode: input => input }));
+    if (result) router.refresh();
+  }
+  return <section className="lms-profile-card lms-verification-card"><h2>{labels.verification}</h2>
+    <dl className="lms-account-data"><div><dt>{labels.email}</dt><dd><span dir="ltr">{email}</span><br />{emailVerified ? labels.verified : labels.unverified}</dd></div>
+      <div><dt>{labels.phone}</dt><dd><span dir="ltr">{phone || labels.missing}</span><br />{phoneVerified ? labels.verified : labels.unverified}</dd></div></dl>
+    <p>{labels.confirmationHint}</p>
+    <button className="lms-secondary-button" type="button" disabled={!phoneValue || phoneVerified || command.pending} onClick={confirm}>{command.pending ? labels.saving : labels.confirmPhone}</button>
+    <FormFeedback error={command.error} />
+  </section>;
+}
+```
+
 ### File: `modules/components/account/auth/field.tsx`
 
 SHA-256: `6a3c76438fef9a34f18c8d71a032fdb948a3f68cefa6bab6655fa49aab29f7f5`
@@ -4147,7 +4339,7 @@ export default function AuthForm({ model }: { model: AuthPageModel }) {
 
 ### File: `modules/components/account/auth/page.tsx`
 
-SHA-256: `2e37aae7450b02eb897a4cab95239edb7f72e849cd2130ad0f1c4945c7232c16`
+SHA-256: `c5f81867411f2a8c5c9bc66d7ad5ec9b7e38c84d132fa4e79cbef707a797aabb`
 
 ```tsx
 import Link from "next/link";
@@ -4165,10 +4357,22 @@ export default function AuthPage({ model }: { model: AuthPageModel }) {
       <h2 id={`${model.mode}-title`}>{model.title}</h2>
       <p>{model.description}</p>
       <AuthForm model={model} />
+      {model.recovery && <Link className="lms-text-link" href={model.recovery.href}>{model.recovery.label}</Link>}
       <div className="lms-auth-alternate"><span>{model.alternate.prompt}</span><Link href={model.alternate.href}>{model.alternate.label}</Link></div>
+      {model.confirmationLink && <Link className="lms-text-link" href={model.confirmationLink.href}>{model.confirmationLink.label}</Link>}
       <small>{model.demoNote}</small>
     </section>
   </main>;
+}
+```
+
+### File: `modules/components/account/form-feedback.tsx`
+
+SHA-256: `bb9d81e66eb71692fc604b582fc00af72e6a87751d8164ed73eddfa730ee6a25`
+
+```tsx
+export default function FormFeedback({ error, message }: { error?: string; message?: string }) {
+  return <>{error && <p className="lms-error" role="alert">{error}</p>}{message && <p className="lms-success" role="status">{message}</p>}</>;
 }
 ```
 
@@ -4255,6 +4459,195 @@ export default function ProfileForm({
       )}
     </form>
   );
+}
+```
+
+### File: `modules/components/account/profile-view.tsx`
+
+SHA-256: `3c791d8510ee96e6bb347f1f0dd3ff7198aea980930b8643e022b17ba1571ba6`
+
+```tsx
+import Link from "next/link";
+import PageHeading from "@platform/components/ui/page-heading";
+import AccountSummary from "./account-summary";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function ProfileView({ profile, labels, settingsHref, adminHref, children }: { profile: AccountProfile; labels: AccountLabels; settingsHref: string; adminHref: string; children?: React.ReactNode }) {
+  return <><PageHeading title={labels.profileTitle}><Link className="lms-text-link" href={settingsHref}>{labels.settings}</Link></PageHeading>
+    <AccountSummary profile={profile} labels={labels} />
+    <PageHeading level={2} title={profile.admin ? labels.adminPanel : labels.courses} />
+    {profile.admin ? <Link className="lms-secondary-button" href={adminHref}>{labels.viewAdmin}</Link> : children}
+  </>;
+}
+```
+
+### File: `modules/components/account/settings/contact-fields.tsx`
+
+SHA-256: `e74806f62ae62f36b0b4851afc04682a309bcf7b799525b5539143cf3c93fd60`
+
+```tsx
+import { authPolicy } from "@platform/config/auth";
+import FormField from "@platform/components/ui/form-field";
+import PasswordField from "@platform/components/ui/password-field";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function ContactFields({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
+  return <>
+    <FormField label={labels.email} name="email" type="email" dir="ltr" defaultValue={profile.pendingEmail ?? profile.email} readOnly={!profile.admin} required maxLength={authPolicy.emailMax} autoComplete="email" hint={profile.admin ? labels.emailChangeHint : labels.emailLocked} />
+    <FormField label={labels.phone} name="phone" type="tel" dir="ltr" defaultValue={profile.phone} required autoComplete="tel" maxLength={20} placeholder={labels.phonePlaceholder} pattern="\+[1-9][0-9]{0,2}-[0-9]{4,14}" hint={labels.phoneHint} />
+    <PasswordField label={labels.currentPassword} name="currentPassword" autoComplete="current-password" dir="ltr" maxLength={authPolicy.passwordMax} showLabel={labels.show} hideLabel={labels.hide} hint={labels.currentHint} />
+  </>;
+}
+```
+
+### File: `modules/components/account/settings/email-confirmation.tsx`
+
+SHA-256: `77afafc24e3c0fb3cf57fdd7628bb486c21be27cd1068bf6e263525afc954651`
+
+```tsx
+"use client";
+import { useAccountSubmission } from "@platform/hooks/use-account-submission";
+import { endpoints } from "@platform/config/navigation";
+import type { AccountLabels } from "@platform/types/account-copy";
+import FormFeedback from "../form-feedback";
+export default function EmailConfirmation({ email, pendingChange, labels }: { email: string; pendingChange: boolean; labels: AccountLabels }) {
+  const { submit, pending, error, message } = useAccountSubmission(endpoints.emailConfirmation, labels.error, labels.emailSent);
+  return <form onSubmit={submit}><input type="hidden" name="email" value={email} /><input type="hidden" name="type" value={pendingChange ? "email_change" : "signup"} />
+    <button className="lms-text-link" type="submit" disabled={pending}>{pending ? labels.saving : labels.resendEmail}</button><FormFeedback error={error} message={message} />
+  </form>;
+}
+```
+
+### File: `modules/components/account/settings/identity-fields.tsx`
+
+SHA-256: `7e919d29e74b84ca1442d0854ba5ec3cde018d177b1cbdd218d7e9a4e5f42bf3`
+
+```tsx
+import { usernamePolicy } from "@platform/helpers/validation/username";
+import { profilePolicy } from "@platform/features/profile/validation";
+import FormField from "@platform/components/ui/form-field";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function IdentityFields({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
+  return <>
+    <div className="lms-settings-name-grid"><FormField label={labels.firstName} name="firstName" defaultValue={profile.firstName} autoComplete="given-name" required maxLength={profilePolicy.nameMax} />
+      <FormField label={labels.lastName} name="lastName" defaultValue={profile.lastName} autoComplete="family-name" maxLength={profilePolicy.nameMax} /></div>
+    <FormField label={labels.username} name="username" defaultValue={profile.username} autoComplete="username" dir="ltr" required minLength={usernamePolicy.min} maxLength={usernamePolicy.max} pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{2,47}" />
+  </>;
+}
+```
+
+### File: `modules/components/account/settings/password-form.tsx`
+
+SHA-256: `fab7f937d708275aed39706d823499509df4d444531fc0a5fbe8d70fbac02682`
+
+```tsx
+"use client";
+import Action from "@khatab/design/ui/action";
+import PasswordField from "@platform/components/ui/password-field";
+import { endpoints } from "@platform/config/navigation";
+import { authPolicy } from "@platform/config/auth";
+import { useAccountSubmission } from "@platform/hooks/use-account-submission";
+import type { AccountLabels } from "@platform/types/account-copy";
+import FormFeedback from "../form-feedback";
+export default function PasswordForm({ labels, recovery = false }: { labels: AccountLabels; recovery?: boolean }) {
+  const { submit, pending, error, message } = useAccountSubmission(recovery ? endpoints.resetPassword : endpoints.accountPassword, labels.error, recovery ? labels.resetSaved : labels.passwordSaved, undefined, { refresh: !recovery });
+  const common = { dir: "ltr" as const, required: true, disabled: pending, maxLength: authPolicy.passwordMax, showLabel: labels.show, hideLabel: labels.hide };
+  return <form className="lms-profile-form" onSubmit={submit} aria-busy={pending}>
+    {!recovery && <PasswordField {...common} label={labels.currentPassword} name="currentPassword" autoComplete="current-password" />}
+    <PasswordField {...common} label={labels.password} name="password" autoComplete="new-password" minLength={authPolicy.passwordMin} hint={labels.passwordHint} />
+    <PasswordField {...common} label={labels.confirmPassword} name="confirmPassword" autoComplete="new-password" minLength={authPolicy.passwordMin} />
+    <Action kind="button" type="submit" className="btn-primary" disabled={pending}>{pending ? labels.saving : recovery ? labels.reset : labels.save}</Action>
+    <FormFeedback error={error} message={message} />
+  </form>;
+}
+```
+
+### File: `modules/components/account/settings/recovery-request.tsx`
+
+SHA-256: `fe03e8620e4cfcf52f43c69b532d463cfe2290cbb2505e3c9fe5f180b59fb2c6`
+
+```tsx
+"use client";
+import Action from "@khatab/design/ui/action";
+import FormField from "@platform/components/ui/form-field";
+import { endpoints } from "@platform/config/navigation";
+import { useAccountSubmission } from "@platform/hooks/use-account-submission";
+import type { AccountLabels } from "@platform/types/account-copy";
+import FormFeedback from "../form-feedback";
+export default function RecoveryRequest({ labels, confirmation = false }: { labels: AccountLabels; confirmation?: boolean }) {
+  const { submit, pending, error, message } = useAccountSubmission(confirmation ? endpoints.emailConfirmation : endpoints.forgotPassword, labels.error, confirmation ? labels.emailSent : labels.recoverySent);
+  return <form className="lms-profile-form" onSubmit={submit} aria-busy={pending}>
+    <FormField label={labels.email} name="email" type="email" required dir="ltr" autoComplete="email" maxLength={100} disabled={pending} />
+    <Action kind="button" className="btn-primary" type="submit" disabled={pending}>{pending ? labels.saving : confirmation ? labels.resendEmail : labels.sendRecovery}</Action>
+    <FormFeedback error={error} message={message} />
+  </form>;
+}
+```
+
+### File: `modules/components/account/settings/settings-form.tsx`
+
+SHA-256: `4eb37edbd9524af8ae8e8a948d4a7c2fe6475140b3280f4b57ea441ede50eeaa`
+
+```tsx
+"use client";
+import Action from "@khatab/design/ui/action";
+import { endpoints } from "@platform/config/navigation";
+import { useAccountSubmission } from "@platform/hooks/use-account-submission";
+import { readAccountResponse } from "@platform/features/account/helpers/read-account-response";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+import IdentityFields from "./identity-fields";
+import ContactFields from "./contact-fields";
+import FormFeedback from "../form-feedback";
+export default function SettingsForm({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
+  const { submit, pending, error, message } = useAccountSubmission(endpoints.accountSettings, labels.error, labels.profileSaved, readAccountResponse);
+  return <form className="lms-profile-form" onSubmit={submit} aria-busy={pending}>
+    <fieldset disabled={pending}><IdentityFields profile={profile} labels={labels} /><ContactFields profile={profile} labels={labels} /></fieldset>
+    <Action kind="button" type="submit" className="btn-primary" disabled={pending}>{pending ? labels.saving : labels.save}</Action>
+    <FormFeedback error={error} message={message} />
+  </form>;
+}
+```
+
+### File: `modules/components/account/settings/settings-view.tsx`
+
+SHA-256: `eebd43b487ab96b83604c241e4d90e7de8d770c2b233e18419790bf585efca57`
+
+```tsx
+import PageHeading from "@platform/components/ui/page-heading";
+import SettingsForm from "./settings-form";
+import PasswordForm from "./password-form";
+import VerificationStatus from "../verification-status";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function SettingsView({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
+  return <><PageHeading title={labels.settingsTitle} /><div className="lms-account-stack">
+    <section className="lms-profile-card"><SettingsForm profile={profile} labels={labels} /></section>
+    <VerificationStatus profile={profile} labels={labels} supportHref={supportHref} />
+    <section className="lms-profile-card"><h2>{labels.passwordTitle}</h2><PasswordForm labels={labels} /></section>
+  </div></>;
+}
+```
+
+### File: `modules/components/account/verification-status.tsx`
+
+SHA-256: `b7963cb681e4ef23d52dd6b3b805a9423e06779c41c70e9951a0f9899faa5e49`
+
+```tsx
+import EmailConfirmation from "./settings/email-confirmation";
+import Link from "next/link";
+import type { AccountProfile } from "@platform/types/account";
+import type { AccountLabels } from "@platform/types/account-copy";
+export default function VerificationStatus({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
+  return <section className="lms-profile-card lms-verification-card" aria-labelledby="contact-verification-title">
+    <h2 id="contact-verification-title">{labels.verification}</h2>
+    <dl className="lms-account-data">{[[labels.email, profile.emailVerified], [labels.phone, profile.phoneVerified]].map(([label, verified]) =>
+      <div key={String(label)}><dt>{label}</dt><dd className={verified ? "lms-success" : "lms-unverified"}>{verified ? labels.verified : labels.unverified}</dd></div>)}</dl>
+    {!profile.emailVerified && <EmailConfirmation email={profile.pendingEmail ?? profile.email} pendingChange={Boolean(profile.pendingEmail)} labels={labels} />}
+    {profile.pendingEmail && <p>{labels.pendingEmail}: <b dir="ltr">{profile.pendingEmail}</b></p>}
+    {(!profile.emailVerified || !profile.phoneVerified) && <><p>{labels.verificationHint}</p><Link className="lms-text-link" href={supportHref} target="_blank" rel="noopener noreferrer">{labels.support}</Link></>}
+  </section>;
 }
 ```
 
@@ -5487,33 +5880,26 @@ export default function Brand({
 
 ### File: `modules/components/layout/dashboard-header.tsx`
 
-SHA-256: `b5cdb5c2ca7884e3afef01f276b275adca98b465f184529d889cf9401d88fd34`
+SHA-256: `c414dd8aad37d8bc98eb7b95120e77652f8bb6ea95599aec5f7584e36ea1475c`
 
 ```tsx
 "use client";
-import LogoutButton from "../account/logout-button";
+import AccountMenu from "../account/account-menu";
 import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
 import type { DashboardShellProps, DashboardMenu } from "@platform/types/dashboard-shell";
 import Brand from "./brand";
-export default function DashboardHeader({name,site,copy,menu,navigationId,showBrowseLink = true}:Pick<DashboardShellProps,"name"|"site"|"copy"|"showBrowseLink"> & {menu:DashboardMenu;navigationId:string}) {
+export default function DashboardHeader({name,avatarUrl,accountMenu,site,copy,menu,navigationId,showBrowseLink = true}:Pick<DashboardShellProps,"name"|"avatarUrl"|"accountMenu"|"site"|"copy"|"showBrowseLink"> & {menu:DashboardMenu;navigationId:string}) {
 const {open,setOpen,toggleRef}=menu;
 return (<header className="lms-app-header">
         <Brand site={{ name: site.name, englishName: site.englishName }} />
         <div className="lms-app-header-actions">
-          {copy.logout && copy.error && <LogoutButton label={copy.logout} errorLabel={copy.error} />}
           <span className="lms-demo-label">{site.demoLabel}</span>
           {showBrowseLink && <Link href={routes.courses} className="lms-text-link">
             {copy.browse}
           </Link>}
-          <Link
-            href={routes.profile}
-            className="lms-avatar"
-            aria-label={copy.profileTitle}
-          >
-            {name.slice(0, 1)}
-          </Link>
+          {accountMenu && <AccountMenu name={name} avatarUrl={avatarUrl} content={accountMenu} />}
           <button
             className="lms-mobile-toggle"
             ref={toggleRef}
@@ -5531,7 +5917,7 @@ return (<header className="lms-app-header">
 
 ### File: `modules/components/layout/dashboard-shell.tsx`
 
-SHA-256: `cbdd38ff38ddba81aea2c4a35ef073fc373b75ef556210d351bf716b4976905b`
+SHA-256: `153580d02a4397c605cfd55d07800c7a9cd3102bd3357c8b9312bf28c74b6c2e`
 
 ```tsx
 "use client";
@@ -5548,6 +5934,8 @@ import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
   children,
   name,
+  avatarUrl,
+  accountMenu,
   interfaceCopy,
   dashboardNavigation,
   site,
@@ -5563,7 +5951,7 @@ export default function DashboardShell({
   if (!verified) return null;
   return (
     <div className="lms-app">
-      <DashboardHeader showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
+      <DashboardHeader accountMenu={accountMenu} avatarUrl={avatarUrl} showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
         <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
         <main className="lms-app-main">{children}</main>
@@ -7619,6 +8007,23 @@ export default function Symbol({
 }
 ```
 
+### File: `modules/config/account-menu.ts`
+
+SHA-256: `c98acd7f46718798dacb0cfe4b8c709fcf838d2907558c8f744bf2dec3f8b8e4`
+
+```typescript
+import { creatorContacts } from "../../config/creator-contacts";
+import { routes } from "./navigation";
+import { accountCopy } from "@platform/data/account";
+export const accountMenuContent = {
+  label: accountCopy.menu, imageLabel: accountCopy.image,
+  links: [{ href: routes.profile, label: accountCopy.profile }, { href: routes.settings, label: accountCopy.settings }, { href: creatorContacts.whatsapp, label: accountCopy.support, external: true }],
+  logoutLabel: accountCopy.logout, errorLabel: accountCopy.error,
+};
+
+export const adminAccountMenuContent = { ...accountMenuContent, links: accountMenuContent.links.map(link => ({ ...link, href: link.href === routes.profile ? routes.adminProfile : link.href === routes.settings ? routes.adminSettings : link.href })) };
+```
+
 ### File: `modules/config/admin.ts`
 
 SHA-256: `2e829e3636cbdae1d5037705132489f4f6364055102cf75ff4c2c1d68baceb3d`
@@ -7667,13 +8072,15 @@ export type ArtworkKind = (typeof artworkKinds)[number];
 
 ### File: `modules/config/dashboard-shell.ts`
 
-SHA-256: `8ae6c5e8ec8aeb3d41a8954f7803f93bc7bad6e55660b90166660b653457368f`
+SHA-256: `20f982922031a45a8395b39953a361ddbdc4e1ad7180f648e423d25bfc2fbc78`
 
 ```typescript
+import { accountMenuContent } from "./account-menu";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { backendCopy } from "@platform/data/backend-copy";
 import { site, copy } from "@platform/data/site";
 export const dashboardShellContent = {
+  accountMenu: accountMenuContent,
   interfaceCopy: { studentNavigationLabel: interfaceCopy.studentNavigationLabel, sidebarTitle: interfaceCopy.sidebarTitle,
     sidebarDescription: interfaceCopy.sidebarDescription, homeLabel: interfaceCopy.homeLabel },
   site: { demoLabel: backendCopy.ACCOUNT_LABEL, name: site.name, englishName: site.englishName },
@@ -7684,7 +8091,7 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `52e9f15a4fea90b3f90cff40575fd042b6699fdabe9569e2b2d478319a1a2a49`
+SHA-256: `b35c2449c3c22165425136b9f3ce88f7ad13e9b68a1fda09dc0b31d2e79620ac`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -7713,12 +8120,18 @@ export const routes = {
   dashboard: `${learningBase}/dashboard`,
   login: `${learningBase}/login`,
   signup: `${learningBase}/signup`,
+  forgotPassword: `${learningBase}/forgot-password`,
+  confirmEmail: `${learningBase}/confirm-email`,
+  resetPassword: `${learningBase}/reset-password`,
   library: `${learningBase}/dashboard/courses`,
   resources: `${learningBase}/dashboard/resources`,
   certificates: `${learningBase}/dashboard/certificates`,
   profile: `${learningBase}/dashboard/profile`,
+  settings: `${learningBase}/dashboard/settings`,
   admin: "/admin/dashboard/courses",
   adminDashboard: "/admin/dashboard",
+  adminProfile: "/admin/dashboard/profile",
+  adminSettings: "/admin/dashboard/settings",
   adminUsers: "/admin/dashboard",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
@@ -7749,6 +8162,12 @@ export const endpoints = {
   enrollments: "/api/enrollments",
   progress: "/api/progress",
   profile: "/api/profile",
+  accountSettings: "/api/account/settings",
+  accountPassword: "/api/account/password",
+  emailConfirmation: "/api/account/verification",
+  forgotPassword: "/api/auth/forgot-password",
+  resetPassword: "/api/auth/reset-password",
+  contactVerification: (id: string) => `${endpoints.adminUser(id)}/verification`,
   introStream: (slug: string) => `/api/courses/${segment(slug)}/intro`,
   lessonStream: (slug: string, id: string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/stream`,
   course: (slug: string) => `/api/courses/${segment(slug)}`,
@@ -7792,6 +8211,35 @@ export const suspensionPeriods = [
 export const userAdministration = { pageSize: 5, searchMaxLength: 100, newcomerDays: 7, permanentBanHours: 876000, refreshMs: 60000 } as const;
 export const userStatusFilters = ["suspended", "banned"] as const;
 export const userSearchModes = ["contains", "prefix"] as const;
+```
+
+### File: `modules/data/account.ts`
+
+SHA-256: `eaac741ba62b049f904d50b4321366fcbaa434873ffee19194d409fe13ec71ef`
+
+```typescript
+export const accountCopy = {
+  menu: "قائمة الحساب", profile: "الملف الشخصي", settings: "الإعدادات", support: "الدعم والمساعدة", logout: "تسجيل الخروج",
+  name: "الاسم", username: "اسم المستخدم", email: "البريد الإلكتروني", firstName: "الاسم الأول", lastName: "اسم العائلة",
+  phonePlaceholder: "+20-1201024880", phone: "رقم الهاتف", phoneHint: "اكتب رمز الدولة ثم الشرطة ثم الرقم، كما في المثال داخل الحقل.",
+  emailLocked: "لا يمكن تغيير البريد الإلكتروني من حساب الطالب. تواصل مع الدعم إذا احتجت إلى تغييره.",
+  emailChangeHint: "تغيير البريد يتطلب كلمة المرور الحالية وتأكيد العنوان الجديد عبر رسالة بريد إلكتروني.",
+  currentPassword: "كلمة المرور الحالية", password: "كلمة المرور الجديدة", confirmPassword: "تأكيد كلمة المرور الجديدة",
+  currentHint: "مطلوبة عند تغيير رقم الهاتف أو البريد الإلكتروني.", passwordHint: "٨ أحرف على الأقل. استخدم كلمة مرور مختلفة عن الحالية.",
+  passwordTitle: "تغيير كلمة المرور", passwordSaved: "تم تغيير كلمة المرور.", profileSaved: "تم حفظ بيانات الحساب.",
+  save: "حفظ التغييرات", saving: "جارٍ الحفظ…", error: "تعذّر إكمال الطلب. حاول مرة أخرى.", show: "إظهار", hide: "إخفاء",
+  profileTitle: "ملفك الشخصي", settingsTitle: "إعدادات الحساب", image: "الصورة الشخصية", student: "طالب", admin: "مدير", role: "نوع الحساب",
+  courses: "دوراتك", noCourses: "لم تشترك في دورات حتى الآن.", adminPanel: "إدارة المستخدمين والدورات", viewAdmin: "فتح لوحة الإدارة",
+  verification: "تأكيد بيانات التواصل", verified: "تم التأكيد", unverified: "بانتظار التأكيد", missing: "لم يُضف رقم هاتف",
+  verificationHint: "أكّد بريدك عبر الرسالة المرسلة، وتواصل مع الإدارة لتأكيد رقمك. يمكنك متابعة دوراتك الحالية أثناء التأكيد؛ الاشتراك في دورات جديدة يحتاج إلى تأكيد الاثنين.",
+  pendingEmail: "البريد الجديد بانتظار التأكيد", phoneConfirmation: "تأكيد الهاتف يدويًا", confirmPhone: "أكدت الرقم بعد التواصل مع المستخدم",
+  confirmationHint: "راجع الرقم مع المستخدم في رسالة خاصة قبل تأكيده. يُسجل اسم المدير ووقت التأكيد؛ تغيير الرقم يلغي التأكيد السابق.",
+  confirmed: "تم تسجيل تأكيد الرقم.", forgot: "نسيت كلمة المرور؟", forgotTitle: "استعادة كلمة المرور", resetTitle: "كلمة مرور جديدة",
+  recoveryHint: "أدخل بريد حسابك وسنرسل رابطًا لاستعادة كلمة المرور.", recoverySent: "إذا كان البريد مسجلًا، ستصلك رسالة تحتوي على رابط الاستعادة.",
+  sendRecovery: "إرسال رابط الاستعادة", reset: "حفظ كلمة المرور الجديدة", backLogin: "العودة لتسجيل الدخول", resetSaved: "تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة.",
+  confirmEmailTitle: "تأكيد البريد الإلكتروني", confirmEmailHint: "أدخل بريد حسابك لإعادة إرسال رسالة التأكيد.",
+  resendEmail: "إعادة إرسال رسالة التأكيد", emailSent: "تم إرسال رسالة التأكيد. راجع بريدك الإلكتروني.",
+} as const;
 ```
 
 ### File: `modules/data/admin-users.ts`
@@ -7839,9 +8287,10 @@ export const adminCopy = {
 
 ### File: `modules/data/auth.ts`
 
-SHA-256: `898f6ab51fd0b87df21c86bf14dd0e9337a4ce6a7a807b260ef8b8f9808a8e2f`
+SHA-256: `3cd78a3d8d5b1188173d39442cddc736b8e39dd241e23d74dbffbb243399e1c0`
 
 ```typescript
+import { accountCopy } from "./account";
 import { backendCopy } from "./backend-copy";
 import { authPolicy } from "@platform/config/auth";
 import { endpoints, routes } from "@platform/config/navigation";
@@ -7869,19 +8318,25 @@ const shared = {
   pending: "جارٍ المتابعة…", redirectTo: routes.dashboard, copy: authCopy,
 };
 export const authPages: Record<AuthMode, AuthPageModel> = {
-  login: { ...shared, mode: "login", heading: "كمّل رحلتك مع تعلّم.", title: "تسجيل الدخول", description: "أدخل بياناتك للمتابعة إلى حسابك.", submit: "تسجيل الدخول", endpoint: endpoints.auth.login,
+  login: { ...shared, recovery: { label: accountCopy.forgot, href: routes.forgotPassword }, mode: "login", heading: "كمّل رحلتك مع تعلّم.", title: "تسجيل الدخول", description: "أدخل بياناتك للمتابعة إلى حسابك.", submit: "تسجيل الدخول", endpoint: endpoints.auth.login,
     alternate: { prompt: "أول مرة هنا؟", label: "أنشئ حسابًا", href: routes.signup } },
-  signup: { ...shared, mode: "signup", heading: "ابدأ تعلّم مهارة جديدة.", title: "إنشاء حساب", description: "خطوة بسيطة، وتبدأ بعدها رحلتك في التعلّم والتطبيق.", submit: "إنشاء حساب", endpoint: endpoints.auth.signup,
+  signup: { ...shared, confirmationLink: { label: accountCopy.resendEmail, href: routes.confirmEmail }, mode: "signup", heading: "ابدأ تعلّم مهارة جديدة.", title: "إنشاء حساب", description: "خطوة بسيطة، وتبدأ بعدها رحلتك في التعلّم والتطبيق.", submit: "إنشاء حساب", endpoint: endpoints.auth.signup,
     alternate: { prompt: "عندك حساب بالفعل؟", label: "سجّل الدخول", href: routes.login } },
 };
 ```
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `7d175eac6dcf3a95afd6ae433aa520bc6fe7058d73845f9b9ecfe82c6b4db59d`
+SHA-256: `4e5cfe832beaa1f90f9f4781d82bf1a24c267d873b070c31e1804aafbb8cf932`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  RECOVERY_EXPIRED: "رابط استعادة كلمة المرور غير صالح أو انتهت مدته. اطلب رابطًا جديدًا.",
+  EMAIL_LOCKED: "البريد الإلكتروني لا يمكن تغييره من حساب الطالب.",
+  CURRENT_PASSWORD_REQUIRED: "أدخل كلمة المرور الحالية لتغيير البيانات الحساسة.",
+  CURRENT_PASSWORD_INVALID: "كلمة المرور الحالية غير صحيحة.",
+  CONTACT_CHANGED: "تغيّرت بيانات التواصل. حدّث الصفحة وراجع القيمة الجديدة قبل تأكيدها.",
+  CONTACT_VERIFICATION_REQUIRED: "يلزم تأكيد البريد الإلكتروني وتأكيد رقم الهاتف بواسطة الإدارة قبل الاشتراك في دورة جديدة. دوراتك الحالية متاحة.",
   USERNAME_TAKEN: "اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر.",
   PROTECTED_ADMIN: "حسابات المديرين محمية من الحظر والحذف.",
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
@@ -8685,6 +9140,372 @@ export const liveWorkshopCourse: Course = {
   artwork: "business", modules: [], outcomes: roadmapDays.filter(day => day.kind !== "pause").map(day => day.title),
   offer: { ...courseOffers["7days-freelance"], caption: "سعر مبدئي قابل للتعديل", actionLabel: siteConfig.enrollmentLabel },
 };
+```
+
+### File: `modules/features/account/handle-confirmation.ts`
+
+SHA-256: `4548a552091ffe3cc797258ff0932620b38b81a8187d40ce76ad644f99870a01`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { validUserId } from "@platform/features/admin/helpers/read-moderation";
+import { readUserContacts } from "./repositories/read-user-contacts";
+export function handleConfirmation(request: Request, id: string) {
+  return apiResponse(async () => {
+    const { client } = await requireAdmin();
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    if (!validUserId(id)) throw new ApiError(404, "NOT_FOUND");
+    const input = await readJson(request);
+    if (!input || input.field !== "phone" || typeof input.value !== "string") throw new ApiError(400, "INVALID_INPUT");
+    const contact = await readUserContacts(id), value = contact.phone_e164;
+    if (!value || input.value !== value) throw new ApiError(409, "CONTACT_CHANGED");
+    const { error } = await client.rpc("confirm_account_contact", { p_user_id: id, p_field: input.field, p_value: value });
+    if (error) throw new ApiError(error.code === "40001" ? 409 : 503, error.code === "40001" ? "CONTACT_CHANGED" : "INTERNAL_ERROR");
+    return Response.json({ confirmed: true });
+  });
+}
+```
+
+### File: `modules/features/account/handle-email-confirmation.ts`
+
+SHA-256: `bd94b14f198454ea072365bc19b32ab52356710a6d9c036937f17e59550d01ab`
+
+```typescript
+import { authPolicy } from "@platform/config/auth";
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { createDatabaseClient } from "@platform/lib/supabase/server";
+import { isValidEmail } from "@platform/helpers/validation/email";
+import { applicationOrigin } from "@platform/lib/application-origin";
+export function handleEmailConfirmation(request: Request) {
+  return apiResponse(async () => {
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const input = await readJson(request), client = await createDatabaseClient();
+    if (typeof input?.email !== "string" || !isValidEmail(input.email, authPolicy.emailMax)) throw new ApiError(400, "INVALID_INPUT");
+    if (input.type !== undefined && input.type !== "signup" && input.type !== "email_change") throw new ApiError(400, "INVALID_INPUT");
+    const pending = input.type === "email_change";
+    if (pending) {
+      const { data } = await client.auth.getUser();
+      if (!data.user || data.user.new_email !== input.email) throw new ApiError(403, "FORBIDDEN");
+    }
+    const { error } = await client.auth.resend({ type: pending ? "email_change" : "signup", email: input.email, options: { emailRedirectTo: `${applicationOrigin()}/api/auth/callback` } });
+    if (error) throw new ApiError(error.status === 429 ? 429 : 503, error.status === 429 ? "RATE_LIMITED" : "AUTH_FAILED");
+    return Response.json({ sent: true });
+  });
+}
+```
+
+### File: `modules/features/account/handle-password.ts`
+
+SHA-256: `4b8bb31ae9ce5b2fe895770e9df4a7914abf2f0b9f25f578140e67849b8e24a7`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { verifyCurrentPassword } from "./helpers/verify-password";
+import { authPolicy } from "@platform/config/auth";
+export function handlePassword(request: Request) {
+  return apiResponse(async () => {
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const { client, user } = await requireIdentity(), input = await readJson(request);
+    if (typeof input?.password !== "string" || input.password.length < authPolicy.passwordMin || input.password.length > authPolicy.passwordMax || input.password !== input.confirmPassword || input.password === input.currentPassword) throw new ApiError(400, "INVALID_INPUT");
+    await verifyCurrentPassword(user.email ?? "", typeof input.currentPassword === "string" ? input.currentPassword : "", user.id);
+    const { error } = await client.auth.updateUser({ password: input.password, current_password: typeof input.currentPassword === "string" ? input.currentPassword : undefined });
+    if (error) throw new ApiError(error.status === 429 ? 429 : 400, error.status === 429 ? "RATE_LIMITED" : "AUTH_FAILED");
+    return Response.json({ saved: true });
+  });
+}
+```
+
+### File: `modules/features/account/handle-recovery.ts`
+
+SHA-256: `74215dffcda9e59c1f11a54f203f66a5491ee05c707beb5a577e727ad9e3bfd3`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { createDatabaseClient } from "@platform/lib/supabase/server";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { isValidEmail } from "@platform/helpers/validation/email";
+import { authPolicy } from "@platform/config/auth";
+import { applicationOrigin } from "@platform/lib/application-origin";
+import { consumeRecovery } from "./repositories/recovery-grant";
+export function handleRecovery(request: Request, mode: "request" | "reset") {
+  return apiResponse(async () => {
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const input = await readJson(request);
+    if (mode === "request") {
+      if (typeof input?.email !== "string" || !isValidEmail(input.email, authPolicy.emailMax)) throw new ApiError(400, "INVALID_INPUT");
+      const client = await createDatabaseClient();
+      const { error } = await client.auth.resetPasswordForEmail(input.email, { redirectTo: `${applicationOrigin()}/api/auth/callback` });
+      if (error) throw new ApiError(error.status === 429 ? 429 : 503, error.status === 429 ? "RATE_LIMITED" : "AUTH_FAILED");
+      return Response.json({ sent: true });
+    }
+    const { client, user } = await requireIdentity();
+    if (typeof input?.password !== "string" || input.password.length < authPolicy.passwordMin || input.password.length > authPolicy.passwordMax || input.password !== input.confirmPassword) throw new ApiError(400, "INVALID_INPUT");
+    await consumeRecovery(client, user.id);
+    const { error } = await client.auth.updateUser({ password: input.password });
+    if (error) throw new ApiError(400, "AUTH_FAILED");
+    await client.auth.signOut({ scope: "global" });
+    return Response.json({ saved: true });
+  });
+}
+```
+
+### File: `modules/features/account/handle-settings.ts`
+
+SHA-256: `e3d19a832a881865d19ff011641cc02bb71e18ccd4ffc61955bc799a959f5e59`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { validateSettings } from "./helpers/validate-settings";
+import { readAccount } from "./repositories/read-account";
+import { saveSettings } from "./repositories/save-settings";
+export function handleSettings(request?: Request) {
+  return apiResponse(async () => {
+    if (!request) return Response.json(await readAccount());
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const input = validateSettings(await readJson(request));
+    if (!input) throw new ApiError(400, "INVALID_INPUT");
+    return Response.json(await saveSettings(input));
+  });
+}
+```
+
+### File: `modules/features/account/helpers/phone-number.ts`
+
+SHA-256: `076acd19dba46c3526bfb229f91193118a11c0f96590ec67fb3b7895009a7ea6`
+
+```typescript
+import { parsePhoneNumberFromString } from "libphonenumber-js/max";
+/** Accept only the requested +country-national format, with real numbering-plan validation. */
+export function readPhoneNumber(value: unknown) {
+  if (typeof value !== "string" || !/^\+[1-9]\d{0,2}-\d{4,14}$/.test(value)) return null;
+  const phone = parsePhoneNumberFromString(value.replace("-", ""));
+  if (!phone?.isValid() || value !== `+${phone.countryCallingCode}-${phone.nationalNumber}`) return null;
+  return { e164: phone.number, display: value };
+}
+export function displayPhoneNumber(value: string | null) {
+  const phone = value ? parsePhoneNumberFromString(value) : undefined;
+  return phone ? `+${phone.countryCallingCode}-${phone.nationalNumber}` : "";
+}
+```
+
+### File: `modules/features/account/helpers/read-account-response.ts`
+
+SHA-256: `f087c927a2c72a0f5425ca8e70449730e6b2da1a804d8316e13e85dacd9f2730`
+
+```typescript
+import type { AccountProfile } from "@platform/types/account";
+export function readAccountResponse(input: unknown): AccountProfile {
+  if (!input || typeof input !== "object") throw new Error("Invalid account response");
+  const v = input as Record<string, unknown>;
+  if (!["id", "name", "username", "firstName", "lastName", "email", "phone"].every(key => typeof v[key] === "string") ||
+    !["admin", "emailVerified", "phoneVerified"].every(key => typeof v[key] === "boolean") ||
+    !(v.pendingEmail === null || typeof v.pendingEmail === "string") || !(v.avatarUrl === null || typeof v.avatarUrl === "string")) throw new Error("Invalid account response");
+  return v as unknown as AccountProfile;
+}
+```
+
+### File: `modules/features/account/helpers/validate-settings.ts`
+
+SHA-256: `98b833c20a329fd387c5f76ebfc508bafdf4768a189b861f8f69e3d2db06187a`
+
+```typescript
+import { authPolicy } from "@platform/config/auth";
+import { isValidUsername, normalizeUsername } from "@platform/helpers/validation/username";
+import { isValidEmail } from "@platform/helpers/validation/email";
+import { readPhoneNumber } from "./phone-number";
+import type { AccountSettingsInput } from "@platform/types/account";
+export function validateSettings(input: unknown): AccountSettingsInput | null {
+  if (!input || typeof input !== "object") return null;
+  const v = input as Record<string, unknown>;
+  if (!["firstName", "lastName", "email", "phone"].every(key => typeof v[key] === "string")) return null;
+  const firstName = (v.firstName as string).trim(), lastName = (v.lastName as string).trim();
+  if (!firstName || `${firstName} ${lastName}`.trim().length < authPolicy.nameMin || `${firstName} ${lastName}`.trim().length > authPolicy.nameMax || /[\r\n\t]/.test(firstName + lastName)) return null;
+  if (!isValidUsername(v.username) || !isValidEmail(v.email as string, authPolicy.emailMax) || !readPhoneNumber(v.phone)) return null;
+  if (v.currentPassword !== undefined && (typeof v.currentPassword !== "string" || v.currentPassword.length > authPolicy.passwordMax)) return null;
+  return { firstName, lastName, username: normalizeUsername(v.username), email: (v.email as string).trim().toLowerCase(), phone: v.phone as string, currentPassword: v.currentPassword as string ?? "" };
+}
+```
+
+### File: `modules/features/account/helpers/verify-password.ts`
+
+SHA-256: `5e988cdf1a02847ef9526be4afa7858d4058a063e55e7fdc11346d84d79e9a71`
+
+```typescript
+import "server-only";
+import { createClient } from "@supabase/supabase-js";
+import { supabaseEnvironment } from "@platform/lib/supabase/environment";
+import { ApiError } from "@platform/lib/api/error";
+/** Reauthentication uses an isolated client and never replaces the active browser session. */
+export async function verifyCurrentPassword(email: string, password: string, userId: string) {
+  if (!password || password.length > 128) throw new ApiError(400, "CURRENT_PASSWORD_REQUIRED");
+  const { url, key } = supabaseEnvironment();
+  const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error || data.user?.id !== userId) throw new ApiError(error?.status === 429 ? 429 : 400, error?.status === 429 ? "RATE_LIMITED" : "CURRENT_PASSWORD_INVALID");
+  const signout = await client.auth.signOut({ scope: "local" });
+  if (signout.error) throw new ApiError(503, "INTERNAL_ERROR");
+}
+```
+
+### File: `modules/features/account/profile-page.tsx`
+
+SHA-256: `cc9399ccd9ed55412e799fc0fa9d469f6b7b2f8308cea2c3ead5446286356f37`
+
+```tsx
+import { readAccount } from "./repositories/read-account";
+import { readStudentState, courseProgress } from "@platform/features/learning";
+import { listCourses } from "@platform/features/catalog";
+import { routes } from "@platform/config/navigation";
+import { accountCopy } from "@platform/data/account";
+import { site, copy } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import CourseGrid from "@platform/components/courses/course-grid";
+import ProfileView from "@platform/components/account/profile-view";
+export default async function AccountProfilePage() {
+  const profile = await readAccount();
+  const state = profile.admin ? null : await readStudentState();
+  const courses = state ? (await listCourses()).filter(course => state.enrolled.includes(course.slug)) : [];
+  return <ProfileView profile={profile} labels={accountCopy} settingsHref={profile.admin ? routes.adminSettings : routes.settings} adminHref={routes.adminDashboard}>
+    {state && courses.length ? <CourseGrid courses={courses} layout="dashboard" progress={Object.fromEntries(courses.map(course => [course.slug, courseProgress(course, state)]))}
+      copy={copy} site={site} offerCopy={offerCopy} /> : <p>{accountCopy.noCourses}</p>}
+  </ProfileView>;
+}
+```
+
+### File: `modules/features/account/repositories/read-account.ts`
+
+SHA-256: `db9ba6d428e5ab9b7f08089989166514a3a02db23d8ad4b2e16653c1632fe6a5`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { hasAdminAccess } from "@platform/features/admin/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { displayPhoneNumber } from "../helpers/phone-number";
+import type { AccountProfile } from "@platform/types/account";
+export async function readAccount(): Promise<AccountProfile> {
+  const { client, user } = await requireIdentity();
+  const [profile, contact, admin] = await Promise.all([
+    client.from("profiles").select("*").eq("id", user.id).single(),
+    client.from("account_contacts").select("*").eq("user_id", user.id).single(), hasAdminAccess(),
+  ]);
+  if (profile.error || contact.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const p = profile.data, c = contact.data;
+  return { id: user.id, name: p.name, username: p.username, firstName: p.first_name, lastName: p.last_name,
+    email: c.email, pendingEmail: c.pending_email, phone: displayPhoneNumber(c.phone_e164),
+    avatarUrl: p.avatar_url?.startsWith("https://") ? p.avatar_url : null, admin,
+    emailVerified: Boolean(c.email_verified_at && !c.pending_email && user.email_confirmed_at && !user.new_email), phoneVerified: Boolean(c.phone_e164 && c.phone_verified_at) };
+}
+```
+
+### File: `modules/features/account/repositories/read-user-contacts.ts`
+
+SHA-256: `14257f3d3c3d70a6dfce5168ed18b592504a0c7637fc78c39a06ff71ec8aabb4`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+export async function readUserContacts(id: string) {
+  await requireAdmin();
+  const { data, error } = await createAuthAdministrator().from("account_contacts").select("*").eq("user_id", id).maybeSingle();
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!data) throw new ApiError(404, "NOT_FOUND");
+  return data;
+}
+```
+
+### File: `modules/features/account/repositories/recovery-grant.ts`
+
+SHA-256: `8b8f64634d9d51e72d298bc8ef998a2448ad17cf0ee60654307f72ea2f8313b6`
+
+```typescript
+import "server-only";
+import type { DatabaseClient } from "@platform/types/database-client";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+export async function recoverySession(client: DatabaseClient) {
+  const { data, error } = await client.auth.getClaims();
+  const id = data?.claims.session_id;
+  if (error || typeof id !== "string") throw new ApiError(403, "RECOVERY_EXPIRED");
+  return id;
+}
+export async function authorizeRecovery(client: DatabaseClient, userId: string) {
+  const sessionId = await recoverySession(client);
+  const { error } = await createAuthAdministrator().from("account_recovery_grants").upsert({ user_id: userId, session_id: sessionId, expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString() });
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+}
+export async function consumeRecovery(client: DatabaseClient, userId: string) {
+  const sessionId = await recoverySession(client);
+  const { data, error } = await createAuthAdministrator().from("account_recovery_grants").delete().eq("user_id", userId).eq("session_id", sessionId).gt("expires_at", new Date().toISOString()).select("user_id").maybeSingle();
+  if (error || !data) throw new ApiError(403, "RECOVERY_EXPIRED");
+}
+export async function hasRecoveryGrant(client: DatabaseClient, userId: string) {
+  const sessionId = await recoverySession(client);
+  const { data, error } = await createAuthAdministrator().from("account_recovery_grants").select("user_id").eq("user_id", userId).eq("session_id", sessionId).gt("expires_at", new Date().toISOString()).maybeSingle();
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  return Boolean(data);
+}
+```
+
+### File: `modules/features/account/repositories/save-settings.ts`
+
+SHA-256: `e93e6071b28f9126c01961eea30f2143b81a155f68ed9b29e4b581fbb1449fef`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { applicationOrigin } from "@platform/lib/application-origin";
+import { readAccount } from "./read-account";
+import { verifyCurrentPassword } from "../helpers/verify-password";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { readPhoneNumber } from "../helpers/phone-number";
+import type { AccountSettingsInput } from "@platform/types/account";
+export async function saveSettings(input: AccountSettingsInput) {
+  const account = await readAccount(), client = createAuthAdministrator();
+  if (input.email !== (account.pendingEmail ?? account.email) && !account.admin) throw new ApiError(403, "EMAIL_LOCKED");
+  const emailChanged = input.email !== (account.pendingEmail ?? account.email), phoneChanged = input.phone !== account.phone;
+  if (emailChanged || phoneChanged) await verifyCurrentPassword(account.email, input.currentPassword, account.id);
+  if (emailChanged) {
+    const { client: session } = await requireIdentity();
+    const { error } = await session.auth.updateUser({ email: input.email }, { emailRedirectTo: `${applicationOrigin()}/api/auth/callback` });
+    if (error) throw new ApiError(error.status === 429 ? 429 : 400, error.status === 429 ? "RATE_LIMITED" : "AUTH_FAILED");
+  }
+  const { error } = await client.rpc("save_account_settings", {
+    p_user_id: account.id, p_first_name: input.firstName, p_last_name: input.lastName,
+    p_username: input.username, p_phone: readPhoneNumber(input.phone)!.e164,
+  });
+  if (error) throw new ApiError(error.code === "23505" ? 409 : 503, error.code === "23505" ? "USERNAME_TAKEN" : "INTERNAL_ERROR");
+  return readAccount();
+}
+```
+
+### File: `modules/features/account/settings-page.tsx`
+
+SHA-256: `2a991589cda2b6432577a3f8076cb50d578cf2ce44e9d3985f89ae64f8fd06ce`
+
+```tsx
+import { readAccount } from "./repositories/read-account";
+import { accountCopy } from "@platform/data/account";
+import { creatorContacts } from "../../../config/creator-contacts";
+import SettingsView from "@platform/components/account/settings/settings-view";
+export default async function AccountSettingsPage() {
+  return <SettingsView profile={await readAccount()} labels={accountCopy} supportHref={creatorContacts.whatsapp} />;
+}
 ```
 
 ### File: `modules/features/admin/handle-course.ts`
@@ -10026,7 +10847,7 @@ export async function readStudentState() {
 
 ### File: `modules/features/learning/repositories/enroll-course.ts`
 
-SHA-256: `7c918d9b720035e5ed4f11aea1a827b7d6f7a851adcc209fa238918c777bf74e`
+SHA-256: `7d22ee17a28ba4c3727a7b4a80f0ab34ee835c81583ddc42b5724448ff5c0462`
 
 ```typescript
 import { requireIdentity } from "@platform/features/auth/server/identity";
@@ -10040,6 +10861,9 @@ export async function enrollCourse(slug: string) {
   const { data, error: lookupError } = await client.from("enrollments").select("course_slug").eq("user_id", user.id).eq("course_slug", slug).maybeSingle();
   if (lookupError) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) {
+    const verification = await client.rpc("contacts_verified");
+    if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
+    if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
     if (course.delivery === "live" || course.offer.amountLabel || course.offer.amount > 0) throw new ApiError(403, "PAYMENT_REQUIRED");
     const { error } = await client.from("enrollments").insert({ user_id: user.id, course_slug: slug });
     if (error && error.code !== "23505") throw new ApiError(503, "INTERNAL_ERROR");
@@ -10462,10 +11286,9 @@ export default function PortfolioPage() {
 
 ### File: `modules/features/profile/handle-request.ts`
 
-SHA-256: `08342db27b600bd23f746ce7091ee4404d6f782fdb9c2eaca23ab97638363795`
+SHA-256: `1dd944db577b3b28233fe0b02793fd404d1c8bc34596ccc7bbbd6d25a1ed6b13`
 
 ```typescript
-import { applicationOrigin } from "@platform/lib/application-origin";
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
@@ -10479,10 +11302,7 @@ export async function handleProfile(request?: Request) {
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
     const profile = validateProfile(await readJson(request));
     if (!profile) throw new ApiError(400, "INVALID_INPUT");
-    if (profile.email !== user.email) {
-      const { error } = await client.auth.updateUser({ email: profile.email }, { emailRedirectTo: `${applicationOrigin()}/api/auth/callback` });
-      if (error) throw new ApiError(400, "AUTH_FAILED");
-    }
+    if (profile.email !== user.email) throw new ApiError(403, "EMAIL_LOCKED");
     const { error } = await client.from("profiles").upsert({ id: user.id, name: profile.name, ...(profile.username ? { username: profile.username } : {}) });
     if (error) throw new ApiError(error.code === "23505" ? 409 : 503, error.code === "23505" ? "USERNAME_TAKEN" : "INTERNAL_ERROR");
     return Response.json({ ...await readProfile(client, user), emailChangePending: profile.email !== user.email });
@@ -10868,6 +11688,29 @@ export function useTimelineProgress(ref: RefObject<HTMLDivElement | null>) {
       preference.removeEventListener("change", schedule);
     };
   }, [ref]);
+}
+```
+
+### File: `modules/hooks/use-account-submission.ts`
+
+SHA-256: `66e67327b5a5c6b38368c9ec13ce9a138a005037259f5b30868f2f95a2ffdf3d`
+
+```typescript
+"use client";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+import { useAsyncCommand } from "./use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+export function useAccountSubmission(path: string, errorLabel: string, successLabel: string, decode: (input: unknown) => unknown = input => input, { refresh = true }: { refresh?: boolean } = {}) {
+  const router = useRouter(), command = useAsyncCommand(errorLabel);
+  const [message, setMessage] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setMessage("");
+    const form = event.currentTarget, input = Object.fromEntries(new FormData(form));
+    const result = await command.run(() => httpRequest({ path, body: input, failureLabel: errorLabel, decode }));
+    if (result) { setMessage(successLabel); form.querySelectorAll<HTMLInputElement>('input[name="password"],input[name="currentPassword"],input[name="confirmPassword"]').forEach(field => { field.value = ""; }); if (refresh) router.refresh(); }
+  }
+  return { submit, pending: command.pending, error: command.error, message };
 }
 ```
 
@@ -11470,6 +12313,31 @@ SHA-256: `9b55707a771aceb7315011c05375450f04728fa32175bcfa35fada66f7c2133b`
 ```typescript
 import palette from "../styles/theme-server.json";
 export const theme = palette;
+```
+
+### File: `modules/styles/account.css`
+
+SHA-256: `bfb44ca2c7e1d339ecc3f025359971a80f86a945d29a319788bd9f4f2ea28cc1`
+
+```css
+.lms-account-stack { display: grid; gap: var(--space-lg); }
+.lms-account-stack h2 { font-size: var(--size-1_25rem); margin-bottom: var(--space-lg); }
+.lms-account-data { display: grid; gap: var(--space-md); }
+.lms-account-data > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-md); }
+.lms-account-data dt { color: var(--text-secondary); }
+.lms-account-data dd { margin: 0; overflow-wrap: anywhere; }
+.lms-profile-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: var(--space-md); }
+.lms-settings-name-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.lms-profile-form input:read-only { color: var(--text-muted); background: var(--bg-main); }
+.lms-verification-card p { margin-block: var(--space-md); color: var(--text-secondary); }
+.lms-unverified { color: var(--text-accent-readable); }
+.lms-verification-card { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .lms-settings-name-grid { grid-template-columns: 1fr; } .lms-account-data > div { grid-template-columns: 1fr; gap: var(--space-xs); } }
+
+.lms-recovery-page { min-height: var(--lms-size-70vh); display: grid; place-items: center; padding-block: var(--space-2xl); }
+.lms-recovery-page .lms-auth-card { width: 100%; max-width: var(--lms-size-560px); }
+.lms-recovery-page h1 { font-size: var(--size-1_5rem); }
+.lms-recovery-page .lms-text-link { display: inline-block; margin-top: var(--space-lg); }
 ```
 
 ### File: `modules/styles/admin.css`
@@ -15234,6 +16102,31 @@ SHA-256: `daa5378e3319f1c86b480af2ed93eb4d15b23e79bf07361931888dfe7e9e1364`
 }
 ```
 
+### File: `modules/types/account-copy.ts`
+
+SHA-256: `45bb17d038cf6ec36b22d8ca554db02bcbf34d8d6332ecdf053f3205bf1cf5ca`
+
+```typescript
+import type { accountCopy } from "@platform/data/account";
+export type AccountLabels = { [K in keyof typeof accountCopy]: string };
+```
+
+### File: `modules/types/account.ts`
+
+SHA-256: `8ba0f6fce53a2955dba4fe420bc7ed552be478066d1cc457f35922ef2c465f2e`
+
+```typescript
+export interface AccountProfile {
+  id: string; name: string; username: string; firstName: string; lastName: string;
+  email: string; pendingEmail: string | null; phone: string; avatarUrl: string | null;
+  emailVerified: boolean; phoneVerified: boolean; admin: boolean;
+}
+export interface AccountSettingsInput {
+  firstName: string; lastName: string; username: string; email: string; phone: string; currentPassword: string;
+}
+export type ContactField = "email" | "phone";
+```
+
 ### File: `modules/types/admin-users.ts`
 
 SHA-256: `23d789211f981ca568a734c456788b4e844c24404c004421c6d0397c66c0be21`
@@ -15258,7 +16151,7 @@ export type AdminUsersLabels = { [K in keyof typeof adminUsersCopy]: string };
 
 ### File: `modules/types/auth.ts`
 
-SHA-256: `f14f228412690df767aa9cf53e66158ee2eb039eac95baabb3b1b576ed0c447e`
+SHA-256: `1bcee6a8a2c7fd640f1af4b351193de971e8267a0b61f14cae01403ec06bcf82`
 
 ```typescript
 export type AuthMode = "login" | "signup";
@@ -15279,6 +16172,8 @@ export interface AuthPageModel {
   submit: string; pending: string; demoLabel: string; demoNote: string; confirmationMessage: string;
   alternate: { prompt: string; label: string; href: string };
   endpoint: string; redirectTo: string; copy: AuthCopy;
+  recovery?: { label: string; href: string };
+  confirmationLink?: { label: string; href: string };
 }
 ```
 
@@ -15302,7 +16197,7 @@ export interface ContentBindings {
 
 ### File: `modules/types/dashboard-shell.ts`
 
-SHA-256: `912e4a8ec1e806f767f4901895521c3707284839b085da2f795a15ff67810783`
+SHA-256: `0d1a1ad79f897a0387fa54b0586c11f4ff2ed974ed25448181895678414094f4`
 
 ```typescript
 import type { ContentBindings } from "./content";
@@ -15310,6 +16205,8 @@ import type { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
+  avatarUrl?: string | null;
+  accountMenu?: typeof import("@platform/config/account-menu").accountMenuContent;
   sessionEndpoint?: string;
   showSidebarHelp?: boolean;
   showBrowseLink?: boolean;
@@ -15343,35 +16240,59 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `31588c4f030f9b09baf15215c6d62e284192be019bbb52f3351a9c2bd5b6c263`
+SHA-256: `5693aa1a05c2c83019a9bb2e87b50079816bf1c41bb0c1ddb7a27347f098b125`
 
 ```typescript
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
-  "graphql_public": {
+
+  "public": {
           Tables: {
-            [_ in never]: never
-          }
-          Views: {
-            [_ in never]: never
-          }
-          Functions: {
-            "graphql":
-{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
-                           }
-          }
-          Enums: {
-            [_ in never]: never
-          }
-          CompositeTypes: {
-            [_ in never]: never
-          }
-        },"public": {
-          Tables: {
-            "admin_allowlist": {
+            "account_contacts": {
+                  Row: {
+                    "email": string,"email_verified_at": string | null,"pending_email": string | null,"phone_e164": string | null,"phone_verified_at": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email": string,"email_verified_at"?: string | null,"pending_email"?: string | null,"phone_e164"?: string | null,"phone_verified_at"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "email"?: string,"email_verified_at"?: string | null,"pending_email"?: string | null,"phone_e164"?: string | null,"phone_verified_at"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"account_recovery_grants": {
+                  Row: {
+                    "expires_at": string,"session_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "expires_at": string,"session_id": string,"user_id": string
+                  }
+                  Update: {
+                    "expires_at"?: string,"session_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"account_verification_events": {
+                  Row: {
+                    "field": string,"id": number,"reviewer_id": string | null,"user_id": string,"value": string,"verified_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "field": string,"id"?: never,"reviewer_id"?: string | null,"user_id": string,"value": string,"verified_at"?: string
+                  }
+                  Update: {
+                    "field"?: string,"id"?: never,"reviewer_id"?: string | null,"user_id"?: string,"value"?: string,"verified_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"admin_allowlist": {
                   Row: {
                     "email": string
                   }
@@ -15383,7 +16304,7 @@ export type Database = {
                     "email"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"admin_users": {
                   Row: {
@@ -15397,7 +16318,7 @@ export type Database = {
                     "user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"courses": {
                   Row: {
@@ -15411,7 +16332,7 @@ export type Database = {
                     "amount"?: number,"metadata"?: NonNullable<Json>,"position"?: number,"published"?: boolean,"slug"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"enrollments": {
                   Row: {
@@ -15507,17 +16428,17 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "avatar_url": string | null,"id": string,"name": string,"username": string
+                    "avatar_url": string | null,"first_name": string,"id": string,"last_name": string,"name": string,"username": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "avatar_url"?: string | null,"id": string,"name": string,"username"?: string
+                    "avatar_url"?: string | null,"first_name"?: string,"id": string,"last_name"?: string,"name": string,"username"?: string
                   }
                   Update: {
-                    "avatar_url"?: string | null,"id"?: string,"name"?: string,"username"?: string
+                    "avatar_url"?: string | null,"first_name"?: string,"id"?: string,"last_name"?: string,"name"?: string,"username"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"resources": {
                   Row: {
@@ -15531,7 +16452,7 @@ isOneToOne: false
                     "content"?: string,"description"?: string,"id"?: string,"title"?: string,"type"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
@@ -15542,8 +16463,17 @@ isOneToOne: false
             "account_access_allowed":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"confirm_account_contact":
+{ Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
+                           },
+"contacts_verified":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
+                           },
+"save_account_settings":
+{ Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
@@ -15664,13 +16594,9 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "graphql_public": {
+  "public": {
           Enums: {
-            
-          }
-        },"public": {
-          Enums: {
-            
+
           }
         }
 } as const
@@ -15834,7 +16760,7 @@ export default nextConfig;
 
 ### File: `package.json`
 
-SHA-256: `5ee87d63788728aace151ac1478d588bac7446584b91090381d7d55765f338e5`
+SHA-256: `f40385a36ca6c454b25ac179533c490ae87cf4b4407ce4d0699a1c9ca289d6bb`
 
 ```json
 {
@@ -15862,6 +16788,7 @@ SHA-256: `5ee87d63788728aace151ac1478d588bac7446584b91090381d7d55765f338e5`
     "@khatab/design": "file:packages/design-system",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
+    "libphonenumber-js": "1.13.15",
     "next": "^16.3.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -16816,14 +17743,14 @@ export function subscribeDismissal({ root, toggle, onClose, desktopQuery, restor
 
 ### File: `packages/design-system/helpers/place-select-menu.ts`
 
-SHA-256: `0f82659b90dd3296594235deb4b0196015d8bfb32a7a32427a93e9c88dfd66d3`
+SHA-256: `a6dfb5283bccd8298c5ef3941812d49912dafae45cf108b3386408a9e1ad7c73`
 
 ```typescript
 /** Keep the top-layer menu within the viewport, including small landscape screens. */
-export function placeSelectMenu(button: HTMLElement, panel: HTMLElement) {
+export function placeSelectMenu(button: HTMLElement, panel: HTMLElement, minimumWidth = 0) {
   const rect = button.getBoundingClientRect();
   const style = getComputedStyle(panel), gap = parseFloat(style.getPropertyValue("--space-sm")) || 0;
-  const width = Math.min(rect.width, window.innerWidth - gap * 2);
+  const width = Math.min(Math.max(rect.width, minimumWidth), window.innerWidth - gap * 2);
   panel.style.width = `${width}px`;
   const roomBelow = window.innerHeight - rect.bottom - gap * 2, roomAbove = rect.top - gap * 2;
   const desired = Math.min(panel.scrollHeight, parseFloat(style.getPropertyValue("--control-menu-max-height")));
@@ -16930,6 +17857,38 @@ export function useAccordion() {
   const toggle = (index: number) =>
     setOpenIndex((previous) => (previous === index ? null : index));
   return { openIndex, toggle, id };
+}
+```
+
+### File: `packages/design-system/hooks/use-action-menu.ts`
+
+SHA-256: `d759f7df245e298c80b59447718f40e7cf05b058e17e8e4b536a55b8255112aa`
+
+```typescript
+"use client";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { placeSelectMenu } from "../helpers/place-select-menu";
+export function useActionMenu() {
+  const button = useRef<HTMLButtonElement>(null), panel = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  function close() { panel.current?.hidePopover(); setOpen(false); }
+  function toggle() { if (open) close(); else { panel.current?.showPopover(); setOpen(true); } }
+  function keyDown(event: KeyboardEvent<HTMLElement>) {
+    const items = Array.from(panel.current?.querySelectorAll<HTMLElement>('a,button:not(:disabled)') ?? []);
+    if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault(); if (!open) { panel.current?.showPopover(); setOpen(true); }
+      const current = items.indexOf(document.activeElement as HTMLElement);
+      const index = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : (current + (event.key === "ArrowUp" ? -1 : 1) + items.length) % items.length;
+      items[index]?.focus();
+    } else if (event.key === "Escape") { event.preventDefault(); close(); button.current?.focus(); }
+  }
+  useEffect(() => {
+    if (!open) return;
+    const place = () => { if (button.current && panel.current) placeSelectMenu(button.current, panel.current, parseFloat(getComputedStyle(panel.current).getPropertyValue("--action-menu-width"))); };
+    place(); window.addEventListener("resize", place); window.addEventListener("scroll", place, true);
+    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
+  }, [open]);
+  return { button, panel, open, setOpen, close, toggle, keyDown };
 }
 ```
 
@@ -17450,6 +18409,27 @@ SHA-256: `f4a0477a045e42ec054d1cac61d5295d304cda07ad295d9e65535e0d88229914`
 }
 ```
 
+### File: `packages/design-system/styles/action-menu.css`
+
+SHA-256: `87c66f082b8fc6a28401b9d3b063a0f99a8daa4c6d7b03e3016897d04e8cd242`
+
+```css
+.ds-avatar { display: inline-grid; place-items: center; overflow: hidden; flex-shrink: 0; vertical-align: middle; }
+.ds-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ds-action-menu { display: inline-flex; }
+.ds-action-trigger { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--radius-full); }
+.ds-action-trigger:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: var(--space-xs); }
+.ds-action-panel { position: fixed; inset: auto; margin: 0; padding: var(--space-sm); border: var(--size-1px) solid var(--border-hairline); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--control-menu-shadow); overflow: auto; opacity: 0; transform: translateY(var(--space-sm)); transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--transition-fast) allow-discrete, overlay var(--transition-fast) allow-discrete; }
+.ds-action-panel:popover-open { opacity: 1; transform: translateY(0); }
+@starting-style { .ds-action-panel:popover-open { opacity: 0; transform: translateY(var(--space-sm)); } }
+.ds-action-panel nav { display: grid; }
+.ds-action-panel a, .ds-action-panel > button { display: flex; align-items: center; width: 100%; padding: var(--space-sm) var(--space-md); min-height: var(--control-target-size); border: 0; background: transparent; color: inherit; border-radius: var(--radius-sm); text-align: start; cursor: pointer; text-decoration: none; transition: background var(--transition-fast), color var(--transition-fast); }
+.ds-action-panel a:hover, .ds-action-panel > button:hover { background: var(--bg-main); color: var(--primary-red); }
+.ds-action-panel a:focus-visible, .ds-action-panel > button:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: calc(-1 * var(--size-2px)); }
+.ds-action-logout { border-top: var(--size-1px) solid var(--border-hairline) !important; }
+@media (prefers-reduced-motion: reduce) { .ds-action-panel { transition: none; transform: none; } }
+```
+
 ### File: `packages/design-system/styles/coming-soon.css`
 
 SHA-256: `ddeea8f09f7ed5d8d4d7d2a466ea20ff51b4b61a1d48fe4397dc891fc9c483e1`
@@ -17663,13 +18643,15 @@ SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
 
 ### File: `packages/design-system/styles/theme.css`
 
-SHA-256: `8c6ff41e66bebbfeff2c1dfdc35086fe94df9cfccaf1c30f3729950f5ae19690`
+SHA-256: `00ffb216b27f5135c42d0a91e0781e1cacae6e683a7328c3800a395ded63b5a2`
 
 ```css
 /* Shared visual foundation of the two client-approved reference sites.
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  --action-menu-width: 256px;
+
   --control-select-min-width: 200px;
   --control-target-size: 44px;
   --control-marker-size: 20px;
@@ -21858,6 +22840,18 @@ h6 {
 @media (prefers-reduced-motion: reduce) { .review-revealed { animation: none; } }
 ```
 
+### File: `packages/design-system/types/action-menu.ts`
+
+SHA-256: `4f782ed43f75680b6f01f22197f602d1e23741aafaca385e2a6b87924c0dd3fc`
+
+```typescript
+export interface ActionMenuLink { href: string; label: string; external?: boolean }
+export interface ActionMenuProps {
+  trigger: React.ReactNode; label: string; links: readonly ActionMenuLink[];
+  action: { label: string; onSelect: () => void; disabled?: boolean }; error?: string;
+}
+```
+
 ### File: `packages/design-system/types/interactions.ts`
 
 SHA-256: `632659b437e59730e77f553f3003eb09719fdb58cbda1e070dbddf212ccf86a3`
@@ -22344,6 +23338,32 @@ export default function ActionLink({
 }
 ```
 
+### File: `packages/design-system/ui/action-menu.tsx`
+
+SHA-256: `f42c00f4208cacd4cad357b44f2b3e18f75ac11055d958f2f13fa607dae1ffdd`
+
+```tsx
+"use client";
+import Link from "next/link";
+import { useId } from "react";
+import { useActionMenu } from "../hooks/use-action-menu";
+import type { ActionMenuProps } from "../types/action-menu";
+export default function ActionMenu({ trigger, label, links, action, error }: ActionMenuProps) {
+  const id = useId();
+  const { button, panel, open, setOpen, close, toggle, keyDown } = useActionMenu();
+  return <div className="ds-action-menu" onKeyDown={keyDown} onBlur={event => {
+    if (!event.currentTarget.contains(event.relatedTarget)) close();
+  }}>
+    <button ref={button} type="button" className="ds-action-trigger" aria-label={label} aria-expanded={open} aria-controls={id} onClick={toggle}>{trigger}</button>
+    <div ref={panel} popover="auto" id={id} className="ds-action-panel" onToggle={event => setOpen(event.newState === "open")}>
+      <nav aria-label={label}>{links.map(link => <Link key={link.href} href={link.href} target={link.external ? "_blank" : undefined} rel={link.external ? "noopener noreferrer" : undefined} onClick={close}>{link.label}</Link>)}</nav>
+      <button type="button" className="ds-action-logout" disabled={action.disabled} onClick={action.onSelect}>{action.label}</button>
+      {error && <p className="lms-error" role="alert">{error}</p>}
+    </div>
+  </div>;
+}
+```
+
 ### File: `packages/design-system/ui/action.tsx`
 
 SHA-256: `c28b82f07e28289692b4d61887908beb85cf8c861dc080af12c16b576bb0a608`
@@ -22459,6 +23479,20 @@ export default function AuthorIdentity({
       </div>
     </div>
   );
+}
+```
+
+### File: `packages/design-system/ui/avatar.tsx`
+
+SHA-256: `2371d1e17aed7d92354d95832644d9e8c7317530406b8a10405cf715f4db21a2`
+
+```tsx
+export default function Avatar({ name, url, label, className = "" }: { name: string; url?: string | null; label: string; className?: string }) {
+  return <span className={`ds-avatar ${className}`} aria-label={`${label}: ${name}`}>{url
+    // Account images are user-controlled remote assets, outside the static Next image pipeline.
+    // eslint-disable-next-line @next/next/no-img-element
+    ? <img src={url} alt="" referrerPolicy="no-referrer" />
+    : <span aria-hidden="true">{name.slice(0, 1)}</span>}</span>;
 }
 ```
 
@@ -25622,6 +26656,160 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 });
 ```
 
+### File: `tests/backend/account-settings-browser.cjs`
+
+SHA-256: `532dd0c551447e911fb4638c4a48201b58b2ef3da2b83e0299e46a79757af51d`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real local browser acceptance with ephemeral accounts. */
+const {chromium,expect}=require('@playwright/test');
+const fs=require('node:fs');
+async function login(page,url,user) {
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(user.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(user.password);
+  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(user.admin ? url+'/admin/dashboard' : url+'/dashboard');
+}
+module.exports=async function accountBrowser({manager,student,url,verify,config,admin}) {
+  const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  fs.mkdirSync('docs/evidence/account',{recursive:true});
+  try {
+    await login(page,url,{...manager,admin:true});
+    const trigger=page.getByRole('button',{name:'قائمة الحساب',exact:true}), panel=page.locator('.ds-action-panel');
+    for(const viewport of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1440,height:900}]) {
+      await page.setViewportSize(viewport);await trigger.click();await expect(panel).toBeVisible();
+      const rect=await panel.boundingBox();verify(rect.x>=0 && rect.y>=0 && rect.x+rect.width<=viewport.width+1 && rect.y+rect.height<=viewport.height+1,'Avatar menu fits '+viewport.width+'×'+viewport.height);
+      verify(await panel.getByRole('link').count()===3 && await panel.getByRole('button').count()===1,'Avatar menu has Profile, Settings, Support and Logout');
+      await page.mouse.click(2,viewport.height-2);await expect(panel).not.toBeVisible();verify(true,'Click outside dismisses the menu');
+      await trigger.focus();await trigger.press('ArrowDown');await expect(panel.getByRole('link',{name:'الملف الشخصي',exact:true})).toBeFocused();
+      await page.keyboard.press('Escape');await expect(panel).not.toBeVisible();await expect(trigger).toBeFocused();verify(true,'Keyboard open and Escape restore focus');
+    }
+    await trigger.click();await page.getByRole('link',{name:'المستخدمون',exact:true}).focus();await expect(panel).not.toBeVisible();verify(true,'Moving focus outside closes the account menu');
+    await trigger.click();await panel.getByRole('link',{name:'الملف الشخصي',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/profile');
+    verify(await page.getByRole('heading',{name:'دوراتك',exact:true}).count()===0,'Admin profile omits student course list');
+    await trigger.click();await panel.getByRole('link',{name:'الإعدادات',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/settings');
+    await expect(page.getByLabel('البريد الإلكتروني',{exact:true})).toBeEditable();verify(true,'Admin email is editable in its own dashboard');
+    const nextEmail='changed-'+require('node:crypto').randomUUID()+'@example.com', identityForm=page.locator('.lms-account-stack form').first();
+    await identityForm.getByLabel('رقم الهاتف',{exact:true}).fill('+20-1201024880');await identityForm.getByLabel('البريد الإلكتروني',{exact:true}).fill(nextEmail);await identityForm.getByLabel('كلمة المرور الحالية',{exact:true}).fill(manager.password);
+    await identityForm.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(identityForm.getByRole('status')).toContainText('تم حفظ بيانات الحساب');
+    const pendingAccount=await(await page.request.get(url+'/api/account/settings')).json();verify(pendingAccount.pendingEmail===nextEmail && !pendingAccount.emailVerified && pendingAccount.email===manager.email,'Admin email change is pending and unverified while old identity remains usable');
+    const pendingMessages=await(await fetch(config.MAILPIT_URL+'/api/v1/messages')).json();
+    const approvals=[manager.email,nextEmail].map(email=>pendingMessages.messages.find(m=>m.To.some(to=>to.Address===email)));
+    verify(approvals.every(Boolean),'Secure email change sends confirmation to both old and new addresses');
+    for(const approval of approvals) {
+      const mail=await(await fetch(config.MAILPIT_URL+'/api/v1/message/'+approval.ID)).json();
+      const link=mail.HTML.match(/href="([^"]+\/auth\/v1\/verify[^\"]+)"/)?.[1].replaceAll('&amp;','&');
+      await page.goto(link);
+    }
+    const oldEmail=manager.email;manager.email=nextEmail;
+    verify(Boolean((await admin.from('admin_users').select('user_id').eq('user_id',manager.id).maybeSingle()).data),'Admin email confirmation preserves account role');
+    verify(!(await admin.from('admin_allowlist').select('email').eq('email',oldEmail).maybeSingle()).data,'Old admin email no longer grants administrator access');
+    const confirmedIdentity=await admin.auth.admin.getUserById(manager.id);verify(confirmedIdentity.data.user.email===nextEmail && !confirmedIdentity.data.user.new_email,'Both confirmation links update the trusted Auth identity');
+    await login(page,url,{...manager,admin:true});
+    await page.goto(url+'/admin/dashboard/settings');await expect(page.getByLabel('البريد الإلكتروني',{exact:true})).toHaveValue(nextEmail);
+    const confirmedAccount=await(await page.request.get(url+'/api/account/settings')).json();verify(confirmedAccount.emailVerified && !confirmedAccount.pendingEmail,'Confirming both email links restores verified email automatically');
+
+    await trigger.click();await expect(panel.getByRole('link',{name:'الدعم والمساعدة',exact:true})).toHaveAttribute('href','https://wa.me/201558590242');verify(true,'Support points to Mohammed Khattab WhatsApp');
+    await panel.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(url+'/login');
+    await login(page,url,student);await page.goto(url+'/dashboard/settings');
+    await expect(page.getByLabel('البريد الإلكتروني',{exact:true})).toHaveAttribute('readonly','');verify(true,'Student email is locked');
+    for(const width of [320,390,1440]) {await page.setViewportSize({width,height:844});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Settings has no horizontal overflow at '+width);await page.screenshot({path:'docs/evidence/account/settings-'+width+'.png',fullPage:true});}
+    await page.goto(url+'/dashboard/profile');await expect(page.getByRole('heading',{name:'دوراتك',exact:true})).toBeVisible();verify(true,'Student profile includes its course area');
+    await page.goto(url+'/forgot-password');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByRole('button',{name:'إرسال رابط الاستعادة',exact:true}).click();await expect(page.getByRole('status')).toContainText('إذا كان البريد مسجلًا');
+    const messages=await(await fetch(config.MAILPIT_URL+'/api/v1/messages')).json();
+    const message=messages.messages.find(m=>m.To.some(to=>to.Address===student.email));verify(Boolean(message),'Recovery email reaches the local email inbox');
+    const mail=await(await fetch(config.MAILPIT_URL+'/api/v1/message/'+message.ID)).json();
+    const link=mail.HTML.match(/href="([^"]+\/auth\/v1\/verify[^\"]+)"/)?.[1].replaceAll('&amp;','&');verify(Boolean(link),'Recovery email contains provider verification link');
+    await page.goto(link);await expect(page).toHaveURL(url+'/reset-password');verify(true,'Email recovery callback grants a protected reset session');
+    await page.getByLabel('كلمة المرور الجديدة',{exact:true}).fill('Email-Recovered-Password-19!');await page.getByLabel('تأكيد كلمة المرور الجديدة',{exact:true}).fill('Email-Recovered-Password-19!');
+    await page.getByRole('button',{name:'حفظ كلمة المرور الجديدة',exact:true}).click();await expect(page.getByRole('status')).toContainText('تم تغيير كلمة المرور');verify(true,'Recovery link allows a password reset without current password');
+    verify((await admin.from('account_recovery_grants').select('*').eq('user_id',student.id)).data.length===0,'Recovery authorization is consumed once');
+    await page.goto(url+'/login');await login(page,url,{...student,password:'Email-Recovered-Password-19!'});verify(true,'Recovered password signs in successfully');
+    verify(errors.length===0,'Account screens produce no browser runtime errors');
+  } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/account-settings.cjs`
+
+SHA-256: `011a7913e0d911137e46ff1be9bbe76ac133c19971d50620eca02b981fcc5fc1`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real isolated Auth/database acceptance. */
+const { Client } = require('pg');
+const parse = response => JSON.parse(response.data);
+module.exports = async function accountSettings({ admin, provision, anonymous, verify, url, config }) {
+  const manager = await provision('Account Manager'), student = await provision('Account Student');
+  await admin.from('admin_users').insert({user_id:manager.id});
+  const settings = '/api/account/settings', read = async user => parse(await user.api(settings));
+  const original = await read(student);
+  const body = {firstName:'Account',lastName:'Student',username:original.username,email:student.email,phone:'+20-1201024880',currentPassword:student.password};
+  verify(original.emailVerified && !original.phoneVerified && original.phone === '', 'Email confirmation is automatic; initial phone is unverified');
+  verify((await anonymous(settings)).status === 401, 'Settings require authentication');
+  verify((await anonymous(settings,body)).status === 401, 'Anonymous settings writes are rejected');
+  verify((await student.api(settings,body,{headers:{Origin:'https://attacker.example'}})).status === 403,'Cross-origin settings writes rejected');
+  for(const phone of ['01201024880','+201201024880','+20-9999999999','+999-1201024880','+20-1201024880 ext 2']) verify((await student.api(settings,{...body,phone})).status===400,'Reject invalid phone '+phone);
+  verify((await student.api(settings,{...body,currentPassword:''})).status===400,'Phone changes require current password');
+  verify((await student.api(settings,{...body,currentPassword:'Wrong-Password-19!'})).status===400,'Incorrect current password rejected');
+  verify((await student.api(settings,{...body,email:'forged@example.com'})).status===403,'Students cannot change email through settings');
+  verify((await student.api('/api/profile',{name:'Account Student',email:'forged@example.com'})).status===403,'Legacy profile endpoint cannot bypass email lock');
+  const saved=await student.api(settings,body);verify(saved.status===200 && parse(saved).phone===body.phone && !parse(saved).phoneVerified,'Valid phone saves in canonical display format and remains unverified');
+  verify((await student.api(settings,{...body,firstName:'Updated',lastName:'Student',currentPassword:''})).status===200,'Non-critical profile changes do not require a password');
+  const stored=(await admin.from('profiles').select('name,first_name,last_name').eq('id',student.id).single()).data;
+  verify(stored.name==='Updated Student' && stored.first_name==='Updated' && stored.last_name==='Student','Normalized name fields remain consistent with display name');
+    const managerProfile=await read(manager);
+  const duplicate=await student.api(settings,{...body,username:managerProfile.username,firstName:'Failed',phone:'+20-1001234567'});
+  verify(duplicate.status===409,'Duplicate username rejects the entire settings save');
+  const unchanged=await read(student);verify(unchanged.name==='Updated Student' && unchanged.phone===body.phone,'Failed settings save cannot partially change name or phone');
+  verify(Boolean((await student.direct.rpc('save_account_settings',{p_user_id:student.id,p_first_name:'Forged',p_last_name:'User',p_username:'forged-user',p_phone:'+201201024880'})).error),'Atomic settings RPC is server-only');
+verify(Boolean((await student.direct.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',student.id)).error),'Student cannot forge verification timestamps');
+  verify(Boolean((await student.direct.rpc('confirm_account_contact',{p_user_id:student.id,p_field:'phone',p_value:'+201201024880'})).error),'Student cannot call admin confirmation RPC');
+  verify((await student.direct.from('account_contacts').select('*').eq('user_id',manager.id)).data.length===0,'Contact RLS hides other users');
+  const catalog=parse(await anonymous('/api/courses')).courses, source=catalog.find(course=>course.delivery!=='live');
+  const free={...source,slug:'backend-test-account-free',offer:{...source.offer,amount:0}};
+  const free2={...free,slug:'backend-test-account-next'};
+  await admin.from('courses').upsert([{slug:free.slug,metadata:free,amount:0,published:true,position:99},{slug:free2.slug,metadata:free2,amount:0,published:true,position:100}]);
+  try {
+    const denied=await student.api('/api/enrollments',{courseSlug:free.slug});
+    verify(denied.status===403 && parse(denied).code==='CONTACT_VERIFICATION_REQUIRED','Unverified phone blocks free enrollment API');
+    verify(Boolean((await student.direct.from('enrollments').insert({user_id:student.id,course_slug:free.slug})).error),'Database blocks direct unverified enrollment');
+    verify(Boolean((await admin.from('enrollments').insert({user_id:student.id,course_slug:free.slug})).error),'Database also guards trusted new grants');
+    const path='/api/admin/users/'+student.id+'/verification', confirm={field:'phone',value:'+201201024880'};
+    verify((await student.api(path,confirm)).status===403,'Student cannot confirm their own phone through API');
+    verify((await manager.api(path,{...confirm,value:'+201001234567'})).status===409,'Stale phone confirmation rejects wrong number');
+    verify((await manager.api(path,{field:'email',value:student.email})).status===400,'Email confirmation cannot be replaced by manual admin approval');
+    verify((await manager.api(path,confirm)).status===200,'Admin confirms the exact phone after private inquiry');
+    verify((await read(student)).phoneVerified,'Manual phone confirmation persists');
+    const events=(await admin.from('account_verification_events').select('*').eq('user_id',student.id)).data;
+    verify(events.length===1 && events[0].reviewer_id===manager.id && events[0].value===confirm.value,'Verification audit records reviewer, field and value');
+    verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Verified contacts unlock new enrollment');
+    await student.api(settings,{...body,phone:'+20-1001234567'});
+    verify(!(await read(student)).phoneVerified,'Phone edit automatically removes prior confirmation');
+    verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Existing course remains accessible after phone edit');
+    verify((await student.api('/api/enrollments',{courseSlug:free2.slug})).status===403,'Phone edit blocks another new course');
+    const newPhone={field:'phone',value:'+201001234567'};await manager.api(path,newPhone);
+    const db=new Client({connectionString:config.DB_URL});await db.connect();
+    try {
+      await db.query("update auth.users set email_change=$1 where id=$2",['changed@example.com',student.id]);
+      verify(!(await read(student)).emailVerified,'Pending email immediately loses verification');
+      verify((await student.api('/api/enrollments',{courseSlug:free2.slug})).status===403,'Pending email blocks new enrollment globally');
+      verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Pending email preserves previously purchased courses');
+      await db.query("update auth.users set email_change='' where id=$1",[student.id]);
+      verify((await read(student)).emailVerified,'Verified email status restores only when Auth clears pending change');
+      const plan=await db.query("set enable_seqscan=off; explain select id from public.profiles where lower(first_name) ^@ 'up'");
+      verify(plan[1].rows.some(row=>row['QUERY PLAN'].includes('profiles_first_name_prefix_idx')),'First-name prefix search can use its index');
+    } finally {await db.end();}
+    const credentials={currentPassword:student.password,password:'New-Account-Password-19!',confirmPassword:'New-Account-Password-19!'};
+    verify((await student.api('/api/account/password',{...credentials,confirmPassword:'Mismatch-Password-19!'})).status===400,'Password confirmation mismatch rejected');
+    verify((await student.api('/api/account/password',{...credentials,currentPassword:'Incorrect-Password-19!'})).status===400,'Password change verifies current password');
+    verify((await student.api('/api/auth/reset-password',{password:credentials.password,confirmPassword:credentials.password})).status===403,'Ordinary login session cannot bypass current-password requirement via recovery endpoint');
+    verify((await student.api('/api/account/password',credentials)).status===200,'Current-password authenticated change succeeds');
+    verify((await anonymous('/api/auth/login',{email:student.email,password:student.password})).status===401,'Old password stops working');
+    verify((await anonymous('/api/auth/login',{email:student.email,password:credentials.password})).status===200,'New password authenticates');
+    student.password=credentials.password;
+    await require('./account-settings-browser.cjs')({manager,student,url,verify,config,admin});
+  } finally {await admin.from('courses').delete().in('slug',[free.slug,free2.slug]);}
+};
+```
+
 ### File: `tests/backend/admin-user-search.cjs`
 
 SHA-256: `c07ecfe368bef7ba0f7e56928018cd0d6bd864be0f8fbacaf709198f9896344c`
@@ -25717,7 +26905,7 @@ module.exports = async function userSearchChecks({ admin, provision, anonymous, 
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `dc44e20cf84498cc7ae0cf718830b56125861503bd9f30ad4f80652ac0e2782c`
+SHA-256: `b703963f3e870680bd422485281dba02274bddc896ed0b68c480dc81eec4b182`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25761,7 +26949,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(row).toContainText('المتبقي:');
     await row.getByRole('link', { name: 'عرض المستخدم', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'الدورات المشترك بها', exact: true })).toBeVisible();
-    await expect(page.getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
+    await expect(page.locator('.lms-admin-user-details').getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
     await expect(page.getByText('المتبقي:', { exact: false })).toBeVisible();
     await page.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'استعادة الوصول', exact: true }).click();
@@ -25796,6 +26984,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.setViewportSize({ width: 390, height: 900 });
     await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
     verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await page.waitForURL('**/login');
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(target.email);
@@ -25881,7 +27070,7 @@ module.exports = async function userManagementChecks({ admin, provision, anonymo
 
 ### File: `tests/backend/admin.cjs`
 
-SHA-256: `724d28bfe892aab2da16177d093b7a6ff4d41bf54619f1b97378d7b01338a025`
+SHA-256: `1fc05e0f12a34dfaec37b9aa3f739411501b340d9a609c868c38ea36214dd51a`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated admin/RLS and editor checks. */
@@ -25969,15 +27158,20 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     await admin.auth.admin.updateUserById(id,{ email_confirm: true });
     verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 1, 'Verified allowlisted email receives role through trusted trigger');
     await admin.auth.admin.updateUserById(id,{ email: `not-allowed-${Date.now()}@example.com`, email_confirm: true });
-    verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 0, 'Changing away from allowlisted email removes admin role');
+    verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 1, 'Confirmed email change preserves the administrator account role');
     await admin.from('admin_allowlist').delete().eq('email',email);
-  } finally { await admin.auth.admin.deleteUser(id); }
+  } finally {
+    const user=await admin.auth.admin.getUserById(id);
+    await admin.from('admin_allowlist').delete().eq('email',user.data.user.email);
+    await admin.from('admin_users').delete().eq('user_id',id);
+    await admin.auth.admin.deleteUser(id);
+  }
 };
 ```
 
 ### File: `tests/backend/browser.cjs`
 
-SHA-256: `fb1e6eb41b66ea6dfd3a22e68a9759d9134854d1d4d6b505ffe55d6429a4959c`
+SHA-256: `1c14aff27fd7eb1c5d81e98d779469e493ca875fc3cd2566f25f90d4dc049678`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks against isolated local accounts. */
@@ -25996,6 +27190,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     verify(true, 'Browser login navigates to protected dashboard');
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await expect(page).toHaveURL(/\/login$/);
     verify(true, 'Browser logout returns to login');
@@ -26038,7 +27233,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 
 ### File: `tests/backend/dashboard-access.cjs`
 
-SHA-256: `aaf7fd5654565f27dc6745e9787617d797de665ffcc940d9c87e88a4dfa8e524`
+SHA-256: `94231e33b94a2e21a0a0d7c1e45f77e600b57caf216f32b0800ac9a0116a5bfe`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-account access regression. */
@@ -26059,12 +27254,15 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
     const admin = await context.request.get(url + '/api/admin/courses/7days-freelance');
     verify(admin.status() === 403, 'Signed-in student cannot use admin course APIs');
     await context.clearCookies();
-    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
+    await page.locator('.ds-action-panel a[href="/dashboard/profile"]').click();
     await expect(page, 'Lost session navigation').toHaveURL(/\/login$/);
     verify(true, 'Lost session cannot navigate through a retained dashboard layout');
     await login();
-    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
+    await page.locator('.ds-action-panel a[href="/dashboard/profile"]').click();
     await expect(page).toHaveURL(/\/dashboard\/profile$/);
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await expect(page, 'Logout navigation').toHaveURL(/\/login$/);
     await page.waitForLoadState('load');
@@ -26079,7 +27277,7 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
 
 ### File: `tests/backend/form-controls-browser.cjs`
 
-SHA-256: `970f512675bc53ce80dc9bd68067bd2800b294504bfc59ff0cf9a5c0ff6f824d`
+SHA-256: `a8540b23c7e659de512b2771801350dcb73c2edf57ad3acc4fdee97f95072c8a`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks with ephemeral isolated accounts. */
@@ -26132,12 +27330,12 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
     verify(await page.locator('select[name="category"]').inputValue()!==before,'Course custom dropdown updates the native form value');
     await page.getByRole('checkbox').uncheck();verify(!(await page.getByRole('checkbox').isChecked()),'Course published checkbox uses native semantics');
     verify(errors.length===0,'Custom controls produce no browser runtime errors');
-    await page.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(/login/);
+    await page.getByRole('button',{name:'قائمة الحساب',exact:true}).click();await page.getByRole('button',{name:'تسجيل الخروج',exact:true}).click();await expect(page).toHaveURL(/login/);
     await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);
     await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
-    await page.goto(url+'/dashboard/profile');
+    await page.goto(url+'/dashboard/settings');
     const username=page.getByLabel('اسم المستخدم',{exact:true});await expect(username).toBeVisible();await username.fill('browser-chosen');
-    await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toBeVisible();await page.reload();
+    const settingsForm=page.locator('.lms-account-stack form').first();await settingsForm.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(settingsForm.getByRole('status')).toBeVisible();await page.reload();
     await expect(username).toHaveValue('browser-chosen');await page.setViewportSize({width:390,height:844});await page.screenshot({path:`${directory}/profile-390.png`,fullPage:true});verify(true,'Student can edit username and keep it after refresh');
   } finally { await browser.close(); }
 };
@@ -26145,7 +27343,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `23d5bdfb05d7d30ba8c018d7cecb1623147e6a746a84725802bdc7ca9e30e469`
+SHA-256: `dd06ad1f1f31e74f03fa23b3bfe09f75aaf8b10fa711dc4a7262f1b843b83305`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -26180,6 +27378,11 @@ async function provision(name) {
   const email = `test-${require("node:crypto").randomUUID()}@example.com`, password = 'Local-Test-Password-19!';
   const result = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name } });
   assert.ok(!result.error, 'Local fixture user created'); identities.push(result.data.user.id);
+  if (process.env.BACKEND_SUITE !== 'account-settings') {
+    const phone = '+2012' + String(require('node:crypto').randomInt(10000000,99999999));
+    assert.ok(!(await admin.from('account_contacts').update({phone_e164:phone}).eq('user_id',result.data.user.id)).error);
+    assert.ok(!(await admin.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',result.data.user.id)).error);
+  }
   const direct = createClient(config.API_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   assert.ok(!(await direct.auth.signInWithPassword({ email, password })).error, 'Local fixture can authenticate');
   const api = account(); verify((await api('/api/auth/login', { email, password })).status === 200, `${name}: real login`);
@@ -26192,6 +27395,16 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'account-settings-browser') {
+    const manager=await provision('Account Manager'),student=await provision('Account Student');
+    await admin.from('admin_users').insert({user_id:manager.id});
+    await require('./account-settings-browser.cjs')({manager,student,url,verify,config,admin});
+    return;
+  }
+  if (process.env.BACKEND_SUITE === 'account-settings') {
+    await require('./account-settings.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'username-controls') {
     await require('./username-controls.cjs')({ admin, provision, anonymous, verify, url, config });
     return;
@@ -26270,7 +27483,7 @@ async function run() {
   verify(profile.status === 200 && parse(profile).name === 'Updated Student', 'Own profile updates persist');
   verify(/no-store/.test(profile.headers.get('cache-control')), 'Personalized responses never cached');
   const changedEmail = await a.api('/api/profile', { name: 'Updated Student', email: `changed-${Date.now()}@example.com` });
-  verify(changedEmail.status === 200 && parse(changedEmail).emailChangePending === true && parse(changedEmail).email === a.email, 'Email change waits for provider confirmation and preserves verified identity');
+  verify(changedEmail.status === 403 && parse(changedEmail).code === 'EMAIL_LOCKED', 'Student email change is locked on the legacy endpoint');
   await admin.from('enrollments').delete().eq('user_id',a.id).eq('course_slug',course.slug);
   verify((await a.api(playback(privateLesson))).status === 403, 'Revoked grant immediately denies playback');
   verify((await a.api('/api/auth/logout', {})).status === 200, 'Logout succeeds');
@@ -26280,6 +27493,8 @@ async function run() {
   try { await run(); console.log(`Backend integration: ${checks} checks passed`); }
   finally {
     for (const id of identities) {
+      const user=await admin.auth.admin.getUserById(id);
+      if(user.data.user?.email) await admin.from("admin_allowlist").delete().eq("email",user.data.user.email);
       await admin.from("admin_users").delete().eq("user_id", id);
       await admin.auth.admin.deleteUser(id);
     }

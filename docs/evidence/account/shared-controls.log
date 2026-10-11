@@ -1,0 +1,73 @@
+
+> khatab-platform@1.0.0 backend:test
+> node tests/backend/integration.cjs
+
+PASS 1: Control Manager: real login
+PASS 2: Zack Middle River: real login
+PASS 3: Zack Middle River: real login
+PASS 4: Zack Middle River: real login
+PASS 5: Zack Middle River: real login
+PASS 6: Zack Middle River: real login
+PASS 7: Zack Middle River: real login
+PASS 8: Zack Middle River: real login
+PASS 9: Zack Middle River: real login
+PASS 10: Zack Middle River: real login
+PASS 11: Zack Middle River: real login
+PASS 12: Zack Middle River: real login
+PASS 13: Zack Middle River: real login
+PASS 14: Concurrent same-name signups merge first and last names with six random digits
+PASS 15: All concurrent generated usernames are unique
+PASS 16: محمد أحمد خطاب: real login
+PASS 17: Cher: real login
+PASS 18: Non-English names generate an English gerund-adjective username
+PASS 19: Single-name accounts generate a valid username
+PASS 20: Admin can open user details by username
+PASS 21: Legacy UUID URL redirects to the username
+PASS 22: Unknown username returns not found
+PASS 23: Student cannot open username-based admin details
+PASS 24: Student can choose a normalized username
+PASS 25: Chosen username persists in profile
+PASS 26: Name-only profile upsert preserves chosen username
+PASS 27: Concurrent name-only upsert cannot overwrite a chosen username
+PASS 28: Case-insensitive duplicate rename returns helpful conflict
+PASS 29: Concurrent custom renames reserve a username atomically
+PASS 30: Invalid username rejected: ab
+PASS 31: Invalid username rejected: invalid name
+PASS 32: Invalid username rejected: xxxxxxxxxxxxxxxxxxxx
+PASS 33: Invalid username rejected: ../evil
+PASS 34: Invalid username rejected: محمدخطاب123456
+PASS 35: Invalid username rejected: zäck123
+PASS 36: Anonymous cannot rename a profile
+PASS 37: RLS blocks another account rename
+PASS 38: Username helper handles whitespace, case and fallback
+PASS 39: Migration backfills legacy defaults and preserves chosen usernames
+PASS 40: Backfill converts non-English handles while preserving display names
+PASS 41: English chosen handles survive the ASCII backfill
+PASS 42: Database rejects non-English handles independently of API validation
+PASS 43: Mixed-script, Chinese and punctuation-only names use English fallbacks
+PASS 44: Actual parameterized prefix predicate can use the SP-GiST name index
+PASS 45: Arabic first-letter indexed search finds the right account
+PASS 46: Prefix mode searches names rather than email
+PASS 47: Name-prefix search ignores Latin case
+PASS 48: Unknown search mode rejected
+PASS 49: Custom radio persists indexed search mode after navigation
+PASS 50: Custom checkboxes combine with prefix search
+PASS 51: User link and browser destination use the username
+PASS 52: Browser follows legacy UUID redirect to canonical username
+PASS 53: Top-layer dropdown fits 320×568
+PASS 54: Dropdown selection works inside modal and restores trigger focus
+PASS 55: Keyboard selection and Escape close the dropdown while retaining its modal
+PASS 56: Top-layer dropdown fits 390×844
+PASS 57: Dropdown selection works inside modal and restores trigger focus
+PASS 58: Keyboard selection and Escape close the dropdown while retaining its modal
+PASS 59: Top-layer dropdown fits 844×390
+PASS 60: Dropdown selection works inside modal and restores trigger focus
+PASS 61: Keyboard selection and Escape close the dropdown while retaining its modal
+PASS 62: Top-layer dropdown fits 1440×900
+PASS 63: Dropdown selection works inside modal and restores trigger focus
+PASS 64: Keyboard selection and Escape close the dropdown while retaining its modal
+PASS 65: Course custom dropdown updates the native form value
+PASS 66: Course published checkbox uses native semantics
+PASS 67: Custom controls produce no browser runtime errors
+PASS 68: Student can edit username and keep it after refresh
+Backend integration: 68 checks passed

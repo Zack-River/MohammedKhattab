@@ -16,4 +16,6 @@ export interface AuthPageModel {
   submit: string; pending: string; demoLabel: string; demoNote: string; confirmationMessage: string;
   alternate: { prompt: string; label: string; href: string };
   endpoint: string; redirectTo: string; copy: AuthCopy;
+  recovery?: { label: string; href: string };
+  confirmationLink?: { label: string; href: string };
 }

@@ -3,6 +3,8 @@ import type { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
+  avatarUrl?: string | null;
+  accountMenu?: typeof import("@platform/config/account-menu").accountMenuContent;
   sessionEndpoint?: string;
   showSidebarHelp?: boolean;
   showBrowseLink?: boolean;

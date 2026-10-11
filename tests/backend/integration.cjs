@@ -30,6 +30,11 @@ async function provision(name) {
   const email = `test-${require("node:crypto").randomUUID()}@example.com`, password = 'Local-Test-Password-19!';
   const result = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { name } });
   assert.ok(!result.error, 'Local fixture user created'); identities.push(result.data.user.id);
+  if (process.env.BACKEND_SUITE !== 'account-settings') {
+    const phone = '+2012' + String(require('node:crypto').randomInt(10000000,99999999));
+    assert.ok(!(await admin.from('account_contacts').update({phone_e164:phone}).eq('user_id',result.data.user.id)).error);
+    assert.ok(!(await admin.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',result.data.user.id)).error);
+  }
   const direct = createClient(config.API_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   assert.ok(!(await direct.auth.signInWithPassword({ email, password })).error, 'Local fixture can authenticate');
   const api = account(); verify((await api('/api/auth/login', { email, password })).status === 200, `${name}: real login`);
@@ -42,6 +47,16 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'account-settings-browser') {
+    const manager=await provision('Account Manager'),student=await provision('Account Student');
+    await admin.from('admin_users').insert({user_id:manager.id});
+    await require('./account-settings-browser.cjs')({manager,student,url,verify,config,admin});
+    return;
+  }
+  if (process.env.BACKEND_SUITE === 'account-settings') {
+    await require('./account-settings.cjs')({ admin, provision, anonymous, verify, url, config });
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'username-controls') {
     await require('./username-controls.cjs')({ admin, provision, anonymous, verify, url, config });
     return;
@@ -120,7 +135,7 @@ async function run() {
   verify(profile.status === 200 && parse(profile).name === 'Updated Student', 'Own profile updates persist');
   verify(/no-store/.test(profile.headers.get('cache-control')), 'Personalized responses never cached');
   const changedEmail = await a.api('/api/profile', { name: 'Updated Student', email: `changed-${Date.now()}@example.com` });
-  verify(changedEmail.status === 200 && parse(changedEmail).emailChangePending === true && parse(changedEmail).email === a.email, 'Email change waits for provider confirmation and preserves verified identity');
+  verify(changedEmail.status === 403 && parse(changedEmail).code === 'EMAIL_LOCKED', 'Student email change is locked on the legacy endpoint');
   await admin.from('enrollments').delete().eq('user_id',a.id).eq('course_slug',course.slug);
   verify((await a.api(playback(privateLesson))).status === 403, 'Revoked grant immediately denies playback');
   verify((await a.api('/api/auth/logout', {})).status === 200, 'Logout succeeds');
@@ -130,6 +145,8 @@ async function run() {
   try { await run(); console.log(`Backend integration: ${checks} checks passed`); }
   finally {
     for (const id of identities) {
+      const user=await admin.auth.admin.getUserById(id);
+      if(user.data.user?.email) await admin.from("admin_allowlist").delete().eq("email",user.data.user.email);
       await admin.from("admin_users").delete().eq("user_id", id);
       await admin.auth.admin.deleteUser(id);
     }

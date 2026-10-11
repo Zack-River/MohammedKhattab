@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — account dropdown, settings and contact verification (implemented; Gmail setup pending)
+
+- Added reusable avatar/action menu with Profile, Settings, WhatsApp Support and Logout. Admin destinations remain inside `/admin/dashboard`; outside click/focus-leave, keyboard navigation and responsive placement are implemented.
+- Added read-only profiles and settings with normalized first/last names, English usernames, strict international phone formatting and current-password-protected sensitive edits. Student email edits are rejected by both endpoints. Separate password change and email recovery/confirmation screens use Supabase Auth.
+- Added normalized contacts, trusted phone-review audit and single-use recovery-session grants; owner-read-only RLS, indexes, Auth synchronization and a global new-enrollment database guard preserve existing course access during verification.
+- TypeScript, full ESLint, architecture (**523 files / zero violations**), production build, secret scan and local SQL lint/advisors passed. Migration replay has zero schema drift. The account suite passed **86 checks**, the broader backend regression **190 checks**, and username/shared-control regression **68 checks**. Recovery and both email-change confirmation messages were tested in the isolated local inbox. Fixed an older email-based role trigger that revoked admin membership after an email change; roles now stay attached to account IDs.
+- Hosted migration **20261011040427** and hosted advisors passed. The new production build **xs3a6mV7BksJO3xAcTbIm** is running at **http://localhost:3040**; **28 read-only production checks** passed for real admin/student settings, permissions, profiles, responsive layouts and anonymous protection. Git push/live deployment verification is in progress. Evidence: `docs/evidence/account/`.
+- Email delivery uses Gmail SMTP through Supabase Auth; the Google App Password and actual Gmail delivery test are pending. Setup and contracts: `docs/ACCOUNT_SETTINGS.md`.
+
 ## Latest checkpoint — English usernames and username-based admin URLs
 
 - English first/last names retain merged handles with six secure random digits. Other scripts and mixed-script names use curated English gerund-adjective defaults, generated through pinned `unique-names-generator` migration tooling. Display names remain unchanged.

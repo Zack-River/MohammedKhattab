@@ -1,0 +1,14 @@
+.ds-avatar { display: inline-grid; place-items: center; overflow: hidden; flex-shrink: 0; vertical-align: middle; }
+.ds-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ds-action-menu { display: inline-flex; }
+.ds-action-trigger { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; border-radius: var(--radius-full); }
+.ds-action-trigger:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: var(--space-xs); }
+.ds-action-panel { position: fixed; inset: auto; margin: 0; padding: var(--space-sm); border: var(--size-1px) solid var(--border-hairline); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--control-menu-shadow); overflow: auto; opacity: 0; transform: translateY(var(--space-sm)); transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--transition-fast) allow-discrete, overlay var(--transition-fast) allow-discrete; }
+.ds-action-panel:popover-open { opacity: 1; transform: translateY(0); }
+@starting-style { .ds-action-panel:popover-open { opacity: 0; transform: translateY(var(--space-sm)); } }
+.ds-action-panel nav { display: grid; }
+.ds-action-panel a, .ds-action-panel > button { display: flex; align-items: center; width: 100%; padding: var(--space-sm) var(--space-md); min-height: var(--control-target-size); border: 0; background: transparent; color: inherit; border-radius: var(--radius-sm); text-align: start; cursor: pointer; text-decoration: none; transition: background var(--transition-fast), color var(--transition-fast); }
+.ds-action-panel a:hover, .ds-action-panel > button:hover { background: var(--bg-main); color: var(--primary-red); }
+.ds-action-panel a:focus-visible, .ds-action-panel > button:focus-visible { outline: var(--size-2px) solid var(--primary-red); outline-offset: calc(-1 * var(--size-2px)); }
+.ds-action-logout { border-top: var(--size-1px) solid var(--border-hairline) !important; }
+@media (prefers-reduced-motion: reduce) { .ds-action-panel { transition: none; transform: none; } }

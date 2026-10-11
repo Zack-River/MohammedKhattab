@@ -1,3 +1,4 @@
+import { accountCopy } from "./account";
 import { backendCopy } from "./backend-copy";
 import { authPolicy } from "@platform/config/auth";
 import { endpoints, routes } from "@platform/config/navigation";
@@ -25,8 +26,8 @@ const shared = {
   pending: "جارٍ المتابعة…", redirectTo: routes.dashboard, copy: authCopy,
 };
 export const authPages: Record<AuthMode, AuthPageModel> = {
-  login: { ...shared, mode: "login", heading: "كمّل رحلتك مع تعلّم.", title: "تسجيل الدخول", description: "أدخل بياناتك للمتابعة إلى حسابك.", submit: "تسجيل الدخول", endpoint: endpoints.auth.login,
+  login: { ...shared, recovery: { label: accountCopy.forgot, href: routes.forgotPassword }, mode: "login", heading: "كمّل رحلتك مع تعلّم.", title: "تسجيل الدخول", description: "أدخل بياناتك للمتابعة إلى حسابك.", submit: "تسجيل الدخول", endpoint: endpoints.auth.login,
     alternate: { prompt: "أول مرة هنا؟", label: "أنشئ حسابًا", href: routes.signup } },
-  signup: { ...shared, mode: "signup", heading: "ابدأ تعلّم مهارة جديدة.", title: "إنشاء حساب", description: "خطوة بسيطة، وتبدأ بعدها رحلتك في التعلّم والتطبيق.", submit: "إنشاء حساب", endpoint: endpoints.auth.signup,
+  signup: { ...shared, confirmationLink: { label: accountCopy.resendEmail, href: routes.confirmEmail }, mode: "signup", heading: "ابدأ تعلّم مهارة جديدة.", title: "إنشاء حساب", description: "خطوة بسيطة، وتبدأ بعدها رحلتك في التعلّم والتطبيق.", submit: "إنشاء حساب", endpoint: endpoints.auth.signup,
     alternate: { prompt: "عندك حساب بالفعل؟", label: "سجّل الدخول", href: routes.login } },
 };

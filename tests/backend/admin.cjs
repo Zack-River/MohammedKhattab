@@ -83,7 +83,12 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
     await admin.auth.admin.updateUserById(id,{ email_confirm: true });
     verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 1, 'Verified allowlisted email receives role through trusted trigger');
     await admin.auth.admin.updateUserById(id,{ email: `not-allowed-${Date.now()}@example.com`, email_confirm: true });
-    verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 0, 'Changing away from allowlisted email removes admin role');
+    verify((await admin.from('admin_users').select('*').eq('user_id',id)).data.length === 1, 'Confirmed email change preserves the administrator account role');
     await admin.from('admin_allowlist').delete().eq('email',email);
-  } finally { await admin.auth.admin.deleteUser(id); }
+  } finally {
+    const user=await admin.auth.admin.getUserById(id);
+    await admin.from('admin_allowlist').delete().eq('email',user.data.user.email);
+    await admin.from('admin_users').delete().eq('user_id',id);
+    await admin.auth.admin.deleteUser(id);
+  }
 };

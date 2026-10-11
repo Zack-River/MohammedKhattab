@@ -39,7 +39,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await expect(row).toContainText('المتبقي:');
     await row.getByRole('link', { name: 'عرض المستخدم', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'الدورات المشترك بها', exact: true })).toBeVisible();
-    await expect(page.getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
+    await expect(page.locator('.lms-admin-user-details').getByText('البريد الإلكتروني', { exact: true })).toBeVisible();
     await expect(page.getByText('المتبقي:', { exact: false })).toBeVisible();
     await page.getByRole('button', { name: 'إدارة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'استعادة الوصول', exact: true }).click();
@@ -74,6 +74,7 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.setViewportSize({ width: 390, height: 900 });
     await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
     verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await page.waitForURL('**/login');
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(target.email);

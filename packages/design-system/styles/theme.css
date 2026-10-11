@@ -2,6 +2,8 @@
    CSS breakpoint conditions remain literals because native @media cannot resolve var().
    Size aliases retain the original measurements; prefer named space/radius tokens when extending. */
 :root {
+  --action-menu-width: 256px;
+
   --control-select-min-width: 200px;
   --control-target-size: 44px;
   --control-marker-size: 20px;

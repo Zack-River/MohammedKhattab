@@ -13,7 +13,9 @@ export default function AuthPage({ model }: { model: AuthPageModel }) {
       <h2 id={`${model.mode}-title`}>{model.title}</h2>
       <p>{model.description}</p>
       <AuthForm model={model} />
+      {model.recovery && <Link className="lms-text-link" href={model.recovery.href}>{model.recovery.label}</Link>}
       <div className="lms-auth-alternate"><span>{model.alternate.prompt}</span><Link href={model.alternate.href}>{model.alternate.label}</Link></div>
+      {model.confirmationLink && <Link className="lms-text-link" href={model.confirmationLink.href}>{model.confirmationLink.label}</Link>}
       <small>{model.demoNote}</small>
     </section>
   </main>;

@@ -1,0 +1,75 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Real isolated Auth/database acceptance. */
+const { Client } = require('pg');
+const parse = response => JSON.parse(response.data);
+module.exports = async function accountSettings({ admin, provision, anonymous, verify, url, config }) {
+  const manager = await provision('Account Manager'), student = await provision('Account Student');
+  await admin.from('admin_users').insert({user_id:manager.id});
+  const settings = '/api/account/settings', read = async user => parse(await user.api(settings));
+  const original = await read(student);
+  const body = {firstName:'Account',lastName:'Student',username:original.username,email:student.email,phone:'+20-1201024880',currentPassword:student.password};
+  verify(original.emailVerified && !original.phoneVerified && original.phone === '', 'Email confirmation is automatic; initial phone is unverified');
+  verify((await anonymous(settings)).status === 401, 'Settings require authentication');
+  verify((await anonymous(settings,body)).status === 401, 'Anonymous settings writes are rejected');
+  verify((await student.api(settings,body,{headers:{Origin:'https://attacker.example'}})).status === 403,'Cross-origin settings writes rejected');
+  for(const phone of ['01201024880','+201201024880','+20-9999999999','+999-1201024880','+20-1201024880 ext 2']) verify((await student.api(settings,{...body,phone})).status===400,'Reject invalid phone '+phone);
+  verify((await student.api(settings,{...body,currentPassword:''})).status===400,'Phone changes require current password');
+  verify((await student.api(settings,{...body,currentPassword:'Wrong-Password-19!'})).status===400,'Incorrect current password rejected');
+  verify((await student.api(settings,{...body,email:'forged@example.com'})).status===403,'Students cannot change email through settings');
+  verify((await student.api('/api/profile',{name:'Account Student',email:'forged@example.com'})).status===403,'Legacy profile endpoint cannot bypass email lock');
+  const saved=await student.api(settings,body);verify(saved.status===200 && parse(saved).phone===body.phone && !parse(saved).phoneVerified,'Valid phone saves in canonical display format and remains unverified');
+  verify((await student.api(settings,{...body,firstName:'Updated',lastName:'Student',currentPassword:''})).status===200,'Non-critical profile changes do not require a password');
+  const stored=(await admin.from('profiles').select('name,first_name,last_name').eq('id',student.id).single()).data;
+  verify(stored.name==='Updated Student' && stored.first_name==='Updated' && stored.last_name==='Student','Normalized name fields remain consistent with display name');
+    const managerProfile=await read(manager);
+  const duplicate=await student.api(settings,{...body,username:managerProfile.username,firstName:'Failed',phone:'+20-1001234567'});
+  verify(duplicate.status===409,'Duplicate username rejects the entire settings save');
+  const unchanged=await read(student);verify(unchanged.name==='Updated Student' && unchanged.phone===body.phone,'Failed settings save cannot partially change name or phone');
+  verify(Boolean((await student.direct.rpc('save_account_settings',{p_user_id:student.id,p_first_name:'Forged',p_last_name:'User',p_username:'forged-user',p_phone:'+201201024880'})).error),'Atomic settings RPC is server-only');
+verify(Boolean((await student.direct.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',student.id)).error),'Student cannot forge verification timestamps');
+  verify(Boolean((await student.direct.rpc('confirm_account_contact',{p_user_id:student.id,p_field:'phone',p_value:'+201201024880'})).error),'Student cannot call admin confirmation RPC');
+  verify((await student.direct.from('account_contacts').select('*').eq('user_id',manager.id)).data.length===0,'Contact RLS hides other users');
+  const catalog=parse(await anonymous('/api/courses')).courses, source=catalog.find(course=>course.delivery!=='live');
+  const free={...source,slug:'backend-test-account-free',offer:{...source.offer,amount:0}};
+  const free2={...free,slug:'backend-test-account-next'};
+  await admin.from('courses').upsert([{slug:free.slug,metadata:free,amount:0,published:true,position:99},{slug:free2.slug,metadata:free2,amount:0,published:true,position:100}]);
+  try {
+    const denied=await student.api('/api/enrollments',{courseSlug:free.slug});
+    verify(denied.status===403 && parse(denied).code==='CONTACT_VERIFICATION_REQUIRED','Unverified phone blocks free enrollment API');
+    verify(Boolean((await student.direct.from('enrollments').insert({user_id:student.id,course_slug:free.slug})).error),'Database blocks direct unverified enrollment');
+    verify(Boolean((await admin.from('enrollments').insert({user_id:student.id,course_slug:free.slug})).error),'Database also guards trusted new grants');
+    const path='/api/admin/users/'+student.id+'/verification', confirm={field:'phone',value:'+201201024880'};
+    verify((await student.api(path,confirm)).status===403,'Student cannot confirm their own phone through API');
+    verify((await manager.api(path,{...confirm,value:'+201001234567'})).status===409,'Stale phone confirmation rejects wrong number');
+    verify((await manager.api(path,{field:'email',value:student.email})).status===400,'Email confirmation cannot be replaced by manual admin approval');
+    verify((await manager.api(path,confirm)).status===200,'Admin confirms the exact phone after private inquiry');
+    verify((await read(student)).phoneVerified,'Manual phone confirmation persists');
+    const events=(await admin.from('account_verification_events').select('*').eq('user_id',student.id)).data;
+    verify(events.length===1 && events[0].reviewer_id===manager.id && events[0].value===confirm.value,'Verification audit records reviewer, field and value');
+    verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Verified contacts unlock new enrollment');
+    await student.api(settings,{...body,phone:'+20-1001234567'});
+    verify(!(await read(student)).phoneVerified,'Phone edit automatically removes prior confirmation');
+    verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Existing course remains accessible after phone edit');
+    verify((await student.api('/api/enrollments',{courseSlug:free2.slug})).status===403,'Phone edit blocks another new course');
+    const newPhone={field:'phone',value:'+201001234567'};await manager.api(path,newPhone);
+    const db=new Client({connectionString:config.DB_URL});await db.connect();
+    try {
+      await db.query("update auth.users set email_change=$1 where id=$2",['changed@example.com',student.id]);
+      verify(!(await read(student)).emailVerified,'Pending email immediately loses verification');
+      verify((await student.api('/api/enrollments',{courseSlug:free2.slug})).status===403,'Pending email blocks new enrollment globally');
+      verify((await student.api('/api/enrollments',{courseSlug:free.slug})).status===200,'Pending email preserves previously purchased courses');
+      await db.query("update auth.users set email_change='' where id=$1",[student.id]);
+      verify((await read(student)).emailVerified,'Verified email status restores only when Auth clears pending change');
+      const plan=await db.query("set enable_seqscan=off; explain select id from public.profiles where lower(first_name) ^@ 'up'");
+      verify(plan[1].rows.some(row=>row['QUERY PLAN'].includes('profiles_first_name_prefix_idx')),'First-name prefix search can use its index');
+    } finally {await db.end();}
+    const credentials={currentPassword:student.password,password:'New-Account-Password-19!',confirmPassword:'New-Account-Password-19!'};
+    verify((await student.api('/api/account/password',{...credentials,confirmPassword:'Mismatch-Password-19!'})).status===400,'Password confirmation mismatch rejected');
+    verify((await student.api('/api/account/password',{...credentials,currentPassword:'Incorrect-Password-19!'})).status===400,'Password change verifies current password');
+    verify((await student.api('/api/auth/reset-password',{password:credentials.password,confirmPassword:credentials.password})).status===403,'Ordinary login session cannot bypass current-password requirement via recovery endpoint');
+    verify((await student.api('/api/account/password',credentials)).status===200,'Current-password authenticated change succeeds');
+    verify((await anonymous('/api/auth/login',{email:student.email,password:student.password})).status===401,'Old password stops working');
+    verify((await anonymous('/api/auth/login',{email:student.email,password:credentials.password})).status===200,'New password authenticates');
+    student.password=credentials.password;
+    await require('./account-settings-browser.cjs')({manager,student,url,verify,config,admin});
+  } finally {await admin.from('courses').delete().in('slug',[free.slug,free2.slug]);}
+};

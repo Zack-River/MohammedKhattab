@@ -1,8 +1,8 @@
 /** Keep the top-layer menu within the viewport, including small landscape screens. */
-export function placeSelectMenu(button: HTMLElement, panel: HTMLElement) {
+export function placeSelectMenu(button: HTMLElement, panel: HTMLElement, minimumWidth = 0) {
   const rect = button.getBoundingClientRect();
   const style = getComputedStyle(panel), gap = parseFloat(style.getPropertyValue("--space-sm")) || 0;
-  const width = Math.min(rect.width, window.innerWidth - gap * 2);
+  const width = Math.min(Math.max(rect.width, minimumWidth), window.innerWidth - gap * 2);
   panel.style.width = `${width}px`;
   const roomBelow = window.innerHeight - rect.bottom - gap * 2, roomAbove = rect.top - gap * 2;
   const desired = Math.min(panel.scrollHeight, parseFloat(style.getPropertyValue("--control-menu-max-height")));

@@ -16,12 +16,15 @@ module.exports = async function dashboardAccess({ url, student, verify }) {
     const admin = await context.request.get(url + '/api/admin/courses/7days-freelance');
     verify(admin.status() === 403, 'Signed-in student cannot use admin course APIs');
     await context.clearCookies();
-    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
+    await page.locator('.ds-action-panel a[href="/dashboard/profile"]').click();
     await expect(page, 'Lost session navigation').toHaveURL(/\/login$/);
     verify(true, 'Lost session cannot navigate through a retained dashboard layout');
     await login();
-    await page.locator('a[href="/dashboard/profile"]').first().click();
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
+    await page.locator('.ds-action-panel a[href="/dashboard/profile"]').click();
     await expect(page).toHaveURL(/\/dashboard\/profile$/);
+    await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click();
     await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
     await expect(page, 'Logout navigation').toHaveURL(/\/login$/);
     await page.waitForLoadState('load');
