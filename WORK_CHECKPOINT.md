@@ -6,7 +6,7 @@ Last updated: **2026-10-11**. This file records the actual implementation and ve
 
 - Changed the homepage instructor statistic beside “خطوة في كل مرة” from `01` to `1` in its centralized page content. Shared statistic rendering stays unchanged; the design reproduction snapshot is refreshed.
 - Confirmed `config/personal-portfolio.json` remains the active founder content/metadata source, adapted by `config/personal-portfolio-model.ts` for current navigation and destinations.
-- Production build, TypeScript, targeted lint and diff checks passed. Deployment verification pending.
+- Production build, TypeScript, targeted lint and diff checks passed. Application commit **730b315** deployed successfully. Live homepage returned HTTP 200 and the exact “خطوة في كل مرة” statistic value was verified as `1`.
 
 ## Latest checkpoint — mobile account/dashboard access
 
