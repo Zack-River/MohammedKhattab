@@ -114,4 +114,3 @@ REVOKE ALL ON FUNCTION "public"."admin_dashboard_snapshot"() FROM "postgres";
 GRANT EXECUTE ON FUNCTION "public"."admin_dashboard_snapshot"() TO "postgres";
 
 GRANT EXECUTE ON FUNCTION "public"."admin_dashboard_snapshot"() TO "service_role";
-

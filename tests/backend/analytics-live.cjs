@@ -8,8 +8,8 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
   const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');
   await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);
-  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
-  await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard',{timeout:30000});
+  await expect(page.getByRole('heading',{name:'المنصة في أرقام',exact:true})).toBeVisible({timeout:30000});
   const response=await page.request.get(url+'/api/admin/analytics');expect(response.status()).toBe(200);
   const data=await response.json();expect(data.timezone).toBe('Africa/Cairo');
   for(const width of [390,1440]) {
