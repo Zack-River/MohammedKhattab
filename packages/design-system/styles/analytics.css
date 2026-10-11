@@ -5,6 +5,7 @@
 .analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--analytics-heading-size); }
 .analytics-panel-heading p { margin: var(--space-sm) 0 0; color: var(--text-secondary); font-size: var(--font-size-caption); }
 .analytics-panel-body { flex: 1; padding-top: 0; }
+.analytics-chart-slot { min-width: 0; min-height: var(--analytics-chart-height); }
 .analytics-chart { width: 100%; height: var(--analytics-chart-height); min-width: 0; font-size: var(--font-size-caption); }
 .analytics-tooltip { border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-md); background: var(--bg-section-alt); color: var(--text-primary); }
 .analytics-tooltip dl { margin: var(--space-sm) 0 0; }

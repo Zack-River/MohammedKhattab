@@ -1,3 +1,4 @@
+import RevealContent from "@platform/components/marketing/reveal-content";
 import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
@@ -23,7 +24,7 @@ export default async function PublicLayout({
         copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
         site={{ name: site.name, englishName: site.englishName }}
       />
-      {children}
+      <RevealContent as="div">{children}</RevealContent>
       <SiteFooter
         credit={designerCredit}
         projectNavigation={projectNavigation}

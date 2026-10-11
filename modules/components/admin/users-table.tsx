@@ -6,7 +6,7 @@ import UserStatus from "./user-status";
 import UserActions from "./user-actions";
 import UserIdentity from "./user-identity";
 export default function UsersTable({ users, labels }: { users: AdminUser[]; labels: AdminUsersLabels }) {
-  return <div className="lms-admin-table-wrap"><table className="lms-admin-table" role="table">
+  return <div className="lms-admin-table-wrap" data-reveal><table className="lms-admin-table" role="table">
     <caption className="lms-visually-hidden">{labels.heading}</caption>
     <thead><tr>{[labels.name, labels.username, labels.email, labels.status, labels.actions].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
     <tbody role="rowgroup">{users.map(user => <tr key={user.id} role="row">

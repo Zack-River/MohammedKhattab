@@ -10,7 +10,7 @@ export default function AssetImage({
 >) {
   return (
     <Image
-      unoptimized
+      unoptimized={!asset.src.startsWith("/")}
       loading="lazy"
       decoding="async"
       {...asset}

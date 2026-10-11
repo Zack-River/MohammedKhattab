@@ -76,6 +76,7 @@ for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await expect(page.locator(".hero-video-shell")).toBeVisible();
     const heroRatio = await page.locator(".hero-video-shell").evaluate(node => { const rect = node.getBoundingClientRect(); return rect.width / rect.height; });
     expect(heroRatio).toBeCloseTo(16 / 9, 2);
     for (const card of await page.locator(".reel-card").all()) {

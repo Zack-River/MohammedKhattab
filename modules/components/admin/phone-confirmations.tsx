@@ -11,7 +11,7 @@ export default function PhoneConfirmations({ requests, total, page, labels, acco
 }) {
   return <><PageHeading title={labels.title} description={labels.description} />
     <p className="body-regular">{total} {labels.count}</p>
-    <div className="lms-phone-requests">{requests.length ? requests.map(request => <article className="lms-profile-card" key={request.user_id}>
+    <div className="lms-phone-requests">{requests.length ? requests.map(request => <article data-reveal className="lms-profile-card" key={request.user_id}>
       <h2><Link href={routes.adminUser(request.username)}>{request.name}</Link></h2>
       <dl className="lms-account-data"><div><dt>{accountLabels.username}</dt><dd dir="ltr">{request.username}</dd></div>
         <div><dt>{accountLabels.email}</dt><dd dir="ltr">{request.email}</dd></div>

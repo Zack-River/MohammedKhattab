@@ -183,7 +183,7 @@ export const workshopPage = {
       " لو طبقته هيخليك من أقوى الإيديتورز في الوطن العربي وتحقق أول عميل ليك خلال 7 أيام. ",
     ],
     image: {
-      src: "/assets/images/instructor.png",
+      src: "/assets/images/instructor.webp",
       alt: "محمد خطاب - Senior Video Editor",
       width: 1086,
       height: 1448,

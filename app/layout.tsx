@@ -1,3 +1,4 @@
+import HistoryBoundary from "@khatab/design/ui/history-boundary";
 import FontPreloads from "@khatab/design/ui/font-preloads";
 import { criticalFontAssets } from "@/config/fonts";
 import { interfaceCopy } from "@platform/data/interface-copy";
@@ -14,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <head><FontPreloads assets={criticalFontAssets} /></head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning><HistoryBoundary>{children}</HistoryBoundary></body>
     </html>
   );
 }

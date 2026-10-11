@@ -2,6 +2,14 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — measured loading bottlenecks and viewport deferral
+
+- Baseline captured six public/five admin routes. Found duplicate initial client session checks hiding server-authorized dashboards (about 0.9–1.1s per check), repeated role/state queries, unoptimized images, eagerly imported playback/chart code, and US functions accessing a London database.
+- Initial server-authorized dashboards now render immediately; client navigation and history/BFCache restores still verify sessions. Cached role/student-state reads are request-scoped, and student layout reads run concurrently. Verified claims refresh in Proxy; live server authorization remains in place.
+- Configured London functions, enabled optimized local images/existing instructor WebP, split playback imports until play, and deferred chart plotting near view with reserved height. Extended the existing fade/reduced-motion engine to protected panels and public account screens.
+- Passed 190 isolated backend checks and 11 performance checks, production build/TypeScript, lint and architecture. Local production analytics/settings checks passed. Details and measurement limits: `docs/PERFORMANCE_LOADING.md`.
+- Live deployment comparison is pending the push.
+
 ## Latest checkpoint — aligned settings card heights
 
 - Stretched the desktop identity/contact card across its two grid rows, aligning its top with the verification card and its bottom with the password card. Mobile remains stacked.

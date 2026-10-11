@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 import { useProtectedSession } from "@platform/hooks/use-protected-session";
 import { endpoints, routes } from "@platform/config/navigation";
+import RevealContent from "@platform/components/marketing/reveal-content";
 import DashboardHeader from "./dashboard-header";
 import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
@@ -32,7 +33,7 @@ export default function DashboardShell({
       <DashboardHeader accountMenu={accountMenu} avatarUrl={avatarUrl} showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
         <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
-        <main className="lms-app-main">{children}</main>
+        <RevealContent className="lms-app-main">{children}</RevealContent>
       </div>
     </div>
   );

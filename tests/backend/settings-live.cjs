@@ -14,7 +14,7 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
     await expect(page.getByLabel('رقم الهاتف',{exact:true})).toHaveAttribute('placeholder','+44-7700900123');
     for(const width of [320,390,768,1440,1920]) {
       await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-      if(width>=1440) expect(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top && Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
+      if(width>=1440) await expect.poll(() => page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top && Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
     }
     await page.goto(url+'/admin/dashboard/phone-confirmations');
     await expect(page.getByRole('heading',{name:'طلبات تأكيد رقم الهاتف',exact:true})).toBeVisible();

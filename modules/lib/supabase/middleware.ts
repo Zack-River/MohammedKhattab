@@ -15,9 +15,9 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
+  const { data, error } = await client.auth.getClaims();
   if (request.nextUrl.pathname.startsWith("/admin/") || request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
-    const { data, error } = await client.auth.getUser();
-    if (error || !data.user) {
+    if (error || !data?.claims) {
       const target = request.nextUrl.clone();
       target.pathname = routes.login;
       target.search = "";
@@ -26,7 +26,7 @@ export async function updateSession(request: NextRequest) {
       denied.headers.set("Cache-Control", "private, no-store");
       return denied;
     }
-  } else await client.auth.getClaims();
+  }
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }

@@ -1,0 +1,137 @@
+{
+  "results": [
+    {
+      "path": "/",
+      "ttfb": 60,
+      "load": 1680,
+      "jsBytes": 160602,
+      "imagesBytes": 959982,
+      "imageRequests": 9,
+      "sessionChecks": [],
+      "reveals": 27,
+      "appVisible": false
+    },
+    {
+      "path": "/courses",
+      "ttfb": 61,
+      "load": 491,
+      "jsBytes": 14920,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [],
+      "reveals": 7,
+      "appVisible": false
+    },
+    {
+      "path": "/founder",
+      "ttfb": 60,
+      "load": 1146,
+      "jsBytes": 19610,
+      "imagesBytes": 115206,
+      "imageRequests": 10,
+      "sessionChecks": [],
+      "reveals": 31,
+      "appVisible": false
+    },
+    {
+      "path": "/workshops/7days-freelance",
+      "ttfb": 60,
+      "load": 460,
+      "jsBytes": 12234,
+      "imagesBytes": 3000,
+      "imageRequests": 10,
+      "sessionChecks": [],
+      "reveals": 0,
+      "appVisible": false
+    },
+    {
+      "path": "/login",
+      "ttfb": 61,
+      "load": 446,
+      "jsBytes": 3221,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [],
+      "reveals": 0,
+      "appVisible": false
+    },
+    {
+      "path": "/signup",
+      "ttfb": 61,
+      "load": 349,
+      "jsBytes": 0,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [],
+      "reveals": 0,
+      "appVisible": false
+    },
+    {
+      "path": "/admin/dashboard",
+      "ttfb": 61,
+      "load": 1239,
+      "jsBytes": 108265,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [
+        57,
+        1115
+      ],
+      "reveals": 0,
+      "appVisible": true
+    },
+    {
+      "path": "/admin/dashboard/users",
+      "ttfb": 61,
+      "load": 1439,
+      "jsBytes": 6158,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [
+        1138
+      ],
+      "reveals": 0,
+      "appVisible": true
+    },
+    {
+      "path": "/admin/dashboard/settings",
+      "ttfb": 60,
+      "load": 1327,
+      "jsBytes": 3002,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [
+        1122
+      ],
+      "reveals": 0,
+      "appVisible": true
+    },
+    {
+      "path": "/admin/dashboard/courses",
+      "ttfb": 61,
+      "load": 1525,
+      "jsBytes": 0,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [
+        920
+      ],
+      "reveals": 0,
+      "appVisible": true
+    },
+    {
+      "path": "/admin/dashboard/phone-confirmations",
+      "ttfb": 61,
+      "load": 1678,
+      "jsBytes": 876,
+      "imagesBytes": 0,
+      "imageRequests": 0,
+      "sessionChecks": [
+        325
+      ],
+      "reveals": 0,
+      "appVisible": false
+    }
+  ],
+  "errors": []
+}

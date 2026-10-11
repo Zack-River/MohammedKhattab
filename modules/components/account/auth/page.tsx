@@ -3,12 +3,12 @@ import AuthForm from "./form";
 import type { AuthPageModel } from "@platform/types/auth";
 export default function AuthPage({ model }: { model: AuthPageModel }) {
   return <main className="container lms-login-page">
-    <div className="lms-login-message">
+    <div className="lms-login-message" data-reveal>
       <h1>{model.heading}<br /><span className="text-red">{model.highlight}</span></h1>
       <p className="body-large">{model.support}</p>
       <div className="lms-login-steps">{model.steps.map((step) => <span key={step}>{step}</span>)}</div>
     </div>
-    <section className="lms-login-card lms-auth-card" aria-labelledby={`${model.mode}-title`}>
+    <section data-reveal className="lms-login-card lms-auth-card" aria-labelledby={`${model.mode}-title`}>
       <span className="lms-demo-label">{model.demoLabel}</span>
       <h2 id={`${model.mode}-title`}>{model.title}</h2>
       <p>{model.description}</p>

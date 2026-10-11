@@ -448,9 +448,10 @@ export default function ForgotPasswordPage() {
 
 ### File: `app/(public)/layout.tsx`
 
-SHA-256: `62c53f0de28dd6324e575573e770002314750304c0318e225bd459a0d91f1ba9`
+SHA-256: `629562632aeab684f85b37ff137caf9275fa0eb7d54ab1c7801dd959cb714f7a`
 
 ```tsx
+import RevealContent from "@platform/components/marketing/reveal-content";
 import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
@@ -476,7 +477,7 @@ export default async function PublicLayout({
         copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
         site={{ name: site.name, englishName: site.englishName }}
       />
-      {children}
+      <RevealContent as="div">{children}</RevealContent>
       <SiteFooter
         credit={designerCredit}
         projectNavigation={projectNavigation}
@@ -2145,7 +2146,7 @@ export default async function MyCourses() {
 
 ### File: `app/dashboard/layout.tsx`
 
-SHA-256: `0edf9eb954248ad5c5c58b12958afb2f28ce203a9d17b799d909d238c1df4232`
+SHA-256: `1327e0c293cfe9f3e7e87ee561b4b3e4fb61d90d48d0f48f995b806bb075ac32`
 
 ```tsx
 import { readAccount } from "@platform/features/account/repositories/read-account";
@@ -2157,7 +2158,7 @@ import { dashboardNavigation } from "@platform/data/site";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { readStudentState } from "@platform/features/learning";
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
-  const state = await readStudentState(), admin = await hasAdminAccess(), account = await readAccount();
+  const [state, admin, account] = await Promise.all([readStudentState(), hasAdminAccess(), readAccount()]);
   return <DashboardShell {...dashboardShellContent} name={state.profile.name} avatarUrl={account.avatarUrl}
     dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.adminDashboard, label: adminUsersCopy.dashboard, symbol: "grid" }] : dashboardNavigation}>
     {children}
@@ -2351,7 +2352,7 @@ export { workshopPage } from "./workshop/content";
 
 ### File: `app/data/workshop/content.ts`
 
-SHA-256: `8bd0c73b3e4fd9d0a9be88ff869a3e7fc429cc370e617b6e79e038cb16c35687`
+SHA-256: `9324deb0dd05a4fd761bf76a811c80549f6209be1ea1cb8a7dd8a181075abe51`
 
 ```typescript
 import { designerCredit } from "../../../config/designer";
@@ -2539,7 +2540,7 @@ export const workshopPage = {
       " لو طبقته هيخليك من أقوى الإيديتورز في الوطن العربي وتحقق أول عميل ليك خلال 7 أيام. ",
     ],
     image: {
-      src: "/assets/images/instructor.png",
+      src: "/assets/images/instructor.webp",
       alt: "محمد خطاب - Senior Video Editor",
       width: 1086,
       height: 1448,
@@ -3104,9 +3105,10 @@ export function useRoadmapProgress(ref: RefObject<HTMLDivElement | null>, itemCo
 
 ### File: `app/layout.tsx`
 
-SHA-256: `b42f5eb10f0fceabbc7fa21b59e005fb819d8254a2732e491b847f12f1a83e13`
+SHA-256: `0c6340f8775826821929805825ba7ff90e004021454cd742ffb718f69e0b806a`
 
 ```tsx
+import HistoryBoundary from "@khatab/design/ui/history-boundary";
 import FontPreloads from "@khatab/design/ui/font-preloads";
 import { criticalFontAssets } from "@/config/fonts";
 import { interfaceCopy } from "@platform/data/interface-copy";
@@ -3123,7 +3125,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <head><FontPreloads assets={criticalFontAssets} /></head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning><HistoryBoundary>{children}</HistoryBoundary></body>
     </html>
   );
 }
@@ -4363,14 +4365,14 @@ export default function AccountMenu({ name, avatarUrl, content }: { name: string
 
 ### File: `modules/components/account/account-summary.tsx`
 
-SHA-256: `99f931303741e54927d4aadd21d4688ff03eaf56cd6ec0c9a8d9412b62e06a04`
+SHA-256: `9552be4003b16758f9c9d548846ac96c24103ec17d71d5034b03efbf5dae47ab`
 
 ```tsx
 import Avatar from "@khatab/design/ui/avatar";
 import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
 export default function AccountSummary({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
-  return <section className="lms-profile-card">
+  return <section data-reveal className="lms-profile-card">
     <div className="lms-profile-card-heading"><Avatar name={profile.name} url={profile.avatarUrl} label={labels.image} className="lms-avatar lms-avatar-large" /><div><h2>{profile.name}</h2><span>{profile.admin ? labels.admin : labels.student}</span></div></div>
     <dl className="lms-account-data">{[[labels.name, profile.name], [labels.username, profile.username], [labels.email, profile.email], [labels.phone, profile.phone || labels.missing]].map(([label, value]) =>
       <div key={label}><dt>{label}</dt><dd dir="auto">{value}</dd></div>)}</dl>
@@ -4449,7 +4451,7 @@ export default function AuthForm({ model }: { model: AuthPageModel }) {
 
 ### File: `modules/components/account/auth/page.tsx`
 
-SHA-256: `c5f81867411f2a8c5c9bc66d7ad5ec9b7e38c84d132fa4e79cbef707a797aabb`
+SHA-256: `281d9d397fed74a5421c2ffb95ecc2ac66a94a1153755d9565d78f0d2e99dff4`
 
 ```tsx
 import Link from "next/link";
@@ -4457,12 +4459,12 @@ import AuthForm from "./form";
 import type { AuthPageModel } from "@platform/types/auth";
 export default function AuthPage({ model }: { model: AuthPageModel }) {
   return <main className="container lms-login-page">
-    <div className="lms-login-message">
+    <div className="lms-login-message" data-reveal>
       <h1>{model.heading}<br /><span className="text-red">{model.highlight}</span></h1>
       <p className="body-large">{model.support}</p>
       <div className="lms-login-steps">{model.steps.map((step) => <span key={step}>{step}</span>)}</div>
     </div>
-    <section className="lms-login-card lms-auth-card" aria-labelledby={`${model.mode}-title`}>
+    <section data-reveal className="lms-login-card lms-auth-card" aria-labelledby={`${model.mode}-title`}>
       <span className="lms-demo-label">{model.demoLabel}</span>
       <h2 id={`${model.mode}-title`}>{model.title}</h2>
       <p>{model.description}</p>
@@ -4751,7 +4753,7 @@ export default function SettingsForm({ profile, labels }: { profile: AccountProf
 
 ### File: `modules/components/account/settings/settings-view.tsx`
 
-SHA-256: `6aff201bbccade589162d80729ccd56cd924f7eb8e7e6715960d4210df357dbc`
+SHA-256: `892073686f15bd0e7707e62f04557bde6d56f56bc7f82cd9dadea67900076859`
 
 ```tsx
 import PageHeading from "@platform/components/ui/page-heading";
@@ -4762,16 +4764,16 @@ import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
 export default function SettingsView({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
   return <><PageHeading title={labels.settingsTitle} /><div className="lms-account-stack lms-settings-layout">
-    <section className="lms-profile-card lms-settings-identity"><SettingsForm profile={profile} labels={labels} /></section>
+    <section data-reveal className="lms-profile-card lms-settings-identity"><SettingsForm profile={profile} labels={labels} /></section>
     <VerificationStatus profile={profile} labels={labels} supportHref={supportHref} />
-    <section className="lms-profile-card"><h2>{labels.passwordTitle}</h2><PasswordForm labels={labels} /></section>
+    <section data-reveal className="lms-profile-card"><h2>{labels.passwordTitle}</h2><PasswordForm labels={labels} /></section>
   </div></>;
 }
 ```
 
 ### File: `modules/components/account/verification-status.tsx`
 
-SHA-256: `b7963cb681e4ef23d52dd6b3b805a9423e06779c41c70e9951a0f9899faa5e49`
+SHA-256: `475f3f1f1a6c521380a54bbf68ef9bc4ca1e8558ed30539ebd8775367aa7812b`
 
 ```tsx
 import EmailConfirmation from "./settings/email-confirmation";
@@ -4779,7 +4781,7 @@ import Link from "next/link";
 import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
 export default function VerificationStatus({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
-  return <section className="lms-profile-card lms-verification-card" aria-labelledby="contact-verification-title">
+  return <section data-reveal className="lms-profile-card lms-verification-card" aria-labelledby="contact-verification-title">
     <h2 id="contact-verification-title">{labels.verification}</h2>
     <dl className="lms-account-data">{[[labels.email, profile.emailVerified], [labels.phone, profile.phoneVerified]].map(([label, verified]) =>
       <div key={String(label)}><dt>{label}</dt><dd className={verified ? "lms-success" : "lms-unverified"}>{verified ? labels.verified : labels.unverified}</dd></div>)}</dl>
@@ -4876,7 +4878,7 @@ export default function LearningSummary({ metrics, labels }: { metrics: Analytic
 
 ### File: `modules/components/admin/analytics/metric-card.tsx`
 
-SHA-256: `8c6c6680129869c568cb341f9fac17fce9cb825d02a3aaa6d6918009eab170af`
+SHA-256: `e584f7d587b9843fd9c35604ee034ad726756073fe4d715cdcd51956080ebf72`
 
 ```tsx
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
@@ -4885,7 +4887,7 @@ import MetricChange from "./metric-change";
 export default function MetricCard({ title, value, previous, note, labels }: {
   labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note?: string;
 }) {
-  return <article className="analytics-metric" aria-label={title}>
+  return <article className="analytics-metric" aria-label={title} data-reveal>
     <h2>{title}</h2><strong className="analytics-value numeral">{value === null ? "—" : formatAnalyticsNumber(value)}</strong>
     {value !== null && previous !== undefined && <MetricChange labels={labels} current={value} previous={previous} />}
     {value === null && <span className="analytics-unavailable">{labels.unavailable}</span>}
@@ -5147,7 +5149,7 @@ export default function ModerationControls({ user, labels, period, pending, onPe
 
 ### File: `modules/components/admin/phone-confirmations.tsx`
 
-SHA-256: `ed4edf75687befcf3e31162e692061943f170776bda5f082e15ac3f3547967f1`
+SHA-256: `adc4ce035e9372aefb89b031976c230a61d8fd42ea6fbd65af5b111e9443cdde`
 
 ```tsx
 import Link from "next/link";
@@ -5163,7 +5165,7 @@ export default function PhoneConfirmations({ requests, total, page, labels, acco
 }) {
   return <><PageHeading title={labels.title} description={labels.description} />
     <p className="body-regular">{total} {labels.count}</p>
-    <div className="lms-phone-requests">{requests.length ? requests.map(request => <article className="lms-profile-card" key={request.user_id}>
+    <div className="lms-phone-requests">{requests.length ? requests.map(request => <article data-reveal className="lms-profile-card" key={request.user_id}>
       <h2><Link href={routes.adminUser(request.username)}>{request.name}</Link></h2>
       <dl className="lms-account-data"><div><dt>{accountLabels.username}</dt><dd dir="ltr">{request.username}</dd></div>
         <div><dt>{accountLabels.email}</dt><dd dir="ltr">{request.email}</dd></div>
@@ -5362,7 +5364,7 @@ export default function UserSubscriptions({ subscriptions, labels }: { subscript
 
 ### File: `modules/components/admin/users-table.tsx`
 
-SHA-256: `55c17eda640424ef1ab6e932b016ea57126ba58368b5af0b3a2ad064c1819233`
+SHA-256: `bc84b207e47bcd74f9a894ed61ed73388b818076e078957c224d59df03724965`
 
 ```tsx
 import Link from "next/link";
@@ -5373,7 +5375,7 @@ import UserStatus from "./user-status";
 import UserActions from "./user-actions";
 import UserIdentity from "./user-identity";
 export default function UsersTable({ users, labels }: { users: AdminUser[]; labels: AdminUsersLabels }) {
-  return <div className="lms-admin-table-wrap"><table className="lms-admin-table" role="table">
+  return <div className="lms-admin-table-wrap" data-reveal><table className="lms-admin-table" role="table">
     <caption className="lms-visually-hidden">{labels.heading}</caption>
     <thead><tr>{[labels.name, labels.username, labels.email, labels.status, labels.actions].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
     <tbody role="rowgroup">{users.map(user => <tr key={user.id} role="row">
@@ -6277,7 +6279,7 @@ return (<header className="lms-app-header">
 
 ### File: `modules/components/layout/dashboard-shell.tsx`
 
-SHA-256: `153580d02a4397c605cfd55d07800c7a9cd3102bd3357c8b9312bf28c74b6c2e`
+SHA-256: `a58153f2aca4f630aa4e41dfe95ab9e72fd4d1bf92b595a0350c452ee6d7d33e`
 
 ```tsx
 "use client";
@@ -6289,6 +6291,7 @@ import { usePathname } from "next/navigation";
 import { useMobileMenu } from "@khatab/design/hooks/use-mobile-menu";
 import { useProtectedSession } from "@platform/hooks/use-protected-session";
 import { endpoints, routes } from "@platform/config/navigation";
+import RevealContent from "@platform/components/marketing/reveal-content";
 import DashboardHeader from "./dashboard-header";
 import DashboardSidebar from "./dashboard-sidebar";
 export default function DashboardShell({
@@ -6314,7 +6317,7 @@ export default function DashboardShell({
       <DashboardHeader accountMenu={accountMenu} avatarUrl={avatarUrl} showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
         <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
-        <main className="lms-app-main">{children}</main>
+        <RevealContent className="lms-app-main">{children}</RevealContent>
       </div>
     </div>
   );
@@ -8218,7 +8221,7 @@ export default function FormField({ label, error, hint, control, ...input }: For
 
 ### File: `modules/components/ui/page-heading.tsx`
 
-SHA-256: `d8737c41f2226917a2891229336d35ec1d1e93f88a5d0986249152a3df1142f4`
+SHA-256: `c779ac0edd0f358d95440da6899cce90f319b90257b513f40e7923fede8ca065`
 
 ```tsx
 export default function PageHeading({
@@ -8236,7 +8239,7 @@ export default function PageHeading({
 }) {
   const Heading = level === 2 ? "h2" : "h1";
   return (
-    <div className="lms-page-heading">
+    <div className="lms-page-heading" data-reveal>
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
         <Heading>{title}</Heading>
@@ -9345,7 +9348,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `733bb66f3288023534692391a87686af731e42df25b43a214bb5dc384ecdd3c3`
+SHA-256: `2b87608ff9c3524526bff547dbd4f67f38059edd9cd6ab82452d0c1bd2bd3e83`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -9390,7 +9393,7 @@ export const instructor: InstructorContent = {
     " تفهمها وتطبقها، وتبني مهارتك مشروع بعد مشروع.",
   ],
   image: {
-    src: "/assets/images/instructor.png",
+    src: "/assets/images/instructor.webp",
     alt: "محمد خطاب، مدرّب المونتاج والجرافيك ديزاين والموشن جرافيك",
     width: 1086,
     height: 1448,
@@ -10324,19 +10327,20 @@ export function validMediaUrl(value: unknown): value is string {
 
 ### File: `modules/features/admin/identity.ts`
 
-SHA-256: `2aaa213ab410e066c61e2bdff0349c8ae71beb24765bb8ac9d610777875c4887`
+SHA-256: `9f0398990751cf46ed90d0d3659978859f97b2cc8a9881d284d8efcf025001bc`
 
 ```typescript
 import "server-only";
+import { cache } from "react";
 import { requireIdentity, currentIdentity } from "@platform/features/auth/server/identity";
 import { ApiError } from "@platform/lib/api/error";
-export async function hasAdminAccess() {
+export const hasAdminAccess = cache(async () => {
   const identity = await currentIdentity();
   if (!identity) return false;
   const { data, error } = await identity.client.from("admin_users").select("user_id").eq("user_id", identity.user.id).maybeSingle();
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   return Boolean(data);
-}
+});
 export async function requireAdmin() {
   const identity = await requireIdentity();
   if (!await hasAdminAccess()) throw new ApiError(403, "FORBIDDEN");
@@ -11416,16 +11420,17 @@ export type LessonContext = Awaited<ReturnType<typeof readLessonContext>>;
 
 ### File: `modules/features/learning/read-student-state.ts`
 
-SHA-256: `1900f4a413ae7b56dff4a663c00696bb18227cc856f828130a873ceb4691bd95`
+SHA-256: `f304f1f6847ad7501c06ee51990bb3e249f392780d178a5fe7ad1fd3bc87e59f`
 
 ```typescript
 import "server-only";
+import { cache } from "react";
 import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
 import { readState } from "./repositories/read-state";
-export async function readStudentState() {
+export const readStudentState = cache(async () => {
   const { client, user } = await requirePageIdentity();
   return readState(client, user);
-}
+});
 ```
 
 ### File: `modules/features/learning/repositories/enroll-course.ts`
@@ -12580,13 +12585,17 @@ export function useProfileSubmission(entry: boolean, errorLabel: string) {
 
 ### File: `modules/hooks/use-protected-session.ts`
 
-SHA-256: `a7b2d7e396a04a0269d479c1100efe00b4cba0f8a01c6505c0dd4611061cc20e`
+SHA-256: `b2ae8f9b4b49867df5a45efed6a46fa0394d854d427df1af92cb9983e68c54a3`
 
 ```typescript
 "use client";
-import { useEffect, useState } from "react";
+import { useHistoryRestoration } from "@khatab/design/ui/history-boundary";
+import { useEffect, useRef, useState } from "react";
+/** Server layouts authorize initial rendering; client route changes and restored history are rechecked. */
 export function useProtectedSession(pathname: string, endpoint: string, login: string) {
-  const [verifiedPath, setVerifiedPath] = useState<string | null>(null);
+  const restoration = useHistoryRestoration();
+  const [verifiedPath, setVerifiedPath] = useState<{ path: string; restoration: number } | null>(restoration ? null : { path: pathname, restoration });
+  const lastPath = useRef(pathname);
   useEffect(() => {
     let controller: AbortController | undefined;
     const verify = async () => {
@@ -12600,21 +12609,24 @@ export function useProtectedSession(pathname: string, endpoint: string, login: s
           window.location.replace(login);
           return;
         }
-        if (!signal.aborted) setVerifiedPath(pathname);
+        if (!signal.aborted) setVerifiedPath({ path: pathname, restoration });
       } catch {
         if (!signal.aborted) window.location.replace(login);
       }
     };
-    void verify();
-    window.addEventListener("pageshow", verify);
-    window.addEventListener("popstate", verify);
+    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (restoration || navigation?.type === "back_forward" || lastPath.current !== pathname) { lastPath.current = pathname; void verify(); }
+    const restored = (event: PageTransitionEvent) => { if (event.persisted) void verify(); };
+    const leaving = () => setVerifiedPath(null);
+    window.addEventListener("pageshow", restored);
+    window.addEventListener("pagehide", leaving);
     return () => {
       controller?.abort();
-      window.removeEventListener("pageshow", verify);
-      window.removeEventListener("popstate", verify);
+      window.removeEventListener("pageshow", restored);
+      window.removeEventListener("pagehide", leaving);
     };
-  }, [pathname, endpoint, login]);
-  return verifiedPath === pathname;
+  }, [pathname, endpoint, login, restoration]);
+  return verifiedPath?.path === pathname && verifiedPath.restoration === restoration;
 }
 ```
 
@@ -12811,7 +12823,7 @@ export function supabaseEnvironment() {
 
 ### File: `modules/lib/supabase/middleware.ts`
 
-SHA-256: `0539e5b42c077e6d1e93e420a74eb46921161a51e19f794d8a5511d8508b1142`
+SHA-256: `050e755cb2aab9d1092cb437af616c4cf53369749e677b75d1a6671571c7cff3`
 
 ```typescript
 import { createServerClient } from "@supabase/ssr";
@@ -12831,9 +12843,9 @@ export async function updateSession(request: NextRequest) {
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
   } });
+  const { data, error } = await client.auth.getClaims();
   if (request.nextUrl.pathname.startsWith("/admin/") || request.nextUrl.pathname === routes.dashboard || request.nextUrl.pathname.startsWith(`${routes.dashboard}/`)) {
-    const { data, error } = await client.auth.getUser();
-    if (error || !data.user) {
+    if (error || !data?.claims) {
       const target = request.nextUrl.clone();
       target.pathname = routes.login;
       target.search = "";
@@ -12842,7 +12854,7 @@ export async function updateSession(request: NextRequest) {
       denied.headers.set("Cache-Control", "private, no-store");
       return denied;
     }
-  } else await client.auth.getClaims();
+  }
   response.headers.set("Cache-Control", "private, no-store");
   return response;
 }
@@ -17595,6 +17607,14 @@ SHA-256: `5c29c87d50516de91c142ae1436a8ffbb1799bc8979e0917ea0da79368b5cba8`
 export const formControlBehavior = { typeaheadResetMs: 700 } as const;
 ```
 
+### File: `packages/design-system/config/lazy-loading.ts`
+
+SHA-256: `710638eecdefb002f9679f63b47e45c3866c4444ad3fe9fe85114d7569930a2b`
+
+```typescript
+export const lazyLoading = { viewportMargin: "200px" } as const;
+```
+
 ### File: `packages/design-system/config/player.ts`
 
 SHA-256: `b4fb73afd39e9ba1b5738248035dc15034d57a1a58c8458a2dfcce9b4733ad91`
@@ -18950,6 +18970,35 @@ export function useNativeVideoPlayer(ref: RefObject<HTMLVideoElement | null>, so
 }
 ```
 
+### File: `packages/design-system/hooks/use-near-viewport.ts`
+
+SHA-256: `7fa8394f1a0d418f687928671edc92c8b7d28d0feec2aa2791599ba6fb755e8b`
+
+```typescript
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { lazyLoading } from "../config/lazy-loading";
+/** Mount expensive optional content once near view, without repeated scroll work. */
+export function useNearViewport<T extends HTMLElement>() {
+  const ref = useRef<T>(null), [ready, setReady] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    let disposed = false;
+    if (!window.IntersectionObserver) {
+      queueMicrotask(() => { if (!disposed) setReady(true); });
+      return () => { disposed = true; };
+    }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { setReady(true); observer.disconnect(); }
+    }, { rootMargin: lazyLoading.viewportMargin });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, ready };
+}
+```
+
 ### File: `packages/design-system/hooks/use-player-fullscreen.ts`
 
 SHA-256: `f700ea3c465416d10fd700d39b7ee845caec0e1e900f6a830823ae98a78bccaa`
@@ -19367,7 +19416,7 @@ SHA-256: `87c66f082b8fc6a28401b9d3b063a0f99a8daa4c6d7b03e3016897d04e8cd242`
 
 ### File: `packages/design-system/styles/analytics.css`
 
-SHA-256: `1edfc7a95427e10d0b536ba35a26bdf9bdca83fc30cef12e6884d7915947c98c`
+SHA-256: `beb5a43ddb5cd735ccd73521a8d1fd23dd287dee186cb5d8baa5c37e753eadc9`
 
 ```css
 /* Portable chart and panel presentation; all visual roles come from the theme. */
@@ -19377,6 +19426,7 @@ SHA-256: `1edfc7a95427e10d0b536ba35a26bdf9bdca83fc30cef12e6884d7915947c98c`
 .analytics-panel-heading h2 { margin: 0; color: var(--text-primary); font-size: var(--analytics-heading-size); }
 .analytics-panel-heading p { margin: var(--space-sm) 0 0; color: var(--text-secondary); font-size: var(--font-size-caption); }
 .analytics-panel-body { flex: 1; padding-top: 0; }
+.analytics-chart-slot { min-width: 0; min-height: var(--analytics-chart-height); }
 .analytics-chart { width: 100%; height: var(--analytics-chart-height); min-width: 0; font-size: var(--font-size-caption); }
 .analytics-tooltip { border: var(--size-1px) solid var(--border-strong); border-radius: var(--radius-sm); padding: var(--space-md); background: var(--bg-section-alt); color: var(--text-primary); }
 .analytics-tooltip dl { margin: var(--space-sm) 0 0; }
@@ -24387,14 +24437,14 @@ export default function Action(props: ActionProps) {
 
 ### File: `packages/design-system/ui/analytics-panel.tsx`
 
-SHA-256: `d4a5f57107ceb49f33492bcbe6f9fa1c2a6ffb8720c9096580bb685c84386a44`
+SHA-256: `31b484d8ccbe72aa7129605bb7ee374ddbc26e719585a7408297e5098b643514`
 
 ```tsx
 import type { ReactNode } from "react";
 export default function AnalyticsPanel({ title, description, children, className = "" }: {
   title: string; description?: string; children: ReactNode; className?: string;
 }) {
-  return <section className={`analytics-panel ${className}`} aria-label={title}>
+  return <section className={`analytics-panel ${className}`} aria-label={title} data-reveal>
     <header className="analytics-panel-heading"><h2>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="analytics-panel-body">{children}</div>
   </section>;
@@ -24403,7 +24453,7 @@ export default function AnalyticsPanel({ title, description, children, className
 
 ### File: `packages/design-system/ui/asset-image.tsx`
 
-SHA-256: `c918de95af998406fe86cf9503783a364b1901e4fb164b3694495ffd31e7997f`
+SHA-256: `cb97248a8bcc3290d1551fbd22874755b404ef8f5a6088d87ef4ad3cb592f012`
 
 ```tsx
 import Image, { type ImageProps } from "next/image";
@@ -24418,7 +24468,7 @@ export default function AssetImage({
 >) {
   return (
     <Image
-      unoptimized
+      unoptimized={!asset.src.startsWith("/")}
       loading="lazy"
       decoding="async"
       {...asset}
@@ -24711,20 +24761,20 @@ export default function CreatorMarquee({
 
 ### File: `packages/design-system/ui/deferred-video-player.tsx`
 
-SHA-256: `eb564db7d2ce6770ad80e81a87dd9572cd934aa8032bc8fa57d8a592b664289b`
+SHA-256: `25e2e80f81256106232223ac316733d68a835740ffe4393c8a8a5ab74cdbfb49`
 
 ```tsx
 "use client";
-import { useCallback, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useState, type ReactNode } from "react";
 import { useExclusivePlayer } from "../hooks/use-exclusive-player";
 import { getControlledYouTubeUrl } from "../helpers/media/youtube/controlled-url";
-import NativeVideoPlayer from "./native-video-player";
+const NativeVideoPlayer = lazy(() => import("./native-video-player"));
 import type {
   VideoSourceProps,
   PlayerControlsVariant,
   VideoPlayerLabels,
 } from "../types/video-player";
-import YouTubePlayer from "./youtube-player";
+const YouTubePlayer = lazy(() => import("./youtube-player"));
 export default function DeferredVideoPlayer({
   url,
   source,
@@ -24760,7 +24810,7 @@ export default function DeferredVideoPlayer({
   const resolvedUrl = source?.url ?? url ?? "";
   if (activation?.url === resolvedUrl && source)
     return (
-      <NativeVideoPlayer
+      <Suspense fallback={<div className={placeholderClassName} aria-label={labels.loading}>{children}</div>}><NativeVideoPlayer
         key={resolvedUrl}
         source={source}
         onEnded={returnToPosterOnEnd ? reset : undefined}
@@ -24768,11 +24818,11 @@ export default function DeferredVideoPlayer({
         controlsVariant={controlsVariant}
         title={title}
         labels={labels}
-      />
+      /></Suspense>
     );
   if (activation?.url === resolvedUrl)
     return (
-      <YouTubePlayer
+      <Suspense fallback={<div className={placeholderClassName} aria-label={labels.loading}>{children}</div>}><YouTubePlayer
         key={activation.embed}
         url={activation.embed}
         controlsVariant={controlsVariant}
@@ -24780,7 +24830,7 @@ export default function DeferredVideoPlayer({
         onPlay={claimPlayback}
         title={title}
         labels={labels}
-      />
+      /></Suspense>
     );
   return (
     <button
@@ -25087,6 +25137,27 @@ export default function HeroVideo({ content }: { content: VideoContent }) {
     </div>
   );
 }
+```
+
+### File: `packages/design-system/ui/history-boundary.tsx`
+
+SHA-256: `4a29496c3e64c3a7632f7856c5274ea89081ae2b08cfa8d7440c6e6a6c42657d`
+
+```tsx
+"use client";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+const HistoryRestoration = createContext(0);
+/** Persist history notifications across route unmounts, including visits to public pages. */
+export default function HistoryBoundary({ children }: { children: ReactNode }) {
+  const [restoration, setRestoration] = useState(0);
+  useEffect(() => {
+    const restored = () => setRestoration(value => value + 1);
+    window.addEventListener("popstate", restored);
+    return () => window.removeEventListener("popstate", restored);
+  }, []);
+  return <HistoryRestoration.Provider value={restoration}>{children}</HistoryRestoration.Provider>;
+}
+export function useHistoryRestoration() { return useContext(HistoryRestoration); }
 ```
 
 ### File: `packages/design-system/ui/instructor-photo.tsx`
@@ -25954,7 +26025,25 @@ export default function TestimonialsSection({
 
 ### File: `packages/design-system/ui/time-series-chart.tsx`
 
-SHA-256: `6c97d3f299fa5f350029433c198547ca3240dae566063283120853076019cadb`
+SHA-256: `630de8dc45c2a9ceb905d43566b504ab7a02eb6d60c770cd8b382822e58d7c1c`
+
+```tsx
+"use client";
+import { lazy, Suspense } from "react";
+import { useNearViewport } from "../hooks/use-near-viewport";
+import type { TimeSeriesPoint, TimeSeriesLabels } from "../types/charts";
+const TimeSeriesPlot = lazy(() => import("./time-series-plot"));
+export default function TimeSeriesChart(props: { data: TimeSeriesPoint[]; labels: TimeSeriesLabels; title: string }) {
+  const { ref, ready } = useNearViewport<HTMLDivElement>();
+  return <div ref={ref} className="analytics-chart-slot">
+    {ready && <Suspense fallback={<div className="analytics-chart" aria-busy="true" />}><TimeSeriesPlot {...props} /></Suspense>}
+  </div>;
+}
+```
+
+### File: `packages/design-system/ui/time-series-plot.tsx`
+
+SHA-256: `f11fc875c21b444f9d8beef52a684e6f99db635e7c633bfa75cdf998293460f0`
 
 ```tsx
 "use client";
@@ -25963,7 +26052,7 @@ import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip,
 import type { TimeSeriesPoint, TimeSeriesLabels } from "../types/charts";
 import { chartGeometry } from "../config/charts";
 import ChartTooltip from "./chart-tooltip";
-export default function TimeSeriesChart({ data, labels, title }: { data: TimeSeriesPoint[]; labels: TimeSeriesLabels; title: string }) {
+export default function TimeSeriesPlot({ data, labels, title }: { data: TimeSeriesPoint[]; labels: TimeSeriesLabels; title: string }) {
   const gradient = `chart-fill-${useId().replaceAll(":", "")}`;
   return <div className="analytics-chart" dir="ltr" role="group" aria-label={title}>
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -28659,7 +28748,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `930b68a83234be5629c261a5b64d54e7ff5ad86a79cbaf4cd0cddbf3c60c581e`
+SHA-256: `9e235200723ee0862e805350253ce2d23ef139c97fc127d00748336d58541d90`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -28711,6 +28800,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'performance') {
+    await require('./performance.cjs')({admin,provision,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'phone-confirmations') {
     await require('./phone-confirmations.cjs')({admin,provision,anonymous,verify,url});
     return;
@@ -28885,6 +28978,53 @@ module.exports=async function navigation({url,manager,student,verify}) {
 };
 ```
 
+### File: `tests/backend/performance-live.cjs`
+
+SHA-256: `2c910894c6d9bb86c330636d6b8ca0cd377ec9c474711cbffd0503f8675fa591`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only live timing probe; no secrets or account data exported. */
+const {chromium}=require(process.cwd()+'/node_modules/@playwright/test');const fs=require('node:fs');process.loadEnvFile('.env.local');
+(async()=>{const browser=await chromium.launch();try{const page=await browser.newPage();const results=[];const errors=[];page.on('pageerror',e=>errors.push(e.message));
+async function measure(path){await page.goto(process.env.TARGET_URL+path,{waitUntil:'load',timeout:60000});await page.waitForTimeout(1200);const values=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];const r=performance.getEntriesByType('resource');return {ttfb:Math.round(n.responseStart-n.requestStart),load:Math.round(n.loadEventEnd-n.startTime),jsBytes:r.filter(x=>x.initiatorType==='script').reduce((s,x)=>s+x.transferSize,0),imagesBytes:r.filter(x=>x.initiatorType==='img').reduce((s,x)=>s+x.transferSize,0),imageRequests:r.filter(x=>x.initiatorType==='img').length,sessionChecks:r.filter(x=>x.name.includes('/session')).map(x=>Math.round(x.duration)),reveals:document.querySelectorAll('[data-reveal]').length,appVisible:!!document.querySelector('.lms-app-main')};});results.push({path,...values});console.log(JSON.stringify(results.at(-1)));}
+for(const path of ['/','/courses','/founder','/workshops/7days-freelance','/login','/signup'])await measure(path);
+await page.goto(process.env.TARGET_URL+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL('**/admin/dashboard',{timeout:60000});
+for(const path of ['/admin/dashboard','/admin/dashboard/users','/admin/dashboard/settings','/admin/dashboard/courses','/admin/dashboard/phone-confirmations'])await measure(path);
+fs.writeFileSync(process.env.OUTPUT,JSON.stringify({results,errors},null,2));}finally{await browser.close();}})().catch(e=>{console.error(e.message);process.exitCode=1});
+```
+
+### File: `tests/backend/performance.cjs`
+
+SHA-256: `4d3ec0ed7aa2bd4ebb761b59808ded7a61719004516f4fd1d36e322553e888ee`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated protected rendering, viewport deferral and motion acceptance. */
+const {chromium,expect}=require('@playwright/test');
+module.exports=async function performance({admin,provision,verify,url}) {
+ const manager=await provision('Performance Manager');await admin.from('admin_users').insert({user_id:manager.id});
+ const browser=await chromium.launch();try {
+  const page=await browser.newPage({viewport:{width:390,height:600}}),errors=[],sessions=[];
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.url().includes('/session'))sessions.push(r.url());});
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);
+  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+  sessions.length=0;const response=await page.goto(url+'/admin/dashboard');
+  verify((await response.text()).includes('lms-app-main'),'Authorized dashboard content is present in server HTML');
+  await expect(page.locator('.lms-app-main')).toBeVisible();await page.waitForTimeout(600);
+  verify(sessions.length===0,'Initial authorized dashboard avoids redundant browser session calls');
+  await expect(page.locator('.recharts-surface')).toHaveCount(0);verify(true,'Offscreen chart is not mounted');
+  await page.locator('.analytics-chart-slot').scrollIntoViewIfNeeded();await expect(page.locator('.recharts-surface')).toBeVisible();verify(true,'Chart loads when approaching its viewport');
+  await expect(page.locator('.analytics-panel[data-reveal]')).not.toHaveCount(0);verify(true,'Admin panels register with shared fade engine');
+  await page.emulateMedia({reducedMotion:'reduce'});await page.goto(url+'/admin/dashboard/settings');
+  verify(await page.locator('[data-reveal]').evaluateAll(nodes=>nodes.every(node=>node.getAnimations().length===0)),'Reduced motion skips admin reveal effects');
+  await page.goto(url+'/');const videos=[];page.on('request',r=>{if(r.url().endsWith('.mp4'))videos.push(r.url());});
+  await expect(page.locator('.hero-video-shell')).toBeVisible();verify(videos.length===0,'No video retrieval before activation');
+  await page.locator('.hero-video-shell .media-player-poster').click();await expect(page.locator('.hero-video-shell video')).toBeVisible();verify(true,'Lazy playback loads after play');
+  await page.locator('.instructor-photo-img').scrollIntoViewIfNeeded();await expect(page.locator('.instructor-photo-img')).toHaveAttribute('src',/\/_next\/image\?/);
+  verify(true,'Local content images use responsive Next image optimization');verify(errors.length===0,'No performance/motion runtime errors');
+ } finally {await browser.close();}
+};
+```
+
 ### File: `tests/backend/phone-confirmations.cjs`
 
 SHA-256: `57db445ea29cb979b8b4ec7e242ac032e108ddb5382106ae0136caada49f0e46`
@@ -28958,7 +29098,7 @@ module.exports=async function checks({admin,provision,anonymous,verify,url}) {
 
 ### File: `tests/backend/settings-live.cjs`
 
-SHA-256: `c9e20e7186411dc5af8f8aadbc4317df1994146e11b468091ad4f4233d43ba9c`
+SHA-256: `1e89827a56125d5564b4dbbd923627e1514e8db48a3bb46990edbeeb36d5822d`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only acceptance against the production build. */
@@ -28977,7 +29117,7 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
     await expect(page.getByLabel('رقم الهاتف',{exact:true})).toHaveAttribute('placeholder','+44-7700900123');
     for(const width of [320,390,768,1440,1920]) {
       await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-      if(width>=1440) expect(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top && Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
+      if(width>=1440) await expect.poll(() => page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top && Math.abs(el.children[0].getBoundingClientRect().bottom-el.children[2].getBoundingClientRect().bottom)<1)).toBe(true);
     }
     await page.goto(url+'/admin/dashboard/phone-confirmations');
     await expect(page.getByRole('heading',{name:'طلبات تأكيد رقم الهاتف',exact:true})).toBeVisible();
@@ -31602,7 +31742,7 @@ test("course entrances and hover movement are visible and independent", async ({
 
 ### File: `tests/platform/marketing-media.spec.ts`
 
-SHA-256: `86aae180f5583375d4ffe19abada521d02a0e31c0efeabf9a052504fa9de3916`
+SHA-256: `84aa8cd60aa8733586b3d3703098b321c0ae2525498dacbf202f9a1a312b0a7e`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -31683,6 +31823,7 @@ for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await expect(page.locator(".hero-video-shell")).toBeVisible();
     const heroRatio = await page.locator(".hero-video-shell").evaluate(node => { const rect = node.getBoundingClientRect(); return rect.width / rect.height; });
     expect(heroRatio).toBeCloseTo(16 / 9, 2);
     for (const card of await page.locator(".reel-card").all()) {

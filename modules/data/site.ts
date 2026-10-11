@@ -40,7 +40,7 @@ export const instructor: InstructorContent = {
     " تفهمها وتطبقها، وتبني مهارتك مشروع بعد مشروع.",
   ],
   image: {
-    src: "/assets/images/instructor.png",
+    src: "/assets/images/instructor.webp",
     alt: "محمد خطاب، مدرّب المونتاج والجرافيك ديزاين والموشن جرافيك",
     width: 1086,
     height: 1448,

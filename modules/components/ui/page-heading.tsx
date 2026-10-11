@@ -13,7 +13,7 @@ export default function PageHeading({
 }) {
   const Heading = level === 2 ? "h2" : "h1";
   return (
-    <div className="lms-page-heading">
+    <div className="lms-page-heading" data-reveal>
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
         <Heading>{title}</Heading>
