@@ -9,7 +9,7 @@ import { adminUsersCopy as labels } from "@platform/data/admin-users";
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
   const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
-  return <><PageHeading title={labels.heading} description={labels.description} />
+  return <><PageHeading title={labels.heading} />
     <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
     <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
   </>;

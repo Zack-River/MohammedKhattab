@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — streamlined administrator navigation
+
+- Removed the administrator sidebar callout (title, description and explore-courses action), removed the same description below the users heading, and removed Explore Courses from the administrator header.
+- Shared dashboard shell exposes `showSidebarHelp` and `showBrowseLink`, enabled by default for students and disabled only by the administrator layout. User/course navigation, profile access and logout remain available.
+- TypeScript, targeted ESLint, architecture (471 files / zero violations) and production build passed. Read-only real-admin browser checks verify all three admin views plus the mobile menu. Deployment verification follows the code push.
+
 ## Latest checkpoint — usernames, indexed name search and shared form controls
 
 - Default handles now merge first/last name words with six cryptographically random digits. Arabic and single names are supported. Private SQL helpers reserve candidates with transaction advisory locks and the existing unique constraint. Same-profile upserts lock before reading the handle, preserving user choices even during concurrent name/username edits. Only exact legacy `user-UUID` defaults are backfilled.

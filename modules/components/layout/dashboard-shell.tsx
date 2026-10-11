@@ -16,6 +16,8 @@ export default function DashboardShell({
   dashboardNavigation,
   site,
   copy,
+  showSidebarHelp = true,
+  showBrowseLink = true,
   sessionEndpoint = endpoints.auth.session,
 }: DashboardShellProps) {
   const navigationId = useId();
@@ -25,9 +27,9 @@ export default function DashboardShell({
   if (!verified) return null;
   return (
     <div className="lms-app">
-      <DashboardHeader name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
+      <DashboardHeader showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
-        <DashboardSidebar name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
+        <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
         <main className="lms-app-main">{children}</main>
       </div>
     </div>

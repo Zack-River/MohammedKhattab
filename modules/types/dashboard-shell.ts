@@ -4,6 +4,8 @@ export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
   sessionEndpoint?: string;
+  showSidebarHelp?: boolean;
+  showBrowseLink?: boolean;
 } & {
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],

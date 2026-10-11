@@ -3,7 +3,7 @@ import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
 import type { DashboardShellProps, DashboardMenu } from "@platform/types/dashboard-shell";
-export default function DashboardSidebar({name,interfaceCopy,dashboardNavigation,copy,menu,navigationId,pathname}:Pick<DashboardShellProps,"name"|"interfaceCopy"|"dashboardNavigation"|"copy"> & {menu:DashboardMenu;navigationId:string;pathname:string}) {
+export default function DashboardSidebar({name,interfaceCopy,dashboardNavigation,copy,menu,navigationId,pathname,showSidebarHelp = true}:Pick<DashboardShellProps,"name"|"interfaceCopy"|"dashboardNavigation"|"copy"|"showSidebarHelp"> & {menu:DashboardMenu;navigationId:string;pathname:string}) {
 const {open,setOpen,menuRef}=menu;
 return (<aside
           className={`lms-sidebar ${open ? "is-open" : ""}`}
@@ -31,7 +31,7 @@ return (<aside
               </Link>
             ))}
           </nav>
-          <div className="lms-sidebar-help">
+          {showSidebarHelp && <div className="lms-sidebar-help">
             <Symbol name="spark" />
             <b>{interfaceCopy.sidebarTitle}</b>
             <p>{interfaceCopy.sidebarDescription}</p>
@@ -39,7 +39,7 @@ return (<aside
               {copy.browse}
               <Symbol name="arrow" />
             </Link>
-          </div>
+          </div>}
           <Link className="lms-sidebar-home" href={routes.home}>
             {interfaceCopy.homeLabel}
           </Link>

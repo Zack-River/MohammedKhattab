@@ -535,7 +535,7 @@ export default async function AdminCoursesPage() {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `c198d82a116aa2dc05c575dfcf77099e4b685d8e3b1c984abc6853f636fbdb40`
+SHA-256: `b2ef07e24b31e1cfaa35a98df6200e226a9c0fba625bb4662f4d4da95a90a62d`
 
 ```tsx
 import type { Metadata } from "next";
@@ -548,6 +548,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const { user } = await requireAdminPage();
   return <DashboardShell {...dashboardShellContent} name={user.user_metadata.name ?? labels.admin}
+    showSidebarHelp={false} showBrowseLink={false}
     sessionEndpoint={endpoints.adminUsers + "/session"}
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
@@ -560,7 +561,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
 
 ### File: `app/admin/dashboard/page.tsx`
 
-SHA-256: `b8c4ef7b403edd77cde61ee1da76c31affeda6c19a7e61b1028efbd8d2fa401f`
+SHA-256: `a543a97fd80b7c15a7bcecf2ea69d0b86ae3301a15d758b30921add68e69e2a0`
 
 ```tsx
 import PageHeading from "@platform/components/ui/page-heading";
@@ -574,7 +575,7 @@ import { adminUsersCopy as labels } from "@platform/data/admin-users";
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAdminPage();
   const query = readUserQuery(userQueryParams(await searchParams)), records = await readAdminUsers(query);
-  return <><PageHeading title={labels.heading} description={labels.description} />
+  return <><PageHeading title={labels.heading} />
     <UserFilters query={query} total={records.total} labels={labels} /><UsersTable labels={labels} users={records.users} />
     <AdminPagination labels={labels} query={query} hasNext={records.hasNext} />
   </>;
@@ -5487,7 +5488,7 @@ export default function Brand({
 
 ### File: `modules/components/layout/dashboard-header.tsx`
 
-SHA-256: `074c5f52b6c02d97394c8165b04f4fc62f8596f01ee1df6c96c5ea847fdcc326`
+SHA-256: `b5cdb5c2ca7884e3afef01f276b275adca98b465f184529d889cf9401d88fd34`
 
 ```tsx
 "use client";
@@ -5497,16 +5498,16 @@ import { routes } from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
 import type { DashboardShellProps, DashboardMenu } from "@platform/types/dashboard-shell";
 import Brand from "./brand";
-export default function DashboardHeader({name,site,copy,menu,navigationId}:Pick<DashboardShellProps,"name"|"site"|"copy"> & {menu:DashboardMenu;navigationId:string}) {
+export default function DashboardHeader({name,site,copy,menu,navigationId,showBrowseLink = true}:Pick<DashboardShellProps,"name"|"site"|"copy"|"showBrowseLink"> & {menu:DashboardMenu;navigationId:string}) {
 const {open,setOpen,toggleRef}=menu;
 return (<header className="lms-app-header">
         <Brand site={{ name: site.name, englishName: site.englishName }} />
         <div className="lms-app-header-actions">
           {copy.logout && copy.error && <LogoutButton label={copy.logout} errorLabel={copy.error} />}
           <span className="lms-demo-label">{site.demoLabel}</span>
-          <Link href={routes.courses} className="lms-text-link">
+          {showBrowseLink && <Link href={routes.courses} className="lms-text-link">
             {copy.browse}
-          </Link>
+          </Link>}
           <Link
             href={routes.profile}
             className="lms-avatar"
@@ -5531,7 +5532,7 @@ return (<header className="lms-app-header">
 
 ### File: `modules/components/layout/dashboard-shell.tsx`
 
-SHA-256: `73d4e03c64b924e5cda436edb59056143a56f361a37c1068fd43011f015133cd`
+SHA-256: `cbdd38ff38ddba81aea2c4a35ef073fc373b75ef556210d351bf716b4976905b`
 
 ```tsx
 "use client";
@@ -5552,6 +5553,8 @@ export default function DashboardShell({
   dashboardNavigation,
   site,
   copy,
+  showSidebarHelp = true,
+  showBrowseLink = true,
   sessionEndpoint = endpoints.auth.session,
 }: DashboardShellProps) {
   const navigationId = useId();
@@ -5561,9 +5564,9 @@ export default function DashboardShell({
   if (!verified) return null;
   return (
     <div className="lms-app">
-      <DashboardHeader name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
+      <DashboardHeader showBrowseLink={showBrowseLink} name={name} site={site} copy={copy} menu={menu} navigationId={navigationId} />
       <div className="lms-app-grid">
-        <DashboardSidebar name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
+        <DashboardSidebar showSidebarHelp={showSidebarHelp} name={name} interfaceCopy={interfaceCopy} dashboardNavigation={dashboardNavigation} copy={copy} menu={menu} navigationId={navigationId} pathname={pathname} />
         <main className="lms-app-main">{children}</main>
       </div>
     </div>
@@ -5573,7 +5576,7 @@ export default function DashboardShell({
 
 ### File: `modules/components/layout/dashboard-sidebar.tsx`
 
-SHA-256: `b2283a558577947abd4e5727aa11900bb5776b09e27902541f177ae4ad0dc5c8`
+SHA-256: `52d78300379f5bf0ebc51f4da36460541d3827460ba9999a7f24235be968e807`
 
 ```tsx
 "use client";
@@ -5581,7 +5584,7 @@ import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
 import type { DashboardShellProps, DashboardMenu } from "@platform/types/dashboard-shell";
-export default function DashboardSidebar({name,interfaceCopy,dashboardNavigation,copy,menu,navigationId,pathname}:Pick<DashboardShellProps,"name"|"interfaceCopy"|"dashboardNavigation"|"copy"> & {menu:DashboardMenu;navigationId:string;pathname:string}) {
+export default function DashboardSidebar({name,interfaceCopy,dashboardNavigation,copy,menu,navigationId,pathname,showSidebarHelp = true}:Pick<DashboardShellProps,"name"|"interfaceCopy"|"dashboardNavigation"|"copy"|"showSidebarHelp"> & {menu:DashboardMenu;navigationId:string;pathname:string}) {
 const {open,setOpen,menuRef}=menu;
 return (<aside
           className={`lms-sidebar ${open ? "is-open" : ""}`}
@@ -5609,7 +5612,7 @@ return (<aside
               </Link>
             ))}
           </nav>
-          <div className="lms-sidebar-help">
+          {showSidebarHelp && <div className="lms-sidebar-help">
             <Symbol name="spark" />
             <b>{interfaceCopy.sidebarTitle}</b>
             <p>{interfaceCopy.sidebarDescription}</p>
@@ -5617,7 +5620,7 @@ return (<aside
               {copy.browse}
               <Symbol name="arrow" />
             </Link>
-          </div>
+          </div>}
           <Link className="lms-sidebar-home" href={routes.home}>
             {interfaceCopy.homeLabel}
           </Link>
@@ -15270,7 +15273,7 @@ export interface ContentBindings {
 
 ### File: `modules/types/dashboard-shell.ts`
 
-SHA-256: `0c2cec5498a25a84c1569b488f4f82adf8e847cdbc28c677852042ac3d457707`
+SHA-256: `912e4a8ec1e806f767f4901895521c3707284839b085da2f795a15ff67810783`
 
 ```typescript
 import type { ContentBindings } from "./content";
@@ -15279,6 +15282,8 @@ export type DashboardShellProps = {
   children: React.ReactNode;
   name: string;
   sessionEndpoint?: string;
+  showSidebarHelp?: boolean;
+  showBrowseLink?: boolean;
 } & {
   interfaceCopy: Pick<
     ContentBindings["interfaceCopy"],
