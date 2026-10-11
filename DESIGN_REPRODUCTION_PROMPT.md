@@ -590,17 +590,19 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
 
 ### File: `app/admin/dashboard/courses/new/page.tsx`
 
-SHA-256: `5e703c1629b0e2d23da15e547a2cfe6bd34d7bf2631b7debd202174151d5c53f`
+SHA-256: `948c23af7ee2fa74fa5c0f8d249f89d471943eba0802178cca3be619e109e23c`
 
 ```tsx
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import PageHeading from "@platform/components/ui/page-heading";
 import CourseCreateForm from "@platform/components/admin/course-create-form";
 import { adminCoursesCopy } from "@platform/data/admin-courses";
+import { adminCopy } from "@platform/data/admin";
+import { thumbnailUploadCopy } from "@platform/data/image-upload";
 import { categories } from "@platform/config/catalog";
 export default async function CreateCoursePage() {
  await requireAdminPage();
- return <><PageHeading title={adminCoursesCopy.createTitle} description={adminCoursesCopy.createHint} /><section className="lms-profile-card" data-reveal><CourseCreateForm labels={adminCoursesCopy} categories={categories.filter(category => category.id !== "all")} /></section></>;
+ return <><PageHeading title={adminCoursesCopy.createTitle} /><CourseCreateForm labels={adminCoursesCopy} editorLabels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} /></>;
 }
 ```
 
@@ -5152,38 +5154,30 @@ export default function CourseContent({ course, revision, published, lessons, la
 
 ### File: `modules/components/admin/course-create-form.tsx`
 
-SHA-256: `2fb9222a2e758d6ae968b6f5c12809bd3d0e3e03ccb20333c1209f003562d822`
+SHA-256: `96d9a2ee9290e3716edd1f083140ef86f99ed699bde8577e9ae56bcbfe668d20`
 
 ```tsx
 "use client";
-import { useRouter } from "next/navigation";
-import { useAsyncCommand } from "@platform/hooks/use-async-command";
-import { httpRequest } from "@platform/lib/http-request";
-import { endpoints, routes } from "@platform/config/navigation";
-import { adminCoursePolicy as policy } from "@platform/config/admin";
+import { useCreateCourse } from "@platform/hooks/use-create-course";
 import { courseAdministration } from "@platform/config/course-administration";
 import FormField from "@platform/components/ui/form-field";
-import CoursePriceField from "./course-price-field";
 import Select from "@khatab/design/ui/select";
 import type { AdminCoursesLabels } from "@platform/types/admin-courses";
-export default function CourseCreateForm({ labels, categories }: { labels: AdminCoursesLabels; categories: readonly { id: string; label: string }[] }) {
- const router = useRouter(), command = useAsyncCommand(labels.error);
- return <form className="lms-profile-form" onSubmit={async event => {
-  event.preventDefault(); const form = new FormData(event.currentTarget), body = { ...Object.fromEntries(form), amount: Number(form.get("amount")) };
-  const slug = await command.run(() => httpRequest({ path: endpoints.adminCourses, body, failureLabel: labels.error, decode: value => {
-   if (!value || typeof value !== "object" || !("slug" in value) || typeof value.slug !== "string") throw new Error(labels.error);
-   return value.slug;
-  } }));
-  if (slug) router.push(routes.adminCourse(slug));
- }}>
-  <fieldset disabled={command.pending}><FormField label={labels.name} name="title" required minLength={policy.titleMin} maxLength={policy.titleMax} />
-   <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
-   <FormField label={labels.description} name="description" required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} />
-   <CoursePriceField labels={labels} />
-   <Select name="category" label={labels.category} defaultValue={categories[0].id} options={categories.map(value => ({value:value.id,label:value.label}))} />
-   <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={["recorded","live"].map(value => ({value,label:labels[value as "live"]}))} /></fieldset>
-  <button type="submit" className="btn-primary" disabled={command.pending}>{command.pending ? labels.creating : labels.create}</button>{command.error && <p className="lms-error" role="alert">{command.error}</p>}
- </form>;
+import type { CourseEditorProps } from "@platform/types/course-editor";
+import CourseFormLayout from "./course-form-layout";
+import CourseFields from "./course-fields";
+import CourseMediaFields from "./course-media-fields";
+import SaveFeedback from "./save-feedback";
+type Props = Pick<CourseEditorProps,"categories" | "uploadLabels"> & { labels: AdminCoursesLabels; editorLabels: CourseEditorProps["labels"] };
+export default function CourseCreateForm({ labels, editorLabels, categories, uploadLabels }: Props) {
+  const command = useCreateCourse(labels.error);
+  return <CourseFormLayout labels={editorLabels} pending={command.pending}
+    onSubmit={event => { event.preventDefault(); void command.create(new FormData(event.currentTarget)); }}
+    details={<><CourseFields labels={editorLabels} categories={categories} />
+      <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
+      <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
+    media={<CourseMediaFields labels={editorLabels} uploadLabels={uploadLabels} uploadHint={labels.uploadAfterCreate} />}
+    actions={<><p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
 }
 ```
 
@@ -5235,7 +5229,7 @@ export default function CourseEditorTabs({ slug, active, labels }: { slug: strin
 
 ### File: `modules/components/admin/course-editor.tsx`
 
-SHA-256: `2220de9ff371feac8043d901001d8245c1a0a58178256becfb53aee547880ba3`
+SHA-256: `5d63fb27440060996af2bd3c9eab2b3b3d01e38adafb607ac590eb63f19eb473`
 
 ```tsx
 "use client";
@@ -5246,21 +5240,23 @@ import { readCourseEdit } from "@platform/features/admin/helpers/read-course-edi
 import CourseMediaFields from "./course-media-fields";
 import { Checkbox } from "@khatab/design/ui/choice-controls";
 import CourseFields from "./course-fields";
+import CourseFormLayout from "./course-form-layout";
 import SaveFeedback from "./save-feedback";
 export default function CourseEditor({ course, published, revision, labels, categories, uploadLabels }: CourseEditorProps) {
   const command = useAdminSave(endpoints.adminCourse(course.slug), labels.error);
-  return <form className="lms-profile-form lms-admin-form lms-course-editor-layout" method="post" onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}>
+  return <CourseFormLayout method="post" labels={labels} pending={command.pending}
+    onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}
+    details={<CourseFields course={course} labels={labels} categories={categories} />}
+    media={<CourseMediaFields course={course} labels={labels} uploadLabels={uploadLabels} />}
+    actions={<><Checkbox label={labels.published} name="published" defaultChecked={published} disabled={command.pending} /><SaveFeedback {...command} labels={labels} /></>}>
     <input type="hidden" name="revision" value={revision} />
-    <section className="lms-profile-card lms-course-details" data-reveal><h2>{labels.detailsHeading}</h2><CourseFields course={course} labels={labels} categories={categories} /></section>
-    <section className="lms-profile-card" data-reveal><h2>{labels.mediaHeading}</h2><CourseMediaFields course={course} labels={labels} uploadLabels={uploadLabels} /></section>
-    <section className="lms-profile-card" data-reveal><h2>{labels.publicationHeading}</h2><Checkbox label={labels.published} name="published" defaultChecked={published} /><SaveFeedback {...command} labels={labels} /></section>
-  </form>;
+  </CourseFormLayout>;
 }
 ```
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `96cac1c916b3ea419152123a4ab1b9dade6546c8171189374c7b12aae3378e60`
+SHA-256: `0b03d6e77a60e7a61cd6a327f254c12b6198da28fef5262f2a42d52fd3c86cbe`
 
 ```tsx
 "use client";
@@ -5270,13 +5266,13 @@ import Select from "@khatab/design/ui/select";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import TextareaField from "@platform/components/ui/textarea-field";
 import FormField from "@platform/components/ui/form-field";
-export default function CourseFields({ course, labels, categories }: Pick<CourseEditorProps,"course" | "labels" | "categories">) {
+export default function CourseFields({ course, labels, categories }: Pick<CourseEditorProps,"labels" | "categories"> & { course?: CourseEditorProps["course"] }) {
   return <>
-    <FormField label={labels.title} name="title" defaultValue={course.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
-    <TextareaField label={labels.descriptionLabel} name="description" defaultValue={course.description} required maxLength={policy.descriptionMax} rows={4} />
-    <CoursePriceField initialAmount={course.offer.amount} labels={labels} />
-    <FormField label={labels.duration} name="duration" defaultValue={course.duration} maxLength={policy.durationMax} hint={course.delivery === "live" ? labels.durationHint : undefined} />
-    <Select label={labels.category} name="category" defaultValue={course.category} options={categories.map(category => ({ value: category.id, label: category.label }))} />
+    <FormField label={labels.title} name="title" defaultValue={course?.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
+    <TextareaField label={labels.descriptionLabel} name="description" defaultValue={course?.description} required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} rows={4} />
+    <CoursePriceField initialAmount={course?.offer.amount} labels={labels} />
+    <FormField label={labels.duration} name="duration" defaultValue={course?.duration} maxLength={policy.durationMax} hint={(!course || course.delivery === "live") ? labels.durationHint : undefined} />
+    <Select label={labels.category} name="category" defaultValue={course?.category ?? categories[0].id} options={categories.map(category => ({ value: category.id, label: category.label }))} />
   </>;
 }
 ```
@@ -5307,9 +5303,30 @@ export default function CourseFilters({ query, total, labels, categories }: { qu
 }
 ```
 
+### File: `modules/components/admin/course-form-layout.tsx`
+
+SHA-256: `dd384df6f82b1afec971b0b02d5638f2192d838500c5a1332719726dda70cc68`
+
+```tsx
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { CourseEditorLabels } from "@platform/types/course-editor";
+type Props = Omit<ComponentPropsWithoutRef<"form">,"className"> & {
+  labels: Pick<CourseEditorLabels,"detailsHeading" | "mediaHeading" | "publicationHeading">;
+  details: ReactNode; media: ReactNode; actions: ReactNode; pending?: boolean;
+};
+export default function CourseFormLayout({ labels, details, media, actions, pending, children, ...form }: Props) {
+  return <form {...form} className="lms-profile-form lms-admin-form lms-course-editor-layout">
+    {children}
+    <section className="lms-profile-card lms-course-details" data-reveal><h2>{labels.detailsHeading}</h2><fieldset disabled={pending}>{details}</fieldset></section>
+    <section className="lms-profile-card" data-reveal><h2>{labels.mediaHeading}</h2><fieldset disabled={pending}>{media}</fieldset></section>
+    <section className="lms-profile-card" data-reveal><h2>{labels.publicationHeading}</h2>{actions}</section>
+  </form>;
+}
+```
+
 ### File: `modules/components/admin/course-media-fields.tsx`
 
-SHA-256: `6681cf658609c58136b00848649580b9027c04123031ef5949da56296190217b`
+SHA-256: `f2d75b9ae7a7661e1c178651790d7cfd02ae01bf13c49d3ad547f11cb8970a11`
 
 ```tsx
 "use client";
@@ -5317,10 +5334,10 @@ import type { CourseEditorProps } from "@platform/types/course-editor";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import FormField from "@platform/components/ui/form-field";
 import CourseThumbnailField from "./course-thumbnail-field";
-export default function CourseMediaFields({ course, labels, uploadLabels }: Pick<CourseEditorProps,"course" | "labels" | "uploadLabels">) {
+export default function CourseMediaFields({ course, labels, uploadLabels, uploadHint }: Pick<CourseEditorProps,"labels" | "uploadLabels"> & { course?: CourseEditorProps["course"]; uploadHint?: string }) {
   return <>
-    <CourseThumbnailField slug={course.slug} initialUrl={course.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
-    <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
+    <CourseThumbnailField slug={course?.slug} uploadHint={uploadHint} initialUrl={course?.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
+    <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course?.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
   </>;
 }
 ```
@@ -5386,7 +5403,7 @@ export default function CourseTable({ courses, labels }: { courses: AdminCourseR
 
 ### File: `modules/components/admin/course-thumbnail-field.tsx`
 
-SHA-256: `e1bd171624ad36e61f50d69c07e8ec0fbc29b8a66a89a0bf7cfc4408ba5d2b22`
+SHA-256: `8479201b1a21afae38cfd18c72bc31de4d5867b519225abb1eb7bdb586e6ad61`
 
 ```tsx
 "use client";
@@ -5394,10 +5411,10 @@ import { useState } from "react";
 import FormField from "@platform/components/ui/form-field";
 import ImageUpload from "@platform/components/ui/image-upload";
 import type { ImageUploadLabels } from "@platform/types/image-upload";
-export default function CourseThumbnailField({ slug, initialUrl, label, maxLength, uploadLabels }: { slug: string; initialUrl: string; label: string; maxLength: number; uploadLabels: ImageUploadLabels }) {
+export default function CourseThumbnailField({ slug, initialUrl, label, maxLength, uploadLabels, uploadHint }: { slug?: string; uploadHint?: string; initialUrl: string; label: string; maxLength: number; uploadLabels: ImageUploadLabels }) {
   const [url, setUrl] = useState(initialUrl);
   return <><FormField label={label} name="thumbnailUrl" dir="ltr" value={url} onChange={event => setUrl(event.target.value)} maxLength={maxLength} />
-    <ImageUpload target={{ kind: "course", courseSlug: slug }} labels={uploadLabels} onUploaded={image => setUrl(image.url)} />
+    {slug ? <ImageUpload target={{ kind: "course", courseSlug: slug }} labels={uploadLabels} onUploaded={image => setUrl(image.url)} /> : <small className="lms-field-hint">{uploadHint}</small>}
   </>;
 }
 ```
@@ -9269,7 +9286,7 @@ export const analyticsCopy = {
 
 ### File: `modules/data/admin-courses.ts`
 
-SHA-256: `0f13bb5ee141058773db66fed73455d5c097144d73e99819182eafd27d98ae4d`
+SHA-256: `4c4767ee2fff9cecf06e8f2203b7254b5cc247394490ad5bc6d25bd4acbf7eb5`
 
 ```typescript
 export const adminCoursesCopy = {
@@ -9277,6 +9294,7 @@ export const adminCoursesCopy = {
  search: "البحث عن دورة", searchHint: "اسم الدورة أو رابطها", filters: "حالة الدورة", category: "التصنيف", delivery: "نوع الدورة", all: "الكل", recorded: "مسجلة", live: "مباشرة", published: "منشورة", draft: "مسودة",
  order: "ترتيب حسب", created: "تاريخ الإنشاء", updated: "آخر تحديث", direction: "اتجاه الترتيب", asc: "تصاعدي", desc: "تنازلي", apply: "تطبيق", clear: "مسح الفلاتر", results: "النتائج", empty: "لا توجد دورات تطابق البحث والفلاتر.",
  previous: "السابق", next: "التالي", page: "صفحة", unknownDate: "غير مسجل", edit: "تعديل", remove: "حذف", create: "إنشاء دورة", creating: "جارٍ الإنشاء…", createTitle: "إنشاء دورة جديدة", createHint: "تُحفظ الدورة كمسودة. أضف محتواها وصورتها قبل نشرها.",
+ uploadAfterCreate: "احفظ مسودة الدورة أولًا لتفعيل رفع الصورة. يمكنك إضافة رابط الصورة الآن.",
  slug: "رابط الدورة", slugHint: "حروف إنجليزية صغيرة وأرقام وشرطة، مثل video-editing.", confirmTitle: "حذف الدورة", confirmRemove: "سيُحذف محتوى هذه الدورة نهائيًا. لا يمكن التراجع عن الحذف.", confirm: "تأكيد الحذف", cancel: "إلغاء", close: "إغلاق", pending: "جارٍ الحذف…", error: "تعذّر إكمال الطلب. حاول مرة أخرى.",
  protectedCourse: "لا يمكن حذف دورة لها اشتراكات. يمكنك إلغاء نشرها من بيانات الدورة.", overview: "بيانات الدورة", content: "الفصول والأقسام والدروس", noContent: "لم يُضف محتوى لهذه الدورة بعد.", noVideo: "لم يُضف فيديو لهذا الدرس بعد.", ungrouped: "دروس بدون قسم", description: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.",
 } as const;
@@ -10996,7 +11014,7 @@ export function courseQueryUrl(query: AdminCourseQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/create-course-metadata.ts`
 
-SHA-256: `cff58cbf296a4e683fac4f4b012046601a575fcb4b578c773cf9b6b6a14a457c`
+SHA-256: `efa2d510abb76f71f832548cdef256e98b2abe13c69aa88c9c1b58ebcf7a64d6`
 
 ```typescript
 import { categories } from "@platform/config/catalog";
@@ -11005,7 +11023,7 @@ import type { CreateCourseInput } from "@platform/types/admin-courses";
 const artworks = { editing: "timeline", motion: "motion", design: "design", business: "business" } as const;
 export function createCourseMetadata(input: CreateCourseInput, defaults: { currency: string; action: string; liveLabel: string }): Course {
  return { slug: input.slug, title: input.title, description: input.description, category: input.category, categoryLabel: categories.find(category => category.id === input.category)!.label, delivery: input.delivery,
-  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
+  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: input.duration ?? "", thumbnailUrl: input.thumbnailUrl ?? "", introVideoUrl: input.introVideoUrl ?? "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
 }
 ```
 
@@ -11044,6 +11062,17 @@ export function curriculumSection(course: CurriculumCourse, id?: string, chapter
   const section = chapter?.sections?.find(section => section.id === id);
   if (!chapter || !section) throw new ApiError(404,"NOT_FOUND");
   return { chapter, section };
+}
+```
+
+### File: `modules/features/admin/helpers/decode-course-created.ts`
+
+SHA-256: `fc961ff8c308e6122632e80d4e80dbae55b0062aed328fe3762b8b39fed72270`
+
+```typescript
+export function decodeCourseCreated(value: unknown, errorLabel: string): string {
+  if (!value || typeof value !== "object" || !("slug" in value) || typeof value.slug !== "string") throw new Error(errorLabel);
+  return value.slug;
 }
 ```
 
@@ -11160,6 +11189,16 @@ export function readAdminPage(value?: string | null) {
   if (value == null) return 1;
   if (!/^[1-9][0-9]{0,5}$/.test(value)) throw new ApiError(400, "INVALID_INPUT");
   return Number(value);
+}
+```
+
+### File: `modules/features/admin/helpers/read-course-create.ts`
+
+SHA-256: `32bc78f92c9ffcc614b33f38e07dc0b228bc5dc588d9318cbe80a3537a6fae15`
+
+```typescript
+export function readCourseCreate(form: FormData) {
+  return { ...Object.fromEntries(form), amount: Number(form.get("amount")) };
 }
 ```
 
@@ -11334,9 +11373,10 @@ export function userQueryUrl(query: AdminUserQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/validate-course-create.ts`
 
-SHA-256: `e0626cbcaf239a747679794b91225c3c032f272370a0ca8e835da86f461ec7a9`
+SHA-256: `96080ab708fde698ce77c5d37527546053cb1934df23263f10d0adc98fb47e74`
 
 ```typescript
+import { validMediaUrl } from "./validate-media-url";
 import { validCourseAmount } from "./course-price";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import { courseAdministration } from "@platform/config/course-administration";
@@ -11344,7 +11384,9 @@ import { categories } from "@platform/config/catalog";
 import type { CreateCourseInput } from "@platform/types/admin-courses";
 export function validateCourseCreate(input: Record<string, unknown> | null): CreateCourseInput | null {
  if (!input || typeof input.slug !== "string" || input.slug === "new" || input.slug.length > courseAdministration.slugMaxLength || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax || typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax || !validCourseAmount(input.amount) || !categories.some(category => category.id !== "all" && category.id === input.category) || !["live","recorded"].includes(String(input.delivery))) return null;
- return { slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
+ const thumbnailUrl = input.thumbnailUrl === undefined ? "" : input.thumbnailUrl, introVideoUrl = input.introVideoUrl === undefined ? "" : input.introVideoUrl;
+ if ((input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) || !validMediaUrl(thumbnailUrl) || !validMediaUrl(introVideoUrl)) return null;
+ return { duration: typeof input.duration === "string" ? input.duration.trim() : "", thumbnailUrl, introVideoUrl, slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
 }
 ```
 
@@ -13817,6 +13859,28 @@ export function useCoursePrice(initialAmount?: number) {
     if (validPaidPriceInput(normalized)) setValue(normalized);
   };
   return { free, setFree, value, change };
+}
+```
+
+### File: `modules/hooks/use-create-course.ts`
+
+SHA-256: `06fcf00a80ff261a638b7dfdf4be82cf3279bf049afc4706a69175debe18001d`
+
+```typescript
+"use client";
+import { useRouter } from "next/navigation";
+import { useAsyncCommand } from "./use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+import { endpoints, routes } from "@platform/config/navigation";
+import { readCourseCreate } from "@platform/features/admin/helpers/read-course-create";
+import { decodeCourseCreated } from "@platform/features/admin/helpers/decode-course-created";
+export function useCreateCourse(errorLabel: string) {
+  const router = useRouter(), command = useAsyncCommand(errorLabel);
+  async function create(form: FormData) {
+    const slug = await command.run(() => httpRequest({ path: endpoints.adminCourses, body: readCourseCreate(form), failureLabel: errorLabel, decode: value => decodeCourseCreated(value, errorLabel) }));
+    if (slug) router.push(routes.adminCourse(slug));
+  }
+  return { create, pending: command.pending, error: command.error };
 }
 ```
 
@@ -18357,7 +18421,7 @@ export type AnalyticsLabels = { [K in keyof typeof analyticsCopy]: K extends "so
 
 ### File: `modules/types/admin-courses.ts`
 
-SHA-256: `728d027da98157c79292e3ceb9db7eafcc32f9d0c99dfd817674c133e0894473`
+SHA-256: `90f26769b9dd13a64812bdba9540c452b7a634581e73d4fd487d07ed0444665b`
 
 ```typescript
 import type { courseSorts, courseStatuses, courseDeliveries } from "@platform/config/course-administration";
@@ -18367,7 +18431,7 @@ export type AdminCoursesLabels = { [K in keyof typeof adminCoursesCopy]: string 
 export interface AdminCourseQuery { page: number; search: string; category: Category; statuses: typeof courseStatuses[number][]; delivery: typeof courseDeliveries[number]; sort: typeof courseSorts[number]; direction: "asc" | "desc"; }
 export interface AdminCourseRow { slug: string; title: string; category: Exclude<Category,"all">; delivery: "recorded" | "live"; published: boolean; createdAt: string | null; updatedAt: string | null; students: number; lessons: number; chapters: number; sections: number; }
 export interface AdminCourseResults { courses: AdminCourseRow[]; page: number; total: number; hasNext: boolean; }
-export interface CreateCourseInput { slug: string; title: string; description: string; amount: number; category: Exclude<Category,"all">; delivery: "recorded" | "live"; }
+export interface CreateCourseInput { slug: string; title: string; description: string; amount: number; category: Exclude<Category,"all">; delivery: "recorded" | "live"; duration?: string; thumbnailUrl?: string; introVideoUrl?: string; }
 ```
 
 ### File: `modules/types/admin-users.ts`
@@ -30366,9 +30430,32 @@ test("Live courses require duration but may have no recorded lessons",()=>{
 });
 ```
 
+### File: `tests/backend/course-create-fields.test.ts`
+
+SHA-256: `fd44db675175f89131b79291f969fbcce964ab8b348422b977c705efc91ae66d`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { validateCourseCreate } from "../../modules/features/admin/helpers/validate-course-create";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+const base = { slug:"new-course",title:"New course",description:"Course description",amount:100,category:"editing",delivery:"recorded" };
+test("New optional overview fields validate and persist without breaking older creation requests", () => {
+  const legacy = validateCourseCreate(base); assert.ok(legacy); assert.equal(legacy.thumbnailUrl,"");
+  const input = validateCourseCreate({...base,duration:" ٧ أيام ",thumbnailUrl:"https://example.com/photo.jpg",introVideoUrl:"https://drive.google.com/file/d/123/view"}); assert.ok(input);
+  const course = createCourseMetadata(input,{currency:"ج.م",action:"اشترك",liveLabel:"مباشرة"});
+  assert.equal(course.duration,"٧ أيام");assert.equal(course.thumbnailUrl,input.thumbnailUrl);assert.equal(course.introVideoUrl,input.introVideoUrl);
+});
+test("Creation rejects invalid media or duration values", () => {
+  for(const field of ["thumbnailUrl","introVideoUrl"]) for(const value of [null,42,"javascript:alert(1)","https://user:pass@example.com/file","/assets/../file"])
+    assert.equal(validateCourseCreate({...base,[field]:value}),null);
+  for(const duration of [42,null,"x".repeat(10000)]) assert.equal(validateCourseCreate({...base,duration}),null);
+});
+```
+
 ### File: `tests/backend/course-price.cjs`
 
-SHA-256: `f5a0042d8825af8aef23087e20ebcbed78a89d50d0862b9deb230536d5c8c6d6`
+SHA-256: `5ecce6f4915b9c2567b2079da17ddf60f962703c1ed436cf448df3856ef4dd3b`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated course price API and browser acceptance. */
@@ -30398,7 +30485,10 @@ module.exports=async({admin,provision,verify,url})=>{
   await free.uncheck();await expect(price).toBeEnabled();await expect(price).toHaveValue('');let requests=0;page.on('request',request=>{if(request.url().endsWith(base)&&request.method()==='POST')requests++;});await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();verify(requests===0&&await price.evaluate(input=>input.validity.valueMissing),'Paid empty value is required and cannot silently save as free');
   for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Price field and free choice fit ${width}px`);}
   await page.goto(url+'/admin/dashboard/courses/new');price=page.getByLabel('السعر (ج.م)',{exact:true});await expect(price).toHaveAttribute('type','text');await expect(price).toBeEnabled();await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).not.toBeChecked();verify(true,'Creation reuses paid text/free choice with explicit selection');
-  await page.getByLabel('اسم الدورة',{exact:true}).fill('Free browser course');await page.getByLabel('رابط الدورة',{exact:true}).fill(created);await page.getByLabel('الوصف',{exact:true}).fill('Free creation test');await page.getByRole('checkbox',{name:'مجاني',exact:true}).check();await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+created);await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',created).single()).data.amount===0,'Free creation persists to database');verify(errors.length===0,'No price-editor runtime errors');
+  await page.getByLabel('اسم الدورة',{exact:true}).fill('Free browser course');await page.getByLabel('رابط الدورة',{exact:true}).fill(created);await page.getByLabel('الوصف',{exact:true}).fill('Free creation test');await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByLabel('رابط الصورة المصغّرة',{exact:true}).fill('https://example.com/course.jpg');await page.getByLabel('رابط الفيديو التعريفي',{exact:true}).fill('https://drive.google.com/file/d/test-video/view');
+  await expect(page.getByLabel('الوصف',{exact:true})).toHaveJSProperty('tagName','TEXTAREA');await expect(page.locator('.lms-course-editor-layout > section')).toHaveCount(3);verify(true,'Creation reuses editor layout, textarea and media fields');
+  for(const width of [320,390,768,1024,1440,1920]){await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Creation fits ${width}px`);if(width>1024){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');await expect(card).toHaveCSS('transform','none');}const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));verify(Math.abs(boxes[0].y-boxes[1].y)<2&&Math.abs(boxes[0].bottom-boxes[2].bottom)<2,`Creation card edges align at ${width}px: ${JSON.stringify(boxes)}`);}}
+  await page.getByRole('checkbox',{name:'مجاني',exact:true}).check();await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+created);await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',created).single()).data.amount===0,'Free creation persists to database');const record=(await admin.from('courses').select('metadata,published').eq('slug',created).single()).data;verify(record.metadata.duration==='٧ أيام'&&record.metadata.thumbnailUrl==='https://example.com/course.jpg'&&record.metadata.introVideoUrl==='https://drive.google.com/file/d/test-video/view'&&!record.published,'Creation persists overview media/duration as draft');verify(errors.length===0,'No price-editor runtime errors');
  }finally{await browser?.close();await admin.from('courses').delete().in('slug',[slug,created,slug+'-invalid']);}
 };
 ```
@@ -30588,7 +30678,7 @@ test("A real section named ungrouped remains distinguishable from unassigned les
 
 ### File: `tests/backend/curriculum-live.cjs`
 
-SHA-256: `db89765ab19320cd1671d9dde6b38e79540337da8a85c723c6ced89ed9442e6d`
+SHA-256: `b7cd8bdec0c0069848742e757ad529fe5e2d118f6034d34fe74209a2ee39e163`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only production course-editor verification. */
@@ -30606,12 +30696,18 @@ const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');proces
   const free=page.getByRole('checkbox',{name:'مجاني',exact:true});expect(await free.isChecked()).toBe(before.course.offer.amount===0);checks.push('Explicit free choice reflects stored price');
   for(const width of [320,390,768,1024,1440,1920]){
    await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);checks.push(`Editor fits ${width}px`);
-   if(width>1024){const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(2);expect(Math.abs(boxes[0].bottom-boxes[2].bottom)).toBeLessThan(2);checks.push(`Desktop card alignment ${width}px`);}
+   if(width>1024){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');await expect(card).toHaveCSS('transform','none');}const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(2);expect(Math.abs(boxes[0].bottom-boxes[2].bottom)).toBeLessThan(2);checks.push(`Desktop card alignment ${width}px`);}
    if(width===390||width===1440){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-form-live-${width}.png`,fullPage:true});}
   }
   await page.getByRole('link',{name:'الفصول والأقسام والدروس',exact:true}).click();await expect(page).toHaveURL(/\/content$/);await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();let dialog=page.getByRole('dialog');await expect(dialog.getByLabel('الاسم',{exact:true})).toBeVisible();checks.push('Chapter creation dialog available');await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);
   await page.setViewportSize({width:390,height:900});await page.getByRole('button',{name:'إضافة فصل',exact:true}).click();dialog=page.getByRole('dialog');const box=await dialog.boundingBox();expect(Math.abs(box.x+box.width/2-195)).toBeLessThan(2);expect(Math.abs(box.y+box.height/2-450)).toBeLessThan(2);checks.push('Mobile dialog centered');await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'إضافة فصل',exact:true})).toBeFocused();checks.push('Dialog restores keyboard focus');
   await page.goto(origin+'/admin/dashboard/courses/new');await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveAttribute('type','text');await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).not.toBeChecked();checks.push('Create form reuses text price and explicit free choice');
+  await expect(page.locator('.lms-course-editor-layout > section')).toHaveCount(3);await expect(page.getByLabel('الوصف',{exact:true})).toHaveJSProperty('tagName','TEXTAREA');await expect(page.getByLabel('رابط الصورة المصغّرة',{exact:true})).toBeVisible();await expect(page.getByLabel('رابط الفيديو التعريفي',{exact:true})).toBeVisible();checks.push('Creation shares editor cards and overview fields');
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);checks.push(`Create form fits ${width}px`);
+   if(width>1024){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');await expect(card).toHaveCSS('transform','none');}const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));expect(Math.abs(boxes[0].y-boxes[1].y)).toBeLessThan(2);expect(Math.abs(boxes[0].bottom-boxes[2].bottom)).toBeLessThan(2);checks.push(`Create card alignment ${width}px`);}
+   if(width===390||width===1440){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-create-live-${width}.png`,fullPage:true});}
+  }
   response=await page.request.get(endpoint);expect(await response.json()).toEqual(before);checks.push('Course metadata and revision unchanged by verification');expect(errors).toEqual([]);checks.push('Zero browser runtime errors');
   fs.writeFileSync('docs/evidence/backend/curriculum-live.json',JSON.stringify({origin,slug,checkedAt:new Date().toISOString(),checks,errors,readOnly:true},null,2));console.log(`${checks.length} read-only hosted course-editor checks passed.`);
  }finally{await browser.close();}

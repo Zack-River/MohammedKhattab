@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — shared new-course and editor forms
+
+- `/admin/dashboard/courses/new` now composes the same `CourseFormLayout`, details, price/free choice, textarea and media fields as the existing editor. Both retain the three-card responsive design and aligned desktop edges. Creation-only slug/delivery controls remain in the details card; the save card explains that creation saves a draft.
+- Added duration, thumbnail URL and introductory video URL to validated creation/persistence. Old API creation payloads remain supported. Thumbnail uploads require the saved course; the creation media card explains this and accepts an image URL immediately. No image-upload authorization or database schema changes were made.
+- Extracted creation command state/navigation into a focused hook and form/response decoding into small helpers. Shared fields and layout receive labels and defaults via props; theme values and styling remain unchanged.
+- Five contract tests and 44 isolated API/browser checks passed, including integer/free behavior, creation media/duration persistence, six widths and aligned desktop cards. TypeScript, lint and architecture passed. The alignment test now waits for reveal transforms to finish before comparing geometry. All 96 course-management regression checks and the production build passed. Twenty-eight read-only checks passed against the built app at localhost:3040; desktop/mobile screenshots were inspected. Deployment verification is pending.
+
 ## Latest checkpoint — positive integer prices and explicit free option
 
 - Replaced price number/spinner inputs in both create/edit forms with one reusable text-price component and focused state hook. Paid prices accept only positive whole digits, including Arabic/Persian digits normalized to Latin; empty paid values are required, and zero/negative/fractional/exponent/letter values are rejected. Existing amount limits remain enforced.

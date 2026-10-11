@@ -3,6 +3,7 @@ export const adminCoursesCopy = {
  search: "البحث عن دورة", searchHint: "اسم الدورة أو رابطها", filters: "حالة الدورة", category: "التصنيف", delivery: "نوع الدورة", all: "الكل", recorded: "مسجلة", live: "مباشرة", published: "منشورة", draft: "مسودة",
  order: "ترتيب حسب", created: "تاريخ الإنشاء", updated: "آخر تحديث", direction: "اتجاه الترتيب", asc: "تصاعدي", desc: "تنازلي", apply: "تطبيق", clear: "مسح الفلاتر", results: "النتائج", empty: "لا توجد دورات تطابق البحث والفلاتر.",
  previous: "السابق", next: "التالي", page: "صفحة", unknownDate: "غير مسجل", edit: "تعديل", remove: "حذف", create: "إنشاء دورة", creating: "جارٍ الإنشاء…", createTitle: "إنشاء دورة جديدة", createHint: "تُحفظ الدورة كمسودة. أضف محتواها وصورتها قبل نشرها.",
+ uploadAfterCreate: "احفظ مسودة الدورة أولًا لتفعيل رفع الصورة. يمكنك إضافة رابط الصورة الآن.",
  slug: "رابط الدورة", slugHint: "حروف إنجليزية صغيرة وأرقام وشرطة، مثل video-editing.", confirmTitle: "حذف الدورة", confirmRemove: "سيُحذف محتوى هذه الدورة نهائيًا. لا يمكن التراجع عن الحذف.", confirm: "تأكيد الحذف", cancel: "إلغاء", close: "إغلاق", pending: "جارٍ الحذف…", error: "تعذّر إكمال الطلب. حاول مرة أخرى.",
  protectedCourse: "لا يمكن حذف دورة لها اشتراكات. يمكنك إلغاء نشرها من بيانات الدورة.", overview: "بيانات الدورة", content: "الفصول والأقسام والدروس", noContent: "لم يُضف محتوى لهذه الدورة بعد.", noVideo: "لم يُضف فيديو لهذا الدرس بعد.", ungrouped: "دروس بدون قسم", description: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.",
 } as const;
