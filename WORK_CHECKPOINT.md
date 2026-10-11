@@ -1,6 +1,13 @@
 # Work checkpoint — Khatab / Ta3llam
 
-Last updated: **2026-10-10**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
+Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
+
+## Deployment follow-up — 2026-10-11
+
+- Confirmed code and verification commits are pushed, working tree was clean, and Vercel reports successful deployment of `40a89f8`.
+- The latest Vercel status links to a project named `ta3allam`; `https://ta3allam.vercel.app` serves this application. The previously verified `mohammed-khattab.vercel.app` currently returns Vercel `DEPLOYMENT_NOT_FOUND` for every route, including `/`. This is a deployment/domain change, not a dashboard route failure.
+- Fresh HTTP checks on `ta3allam.vercel.app`: anonymous dashboard, library, profile and admin pages return 307 to login; the requested student account logs in successfully, authenticated dashboard returns 200, admin editing API returns 403, and logout returns 200. Today's check does not claim a new browser-history test run; the browser evidence recorded below remains the prior verification.
+- Asked which production URL should remain canonical. Vercel `APP_ORIGIN` and Supabase Site URL/callback must match the selected origin; no deployment or provider settings were changed without that information. README now documents this requirement without assuming an obsolete hostname.
 
 ## Latest checkpoint — dashboard authentication boundary
 
