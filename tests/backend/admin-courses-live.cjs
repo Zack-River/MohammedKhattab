@@ -12,7 +12,8 @@ const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');proces
   await page.getByRole('searchbox',{name:'البحث عن دورة',exact:true}).fill(records.courses[0].title);await page.getByRole('button',{name:'تطبيق',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);checks.push('Search finds exact course');
   for(const width of [320,390,768,1440,1920]){
    await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(await page.locator('tbody tr').count()).toBeLessThanOrEqual(5);checks.push(`Responsive ${width}px`);
-   await page.evaluate(()=>window.scrollTo(0,0));if(width===390||width===1440)await page.screenshot({path:`docs/evidence/backend/admin-courses-live-${width}.png`,fullPage:true});
+   if(width<=390){expect(await page.locator('.lms-page-heading').evaluate(element=>element.querySelector('h1').getBoundingClientRect().bottom<=element.querySelector('.btn-primary').getBoundingClientRect().top)).toBe(true);checks.push(`Stacked mobile heading ${width}px`);}
+   await page.getByRole("table").scrollIntoViewIfNeeded();await expect(page.locator(".lms-admin-table-wrap")).toHaveCSS("opacity","1");await page.evaluate(()=>window.scrollTo(0,0));if(width===390||width===1440)await page.screenshot({path:`docs/evidence/backend/admin-courses-live-${width}.png`,fullPage:true});
   }
   await page.goto(origin+'/admin/dashboard/courses/new');await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();checks.push('Create draft screen accessible');
   await page.goto(origin+'/admin/dashboard/courses/'+records.courses[0].slug);await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();expect(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()).toBe(0);checks.push('Overview editor excludes lesson details');

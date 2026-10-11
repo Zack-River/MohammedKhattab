@@ -8544,7 +8544,7 @@ export default function ImageUpload({ target, labels, onUploaded }: { target: Im
 
 ### File: `modules/components/ui/page-heading.tsx`
 
-SHA-256: `01ad36f6441f8468294aace971dff22a47a6ad9c91bc1df31c8b620a62ae6b12`
+SHA-256: `8468ec3bd7c4d5ef574e8c3440e8e4051f028ed8ad79cbc17292d92fbb3da4a0`
 
 ```tsx
 export default function PageHeading({
@@ -8564,7 +8564,7 @@ export default function PageHeading({
 }) {
   const Heading = level === 2 ? "h2" : "h1";
   return (
-    <div className="lms-page-heading" data-reveal>
+    <div className="lms-page-heading" data-reveal data-actions-first={actionsFirst || undefined}>
       {actionsFirst && children}
       <div>
         {eyebrow && <p className="lms-heading-context">{eyebrow}</p>}
@@ -13797,7 +13797,7 @@ SHA-256: `e9b88c82469e171452b48182347dd8aa9c7d26d19abba52070eabed534f179aa`
 
 ### File: `modules/styles/admin.css`
 
-SHA-256: `7c644ca5678166b23b216851868951980a41cffaedac1c4bb672a174244db2f0`
+SHA-256: `640c005de2a8b6c02ecde874db3f1aae2e823109ff0aa6c24f04c0299ddd61b7`
 
 ```css
 /* Account records share one semantic table; narrow layouts reflow each record. */
@@ -13920,6 +13920,13 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 @media (max-width: 480px) { .lms-course-filter-selects { grid-template-columns: minmax(0,1fr); } }
 
 .lms-course-delete > button { width: 100%; }
+
+@media (max-width: 480px) {
+  .lms-page-heading[data-actions-first] { flex-wrap: wrap; justify-content: flex-start; }
+  .lms-page-heading[data-actions-first] > div { order: -1; flex-basis: 100%; }
+  .lms-page-heading[data-actions-first] > .btn-primary { width: auto; }
+}
+.lms-course-editor-tabs a[aria-current="page"] { color: var(--text-accent-readable); border-color: var(--primary-red); background: var(--primary-red-subtle); }
 ```
 
 ### File: `modules/styles/analytics.css`
@@ -29018,7 +29025,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
 
 ### File: `tests/backend/admin-course-management-browser.cjs`
 
-SHA-256: `9241eb0e07e446389d3496342f95370aa5e45a016ab71e3628fbbc81a0d43e0b`
+SHA-256: `ec1992676c78100b7210ff24fc23f0d7d84ca421b56010969f51405e661f2c42`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -29047,7 +29054,7 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
    await row.getByRole('button',{name:'حذف',exact:true}).click();const dialog=page.getByRole('dialog',{name:'حذف الدورة',exact:true});await expect(dialog).toBeVisible();
    const box=await dialog.boundingBox();verify(Math.abs(box.x+box.width/2-width/2)<2 && Math.abs(box.y+box.height/2-500)<2,`Course delete dialog centered at ${width}px (${JSON.stringify(box)})`);
    await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(row.getByRole('button',{name:'حذف',exact:true})).toBeFocused();
-   if(width===390||width===1440){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/admin-courses-${width}.png`,fullPage:true});}
+   if(width===390||width===1440){await page.getByRole("table").scrollIntoViewIfNeeded();await expect(page.locator(".lms-admin-table-wrap")).toHaveCSS("opacity","1");await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/admin-courses-${width}.png`,fullPage:true});}
   }
   await page.setViewportSize({width:1440,height:1000});
   await page.goto(url+'/admin/dashboard/courses/'+slugs[0]);
@@ -29160,7 +29167,7 @@ module.exports = async ({ admin, provision, anonymous, verify, url }) => {
 
 ### File: `tests/backend/admin-courses-live.cjs`
 
-SHA-256: `aaccfe2e948a1bb92c64c253f555261be296082b58c6fee2c73c9ea7b38d72c7`
+SHA-256: `e247006c590f379478b134d0afb5aa411c7f84cf022bca989ddfb6c672c44443`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Read-only production acceptance. */
@@ -29177,7 +29184,8 @@ const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');proces
   await page.getByRole('searchbox',{name:'البحث عن دورة',exact:true}).fill(records.courses[0].title);await page.getByRole('button',{name:'تطبيق',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);checks.push('Search finds exact course');
   for(const width of [320,390,768,1440,1920]){
    await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(await page.locator('tbody tr').count()).toBeLessThanOrEqual(5);checks.push(`Responsive ${width}px`);
-   await page.evaluate(()=>window.scrollTo(0,0));if(width===390||width===1440)await page.screenshot({path:`docs/evidence/backend/admin-courses-live-${width}.png`,fullPage:true});
+   if(width<=390){expect(await page.locator('.lms-page-heading').evaluate(element=>element.querySelector('h1').getBoundingClientRect().bottom<=element.querySelector('.btn-primary').getBoundingClientRect().top)).toBe(true);checks.push(`Stacked mobile heading ${width}px`);}
+   await page.getByRole("table").scrollIntoViewIfNeeded();await expect(page.locator(".lms-admin-table-wrap")).toHaveCSS("opacity","1");await page.evaluate(()=>window.scrollTo(0,0));if(width===390||width===1440)await page.screenshot({path:`docs/evidence/backend/admin-courses-live-${width}.png`,fullPage:true});
   }
   await page.goto(origin+'/admin/dashboard/courses/new');await expect(page.getByLabel('رابط الدورة',{exact:true})).toBeVisible();checks.push('Create draft screen accessible');
   await page.goto(origin+'/admin/dashboard/courses/'+records.courses[0].slug);await expect(page.getByLabel('اسم الدورة',{exact:true})).toBeVisible();expect(await page.getByLabel('رابط فيديو الدرس',{exact:true}).count()).toBe(0);checks.push('Overview editor excludes lesson details');

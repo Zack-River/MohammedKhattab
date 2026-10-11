@@ -24,7 +24,7 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
    await row.getByRole('button',{name:'حذف',exact:true}).click();const dialog=page.getByRole('dialog',{name:'حذف الدورة',exact:true});await expect(dialog).toBeVisible();
    const box=await dialog.boundingBox();verify(Math.abs(box.x+box.width/2-width/2)<2 && Math.abs(box.y+box.height/2-500)<2,`Course delete dialog centered at ${width}px (${JSON.stringify(box)})`);
    await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(row.getByRole('button',{name:'حذف',exact:true})).toBeFocused();
-   if(width===390||width===1440){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/admin-courses-${width}.png`,fullPage:true});}
+   if(width===390||width===1440){await page.getByRole("table").scrollIntoViewIfNeeded();await expect(page.locator(".lms-admin-table-wrap")).toHaveCSS("opacity","1");await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/admin-courses-${width}.png`,fullPage:true});}
   }
   await page.setViewportSize({width:1440,height:1000});
   await page.goto(url+'/admin/dashboard/courses/'+slugs[0]);

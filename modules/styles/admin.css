@@ -118,3 +118,10 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 @media (max-width: 480px) { .lms-course-filter-selects { grid-template-columns: minmax(0,1fr); } }
 
 .lms-course-delete > button { width: 100%; }
+
+@media (max-width: 480px) {
+  .lms-page-heading[data-actions-first] { flex-wrap: wrap; justify-content: flex-start; }
+  .lms-page-heading[data-actions-first] > div { order: -1; flex-basis: 100%; }
+  .lms-page-heading[data-actions-first] > .btn-primary { width: auto; }
+}
+.lms-course-editor-tabs a[aria-current="page"] { color: var(--text-accent-readable); border-color: var(--primary-red); background: var(--primary-red-subtle); }
