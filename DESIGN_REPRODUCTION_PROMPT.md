@@ -2750,7 +2750,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `ff91871b7658df1c7d5abd3056c5eb7b80184cdb2142e1b3208b916f52afc027`
+SHA-256: `971b504af1b29fac54ffffaae49442279b52f414f961ac2accf8547c089efd05`
 
 ```css
 @import "./styles/theme.css";
@@ -2770,6 +2770,7 @@ SHA-256: `ff91871b7658df1c7d5abd3056c5eb7b80184cdb2142e1b3208b916f52afc027`
 
 @import "../packages/design-system/styles/action-menu.css";
 @import "../modules/styles/account.css";
+@import "../packages/design-system/styles/interactions.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -18742,6 +18743,26 @@ SHA-256: `044c9414fa9af9b2d772f1bb81c074e7c17376b41f6f1ce425259217231af574`
 .ds-select-trigger[aria-invalid="true"] { border-color: var(--primary-red); }
 ```
 
+### File: `packages/design-system/styles/interactions.css`
+
+SHA-256: `cb0ea3a0ffd17ebe36fd534d7530fbd02eb4c985da71b9b975d823a5c5858e20`
+
+```css
+/* Cursor belongs to the interactive target; its contents inherit it. */
+:is(a[href], button, summary, [role="button"], [role="link"], [role="option"],
+    input[type="submit"], input[type="button"], input[type="reset"],
+    input[type="checkbox"], input[type="radio"]) {
+  cursor: pointer;
+}
+:where(a[href], button, summary, [role="button"], [role="link"], [role="option"]) :where(*) {
+  cursor: inherit;
+}
+:is(button, input):disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+```
+
 ### File: `packages/design-system/styles/project-navigation.css`
 
 SHA-256: `4b6053c6eec0c7630410cc400ec082db656fbce83d7619e0d8fc007dd75b207e`
@@ -19803,7 +19824,7 @@ SHA-256: `e5476c1ad3f6b10b4f45f73d4dedba1b319b1f34767aba7fc940d139f05cf2cf`
 
 ### File: `packages/design-system/styles/workshop.css`
 
-SHA-256: `a2d04170811a47e929bd8e501856bbda1c18dbc9df5e2e58aba6d34fd1327a8e`
+SHA-256: `fdf280c78cb05b3774dcd68ab5b8d920871278b5b0c7e9f7c678231968cddea6`
 
 ```css
 *,
@@ -19864,24 +19885,6 @@ html {
   scrollbar-color: var(--color-202732) var(--color-0d1015);
 }
 
-*,
-*::before,
-*::after {
-  cursor: default;
-}
-
-a,
-button,
-input[type="submit"],
-[role="button"],
-.video-play-button,
-.hero-video-placeholder,
-.faq-question-btn,
-.footer-scroll-top-link,
-.nav-brand {
-  cursor: pointer !important;
-}
-
 :focus-visible {
   outline: var(--size-2px) solid var(--primary-red) !important;
   outline-offset: var(--size-3px) !important;
@@ -19915,7 +19918,6 @@ button {
   font-family: inherit;
   background: none;
   border: none;
-  cursor: pointer !important;
   color: inherit;
 }
 
@@ -30415,7 +30417,7 @@ for (const width of [320, 390, 1440]) {
 
 ### File: `tests/platform/navigation-links.spec.ts`
 
-SHA-256: `337af3033097afa67d1c3c4c8193232fe9da3a861b4cf6044c20c0e530ece9b7`
+SHA-256: `9b7417794199c94363b3ec083fd43c0011c8adadb47ece689d92b3fb38c9f832`
 
 ```typescript
 import { expect, test } from "@playwright/test";
@@ -30442,8 +30444,10 @@ for (const width of [320, 1440]) {
     await expect(page.locator("#instructor")).toBeInViewport();
     const founderButton = page.locator("#instructor").getByRole("link", { name: "اعرف أكتر عن محمد خطاب", exact: true });
     await expect(founderButton).toHaveAttribute("href", "/founder");
-    await founderButton.click();
-    await expect(page).toHaveURL(/\/founder$/);
+    await Promise.all([
+      page.waitForURL(/\/founder$/, { waitUntil: "load" }),
+      founderButton.click(),
+    ]);
     const founder = page.locator(".personal-header");
     if (width === 320) await founder.getByRole("button", { name: "فتح القائمة", exact: true }).click();
     const links = founder.locator("nav a");
@@ -30457,7 +30461,7 @@ for (const width of [320, 1440]) {
     await catalog.click();
     await expect(page).toHaveURL(/\/founder#courses$/);
     await expect(page.locator("#courses")).toBeInViewport();
-    await expect(catalog).toHaveAttribute("aria-current", "location");
+    await expect(founder.locator('a[href="#courses"]')).toHaveAttribute("aria-current", "location");
     const allCourses = page.locator("#courses").getByRole("link", { name: "شوف كل الدورات", exact: true });
     await expect(allCourses).toHaveAttribute("href", "/courses");
     await expect(allCourses).toHaveCSS("color", "rgb(255, 255, 255)");
@@ -30482,7 +30486,7 @@ for (const width of [320, 1440]) {
 
 ### File: `tests/platform/portfolio.spec.ts`
 
-SHA-256: `2bc4bc4c6f255a8669d7a5ea09c9734abeff019ed88f5384c51332f8a7901b99`
+SHA-256: `6c7d8764fc7d7c91cf9a34f6f7f44133d3c2daa4a0f73e78dacd18a32af10e5c`
 
 ```typescript
 import { readFileSync } from "node:fs";
@@ -30614,7 +30618,7 @@ test("portfolio shares smooth hover and progressing timeline with reduced motion
   );
 });
 
-test("original section copy is preserved apart from authorized reel and upcoming preview changes", async ({
+test("original section copy is preserved apart from authorized media and catalog action changes", async ({
   page,
 }) => {
   const html = readFileSync(
@@ -30655,6 +30659,8 @@ test("original section copy is preserved apart from authorized reel and upcoming
         .forEach((node) => node.remove());
       section.querySelector('.course-yt-card[href="#collab"] .course-yt-thumb')?.remove();
       actualCopy?.querySelector('.personal-course-upcoming .p-ref-course-yt-thumb')?.remove();
+      // The added catalog link is approved; original course copy must still match.
+      actualCopy?.querySelector(".personal-courses-action")?.remove();
       actualCopy?.querySelectorAll("[data-project-navigation]").forEach((node) => node.remove());
       section.querySelector(".footer-designer-credit")?.remove();
       actualCopy?.querySelector(".p-ref-footer-designer-credit")?.remove();

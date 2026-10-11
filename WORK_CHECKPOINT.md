@@ -2,6 +2,11 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — shared interactive cursors
+
+- Removed the universal cursor-default reset that blocked cursor inheritance on clickable children. Added shared `interactions.css` for links, buttons, semantic interactive roles, disclosure summaries and action/choice inputs. Nested logos, images, text and icons inherit the interactive target's cursor; disabled/pending controls retain their disabled cursor.
+- Build, TypeScript, lint and architecture (529 files / zero violations) passed. Browser audit across home, founder, workshop, catalog, login and signup at 320px/1440px checked **1,175 interactive elements/descendants**, with zero cursor mismatches and disabled-control checks passing. Local build: **lYWONWQIXklno7_Df_Dig**. Live verification pending. Evidence: `docs/evidence/interactive-cursors/`.
+
 ## Latest checkpoint — founder courses section and catalog text link
 
 - Founder navbar “كورساتي” now scrolls to its own `#courses` section, immediately after “تعلّم”. Section highlighting includes the original courses section again; external destinations are excluded from the section observer.

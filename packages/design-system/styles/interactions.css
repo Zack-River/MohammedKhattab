@@ -1,0 +1,13 @@
+/* Cursor belongs to the interactive target; its contents inherit it. */
+:is(a[href], button, summary, [role="button"], [role="link"], [role="option"],
+    input[type="submit"], input[type="button"], input[type="reset"],
+    input[type="checkbox"], input[type="radio"]) {
+  cursor: pointer;
+}
+:where(a[href], button, summary, [role="button"], [role="link"], [role="option"]) :where(*) {
+  cursor: inherit;
+}
+:is(button, input):disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}

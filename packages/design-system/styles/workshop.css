@@ -56,24 +56,6 @@ html {
   scrollbar-color: var(--color-202732) var(--color-0d1015);
 }
 
-*,
-*::before,
-*::after {
-  cursor: default;
-}
-
-a,
-button,
-input[type="submit"],
-[role="button"],
-.video-play-button,
-.hero-video-placeholder,
-.faq-question-btn,
-.footer-scroll-top-link,
-.nav-brand {
-  cursor: pointer !important;
-}
-
 :focus-visible {
   outline: var(--size-2px) solid var(--primary-red) !important;
   outline-offset: var(--size-3px) !important;
@@ -107,7 +89,6 @@ button {
   font-family: inherit;
   background: none;
   border: none;
-  cursor: pointer !important;
   color: inherit;
 }
 
