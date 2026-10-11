@@ -22,8 +22,10 @@ for (const width of [320, 1440]) {
     await expect(page.locator("#instructor")).toBeInViewport();
     const founderButton = page.locator("#instructor").getByRole("link", { name: "اعرف أكتر عن محمد خطاب", exact: true });
     await expect(founderButton).toHaveAttribute("href", "/founder");
-    await founderButton.click();
-    await expect(page).toHaveURL(/\/founder$/);
+    await Promise.all([
+      page.waitForURL(/\/founder$/, { waitUntil: "load" }),
+      founderButton.click(),
+    ]);
     const founder = page.locator(".personal-header");
     if (width === 320) await founder.getByRole("button", { name: "فتح القائمة", exact: true }).click();
     const links = founder.locator("nav a");
