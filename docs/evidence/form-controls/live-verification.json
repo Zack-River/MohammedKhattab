@@ -1,0 +1,27 @@
+{
+  "origin": "https://ta3allam.vercel.app",
+  "checks": [
+    "Hosted administrator profile returns named default username",
+    "Existing legacy defaults are backfilled; five-record limit remains",
+    "Live indexed name-prefix mode works and folds Latin case",
+    "Custom checkbox combines with prefix radio",
+    "Dropdown fits 320×568",
+    "Keyboard selection and Escape preserve modal at 320px",
+    "No horizontal page overflow",
+    "Dropdown fits 390×844",
+    "Keyboard selection and Escape preserve modal at 390px",
+    "No horizontal page overflow",
+    "Dropdown fits 844×390",
+    "Keyboard selection and Escape preserve modal at 844px",
+    "No horizontal page overflow",
+    "Dropdown fits 1440×900",
+    "Keyboard selection and Escape preserve modal at 1440px",
+    "No horizontal page overflow",
+    "Course editor uses shared themed dropdown and checkbox",
+    "Owned profile displays editable username",
+    "Zero browser JavaScript errors"
+  ],
+  "errors": [],
+  "applicationCommit": "d72cbd878379c02ed194f4be8a52c6e84cd0802c",
+  "vercelDeploymentStatus": "success"
+}

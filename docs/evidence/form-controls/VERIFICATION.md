@@ -12,3 +12,5 @@ Verified on 2026-10-11 using isolated local Supabase fixtures and real read-only
 The `modal-*`, `filters-390` and `profile-390` screenshots use isolated ephemeral fixtures. `local-*` uses the production build and hosted data. `live-*` is reserved for fresh checks after Vercel serves the application commit.
 
 Implementation references: [WAI-ARIA combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/), [native Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API), and [PostgreSQL SP-GiST text-prefix operators](https://www.postgresql.org/docs/current/spgist.html).
+
+Application source commit `d72cbd878379c02ed194f4be8a52c6e84cd0802c` received a successful Vercel deployment status. Fresh canonical-site browser checks passed all 19 read-only assertions in `live-verification.json`, including actual shared controls and new profile/search behavior. No business data was changed during hosted verification. Final local production build ID: `gaOWcUxWjmzt8W8j6dwiD`.
