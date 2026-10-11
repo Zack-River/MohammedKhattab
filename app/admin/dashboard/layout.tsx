@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { endpoints, routes } from "@platform/config/navigation";
+import { phoneConfirmationCopy } from "@platform/data/phone-confirmations";
 import { analyticsCopy } from "@platform/data/admin-analytics";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
@@ -17,7 +18,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }

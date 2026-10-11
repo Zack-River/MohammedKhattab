@@ -601,7 +601,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `b06fd0191810a27c1c72a60d68f7eadaeb1b592019fbe65a9afc945bad60239a`
+SHA-256: `1e4331c3b70aa8c6f28e09d1bc8cd3fea683261ceafe5bed3c8daaf9e32ddbea`
 
 ```tsx
 import { adminAccountMenuContent } from "@platform/config/account-menu";
@@ -610,6 +610,7 @@ import type { Metadata } from "next";
 import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { endpoints, routes } from "@platform/config/navigation";
+import { phoneConfirmationCopy } from "@platform/data/phone-confirmations";
 import { analyticsCopy } from "@platform/data/admin-analytics";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
@@ -623,7 +624,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }
@@ -657,6 +658,25 @@ export default async function AdminHomePage({ searchParams }: { searchParams: Pr
   await requireAdminPage();
   const period = readAnalyticsPeriod((await searchParams).period);
   return <AnalyticsOverview labels={analyticsCopy} data={await readAdminAnalytics()} period={period} />;
+}
+```
+
+### File: `app/admin/dashboard/phone-confirmations/page.tsx`
+
+SHA-256: `2dc982cfe65bac5ec107e8f390d76d821b64aa07e536e62ce5e3a6f0b7768d55`
+
+```tsx
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readPhoneConfirmations } from "@platform/features/account/repositories/read-phone-confirmations";
+import { phoneConfirmationCopy } from "@platform/data/phone-confirmations";
+import { accountCopy } from "@platform/data/account";
+import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
+import PhoneConfirmations from "@platform/components/admin/phone-confirmations";
+export default async function PhoneConfirmationsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  await requireAdminPage();
+  const raw = Number((await searchParams).page ?? 1);
+  const page = Number.isInteger(raw) && raw > 0 && raw <= phoneConfirmationConfig.maxPage ? raw : 1;
+  return <PhoneConfirmations {...await readPhoneConfirmations(page)} page={page} labels={phoneConfirmationCopy} accountLabels={accountCopy} />;
 }
 ```
 
@@ -4360,30 +4380,20 @@ export default function AccountSummary({ profile, labels }: { profile: AccountPr
 
 ### File: `modules/components/account/admin-contact-verification.tsx`
 
-SHA-256: `fd143e097d42df26f2e95a640e969dd731e1e4ced1b7f12729178f109a1f3115`
+SHA-256: `2af982622bb4c326201645a500216e2d891c962e9b8fdbc707d8f1703d068b48`
 
 ```tsx
 "use client";
-import { useRouter } from "next/navigation";
-import { useAsyncCommand } from "@platform/hooks/use-async-command";
-import { httpRequest } from "@platform/lib/http-request";
-import { endpoints } from "@platform/config/navigation";
 import type { AccountLabels } from "@platform/types/account-copy";
-import FormFeedback from "./form-feedback";
+import ConfirmPhoneButton from "./confirm-phone-button";
 export default function AdminContactVerification({ userId, email, phone, phoneValue, emailVerified, phoneVerified, labels }: {
   userId: string; email: string; phone: string; phoneValue: string | null; emailVerified: boolean; phoneVerified: boolean; labels: AccountLabels;
 }) {
-  const router = useRouter(), command = useAsyncCommand(labels.error);
-  async function confirm() {
-    const result = await command.run(() => httpRequest({ path: endpoints.contactVerification(userId), body: { field: "phone", value: phoneValue }, failureLabel: labels.error, decode: input => input }));
-    if (result) router.refresh();
-  }
   return <section className="lms-profile-card lms-verification-card"><h2>{labels.verification}</h2>
     <dl className="lms-account-data"><div><dt>{labels.email}</dt><dd><span dir="ltr">{email}</span><br />{emailVerified ? labels.verified : labels.unverified}</dd></div>
       <div><dt>{labels.phone}</dt><dd><span dir="ltr">{phone || labels.missing}</span><br />{phoneVerified ? labels.verified : labels.unverified}</dd></div></dl>
     <p>{labels.confirmationHint}</p>
-    <button className="lms-secondary-button" type="button" disabled={!phoneValue || phoneVerified || command.pending} onClick={confirm}>{command.pending ? labels.saving : labels.confirmPhone}</button>
-    <FormFeedback error={command.error} />
+    <ConfirmPhoneButton userId={userId} phone={phoneValue} verified={phoneVerified} label={labels.confirmPhone} pendingLabel={labels.saving} errorLabel={labels.error} />
   </section>;
 }
 ```
@@ -4463,6 +4473,30 @@ export default function AuthPage({ model }: { model: AuthPageModel }) {
       <small>{model.demoNote}</small>
     </section>
   </main>;
+}
+```
+
+### File: `modules/components/account/confirm-phone-button.tsx`
+
+SHA-256: `5c6708e6dc50bcea16bba15cc1395510632c63ab35257c5b3e44189b571a97af`
+
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { httpRequest } from "@platform/lib/http-request";
+import { endpoints } from "@platform/config/navigation";
+import FormFeedback from "./form-feedback";
+export default function ConfirmPhoneButton({ userId, phone, verified = false, label, pendingLabel, errorLabel }: {
+  userId: string; phone: string | null; verified?: boolean; label: string; pendingLabel: string; errorLabel: string;
+}) {
+  const router = useRouter(), command = useAsyncCommand(errorLabel);
+  async function confirm() {
+    const result = await command.run(() => httpRequest({ path: endpoints.contactVerification(userId), body: { field: "phone", value: phone }, failureLabel: errorLabel, decode: input => input }));
+    if (result) router.refresh();
+  }
+  return <><button className="lms-secondary-button" type="button" disabled={!phone || verified || command.pending} onClick={confirm}>{command.pending ? pendingLabel : label}</button>
+    <FormFeedback error={command.error} /></>;
 }
 ```
 
@@ -4583,19 +4617,24 @@ export default function ProfileView({ profile, labels, settingsHref, adminHref, 
 
 ### File: `modules/components/account/settings/contact-fields.tsx`
 
-SHA-256: `e74806f62ae62f36b0b4851afc04682a309bcf7b799525b5539143cf3c93fd60`
+SHA-256: `b8a28e709f0214cebb4ae369cc84cdd10ebcdbebf2f990dcf11c68a000869f1f`
 
 ```tsx
+"use client";
+import { useState } from "react";
 import { authPolicy } from "@platform/config/auth";
 import FormField from "@platform/components/ui/form-field";
 import PasswordField from "@platform/components/ui/password-field";
 import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
 export default function ContactFields({ profile, labels }: { profile: AccountProfile; labels: AccountLabels }) {
+  const [phone, setPhone] = useState(profile.phone);
+  const [email, setEmail] = useState(profile.pendingEmail ?? profile.email);
+  const changed = phone !== profile.phone || email.trim().toLowerCase() !== (profile.pendingEmail ?? profile.email);
   return <>
-    <FormField label={labels.email} name="email" type="email" dir="ltr" defaultValue={profile.pendingEmail ?? profile.email} readOnly={!profile.admin} required maxLength={authPolicy.emailMax} autoComplete="email" hint={profile.admin ? labels.emailChangeHint : labels.emailLocked} />
-    <FormField label={labels.phone} name="phone" type="tel" dir="ltr" defaultValue={profile.phone} required autoComplete="tel" maxLength={20} placeholder={labels.phonePlaceholder} pattern="\+[1-9][0-9]{0,2}-[0-9]{4,14}" hint={labels.phoneHint} />
-    <PasswordField label={labels.currentPassword} name="currentPassword" autoComplete="current-password" dir="ltr" maxLength={authPolicy.passwordMax} showLabel={labels.show} hideLabel={labels.hide} hint={labels.currentHint} />
+    <FormField label={labels.email} name="email" type="email" dir="ltr" defaultValue={profile.pendingEmail ?? profile.email} onChange={event => setEmail(event.target.value)} readOnly={!profile.admin} required maxLength={authPolicy.emailMax} autoComplete="email" hint={profile.admin ? labels.emailChangeHint : labels.emailLocked} />
+    <FormField label={labels.phone} name="phone" type="tel" dir="ltr" defaultValue={profile.phone} onChange={event => setPhone(event.target.value)} required autoComplete="tel" maxLength={20} placeholder={labels.phonePlaceholder} pattern="\+[1-9][0-9]{0,2}-[0-9]{4,14}" hint={labels.phoneHint} />
+    {changed && <PasswordField required label={labels.currentPassword} name="currentPassword" autoComplete="current-password" dir="ltr" maxLength={authPolicy.passwordMax} showLabel={labels.show} hideLabel={labels.hide} hint={labels.currentHint} />}
   </>;
 }
 ```
@@ -4712,7 +4751,7 @@ export default function SettingsForm({ profile, labels }: { profile: AccountProf
 
 ### File: `modules/components/account/settings/settings-view.tsx`
 
-SHA-256: `eebd43b487ab96b83604c241e4d90e7de8d770c2b233e18419790bf585efca57`
+SHA-256: `6aff201bbccade589162d80729ccd56cd924f7eb8e7e6715960d4210df357dbc`
 
 ```tsx
 import PageHeading from "@platform/components/ui/page-heading";
@@ -4722,8 +4761,8 @@ import VerificationStatus from "../verification-status";
 import type { AccountProfile } from "@platform/types/account";
 import type { AccountLabels } from "@platform/types/account-copy";
 export default function SettingsView({ profile, labels, supportHref }: { profile: AccountProfile; labels: AccountLabels; supportHref: string }) {
-  return <><PageHeading title={labels.settingsTitle} /><div className="lms-account-stack">
-    <section className="lms-profile-card"><SettingsForm profile={profile} labels={labels} /></section>
+  return <><PageHeading title={labels.settingsTitle} /><div className="lms-account-stack lms-settings-layout">
+    <section className="lms-profile-card lms-settings-identity"><SettingsForm profile={profile} labels={labels} /></section>
     <VerificationStatus profile={profile} labels={labels} supportHref={supportHref} />
     <section className="lms-profile-card"><h2>{labels.passwordTitle}</h2><PasswordForm labels={labels} /></section>
   </div></>;
@@ -5103,6 +5142,39 @@ export default function ModerationControls({ user, labels, period, pending, onPe
       <button type="button" className="lms-admin-danger" onClick={() => onAction({ action: "remove" })}>{labels.remove}</button>
     </fieldset>
   </div>;
+}
+```
+
+### File: `modules/components/admin/phone-confirmations.tsx`
+
+SHA-256: `ed4edf75687befcf3e31162e692061943f170776bda5f082e15ac3f3547967f1`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
+import type { PhoneConfirmationLabels, PhoneConfirmationRequest } from "@platform/types/phone-confirmations";
+import type { AccountLabels } from "@platform/types/account-copy";
+import { displayPhoneNumber } from "@platform/features/account/helpers/phone-number";
+import PageHeading from "@platform/components/ui/page-heading";
+import ConfirmPhoneButton from "@platform/components/account/confirm-phone-button";
+export default function PhoneConfirmations({ requests, total, page, labels, accountLabels }: {
+  requests: PhoneConfirmationRequest[]; total: number; page: number; labels: PhoneConfirmationLabels; accountLabels: AccountLabels;
+}) {
+  return <><PageHeading title={labels.title} description={labels.description} />
+    <p className="body-regular">{total} {labels.count}</p>
+    <div className="lms-phone-requests">{requests.length ? requests.map(request => <article className="lms-profile-card" key={request.user_id}>
+      <h2><Link href={routes.adminUser(request.username)}>{request.name}</Link></h2>
+      <dl className="lms-account-data"><div><dt>{accountLabels.username}</dt><dd dir="ltr">{request.username}</dd></div>
+        <div><dt>{accountLabels.email}</dt><dd dir="ltr">{request.email}</dd></div>
+        <div><dt>{labels.phone}</dt><dd dir="ltr">{displayPhoneNumber(request.phone_e164)}</dd></div></dl>
+      <div className="lms-phone-request-actions"><Link className="lms-text-link" href={routes.adminUser(request.username)}>{labels.view}</Link>
+        <ConfirmPhoneButton userId={request.user_id} phone={request.phone_e164} label={labels.confirm} pendingLabel={accountLabels.saving} errorLabel={accountLabels.error} /></div>
+    </article>) : <p>{labels.empty}</p>}</div>
+    <nav className="lms-admin-pagination" aria-label={labels.title}>
+      {page > 1 && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page - 1}`}>{labels.previous}</Link>}
+      <span>{labels.page} {page}</span>{page * phoneConfirmationConfig.pageSize < total && <Link className="lms-secondary-button" href={`${routes.adminPhoneConfirmations}?page=${page + 1}`}>{labels.next}</Link>}
+    </nav></>;
 }
 ```
 
@@ -8401,7 +8473,7 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `b02b2a43ac479cdf0331d400ee89355a9db59cfb6ccb175b2f83198c69f61aa3`
+SHA-256: `6450dd11fa396a7c2951e3bb130eff7d828f82024478d746f1c0ac57736a6f9a`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -8443,6 +8515,7 @@ export const routes = {
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
   adminUsers: "/admin/dashboard/users",
+  adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
@@ -8500,6 +8573,14 @@ export const notesKey = (scope: string, slug: string, lesson: string) =>
   `ta3llam-notes:${encodeURIComponent(scope)}:${slug}:${lesson}`;
 ```
 
+### File: `modules/config/phone-confirmations.ts`
+
+SHA-256: `0d2a72be0918f8e143cbb2400d2afac03d7e4bf9ef1ab2aeb0b2ad76506c9dae`
+
+```typescript
+export const phoneConfirmationConfig = { pageSize: 5, maxPage: 100000 } as const;
+```
+
 ### File: `modules/config/request.ts`
 
 SHA-256: `c83605b83cd1b1d26e30d32b67e09be13df357bb1ffe7ae5206d2bb0673f7144`
@@ -8526,13 +8607,13 @@ export const userSearchModes = ["contains", "prefix"] as const;
 
 ### File: `modules/data/account.ts`
 
-SHA-256: `eaac741ba62b049f904d50b4321366fcbaa434873ffee19194d409fe13ec71ef`
+SHA-256: `9e16919d0125d1332550fd07c520952e4517b8815a77c40d3a8ba6a014b941b7`
 
 ```typescript
 export const accountCopy = {
   menu: "قائمة الحساب", profile: "الملف الشخصي", settings: "الإعدادات", support: "الدعم والمساعدة", logout: "تسجيل الخروج",
   name: "الاسم", username: "اسم المستخدم", email: "البريد الإلكتروني", firstName: "الاسم الأول", lastName: "اسم العائلة",
-  phonePlaceholder: "+20-1201024880", phone: "رقم الهاتف", phoneHint: "اكتب رمز الدولة ثم الشرطة ثم الرقم، كما في المثال داخل الحقل.",
+  phonePlaceholder: "+44-7700900123", phone: "رقم الهاتف", phoneHint: "اكتب رمز الدولة ثم الشرطة ثم الرقم، كما في المثال داخل الحقل.",
   emailLocked: "لا يمكن تغيير البريد الإلكتروني من حساب الطالب. تواصل مع الدعم إذا احتجت إلى تغييره.",
   emailChangeHint: "تغيير البريد يتطلب كلمة المرور الحالية وتأكيد العنوان الجديد عبر رسالة بريد إلكتروني.",
   currentPassword: "كلمة المرور الحالية", password: "كلمة المرور الجديدة", confirmPassword: "تأكيد كلمة المرور الجديدة",
@@ -9215,6 +9296,19 @@ export const offerCopy = {
 };
 ```
 
+### File: `modules/data/phone-confirmations.ts`
+
+SHA-256: `9b76372662a9f6c29dbb73f2a34adbeb367bc3157a8799131499aaf147ea9ea4`
+
+```typescript
+export const phoneConfirmationCopy = {
+  tab: "تأكيد الهواتف", title: "طلبات تأكيد رقم الهاتف",
+  description: "أرقام أضافها المستخدمون أو غيّروها وتنتظر مراجعة الإدارة. تواصل مع صاحب الحساب قبل التأكيد.",
+  empty: "لا توجد أرقام هواتف بانتظار التأكيد.", view: "عرض المستخدم", count: "طلب بانتظار التأكيد",
+  previous: "السابق", next: "التالي", page: "الصفحة", phone: "رقم الهاتف", confirm: "تأكيد الرقم بعد التواصل", confirmed: "تم تأكيد رقم الهاتف.",
+} as const;
+```
+
 ### File: `modules/data/resources.ts`
 
 SHA-256: `e4ac56937f398aa14b63bdadd397c8fb414ad0a3f1e47cac3c44aa14f0ef0b82`
@@ -9746,6 +9840,34 @@ export async function readAccount(): Promise<AccountProfile> {
     email: c.email, pendingEmail: c.pending_email, phone: displayPhoneNumber(c.phone_e164),
     avatarUrl: p.avatar_url?.startsWith("https://") ? p.avatar_url : null, admin,
     emailVerified: Boolean(c.email_verified_at && !c.pending_email && user.email_confirmed_at && !user.new_email), phoneVerified: Boolean(c.phone_e164 && c.phone_verified_at) };
+}
+```
+
+### File: `modules/features/account/repositories/read-phone-confirmations.ts`
+
+SHA-256: `b6725930ac9185018bb3297bb9cc5c886121a802f974c41a826e16f72bd302fb`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
+export async function readPhoneConfirmations(page: number) {
+  await requireAdmin();
+  const client = createAuthAdministrator(), start = (page - 1) * phoneConfirmationConfig.pageSize;
+  const { data, count, error } = await client.from("account_contacts").select("user_id,email,phone_e164,updated_at", { count: "exact" })
+    .is("phone_verified_at", null).not("phone_e164", "is", null).order("updated_at").order("user_id")
+    .range(start, start + phoneConfirmationConfig.pageSize - 1);
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!data?.length) return { requests: [], total: count ?? 0 };
+  const profiles = await client.from("profiles").select("id,name,username").in("id", data.map(row => row.user_id));
+  if (profiles.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const byId = new Map(profiles.data.map(profile => [profile.id, profile]));
+  return { total: count ?? 0, requests: data.flatMap(row => {
+    const profile = byId.get(row.user_id);
+    return profile && row.phone_e164 ? [{ ...row, phone_e164: row.phone_e164, name: profile.name, username: profile.username }] : [];
+  }) };
 }
 ```
 
@@ -12781,7 +12903,7 @@ export const theme = palette;
 
 ### File: `modules/styles/account.css`
 
-SHA-256: `bfb44ca2c7e1d339ecc3f025359971a80f86a945d29a319788bd9f4f2ea28cc1`
+SHA-256: `278a1cb1801e1b2395c74b6932460af1709a8ecd4a6079135efee061563bfb38`
 
 ```css
 .lms-account-stack { display: grid; gap: var(--space-lg); }
@@ -12802,6 +12924,20 @@ SHA-256: `bfb44ca2c7e1d339ecc3f025359971a80f86a945d29a319788bd9f4f2ea28cc1`
 .lms-recovery-page .lms-auth-card { width: 100%; max-width: var(--lms-size-560px); }
 .lms-recovery-page h1 { font-size: var(--size-1_5rem); }
 .lms-recovery-page .lms-text-link { display: inline-block; margin-top: var(--space-lg); }
+
+.lms-settings-layout { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.lms-settings-layout > .lms-profile-card { max-width: none; min-width: 0; }
+.lms-settings-identity { grid-row: span 2; }
+.lms-phone-requests { display: grid; gap: var(--space-lg); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lms-phone-requests .lms-profile-card { max-width: none; min-width: 0; }
+.lms-phone-requests h2 { font-size: var(--size-1_25rem); margin-bottom: var(--space-md); }
+.lms-phone-requests h2 a { color: var(--text-primary); }
+.lms-phone-requests h2 a:hover { color: var(--primary-red); }
+.lms-phone-request-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
+@media (max-width: 1024px) {
+  .lms-settings-layout, .lms-phone-requests { grid-template-columns: minmax(0, 1fr); }
+  .lms-settings-identity { grid-row: auto; }
+}
 ```
 
 ### File: `modules/styles/admin.css`
@@ -17314,6 +17450,18 @@ SHA-256: `6011cdc4d970f7c82478d68a53850eee0085319a0d38eb3d8acf51acf02f6333`
 export interface NavigationAccount {
   href: string;
   label: string;
+}
+```
+
+### File: `modules/types/phone-confirmations.ts`
+
+SHA-256: `a0893bca1b478645c34d9d67830260fab283f21770a0d2e55d2a42406b16249b`
+
+```typescript
+import type { phoneConfirmationCopy } from "@platform/data/phone-confirmations";
+export type PhoneConfirmationLabels = { [K in keyof typeof phoneConfirmationCopy]: string };
+export interface PhoneConfirmationRequest {
+  user_id: string; email: string; phone_e164: string; updated_at: string; name: string; username: string;
 }
 ```
 
@@ -28511,7 +28659,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `4e3a68fc6e5c297d0d2d58e77572324f0981fb59eacf5ec977545856c3ab887b`
+SHA-256: `930b68a83234be5629c261a5b64d54e7ff5ad86a79cbaf4cd0cddbf3c60c581e`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -28563,6 +28711,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'phone-confirmations') {
+    await require('./phone-confirmations.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-analytics') {
     await require('./admin-analytics.cjs')({admin,provision,anonymous,verify,url,config});
     return;
@@ -28731,6 +28883,111 @@ module.exports=async function navigation({url,manager,student,verify}) {
   }
  } finally {await browser.close();}
 };
+```
+
+### File: `tests/backend/phone-confirmations.cjs`
+
+SHA-256: `57db445ea29cb979b8b4ec7e242ac032e108ddb5382106ae0136caada49f0e46`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local-only ephemeral accounts and protected phone queue checks. */
+const {chromium,expect}=require('@playwright/test');
+const fs=require('node:fs');
+module.exports=async function checks({admin,provision,anonymous,verify,url}) {
+  const manager=await provision('Phone Manager'),student=await provision('Phone Student');
+  await admin.from('admin_users').insert({user_id:manager.id});
+  const pending=[student];
+  for(let i=0;i<5;i++) pending.push(await provision('Phone Pending '+i));
+  const ids=pending.map(user=>user.id);
+  await admin.from('account_contacts').update({phone_verified_at:null}).in('user_id',ids);
+  const contact=(await admin.from('account_contacts').select('*').eq('user_id',student.id).single()).data;
+  const endpoint='/api/admin/users/'+student.id+'/verification';
+  verify((await anonymous(endpoint,{field:'phone',value:contact.phone_e164})).status===401,'Anonymous cannot confirm phones');
+  verify((await student.api(endpoint,{field:'phone',value:contact.phone_e164})).status===403,'Student cannot confirm phones');
+  const browser=await chromium.launch({headless:true});
+  try {
+    const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(url+'/admin/dashboard/phone-confirmations');await expect(page).toHaveURL(/\/login/);
+    verify(true,'Anonymous queue access redirects to login');
+    await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
+    await page.goto(url+'/admin/dashboard/phone-confirmations');await expect(page).toHaveURL(url+'/dashboard');verify(true,'Student queue access denied');
+    await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+    await page.goto(url+'/admin/dashboard/settings');
+    const identity=page.locator('.lms-settings-identity');
+    await expect(identity.getByLabel('كلمة المرور الحالية',{exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('رقم الهاتف',{exact:true})).toHaveAttribute('placeholder','+44-7700900123');
+    verify(true,'Generic reserved example and no initial contact password field');
+    const phone=page.getByLabel('رقم الهاتف',{exact:true}),original=await phone.inputValue();
+    await phone.fill('+44-7700900123');await expect(identity.getByLabel('كلمة المرور الحالية',{exact:true})).toBeVisible();
+    await phone.fill(original);await expect(identity.getByLabel('كلمة المرور الحالية',{exact:true})).toHaveCount(0);
+    verify(true,'Sensitive edit reveals password only until contact value restored');
+    await identity.getByLabel('الاسم الأول',{exact:true}).fill('Updated');await identity.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();
+    await expect(identity.getByRole('status')).toContainText('تم حفظ');verify(true,'Name-only changes save without a current password');
+    fs.mkdirSync('docs/evidence/phone-confirmations',{recursive:true});
+    for(const width of [320,390,768,1440,1920]) {
+      await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Settings fits '+width+'px');
+      if(width>=1440) verify(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top),'Desktop settings uses adjacent columns');
+      await page.screenshot({path:'docs/evidence/phone-confirmations/settings-'+width+'.png',fullPage:true});
+    }
+    await page.goto(url+'/admin/dashboard/phone-confirmations');await expect(page.locator('.lms-phone-requests article')).toHaveCount(5);
+    await page.getByRole('link',{name:'التالي',exact:true}).click();await expect(page).toHaveURL(/page=2/);
+    await expect(page.locator('.lms-phone-requests article')).toHaveCount(1);verify(true,'Pending queue paginates at five accounts');
+    await page.getByRole('link',{name:'السابق',exact:true}).click();
+    const row=page.locator('.lms-phone-requests article').filter({hasText:student.email});
+    await expect(row).toBeVisible();
+    await admin.from('account_contacts').update({phone_e164:'+447700900124'}).eq('user_id',student.id);
+    await row.getByRole('button',{name:'تأكيد الرقم بعد التواصل',exact:true}).click();await expect(row.getByRole('alert')).toBeVisible();
+    verify((await admin.from('account_contacts').select('phone_verified_at').eq('user_id',student.id).single()).data.phone_verified_at===null,'Stale queue value cannot verify changed phone');
+    await page.reload();
+    // Changing the number moves this account to the final page in updated-time order.
+    await page.getByRole('link',{name:'التالي',exact:true}).click();
+    await page.locator('.lms-phone-requests article').filter({hasText:student.email}).getByRole('button',{name:'تأكيد الرقم بعد التواصل',exact:true}).click();
+    await expect(page.locator('.lms-phone-requests article').filter({hasText:student.email})).toHaveCount(0);
+    verify(Boolean((await admin.from('account_contacts').select('phone_verified_at').eq('user_id',student.id).single()).data.phone_verified_at),'Manual confirmation persists and removes pending entry');
+    await page.goto(url+'/admin/dashboard/phone-confirmations');
+    for(const width of [320,390,768,1440]) {
+      await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Phone queue fits '+width+'px');
+      await page.screenshot({path:'docs/evidence/phone-confirmations/queue-'+width+'.png',fullPage:true});
+    }
+    verify(errors.length===0,'Settings and phone queue have no runtime errors');
+  } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/settings-live.cjs`
+
+SHA-256: `99b03dfef269b338b08992aaaf6f3655d902dd5e585a3f862c049becebb89bb9`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Read-only acceptance against the production build. */
+const {chromium,expect}=require('@playwright/test');
+process.loadEnvFile('.env.local');
+const url=process.env.TARGET_URL||'http://localhost:3040';
+(async()=>{
+  const browser=await chromium.launch({headless:true});
+  try {
+    const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin@ta3allam.com');
+    await page.getByLabel('كلمة المرور',{exact:true}).fill(process.env.TA3ALLAM_ADMIN_PASSWORD);
+    await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard',{timeout:30000});
+    await page.goto(url+'/admin/dashboard/settings');
+    await expect(page.locator('.lms-settings-identity').getByLabel('كلمة المرور الحالية',{exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('رقم الهاتف',{exact:true})).toHaveAttribute('placeholder','+44-7700900123');
+    for(const width of [320,390,768,1440,1920]) {
+      await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      if(width>=1440) expect(await page.locator('.lms-settings-layout').evaluate(el=>el.children[0].getBoundingClientRect().top===el.children[1].getBoundingClientRect().top)).toBe(true);
+    }
+    await page.goto(url+'/admin/dashboard/phone-confirmations');
+    await expect(page.getByRole('heading',{name:'طلبات تأكيد رقم الهاتف',exact:true})).toBeVisible();
+    expect(await page.locator('.lms-phone-requests article').count()).toBeLessThanOrEqual(5);
+    for(const width of [320,390,768,1440]) {
+      await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    }
+    expect(errors).toEqual([]);console.log('Settings and phone queue read-only acceptance passed:',url);
+  } finally {await browser.close();}
+})().catch(error=>{console.error(error.message);process.exitCode=1;});
 ```
 
 ### File: `tests/backend/username-controls.cjs`

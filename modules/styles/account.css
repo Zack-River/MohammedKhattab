@@ -16,3 +16,17 @@
 .lms-recovery-page .lms-auth-card { width: 100%; max-width: var(--lms-size-560px); }
 .lms-recovery-page h1 { font-size: var(--size-1_5rem); }
 .lms-recovery-page .lms-text-link { display: inline-block; margin-top: var(--space-lg); }
+
+.lms-settings-layout { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.lms-settings-layout > .lms-profile-card { max-width: none; min-width: 0; }
+.lms-settings-identity { grid-row: span 2; }
+.lms-phone-requests { display: grid; gap: var(--space-lg); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lms-phone-requests .lms-profile-card { max-width: none; min-width: 0; }
+.lms-phone-requests h2 { font-size: var(--size-1_25rem); margin-bottom: var(--space-md); }
+.lms-phone-requests h2 a { color: var(--text-primary); }
+.lms-phone-requests h2 a:hover { color: var(--primary-red); }
+.lms-phone-request-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
+@media (max-width: 1024px) {
+  .lms-settings-layout, .lms-phone-requests { grid-template-columns: minmax(0, 1fr); }
+  .lms-settings-identity { grid-row: auto; }
+}

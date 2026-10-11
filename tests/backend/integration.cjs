@@ -47,6 +47,10 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'phone-confirmations') {
+    await require('./phone-confirmations.cjs')({admin,provision,anonymous,verify,url});
+    return;
+  }
   if (process.env.BACKEND_SUITE === 'admin-analytics') {
     await require('./admin-analytics.cjs')({admin,provision,anonymous,verify,url,config});
     return;

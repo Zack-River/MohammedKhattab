@@ -37,6 +37,7 @@ export const routes = {
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
   adminUsers: "/admin/dashboard/users",
+  adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
