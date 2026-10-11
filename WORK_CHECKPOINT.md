@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-11**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — administrator entry route
+
+- Reproduced the reported issue: `admin@ta3allam.com` has trusted administrator membership and its deployed users API returns 200, but the shared login destination `/dashboard` previously rendered student content. This was an entry-routing error, not a missing role.
+- `/dashboard` now checks trusted administrator membership before rendering student content and redirects administrators to `/admin/dashboard`. The shared login, confirmation callback and public dashboard links all benefit from this single role-based decision. Students remain on `/dashboard`. The administrative link in optional student views is now correctly labelled “لوحة الإدارة”.
+- Browser acceptance covers automatic administrator login, generic dashboard link routing, Users/Courses navigation and a subsequent student login that stays on its student dashboard. Full isolated backend: **162 checks passed**. TypeScript, lint, architecture (454 files, zero violations) and production build passed. All **18 auth/access regression tests** passed. Real hosted-admin browser verification against the new local production artifact confirms automatic admin entry, generic dashboard link routing, Users/Courses navigation and logout protection. Live deployment verification is pending this push. Evidence: `docs/evidence/admin-dashboard/entry-*.log` and `entry-local-verification.json`.
+
 ## Latest checkpoint — administrator users dashboard
 
 - Added `/admin/dashboard` with Users and Courses navigation. Users table includes actual names, generated unique usernames, emails, account status, detail links and moderation. `/admin/dashboard/users/[id]` is administrator-only and shows a profile photo/initial, identity details and actual database enrollments. No public user-profile pages were added.

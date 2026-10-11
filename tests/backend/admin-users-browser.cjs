@@ -9,7 +9,13 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
     await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-    await page.waitForURL('**/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    verify(true, 'Administrator login automatically opens administrator dashboard');
+    await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'الدورات', exact: true })).toBeVisible();
+    await page.goto(url + '/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    verify(true, 'Generic dashboard link resolves to administrator dashboard');
     await page.goto(url + '/admin/dashboard');
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
     const row = page.getByRole('row').filter({ hasText: target.email });
@@ -35,5 +41,13 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     verify(Math.max(viewport.root, viewport.body) <= viewport.width, `User table scrolls within mobile viewport (${JSON.stringify(viewport)})`);
     await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
     verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
+    await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+    await page.waitForURL('**/login');
+    await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(target.email);
+    await page.getByLabel('كلمة المرور', { exact: true }).fill(target.password);
+    await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+    await expect(page).toHaveURL(url + '/dashboard');
+    await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toHaveCount(0);
+    verify(true, 'Student login stays on student dashboard without administrator navigation');
   } finally { await browser.close(); }
 };

@@ -2,7 +2,7 @@ import { dashboardStats } from "@platform/features/learning/helpers/dashboard-st
 import { selectCourses } from "@platform/features/catalog/helpers";
 import { catalogSettings } from "@platform/data/catalog-settings";
 import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
+import { site, copy } from "@platform/data/site";
 import { offerCopy } from "@platform/data/offers";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import Link from "next/link";
@@ -13,14 +13,14 @@ import ContinueCard from "@platform/components/learning/continue-card";
 import CourseGrid from "@platform/components/courses/course-grid";
 import { readStudentState, courseProgress } from "@platform/features/learning";
 import { listCourses } from "@platform/features/catalog";
-import { copy } from "@platform/data/site";
+import { redirect } from "next/navigation";
+import { hasAdminAccess } from "@platform/features/admin/identity";
 export const metadata = { title: interfaceCopy.dashboardLabel };
 export default async function DashboardPage() {
+  if (await hasAdminAccess()) redirect(routes.adminDashboard);
   const state = await readStudentState();
   const courses = await listCourses();
-  const enrolled = courses.filter((course) =>
-    state.enrolled.includes(course.slug),
-  );
+  const enrolled = courses.filter((course) => state.enrolled.includes(course.slug));
   const active =
     enrolled.find((course) => courseProgress(course, state).percent < 100) ??
     enrolled[0];

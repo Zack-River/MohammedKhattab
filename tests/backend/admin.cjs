@@ -36,7 +36,8 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
       await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
       await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
       await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-      await expect(page.getByRole('link', { name: 'إدارة الدورات', exact: true })).toBeVisible();
+      await expect(page).toHaveURL(url + '/admin/dashboard');
+      await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toBeVisible();
       await page.goto(url + '/dashboard/admin/courses/7days-freelance');
       await page.getByLabel('اسم الدورة', { exact: true }).fill('ورشة محفوظة من لوحة التحكم');
       await page.getByLabel('السعر (ج.م)', { exact: true }).fill('888');

@@ -1924,11 +1924,11 @@ export default async function MyCourses() {
 
 ### File: `app/dashboard/layout.tsx`
 
-SHA-256: `0d70fb6e599ccc0a68c278187790ab4815ff4becf21481f3e0610ddc6c29f23e`
+SHA-256: `62427e558b119e8aae9300ae36aa5304b69275295c544d84ed4c6b2f258b4758`
 
 ```tsx
 import { hasAdminAccess } from "@platform/features/admin/identity";
-import { adminCopy } from "@platform/data/admin";
+import { adminUsersCopy } from "@platform/data/admin-users";
 import { routes } from "@platform/config/navigation";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { dashboardNavigation } from "@platform/data/site";
@@ -1937,7 +1937,7 @@ import { readStudentState } from "@platform/features/learning";
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const state = await readStudentState(), admin = await hasAdminAccess();
   return <DashboardShell {...dashboardShellContent} name={state.profile.name}
-    dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.adminDashboard, label: adminCopy.navigation, symbol: "grid" }] : dashboardNavigation}>
+    dashboardNavigation={admin ? [...dashboardNavigation, { href: routes.adminDashboard, label: adminUsersCopy.dashboard, symbol: "grid" }] : dashboardNavigation}>
     {children}
   </DashboardShell>;
 }
@@ -1945,14 +1945,14 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
 ### File: `app/dashboard/page.tsx`
 
-SHA-256: `1691ddcb1bc68e8f940071556e0ceca430716e2bb0ffbd4949de741c9a02646e`
+SHA-256: `952bd3296f36d61283ac5b27533cbb832183ab761f66fc195124f24f63f20e08`
 
 ```tsx
 import { dashboardStats } from "@platform/features/learning/helpers/dashboard-stats";
 import { selectCourses } from "@platform/features/catalog/helpers";
 import { catalogSettings } from "@platform/data/catalog-settings";
 import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
+import { site, copy } from "@platform/data/site";
 import { offerCopy } from "@platform/data/offers";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import Link from "next/link";
@@ -1963,14 +1963,14 @@ import ContinueCard from "@platform/components/learning/continue-card";
 import CourseGrid from "@platform/components/courses/course-grid";
 import { readStudentState, courseProgress } from "@platform/features/learning";
 import { listCourses } from "@platform/features/catalog";
-import { copy } from "@platform/data/site";
+import { redirect } from "next/navigation";
+import { hasAdminAccess } from "@platform/features/admin/identity";
 export const metadata = { title: interfaceCopy.dashboardLabel };
 export default async function DashboardPage() {
+  if (await hasAdminAccess()) redirect(routes.adminDashboard);
   const state = await readStudentState();
   const courses = await listCourses();
-  const enrolled = courses.filter((course) =>
-    state.enrolled.includes(course.slug),
-  );
+  const enrolled = courses.filter((course) => state.enrolled.includes(course.slug));
   const active =
     enrolled.find((course) => courseProgress(course, state).percent < 100) ??
     enrolled[0];
@@ -25030,7 +25030,7 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 
 ### File: `tests/backend/admin-users-browser.cjs`
 
-SHA-256: `f6cc50eb35ef049c9b08b260d94ba443c7c837de27a77f70645d203585fedf12`
+SHA-256: `bbd40ea726bf5a9d279e6d83dd1ddbd2e74c50953e07c3c569bc78fcd675eec8`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -25044,7 +25044,13 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
     await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
     await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-    await page.waitForURL('**/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    verify(true, 'Administrator login automatically opens administrator dashboard');
+    await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'الدورات', exact: true })).toBeVisible();
+    await page.goto(url + '/dashboard');
+    await expect(page).toHaveURL(url + '/admin/dashboard');
+    verify(true, 'Generic dashboard link resolves to administrator dashboard');
     await page.goto(url + '/admin/dashboard');
     await expect(page.getByRole('heading', { name: 'إدارة المستخدمين', exact: true })).toBeVisible();
     const row = page.getByRole('row').filter({ hasText: target.email });
@@ -25070,6 +25076,14 @@ module.exports = async function userManagementBrowser({ manager, target, verify,
     verify(Math.max(viewport.root, viewport.body) <= viewport.width, `User table scrolls within mobile viewport (${JSON.stringify(viewport)})`);
     await page.screenshot({ path: 'docs/evidence/backend/admin-users-390.png', fullPage: true });
     verify(errors.length === 0, 'Admin users dashboard has no browser JavaScript errors');
+    await page.getByRole('button', { name: 'تسجيل الخروج', exact: true }).click();
+    await page.waitForURL('**/login');
+    await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(target.email);
+    await page.getByLabel('كلمة المرور', { exact: true }).fill(target.password);
+    await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+    await expect(page).toHaveURL(url + '/dashboard');
+    await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toHaveCount(0);
+    verify(true, 'Student login stays on student dashboard without administrator navigation');
   } finally { await browser.close(); }
 };
 ```
@@ -25147,7 +25161,7 @@ module.exports = async function userManagementChecks({ admin, provision, anonymo
 
 ### File: `tests/backend/admin.cjs`
 
-SHA-256: `d76539f6bde40325d29852a56df0b501e7d9b2c3f60a677f84e2bac1a2455e4f`
+SHA-256: `724d28bfe892aab2da16177d093b7a6ff4d41bf54619f1b97378d7b01338a025`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated admin/RLS and editor checks. */
@@ -25188,7 +25202,8 @@ module.exports = async function adminChecks({ admin, provision, anonymous, stude
       await page.getByLabel('البريد الإلكتروني', { exact: true }).fill(manager.email);
       await page.getByLabel('كلمة المرور', { exact: true }).fill(manager.password);
       await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
-      await expect(page.getByRole('link', { name: 'إدارة الدورات', exact: true })).toBeVisible();
+      await expect(page).toHaveURL(url + '/admin/dashboard');
+      await expect(page.getByRole('link', { name: 'المستخدمون', exact: true })).toBeVisible();
       await page.goto(url + '/dashboard/admin/courses/7days-freelance');
       await page.getByLabel('اسم الدورة', { exact: true }).fill('ورشة محفوظة من لوحة التحكم');
       await page.getByLabel('السعر (ج.م)', { exact: true }).fill('888');

@@ -11,3 +11,9 @@
 - Application commit `10c07c3b3cd989d3027579842e20071790458e59` deployed successfully to https://ta3allam.vercel.app (`deployment.json`).
 - Live administrator browser checks passed: users table and private API, profile/subscriptions, 390px mobile, course editor and logout protection; zero JS errors (`live-verification.json`). The Vercel server-only secret is verified working.
 - Live student login succeeds, users API denies with 403, administrator page redirects to the student dashboard, anonymous users API denies with 401 (`live-access-verification.json`). No production users were banned, suspended, promoted or deleted during verification.
+
+## Administrator entry routing follow-up
+
+The administrator role was already correct; shared `/dashboard` entry incorrectly rendered student content. The entry route now resolves trusted admin membership before rendering student content. Admin login and generic dashboard links automatically open `/admin/dashboard`; students stay on `/dashboard`.
+
+162 full backend checks, 18 auth/access regressions, TypeScript/lint/architecture and production build passed. The real hosted admin account also passed the role-based entry checks against the local production artifact (`entry-local-verification.json`). Live release check follows this push.
