@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — real montage bootcamp content
+
+- Created hosted draft `montage-income-bootcamp`: **معسكر المونتاج والربح منه🎬**, 599 EGP, supplied description and all 29 lesson names. Recorded the supplied 1,500 EGP previous price in the existing offer caption; no thumbnail/intro was invented. Removed unrelated WordPress navigation/admin/footer text from the supplied copy.
+- Organized one chapter into four editable sections: capsules, main lectures, applications and freelancing. Matched all 17 playlist videos using their lecture numbers and durations, retaining the supplied curriculum order despite L17 appearing before L16 in YouTube. Two one-second duration differences use the actual source durations.
+- Twelve lesson URLs remain empty because the playlist does not contain those videos. Course stays unpublished; no downloads/Drive uploads, enrollments or charges were made. Exact-copy, mapping and unique-section-assignment checks passed; anonymous API access returns 404. Import report: `docs/content/MONTAGE_INCOME_BOOTCAMP.md`.
+
 ## Latest checkpoint — YouTube course-video support
 
 - Individual YouTube watch, short/share, mobile, Shorts, live-video and embed links normalize through the shared media helper and use the existing deferred YouTube backend with custom controls. Direct files and protected Drive routing remain supported. Playlist-only URLs are not individual lessons. No downloading, playlist import or rehosting was performed.
