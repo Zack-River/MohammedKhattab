@@ -1,0 +1,31 @@
+{
+  "verifiedAt": "2026-10-12T13:49:40.288259+00:00",
+  "applicationCommit": "34a63edd9546f9d4719b6428f705858809624e68",
+  "site": "https://ta3allam.vercel.app",
+  "deployment": "success",
+  "ciRun": 38257401591,
+  "ci": "success",
+  "checks": {
+    "securityUnit": 12,
+    "uploadUnit": 4,
+    "securityIntegration": 29,
+    "payments": 56,
+    "backendRegression": 190,
+    "adminAnalytics": 27,
+    "productionBuildBrowser": 10,
+    "liveSmoke": 11
+  },
+  "databaseAdvisors": {
+    "local": "no issues",
+    "hosted": "no issues"
+  },
+  "runtimeAuditFindings": 0,
+  "devOnlyHighFindings": 5,
+  "exceptionReviewBy": "2026-10-19",
+  "remaining": [
+    "Vercel edge firewall/DDoS configuration and monitoring/alert setup",
+    "Compatible upstream fix for the dev-only braces advisory"
+  ],
+  "noLiveFlooding": true,
+  "noRealPayments": true
+}
