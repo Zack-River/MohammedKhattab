@@ -3,6 +3,7 @@ import { requireIdentity } from "@platform/features/auth/server/identity";
 import { ApiError } from "@platform/lib/api/error";
 import { isOrderId } from "../helpers/order-id";
 import type { PaymentOrder } from "../types";
+import { paymentCourseSlugs } from "../helpers/order-courses";
 export async function readPaymentOrder(id: string): Promise<PaymentOrder> {
   const { client, user } = await requireIdentity();
   if (!isOrderId(id)) throw new ApiError(404, "NOT_FOUND");
@@ -20,6 +21,7 @@ export function publicPaymentOrder(order: PaymentOrder) {
   return {
     id: order.id,
     courseSlug: order.course_slug,
+    bundleSlug: order.bundle_slug,
     title: order.course_title,
     amount: order.amount_minor / 100,
     currency: order.currency,
@@ -29,12 +31,8 @@ export function publicPaymentOrder(order: PaymentOrder) {
 }
 export async function readPaymentReceipt(order: PaymentOrder) {
   const { client, user } = await requireIdentity();
-  const result = await client
-    .from("enrollments")
-    .select("course_slug")
-    .eq("user_id", user.id)
-    .eq("course_slug", order.course_slug)
-    .maybeSingle();
+  const slugs=paymentCourseSlugs(order);
+  const result = await client.from("enrollments").select("course_slug").eq("user_id",user.id).in("course_slug",slugs);
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return { ...publicPaymentOrder(order), enrolled: Boolean(result.data) };
+  return {...publicPaymentOrder(order), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug))};
 }

@@ -252,80 +252,43 @@ Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompress
 
 Current shared architecture snapshot. Materialize all paths together; run npm ci once at the root using the companion lockfile, then prebuild generation. The separate test fixture is not a shipped application route. Generated .next/node_modules and server font JSON are excluded. Source hashes verify reconstruction, not visual approval.
 
-### File: `app/(public)/checkout/[slug]/page.tsx`
+### File: `app/(public)/bundles/[slug]/page.tsx`
 
-SHA-256: `62c9212466b6b04e3ccf26323cc845f60f5dfcf6454475cf7d2fe35ce826a00f`
+SHA-256: `1d9da729b0b9e6034d28e6bac046fc506022b5fd33dbeea41e7b3f0072af9957`
 
 ```tsx
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { currentIdentity } from "@platform/features/auth/server/identity";
-import { findCourse } from "@platform/features/catalog/service";
-import { readAccount } from "@platform/features/account/repositories/read-account";
-import CheckoutButton from "@platform/components/payments/checkout-button";
-import { paymentCopy as labels } from "@platform/data/payment-copy";
-import { routes } from "@platform/config/navigation";
-export const metadata = {
-  title: labels.title,
-  robots: { index: false, follow: false },
-};
-export default async function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params,
-    identity = await currentIdentity();
-  if (!identity) redirect(routes.login);
-  const course = await findCourse(slug);
-  if (!course) notFound();
-  const enrolled = await identity.client
-    .from("enrollments")
-    .select("course_slug")
-    .eq("user_id", identity.user.id)
-    .eq("course_slug", slug)
-    .maybeSingle();
-  if (enrolled.error) throw new Error("Enrollment lookup failed");
-  if (enrolled.data) redirect(routes.library);
-  const paid = await identity.client
-    .from("payment_orders")
-    .select("id")
-    .eq("user_id", identity.user.id)
-    .eq("course_slug", slug)
-    .eq("status", "paid")
-    .limit(1)
-    .maybeSingle();
-  if (paid.error) throw new Error("Payment lookup failed");
-  if (paid.data) redirect(routes.payment(paid.data.id));
-  if (course.offer.amount <= 0) redirect(routes.course(slug, course.delivery));
-  const account = await readAccount(),
-    verified = account.emailVerified && account.phoneVerified;
-  return (
-    <main className="container lms-public-main">
-      <div className="lms-payment-layout">
-        <h1>{labels.title}</h1>
-        <p>{labels.summary}</p>
-        <section className="lms-profile-card lms-payment-card" data-reveal="true">
-          <h2>{course.title}</h2>
-          <p>{course.description}</p>
-          <dl className="lms-payment-total">
-            <dt>{labels.amount}</dt>
-            <dd className="numeral">
-              {course.offer.amount} {labels.currency}
-            </dd>
-          </dl>
-          {verified ? (
-            <CheckoutButton slug={slug} labels={labels} />
-          ) : (
-            <>
-              <p>{labels.verification}</p>
-              <Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>
-                {labels.settings}
-              </Link>
-            </>
-          )}
-          <p className="lms-payment-caption">{labels.secure}</p>
-          <Link className="lms-payment-back" href={routes.course(slug, course.delivery)}>{labels.back}</Link>
-        </section>
-      </div>
-    </main>
-  );
+import { notFound } from "next/navigation";
+import { findBundle } from "@platform/features/commerce/repositories/bundles";
+import { listCourses } from "@platform/features/catalog/service";
+import BundleCard from "@platform/components/commerce/bundle-card";
+import { commerceCopy } from "@platform/data/commerce";
+export default async function Page({params}:{params:Promise<{slug:string}>}) {
+ const bundle=await findBundle((await params).slug);if(!bundle) notFound();
+ const courses=await listCourses();return <main className="container lms-public-main lms-bundle-details"><h1>{commerceCopy.bundles}</h1><BundleCard bundle={bundle} labels={commerceCopy} courses={courses.map(({slug,title,delivery})=>({slug,title,delivery}))} detail /></main>;
+}
+```
+
+### File: `app/(public)/bundles/page.tsx`
+
+SHA-256: `ff0cd832344bf401fc0c18f7e4c2442e833e0408913fa9288192be484f4ccf45`
+
+```tsx
+import BundlesCatalog from "@platform/features/commerce/bundles-catalog";
+import { commerceCopy } from "@platform/data/commerce";
+export const metadata={title:commerceCopy.bundles};
+export default function Page() { return <main className="container lms-public-main"><BundlesCatalog /></main>; }
+```
+
+### File: `app/(public)/checkout/[slug]/page.tsx`
+
+SHA-256: `a14b36658b9cd4d54d711857036d1a871d5e9d376d59e22733658079bee659c7`
+
+```tsx
+import CommerceCheckoutPage from "@platform/features/commerce/checkout-page";
+import { paymentCopy } from "@platform/data/payment-copy";
+export const metadata={title:paymentCopy.title,robots:{index:false,follow:false}};
+export default async function Page({params,searchParams}:{params:Promise<{slug:string}>;searchParams:Promise<{kind?:string}>}) {
+ return <CommerceCheckoutPage slug={(await params).slug} bundle={(await searchParams).kind==='bundle'} />;
 }
 ```
 
@@ -370,7 +333,7 @@ export default async function CoursePage({ params }: CourseParams) {
 
 ### File: `app/(public)/courses/page.tsx`
 
-SHA-256: `a6777cdd220cdf49e1148ca865fab4f5a00a80e3a9a1668d966847d950ba3154`
+SHA-256: `334fb6429168aa581cb67df2b84b551cae7584cff4ea8a949b87e7276f7e7405`
 
 ```tsx
 import { routes } from "@platform/config/navigation";
@@ -385,6 +348,7 @@ import EmptyState from "@platform/components/ui/empty-state";
 import PageHeading from "@platform/components/ui/page-heading";
 import { listCourses } from "@platform/features/catalog";
 import { copy } from "@platform/data/site";
+import BundlesCatalog from "@platform/features/commerce/bundles-catalog";
 export const metadata = { title: interfaceCopy.courseBreadcrumb };
 export default async function CoursesPage({
   searchParams,
@@ -436,6 +400,7 @@ export default async function CoursesPage({
           label={copy.reset}
         />
       )}
+      <Suspense><BundlesCatalog /></Suspense>
     </main>
   );
 }
@@ -481,7 +446,7 @@ export default function LoginPage() { return <AuthPage model={authPages.login} /
 
 ### File: `app/(public)/payments/[orderId]/page.tsx`
 
-SHA-256: `5bf273a33dfdf09033f5ecb51539401ed13e70c9b0cf9c747db4884447e91396`
+SHA-256: `4bc00bfbcadaf59613952ff648232c86000a9a60b2851465d0d26750d7a87c90`
 
 ```tsx
 import { redirect, notFound } from "next/navigation";
@@ -510,7 +475,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ orderI
           initial={await readPaymentReceipt(order)}
           labels={labels}
           libraryHref={routes.library}
-          retryHref={routes.checkout(order.course_slug)}
+          retryHref={order.bundle_slug ? routes.bundleCheckout(order.bundle_slug) : routes.checkout(order.course_slug!)}
           settingsHref={routes.settings}
         />
       </div>
@@ -549,6 +514,21 @@ import AuthPage from "@platform/components/account/auth/page";
 import { authPages } from "@platform/data/auth";
 export const metadata = { title: authPages.signup.title };
 export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
+```
+
+### File: `app/admin/dashboard/commerce/[kind]/page.tsx`
+
+SHA-256: `b66248c766b3292c637fa108d6ace6c330d86bea215bfae8a7923cdfd27a1728`
+
+```tsx
+import { notFound } from "next/navigation";
+import { commerceKinds } from "@platform/config/commerce";
+import CommerceAdminPage from "@platform/features/commerce/admin-page";
+import type { CommerceKind } from "@platform/types/commerce";
+export default async function Page({params,searchParams}:{params:Promise<{kind:string}>;searchParams:Promise<Record<string,string | string[] | undefined>>}) {
+ const {kind}=await params;if(!commerceKinds.includes(kind as CommerceKind)) notFound();
+ return <CommerceAdminPage kind={kind as CommerceKind} query={await searchParams} />;
+}
 ```
 
 ### File: `app/admin/dashboard/courses/[slug]/content/page.tsx`
@@ -660,7 +640,7 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `1e4331c3b70aa8c6f28e09d1bc8cd3fea683261ceafe5bed3c8daaf9e32ddbea`
+SHA-256: `e640275f0b8adde20b917d67fccf81884fdfa2edec98c50d8b26f1866c607bac`
 
 ```tsx
 import { adminAccountMenuContent } from "@platform/config/account-menu";
@@ -670,6 +650,8 @@ import DashboardShell from "@platform/components/layout/dashboard-shell";
 import { dashboardShellContent } from "@platform/config/dashboard-shell";
 import { endpoints, routes } from "@platform/config/navigation";
 import { phoneConfirmationCopy } from "@platform/data/phone-confirmations";
+import { salesCopy } from "@platform/data/sales";
+import { commerceCopy } from "@platform/data/commerce";
 import { analyticsCopy } from "@platform/data/admin-analytics";
 import { adminUsersCopy as labels } from "@platform/data/admin-users";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
@@ -683,7 +665,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }
@@ -747,6 +729,26 @@ SHA-256: `544fe52c42be04844cbda14c5307c783446ecf32cb772f3406f8439b2132657b`
 import AccountProfilePage from "@platform/features/account/profile-page";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 export default async function ProfilePage() { await requireAdminPage(); return <AccountProfilePage />; }
+```
+
+### File: `app/admin/dashboard/sales/page.tsx`
+
+SHA-256: `6faed95bcbb39965db049d8b88c483b036509281ca458440acb82f487dc0ee15`
+
+```tsx
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readSales } from "@platform/features/commerce/repositories/sales";
+import { salesCopy as labels } from "@platform/data/sales";
+import SalesTable from "@platform/components/commerce/admin/sales-table";
+import SalesFilters from "@platform/components/commerce/admin/sales-filters";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import { routes } from "@platform/config/navigation";
+import { commercePolicy } from "@platform/config/commerce";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string | undefined>>}) {
+ await requireAdminPage();const query=await searchParams,search=(query.q ?? '').slice(0,commercePolicy.maxSearch),status=Object.keys(labels.states).includes(query.status ?? '') ? query.status! : 'all',page=Math.min(10000,Math.max(1,Math.floor(Number(query.page)||1)));
+ const result=await readSales(search,status,page),href=(page:number)=>routes.adminSales+'?'+new URLSearchParams({q:search,status,page:String(page)});
+ return <main className="lms-dashboard-page"><h1>{labels.heading}</h1><SalesFilters {...{labels,search,status}} /><SalesTable records={result.records} labels={labels} /><AdminPagination page={page} previousHref={page>1 ? href(page-1) : undefined} nextHref={page*commercePolicy.pageSize<result.total ? href(page+1) : undefined} labels={{heading:labels.heading,page:'',previous:labels.previous,next:labels.next}} /></main>;
+}
 ```
 
 ### File: `app/admin/dashboard/settings/page.tsx`
@@ -858,6 +860,18 @@ export async function GET() {
 }
 ```
 
+### File: `app/api/admin/commerce/[kind]/route.ts`
+
+SHA-256: `fc0e09c76638fca7f08d93a474e032af9b68d55bb8ef52d8b32d7a7329e3ebf8`
+
+```typescript
+import { handleCommerceAdmin } from "@platform/features/commerce/handle-admin";
+type Context={params:Promise<{kind:string}>};
+export async function GET(request:Request,context:Context) { return handleCommerceAdmin(request,(await context.params).kind); }
+export async function POST(request:Request,context:Context) { return handleCommerceAdmin(request,(await context.params).kind); }
+export async function DELETE(request:Request,context:Context) { return handleCommerceAdmin(request,(await context.params).kind); }
+```
+
 ### File: `app/api/admin/courses/[slug]/content/route.ts`
 
 SHA-256: `652791102a8946fd63ddd3a0bac2c8493b6a10c92832f973aadd991be467864f`
@@ -920,6 +934,15 @@ SHA-256: `db709471695b15b96ca5d02187ec7a0f69a67a9039303f1543297e5b9704f1b3`
 import { handleCourseList } from "@platform/features/admin/handle-course-list";
 export function GET(request: Request) { return handleCourseList(request); }
 export function POST(request: Request) { return handleCourseList(request, true); }
+```
+
+### File: `app/api/admin/sales/route.ts`
+
+SHA-256: `c1dca8c4ce0b4e12c5ed5ffaac8f5a9b9009b59dfbc1b645d53da2dc78ef1d94`
+
+```typescript
+import { handleSales } from "@platform/features/commerce/handle-sales";
+export const GET=handleSales;
 ```
 
 ### File: `app/api/admin/users/[id]/route.ts`
@@ -1222,6 +1245,15 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   return handlePaymentWebhook(request);
 }
+```
+
+### File: `app/api/payments/quote/route.ts`
+
+SHA-256: `425e96dfa58f670fb5a912ecd597285b922e67551b13685e4ac17ebd6f233e3c`
+
+```typescript
+import { handlePriceQuote } from "@platform/features/commerce/handle-quote";
+export const POST=handlePriceQuote;
 ```
 
 ### File: `app/api/profile/route.ts`
@@ -2985,7 +3017,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `28a117ce2f8cff2775127ca68526b5c6b6edbc86c218cf662b304dbd8888bd4e`
+SHA-256: `cecc163c92f858ddb28cb34379a4b192c03f6db0310849ccee9788efa444c983`
 
 ```css
 @import "./styles/theme.css";
@@ -3012,6 +3044,8 @@ SHA-256: `28a117ce2f8cff2775127ca68526b5c6b6edbc86c218cf662b304dbd8888bd4e`
 
 @import "../modules/styles/payments.css";
 @import "../modules/styles/course-details.css";
+
+@import "../modules/styles/commerce.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -6077,6 +6111,253 @@ export default function CertificateCard({
 }
 ```
 
+### File: `modules/components/commerce/admin/bundle-fields.tsx`
+
+SHA-256: `6d1badb93e02fc4a479ef069e9f89eb506d085f0fadcf88f9024897f9bc74849`
+
+```tsx
+import FormField from "@platform/components/ui/form-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function BundleFields({record,labels,courses}:{record:CommerceRecord;labels:CommerceLabels;courses:readonly {slug:string;title:string}[]}) {
+ return <><FormField name="amount" label={labels.amount} defaultValue={record.amountMinor/100 || ''} inputMode="numeric" pattern="[0-9]+" required />
+ <fieldset className="lms-commerce-course-picker"><legend>{labels.courses}</legend><p className="lms-field-hint">{labels.bundleHint}</p>{courses.map(course=><Checkbox key={course.slug} name="courseSlugs" value={course.slug} label={course.title} defaultChecked={record.courseSlugs.includes(course.slug)} />)}</fieldset></>;
+}
+```
+
+### File: `modules/components/commerce/admin/coupon-fields.tsx`
+
+SHA-256: `0e824918f690b461a8fd1bed4ed70444cc9ecc4d8ff7945b531cbc070600a3cd`
+
+```tsx
+import FormField from "@platform/components/ui/form-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function CouponFields({record,labels}:{record:CommerceRecord;labels:CommerceLabels}) {
+ return <><div className="lms-commerce-fields"><FormField name="minimum" label={labels.minimum} defaultValue={record.minimumMinor/100} inputMode="numeric" pattern="[0-9]+" required />
+ <FormField name="maximumUses" label={labels.maximumUses} defaultValue={record.maximumUses ?? ''} inputMode="numeric" pattern="[0-9]+" hint={labels.unlimited} />
+ <FormField name="perUserLimit" label={labels.perUserLimit} defaultValue={record.perUserLimit} inputMode="numeric" pattern="[0-9]+" required /></div>
+ <Checkbox name="stackable" label={labels.stackable} defaultChecked={record.stackable} /></>;
+}
+```
+
+### File: `modules/components/commerce/admin/date-range-fields.tsx`
+
+SHA-256: `5bf872dc77126640f1d71b56ff7e355e3e03b685dbf6b006a347785367816c40`
+
+```tsx
+"use client";
+import FormField from "@platform/components/ui/form-field";
+import { useHydrationState } from "@platform/hooks/use-hydration-state";
+import { localDateInput } from "@platform/features/commerce/helpers/read-form";
+import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function DateRangeFields({record,labels}:{record:Pick<CommerceRecord,'startsAt' | 'endsAt'>;labels:Pick<CommerceLabels,'startsAt' | 'endsAt' | 'datesHint'>}) {
+ const hydrated=useHydrationState(),value=(date:string | null)=>hydrated ? localDateInput(date) : date?.slice(0,16) ?? '';
+ return <><div key={String(hydrated)} className="lms-commerce-fields"><FormField name="startsAt" type="datetime-local" label={labels.startsAt} defaultValue={value(record.startsAt)} /><FormField name="endsAt" type="datetime-local" label={labels.endsAt} defaultValue={value(record.endsAt)} /></div><p className="lms-field-hint">{labels.datesHint}</p></>;
+}
+```
+
+### File: `modules/components/commerce/admin/discount-fields.tsx`
+
+SHA-256: `4eb310895d9d4e8f702e2c785a7235b83b7fc0b04debd18410f046c4993ff1a8`
+
+```tsx
+"use client";
+import { useState } from "react";
+import Select from "@khatab/design/ui/select";
+import FormField from "@platform/components/ui/form-field";
+import DateRangeFields from "./date-range-fields";
+import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function DiscountFields({record,labels,targets,coupon}:{record:CommerceRecord;labels:CommerceLabels;targets:readonly {value:string;label:string}[];coupon:boolean}) {
+ const [type,setType]=useState(record.discountType);
+ return <><Select name="target" label={`${labels.course} / ${labels.bundle}`} required={!coupon} defaultValue={record.courseSlug ? `course:${record.courseSlug}` : record.bundleSlug ? `bundle:${record.bundleSlug}` : ''} options={[{value:'',label:labels.all,disabled:!coupon},...targets]} />
+ <p className="lms-field-hint">{labels.targetHint}</p>
+ <div className="lms-commerce-fields"><Select name="discountType" label={labels.discountType} value={type} onValueChange={value=>setType(value as typeof type)} options={[{value:'percent',label:labels.percent},{value:'fixed',label:labels.fixed}]} />
+ <FormField name="discountValue" label={labels.discountValue} key={type} defaultValue={type===record.discountType ? record.discountValue/(type==='fixed' ? 100 : 1) : ''} inputMode="numeric" pattern="[0-9]+" required /></div>
+ <DateRangeFields record={record} labels={labels} /></>;
+}
+```
+
+### File: `modules/components/commerce/admin/filters.tsx`
+
+SHA-256: `38e2216eb0fed2dbe6c7fca9587cdfba295bc7dbaaec8f70d3f5aa64cd3ede7a`
+
+```tsx
+import Form from "next/form";
+import Link from "next/link";
+import Select from "@khatab/design/ui/select";
+import { routes } from "@platform/config/navigation";
+import type { CommerceKind,CommerceLabels } from "@platform/types/commerce";
+export default function CommerceFilters({kind,labels,search,status}:{kind:CommerceKind;labels:CommerceLabels;search:string;status:string}) {
+ return <Form action={routes.adminCommerce(kind)} className="lms-admin-filters lms-commerce-filters" role="search"><div className="lms-admin-search"><label htmlFor="commerce-search">{labels.search}</label><input id="commerce-search" type="search" name="q" defaultValue={search} maxLength={100} /></div>
+ <Select name="status" label={labels.status} defaultValue={status} options={['all','active','inactive'].map(value=>({value,label:labels[value as 'all']}))} /><div className="lms-admin-actions"><button className="btn-primary">{labels.apply}</button><Link href={routes.adminCommerce(kind)} className="lms-secondary-button">{labels.clear}</Link></div></Form>;
+}
+```
+
+### File: `modules/components/commerce/admin/manage-records.tsx`
+
+SHA-256: `65e901efcacf2a087905b33aacdeadd2594e47056180b716800a840b3fe274a7`
+
+```tsx
+"use client";
+import { useCommerceEditor } from "@platform/hooks/use-commerce-editor";
+import { emptyCommerceRecord } from "@platform/features/commerce/helpers/empty-record";
+import AdminDialog from "@platform/components/admin/admin-dialog";
+import CommerceRecordForm from "./record-form";
+import CommerceRecordsTable from "./records-table";
+import type { CommerceKind,CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function ManageCommerceRecords({kind,records,labels,courses,targets,closeLabel}:{kind:CommerceKind;records:CommerceRecord[];labels:CommerceLabels;courses:readonly {slug:string;title:string}[];targets:readonly {value:string;label:string}[];closeLabel:string}) {
+ const editor=useCommerceEditor(kind,labels.error);
+ return <><div className="lms-admin-heading-actions"><button className="btn-primary" onClick={()=>editor.open(emptyCommerceRecord())}>{labels.create}</button></div>
+ <CommerceRecordsTable {...{kind,records,labels}} onEdit={editor.open} />
+ {editor.selected && <AdminDialog title={editor.deleting ? labels.remove : editor.selected.revision ? labels.edit : labels.create} closeLabel={closeLabel} pending={editor.pending} onClose={editor.close}>
+ {editor.deleting ? <div className="lms-commerce-form"><p>{labels.deleteConfirm}</p>{editor.error && <p role="alert" className="lms-error">{editor.error}</p>}<button className="btn-primary" disabled={editor.pending} onClick={()=>void editor.submit()}>{labels.remove}</button></div> :
+ <CommerceRecordForm {...{kind,labels,courses,targets}} record={editor.selected} pending={editor.pending} error={editor.error} onSubmit={form=>void editor.submit(form)} />}</AdminDialog>}</>;
+}
+```
+
+### File: `modules/components/commerce/admin/record-form.tsx`
+
+SHA-256: `1e15047ee717a72738a2caad3c46614b982f3a3d27e713c77a6359efefbe01ff`
+
+```tsx
+import FormField from "@platform/components/ui/form-field";
+import TextareaField from "@platform/components/ui/textarea-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import BundleFields from "./bundle-fields";
+import DiscountFields from "./discount-fields";
+import CouponFields from "./coupon-fields";
+import { commercePolicy } from "@platform/config/commerce";
+import type { CommerceKind,CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function CommerceRecordForm({kind,record,labels,courses,targets,pending,error,onSubmit}:{kind:CommerceKind;record:CommerceRecord;labels:CommerceLabels;courses:readonly {slug:string;title:string}[];targets:readonly {value:string;label:string}[];pending:boolean;error:string;onSubmit:(form:FormData)=>void}) {
+ return <form className="lms-profile-form lms-admin-form lms-commerce-form" onSubmit={event=>{event.preventDefault();onSubmit(new FormData(event.currentTarget));}}>
+ <fieldset disabled={pending}><div className="lms-commerce-fields"><FormField name="title" label={labels.name} defaultValue={record.title} required maxLength={commercePolicy.maxTitle} />
+ <FormField name="key" label={labels.key} defaultValue={record.key} readOnly={record.revision>0} required dir="ltr" maxLength={kind==='coupons' ? commercePolicy.maxCouponLength : 100} pattern={kind==='coupons' ? '[A-Z0-9_-]+' : '[a-z0-9]+(-[a-z0-9]+)*'} /></div>
+ <TextareaField name="description" label={labels.description} defaultValue={record.description} maxLength={commercePolicy.maxDescription} rows={3} />
+ {kind==='bundles' ? <BundleFields {...{record,labels,courses}} /> : <DiscountFields {...{record,labels,targets}} coupon={kind==='coupons'} />}
+ {kind==='coupons' && <CouponFields {...{record,labels}} />}<Checkbox name="enabled" label={labels.enabled} defaultChecked={record.enabled} /></fieldset>
+ {error && <p className="lms-error" role="alert">{error}</p>}<button className="btn-primary" disabled={pending}>{pending ? labels.saving : labels.save}</button></form>;
+}
+```
+
+### File: `modules/components/commerce/admin/records-table.tsx`
+
+SHA-256: `e8b04a6e328a14b942c242f0d4539440936bdbc4e6c2feb2acbd3d32db6d6d23`
+
+```tsx
+import type { CommerceKind,CommerceRecord,CommerceLabels } from "@platform/types/commerce";
+export default function CommerceRecordsTable({kind,records,labels,onEdit}:{kind:CommerceKind;records:CommerceRecord[];labels:CommerceLabels;onEdit:(record:CommerceRecord,remove?:boolean)=>void}) {
+ return <div className="lms-admin-table-wrap" data-reveal="true"><table className="lms-admin-table lms-commerce-table"><caption className="lms-visually-hidden">{labels[kind]}</caption><thead><tr>{[labels.name,labels.key,kind==='bundles' ? labels.amount : labels.discountValue,labels.status,labels.edit].map((label,index)=><th key={index} scope="col">{label}</th>)}</tr></thead>
+ <tbody>{records.map(record=><tr key={record.key}><th scope="row"><strong>{record.title}</strong></th><td data-label={labels.key}><bdi>{record.key}</bdi></td><td data-label={labels.discountValue}>{kind==='bundles' ? `${record.amountMinor/100} ${labels.currency}` : record.discountType==='percent' ? `${record.discountValue}%` : `${record.discountValue/100} ${labels.currency}`}</td><td data-label={labels.status}>{record.enabled ? labels.active : labels.inactive}</td><td data-label={labels.edit} className="lms-admin-row-actions"><div className="lms-admin-actions"><button className="lms-secondary-button" onClick={()=>onEdit(record)}>{labels.edit}</button><button className="lms-admin-danger" onClick={()=>onEdit(record,true)}>{labels.remove}</button></div></td></tr>)}</tbody></table>{!records.length && <p className="lms-commerce-empty">{labels.empty}</p>}</div>;
+}
+```
+
+### File: `modules/components/commerce/admin/sales-filters.tsx`
+
+SHA-256: `59ccba402a7cc8bba5e20e911b3ce5fb111f74804946747050d68f5b0f3ffe15`
+
+```tsx
+import Form from "next/form";
+import Link from "next/link";
+import Select from "@khatab/design/ui/select";
+import { routes } from "@platform/config/navigation";
+import type { SalesLabels } from "@platform/types/sales";
+export default function SalesFilters({labels,search,status}:{labels:SalesLabels;search:string;status:string}) {
+ return <Form action={routes.adminSales} className="lms-admin-filters lms-commerce-filters" role="search"><div className="lms-admin-search"><label htmlFor="sales-search">{labels.search}</label><input id="sales-search" type="search" name="q" defaultValue={search} maxLength={100} /></div><Select name="status" label={labels.status} defaultValue={status} options={[{value:'all',label:labels.all},...Object.entries(labels.states).map(([value,label])=>({value,label}))]} /><div className="lms-admin-actions"><button className="btn-primary">{labels.apply}</button><Link className="lms-secondary-button" href={routes.adminSales}>{labels.clear}</Link></div></Form>;
+}
+```
+
+### File: `modules/components/commerce/admin/sales-table.tsx`
+
+SHA-256: `54eb29173747bbc4b63c77bcd95292f4725383e3363c5662f648d7c09c1a607e`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import { formatCourseDate } from "@platform/helpers/format-course-date";
+import type { SaleRecord,SalesLabels } from "@platform/types/sales";
+export default function SalesTable({records,labels}:{records:SaleRecord[];labels:SalesLabels}) {
+ return <div className="lms-admin-table-wrap" data-reveal="true"><table className="lms-admin-table lms-commerce-table"><caption className="lms-visually-hidden">{labels.heading}</caption><thead><tr>{[labels.product,labels.customer,labels.amount,labels.status,labels.date].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
+ <tbody>{records.map(record=><tr key={record.id}><th scope="row">{record.title}<small>{record.live ? labels.live : labels.test}</small></th><td data-label={labels.customer}>{record.username ? <Link href={routes.adminUser(record.username)} className="lms-course-text-link">{record.name}</Link> : labels.noCustomer}</td><td data-label={labels.amount}><bdi className="numeral">{record.amountMinor/100} {labels.currency}</bdi>{record.discountMinor>0 && <small>{labels.discount}: {record.discountMinor/100} {labels.currency}{record.couponCode && <bdi> · {record.couponCode}</bdi>}</small>}</td><td data-label={labels.status}>{labels.states[record.status]}</td><td data-label={labels.date}><time dateTime={record.createdAt}>{formatCourseDate(record.createdAt,labels.empty)}</time></td></tr>)}</tbody></table>{!records.length && <p className="lms-admin-empty">{labels.empty}</p>}</div>;
+}
+```
+
+### File: `modules/components/commerce/admin/tabs.tsx`
+
+SHA-256: `eb5cae63ecdc7d07cd8f46286e02c0057fa746497e1ca82c7962336dee835621`
+
+```tsx
+import Link from "next/link";
+import { commerceKinds } from "@platform/config/commerce";
+import { routes } from "@platform/config/navigation";
+import type { CommerceKind,CommerceLabels } from "@platform/types/commerce";
+export default function CommerceTabs({kind,labels}:{kind:CommerceKind;labels:CommerceLabels}) {
+ return <nav className="lms-commerce-tabs" aria-label={labels.title}>{commerceKinds.map(value=><Link key={value} href={routes.adminCommerce(value)} aria-current={value===kind ? 'page' : undefined}>{labels[value]}</Link>)}</nav>;
+}
+```
+
+### File: `modules/components/commerce/bundle-card.tsx`
+
+SHA-256: `3d65338417c875a8665c8a8e62836a805651992912fd7aca4dfc230f94b1c42f`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import Symbol from "@platform/components/ui/symbol";
+import PriceSummary from "./price-summary";
+import type { BundleProduct,CommerceLabels } from "@platform/types/commerce";
+export default function BundleCard({bundle,labels,courses,detail=false}:{bundle:BundleProduct;labels:CommerceLabels;courses:readonly {slug:string;title:string;delivery?:'live' | 'recorded'}[];detail?:boolean}) {
+ return <article className="lms-profile-card lms-bundle-card" data-reveal="true"><h2>{detail ? bundle.title : <Link className="lms-course-text-link" href={routes.bundle(bundle.slug)}>{bundle.title}</Link>}</h2><p>{bundle.description}</p>
+ <div><h3>{labels.includes}</h3><ul>{bundle.courseSlugs.map(slug=>{const course=courses.find(course=>course.slug===slug);return <li key={slug}><Link className="lms-course-text-link" href={routes.course(slug,course?.delivery)}>{course?.title ?? slug}<Symbol name="arrow" /></Link></li>;})}</ul></div>
+ <PriceSummary quote={bundle.quote} labels={labels} /><Link href={routes.bundleCheckout(bundle.slug)} className="btn-primary lms-full-button">{labels.buyBundle}<Symbol name="arrow" /></Link></article>;
+}
+```
+
+### File: `modules/components/commerce/bundle-grid.tsx`
+
+SHA-256: `02286f73b57609f0238bad6dfa796ce1ea94dd4fe387c2b5c3c581317cf31be1`
+
+```tsx
+import BundleCard from "./bundle-card";
+import type { BundleProduct,CommerceLabels } from "@platform/types/commerce";
+export default function BundleGrid({bundles,labels,courses}:{bundles:BundleProduct[];labels:CommerceLabels;courses:readonly {slug:string;title:string;delivery?:'live' | 'recorded'}[]}) {
+ if(!bundles.length) return null;
+ return <section className="lms-bundles-section"><h2>{labels.bundlesHeading}</h2><div className="lms-commerce-bundle-grid">{bundles.map(bundle=><BundleCard key={bundle.slug} {...{bundle,labels,courses}} />)}</div></section>;
+}
+```
+
+### File: `modules/components/commerce/checkout-controls.tsx`
+
+SHA-256: `e093b2f49f391ac041135a173abe97d8b4161d4e1f0b52ac14bf7c8606735c2c`
+
+```tsx
+"use client";
+import { useCheckoutQuote } from "@platform/hooks/use-checkout-quote";
+import FormField from "@platform/components/ui/form-field";
+import CheckoutButton from "@platform/components/payments/checkout-button";
+import PriceSummary from "./price-summary";
+import type { PriceQuote,PurchaseInput,CommerceLabels } from "@platform/types/commerce";
+export default function CheckoutControls({input,initial,labels,paymentLabels}:{input:PurchaseInput;initial:PriceQuote;labels:CommerceLabels;paymentLabels:{pay:string;pending:string;error:string;secure:string}}) {
+ const state=useCheckoutQuote(input,initial,paymentLabels.error);
+ return <><form className="lms-profile-form lms-commerce-coupon" onSubmit={event=>{event.preventDefault();void state.apply();}}><FormField label={labels.coupon} value={state.coupon} onChange={event=>state.setCoupon(event.target.value)} maxLength={40} pattern="[A-Za-z0-9_-]+" dir="ltr" disabled={state.pending} />
+ <button className="lms-secondary-button" disabled={state.pending || !state.coupon.trim()}>{labels.applyCoupon}</button>{state.quote.couponCode && <button type="button" className="lms-course-text-link" disabled={state.pending} onClick={()=>void state.apply(true)}>{labels.removeCoupon}: <bdi>{state.quote.couponCode}</bdi></button>}</form>
+ {state.error && <p className="lms-error" role="alert">{state.error}</p>}<PriceSummary quote={state.quote} labels={labels} />
+ <CheckoutButton key={`${state.quote.couponCode}:${state.quote.totalMinor}`} input={{...input,...(state.quote.couponCode ? {couponCode:state.quote.couponCode} : {})}} totalMinor={state.quote.totalMinor} disabled={state.pending} labels={{...paymentLabels,pay:state.quote.totalMinor===0 ? labels.checkout : paymentLabels.pay}} /><p className="lms-payment-caption">{state.quote.totalMinor===0 ? labels.freeCheckoutHint : paymentLabels.secure}</p></>;
+}
+```
+
+### File: `modules/components/commerce/price-summary.tsx`
+
+SHA-256: `31b7ffd40d2b84b4d42096c6c3a434ce1863d4c4dd3f4a96deccf76a7079fb2e`
+
+```tsx
+import type { PriceQuote,CommerceLabels } from "@platform/types/commerce";
+export default function PriceSummary({quote,labels}:{quote:PriceQuote;labels:CommerceLabels}) {
+ const row=(label:string,minor:number,discount=false)=><div><dt>{label}</dt><dd><bdi className="numeral">{discount ? '−' : ''}{minor/100} {labels.currency}</bdi></dd></div>;
+ return <dl className="lms-commerce-price-summary">{quote.offerMinor+quote.couponMinor>0 && row(labels.subtotal,quote.baseMinor)}{quote.offerMinor>0 && row(quote.offerTitle ?? labels.offerDiscount,quote.offerMinor,true)}{quote.couponMinor>0 && row(labels.couponDiscount,quote.couponMinor,true)}<div className="lms-payment-total"><dt>{labels.total}</dt><dd className="numeral">{quote.totalMinor===0 ? labels.free : `${quote.totalMinor/100} ${labels.currency}`}</dd></div></dl>;
+}
+```
+
 ### File: `modules/components/courses/artwork/business.tsx`
 
 SHA-256: `83d8943a611e84126cf15906bfbc808dce9cbe7b330853f33253a567d415f664`
@@ -6552,17 +6833,18 @@ export default function CourseDetails(props: CourseDetailsProps) {
 
 ### File: `modules/components/courses/course-enrollment-action.tsx`
 
-SHA-256: `772905005fd7c4c56b2d1b9d783a4cb9795b0109243f1b48f6b71b06f0ce2466`
+SHA-256: `4377bd1c6ae776548d80ba7132d995c122d8c43e83943fe06d018ee931e42ea3`
 
 ```tsx
+import { offerBaseAmount } from "@platform/features/commerce/helpers/offer-base-amount";
 import Action from "@khatab/design/ui/action";
 import Symbol from "@platform/components/ui/symbol";
 import type { CourseDetailsProps } from "@platform/types/course-details";
 import EnrollButton from "./enroll-button";
 export default function CourseEnrollmentAction({ course, copy, labels, enrolled, nextLesson, supportHref }: Pick<CourseDetailsProps,"course" | "copy" | "labels" | "enrolled" | "nextLesson" | "supportHref">) {
-  if (course.delivery === "live" && !nextLesson && (enrolled || course.offer.amount === 0))
+  if (course.delivery === "live" && !nextLesson && (enrolled || offerBaseAmount(course.offer) === 0))
     return <Action kind="anchor" href={supportHref} className="btn-primary lms-full-button">{enrolled ? labels.workshopSupport : labels.workshopBooking}<Symbol name="arrow" /></Action>;
-  return <EnrollButton copy={copy} slug={course.slug} firstLesson={nextLesson} enrolled={enrolled} paid={course.offer.amount > 0} />;
+  return <EnrollButton copy={copy} slug={course.slug} firstLesson={nextLesson} enrolled={enrolled} paid={offerBaseAmount(course.offer) > 0} />;
 }
 ```
 
@@ -6733,7 +7015,7 @@ export default function CourseOverview({ course, instructor }: Pick<CourseDetail
 
 ### File: `modules/components/courses/course-price.tsx`
 
-SHA-256: `7055ec61d1786e6f3f5e27a8f2b218cb2db78b3da1bfbedfb0dd20aa7013a03e`
+SHA-256: `c25500a19508c2a194b8e6d267aef51344f1b3225e695d2c3dc1ff237eed2fee`
 
 ```tsx
 import type { ContentBindings } from "@platform/types/content";
@@ -6752,6 +7034,7 @@ export default function CoursePrice({
     <div className={`lms-course-price${compact ? " lms-price-compact" : ""}`}>
       <div>
         {!compact && <span className="lms-price-label">{offerCopy.price}</span>}
+        {offer.baseAmount !== undefined && offer.baseAmount > offer.amount && <del className="lms-price-original numeral">{offer.baseAmount} {offer.currencyLabel}</del>}
         <strong>
           {offer.amountLabel ?? <><bdi className="numeral">{offer.amount}</bdi>{" "}<small>{offer.currencyLabel}</small></>}
         </strong>
@@ -8192,7 +8475,7 @@ export default function SkillStrip({
 
 ### File: `modules/components/payments/checkout-button.tsx`
 
-SHA-256: `cf7e4f2774317a72d5ef1f40c7e9bf33f41143db47265a3a84b1e7d4ee42ae9d`
+SHA-256: `7b588caf3df3bdb64f1a9f533c146378b3c72ce5de3fb928f6b224d6bed982f7`
 
 ```tsx
 "use client";
@@ -8201,16 +8484,20 @@ import { paymentRequest } from "@platform/features/payments/client/request";
 import { endpoints } from "@platform/config/navigation";
 import Action from "@khatab/design/ui/action";
 export default function CheckoutButton({
-  slug,
+  input,
+  totalMinor,
+  disabled = false,
   labels,
 }: {
-  slug: string;
+  input: import("@platform/types/commerce").PurchaseInput;
+  totalMinor: number;
+  disabled?: boolean;
   labels: { pay: string; pending: string; error: string };
 }) {
   const command = useAsyncCommand(labels.error);
   const checkout = () =>
     command.run(async () => {
-      const result = await paymentRequest<{ checkoutUrl: string }>(endpoints.paymentCheckout, { courseSlug: slug });
+      const result = await paymentRequest<{ checkoutUrl: string }>(endpoints.paymentCheckout, { ...input, expectedTotalMinor: totalMinor });
       window.location.assign(result.checkoutUrl);
     });
   return (
@@ -8219,7 +8506,7 @@ export default function CheckoutButton({
         kind="button"
         type="button"
         className="btn-primary lms-full-button"
-        disabled={command.pending}
+        disabled={command.pending || disabled}
         onClick={checkout}
       >
         {command.pending ? labels.pending : labels.pay}
@@ -8236,7 +8523,7 @@ export default function CheckoutButton({
 
 ### File: `modules/components/payments/order-result.tsx`
 
-SHA-256: `1648d5d9335c3c00200ab0f7e682d1dda8d30619be350d9c132e32abc1fa8da3`
+SHA-256: `970c34293a31b4ff6320bfeecc5a1c6c94449f01e700f1e5266c5bd14ca1bb3a`
 
 ```tsx
 "use client";
@@ -8266,7 +8553,7 @@ export default function OrderResult({
       <strong className="lms-payment-amount numeral">
         {order.amount} {labels.currency}
       </strong>
-      <p>{order.status === "paid" ? (order.enrolled ? labels.paidHint : labels.activationHint) : labels.pendingHint}</p>
+      <p>{order.status === "paid" ? (order.enrolled ? (order.bundleSlug ? labels.paidBundleHint : labels.paidHint) : labels.activationHint) : labels.pendingHint}</p>
       {order.status === "paid" && order.enrolled ? (
         <Link className="btn-primary" href={libraryHref}>
           {labels.course}
@@ -9301,6 +9588,15 @@ export const artworkKinds = [
 export type ArtworkKind = (typeof artworkKinds)[number];
 ```
 
+### File: `modules/config/commerce.ts`
+
+SHA-256: `2bef2084358bb1473c2c56f33383ede057ced65267a86e466b8772a98d192c36`
+
+```typescript
+export const commercePolicy = { pageSize: 5, maxCourses: 20, maximumMinor: 100_000_000, maxSearch: 100, maxTitle: 160, maxDescription: 4000, maxCouponLength: 40 } as const;
+export const commerceKinds = ["bundles", "offers", "coupons"] as const;
+```
+
 ### File: `modules/config/course-administration.ts`
 
 SHA-256: `068f4e52d726af133625216b37c7f9b7c7bf6d1909a69ed73e58c001fb7b0e96`
@@ -9356,7 +9652,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `d63e0d300902589a203614e9161feb6c630cd8e429d374ba20e9d4f611f7a8b6`
+SHA-256: `f6d23a7503423b1a807b33f6eb459e7b8c0ec20feeb27bbc6f29df8a63162ae5`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9379,6 +9675,10 @@ export const sectionIds = {
   courseContent: "course-content",
 } as const;
 export const routes = {
+  bundles: "/bundles",
+  bundle: (slug: string) => `/bundles/${segment(slug)}`,
+  bundleCheckout: (slug: string) => `/checkout/${segment(slug)}?kind=bundle`,
+  adminCommerce: (kind = "bundles") => `/admin/dashboard/commerce/${segment(kind)}`,
   payment: (id: string) => `/payments/${segment(id)}`,
   checkout: (slug: string) => `/checkout/${segment(slug)}`,
   home: projectRoutes.learning,
@@ -9397,6 +9697,7 @@ export const routes = {
   profile: `${learningBase}/dashboard/profile`,
   settings: `${learningBase}/dashboard/settings`,
   admin: "/admin/dashboard/courses",
+  adminSales: "/admin/dashboard/sales",
   adminDashboard: "/admin/dashboard",
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
@@ -9424,12 +9725,15 @@ export const routes = {
   },
 };
 export const endpoints = {
+  paymentQuote: "/api/payments/quote",
+  adminCommerce: (kind: string) => `/api/admin/commerce/${segment(kind)}`,
   paymentCheckout: "/api/payments/checkout",
   paymentStatus: (id: string) => `/api/payments/${segment(id)}`,
   paymentReconcile: (id: string) => `${endpoints.paymentStatus(id)}/reconcile`,
   adminCourses: "/api/admin/courses",
   adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",
+  adminSales: "/api/admin/sales",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
@@ -9690,7 +9994,7 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `38667e735fda41e7423f348e3157ab02dcea4de42c17404529d5e22d564fffb2`
+SHA-256: `b94937f4b0c334e47d7c3556017ffac72e37213d49556c3f4a8fa1821109a359`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
@@ -9701,6 +10005,15 @@ export const backendCopy: Record<string, string> = {
   PAYMENT_MISMATCH: "لم نتمكن من مطابقة بيانات الدفع. تواصل مع الدعم.",
   INVALID_PAYMENT_SIGNATURE: "توقيع الدفع غير صالح.",
   PAYMENT_ALREADY_PAID: "سبق تأكيد الدفع لهذه الدورة. أكّد بيانات التواصل ثم افتح حالة الدفع لتفعيل الاشتراك.",
+  COUPON_UNAVAILABLE: "الكوبون غير صالح لهذا الطلب أو انتهت صلاحيته أو بلغ حد الاستخدام.",
+  COMMERCE_DUPLICATE: "الكود مستخدم بالفعل أو يوجد عرض مفعّل لهذا المنتج. عطّل العرض السابق أولًا.",
+  COMMERCE_CONFLICT: "تغيّرت البيانات. حدّث الصفحة قبل الحفظ.",
+  COURSE_HAS_COMMERCE: "الدورة مرتبطة بباقة أو عرض أو سجل دفع. ألغِ نشرها أو أزل الربط قبل حذفها.",
+  COMMERCE_IN_USE: "هذا العنصر مرتبط بدورات أو مدفوعات. عطّله بدل حذفه.",
+  INVALID_BUNDLE_COURSES: "اختر دورتين على الأقل. يجب نشر كل دورات الباقة قبل تفعيلها.",
+  PAYMENT_OVERLAP: "يوجد طلب دفع قيد الانتظار يحتوي على إحدى هذه الدورات. أكمل الطلب السابق أولًا.",
+  PAYMENT_PRICE_CHANGED: "تغيّر السعر أو انتهى العرض. حدّث الصفحة وراجع الإجمالي قبل المتابعة.",
+  PAYMENT_PRICE_LOCKED: "هناك طلب دفع مفتوح بسعر محفوظ. أكمله أو انتظر انتهاءه قبل تغيير الكوبون.",
   PAYMENT_CREATING: "جارٍ تجهيز طلب الدفع. انتظر قليلًا ثم أعد المحاولة.",
   INVALID_PAYMENT_COURSE: "هذه الدورة غير متاحة للدفع الإلكتروني.",
   ALREADY_ENROLLED: "أنت مشترك بالفعل في هذه الدورة. افتح دوراتك.",
@@ -9761,6 +10074,23 @@ export const lessonResources: Record<string, readonly string[]> = {
   "editing-foundations/first-cut": ["project-checklist", "creative-brief"],
   "editing-foundations/editor-mindset": ["creative-brief"],
   "first-client/portfolio": ["portfolio-plan"],
+};
+```
+
+### File: `modules/data/commerce.ts`
+
+SHA-256: `4da2d1fd7236eb24ff50ae1e47b4ad9970fa710b84e47d6787e2440396ea76b9`
+
+```typescript
+import type { CommerceLabels } from "@platform/types/commerce";
+export const commerceCopy: CommerceLabels = {
+ title:"العروض والباقات",bundles:"باقات الدورات",offers:"التخفيضات والعروض",coupons:"كوبونات الخصم",create:"إضافة جديد",edit:"تعديل",remove:"حذف",
+ name:"الاسم",key:"الرابط أو كود الكوبون",description:"الوصف",amount:"سعر الباقة (ج.م)",courses:"الدورات المشمولة",course:"الدورة",bundle:"الباقة",
+ discountType:"نوع الخصم",percent:"نسبة مئوية",fixed:"مبلغ ثابت (ج.م)",discountValue:"قيمة الخصم",startsAt:"بداية العرض",endsAt:"نهاية العرض",
+ enabled:"مفعّل",stackable:"يمكن الجمع مع عرض آخر",minimum:"الحد الأدنى للطلب (ج.م)",maximumUses:"عدد الاستخدامات الكلي",perUserLimit:"عدد الاستخدامات لكل طالب",unlimited:"اتركه فارغًا لعدد غير محدود",
+ search:"بحث بالاسم أو الكود",status:"الحالة",all:"الكل",active:"مفعّل",inactive:"غير مفعّل",apply:"تطبيق",clear:"مسح",save:"حفظ",saving:"جارٍ الحفظ…",saved:"تم الحفظ",error:"تعذّر الحفظ. راجع البيانات وحاول مجددًا.",empty:"لا توجد نتائج",previous:"السابق",next:"التالي",
+ deleteConfirm:"هل تريد حذف هذا العنصر؟ العناصر المرتبطة بمدفوعات محفوظة يجب تعطيلها بدل حذفها.",currency:"ج.م",revision:"آخر تحديث",targetHint:"اختر دورة أو باقة واحدة. ترك الاثنين فارغين يجعل الكوبون عامًا.",datesHint:"الأوقات بتوقيت جهازك. اترك التاريخ فارغًا لعرض مفتوح.",bundleHint:"اختر دورتين إلى عشرين دورة. تُمنح كل دورات الباقة بعد تأكيد الدفع.",
+ coupon:"كود الخصم",applyCoupon:"تطبيق الكوبون",removeCoupon:"إزالة الكوبون",subtotal:"السعر الأصلي",offerDiscount:"خصم العرض",couponDiscount:"خصم الكوبون",total:"الإجمالي",buyBundle:"اشترك في الباقة",bundlesHeading:"تعلّم أكثر مع باقات الدورات",includes:"الدورات داخل الباقة",free:"مجاني",checkout:"تأكيد الاشتراك المجاني",freeCheckoutHint:"سيُؤكَّد اشتراكك مباشرة دون الانتقال إلى بوابة الدفع.",
 };
 ```
 
@@ -10313,14 +10643,14 @@ export const offerCopy = {
 
 ### File: `modules/data/payment-copy.ts`
 
-SHA-256: `f60fa3a10fdcb2224207c4379928851f2d4d75184b367f9c8e62ba4ac4115fb8`
+SHA-256: `80183f20069a1177a552f1f158b9054c57bca8d5cd9cc65e57d6c9c4898dd0da`
 
 ```typescript
 export const paymentCopy = {
   subscribe: "اشترك الآن",
   checking: "جارٍ التحقق…",
   title: "إتمام الاشتراك",
-  summary: "راجع الدورة والسعر قبل الانتقال للدفع الآمن.",
+  summary: "راجع الدورة أو الباقة والإجمالي قبل إتمام الاشتراك.",
   amount: "الإجمالي",
   currency: "ج.م",
   pay: "الانتقال للدفع الآمن",
@@ -10344,6 +10674,7 @@ export const paymentCopy = {
   activationHint: "تم استلام الدفع. أكّد بيانات التواصل ثم اضغط التحقق لتفعيل الدورة بدون دفع مرة أخرى.",
   pendingHint:
     "قد يستغرق تأكيد الدفع بعض الوقت، خاصة عند الدفع بفوري أو المحافظ. سيُفعّل الاشتراك بعد تأكيد فواتيرك، حتى لو أغلقت هذه الصفحة.",
+  paidBundleHint: "دورات الباقة أصبحت متاحة في حسابك.",
   paidHint: "دورتك أصبحت متاحة في حسابك.",
 };
 ```
@@ -10393,6 +10724,16 @@ export const resources: Resource[] = [
       "خطة البورتفوليو\n\n1. اختر ثلاثة مشاريع تعبّر عن مهارتك.\n2. اشرح هدف كل مشروع.\n3. وضّح دورك والأدوات المستخدمة.\n4. أضف النتيجة النهائية.\n5. اكتب وسيلة تواصل واضحة.",
   },
 ];
+```
+
+### File: `modules/data/sales.ts`
+
+SHA-256: `2f298b67f57b8a2c3beda938a69d986ea6f8d07597bef86289363701eae69c91`
+
+```typescript
+import { paymentCopy } from "./payment-copy";
+import type { SalesLabels } from "@platform/types/sales";
+export const salesCopy:SalesLabels={heading:"المبيعات",search:"بحث باسم الدورة أو الباقة",status:"حالة الدفع",all:"الكل",apply:"تطبيق",clear:"مسح",customer:"الطالب",product:"الدورة أو الباقة",amount:"الإجمالي",date:"تاريخ الطلب",discount:"الخصم",noCustomer:"حساب محذوف",test:"دفع تجريبي",live:"دفع فعلي",empty:"لا توجد طلبات دفع",previous:"السابق",next:"التالي",currency:"ج.م",states:paymentCopy.states};
 ```
 
 ### File: `modules/data/site.ts`
@@ -11129,7 +11470,7 @@ export async function readAdminAnalytics() {
 
 ### File: `modules/features/admin/handle-course-delete.ts`
 
-SHA-256: `ccc3acbcb9c8806ab330d3c293ca2f2b0d8412a1893cfc59053ddfcd5b1bc823`
+SHA-256: `41caf84cdd7d41d4ed4c3bdbb2b76e77fb87e3a089aa19e76a4ae6901de1e053`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
@@ -11142,6 +11483,7 @@ export function handleCourseDelete(slug: string, request: Request) {
   const { client } = await requireAdmin(), input = await readJson(request);
   if (input?.confirmSlug !== slug) throw new ApiError(400,"INVALID_INPUT");
   const { error } = await client.rpc("delete_admin_course", { p_slug: slug });
+  if (error?.code === "23503") throw new ApiError(409,"COURSE_HAS_COMMERCE");
   if (error?.message.includes("COURSE_HAS_PAYMENTS")) throw new ApiError(409,"COURSE_HAS_PAYMENTS");
   if (error) throw new ApiError(error.message.includes("COURSE_HAS_STUDENTS") ? 409 : error.code === "P0002" ? 404 : 503, error.message.includes("COURSE_HAS_STUDENTS") ? "COURSE_HAS_STUDENTS" : error.code === "P0002" ? "NOT_FOUND" : "INTERNAL_ERROR");
   return Response.json({ deleted: true });
@@ -12633,18 +12975,19 @@ export * from "./helpers";
 
 ### File: `modules/features/catalog/repositories/read-courses.ts`
 
-SHA-256: `bbd1acaca59c737720813d26ca7a637761cbbc49615cc8358136b02a126e71c6`
+SHA-256: `2fb45ca48868b621077176da9def84a8ed0d31bdac8cdd4172ed1724ce66ef5a`
 
 ```typescript
 import "server-only";
 import { createDatabaseClient } from "@platform/lib/supabase/server";
 import { ApiError } from "@platform/lib/api/error";
+import { applyCatalogPrices } from "@platform/features/commerce/repositories/catalog-prices";
 import { publicCourse } from "../helpers/public-course";
 export async function readCourses() {
   const client = await createDatabaseClient();
   const { data, error } = await client.from("courses").select("slug,metadata,amount").eq("published", true).order("position");
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return (data ?? []).map(row => publicCourse(row.metadata, row.slug, Number(row.amount)));
+  return applyCatalogPrices((data ?? []).map(row => publicCourse(row.metadata, row.slug, Number(row.amount))));
 }
 ```
 
@@ -12785,6 +13128,446 @@ export function renderCertificate(
   presentation: CertificatePresentation,
 ) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850"><rect width="1200" height="850" fill="${presentation.colors.background}"/><rect x="35" y="35" width="1130" height="780" rx="14" fill="none" stroke="${presentation.colors.primary}" stroke-width="2"/><style>@font-face{font-family:CertificateArabic;src:url(data:font/ttf;base64,${presentation.fontBase64}) format('truetype');font-weight:700;}</style><g font-weight="700" text-anchor="middle" fill="${presentation.colors.text}" font-family="CertificateArabic"><text x="600" y="150" font-size="44">${escapeXml(model.brandName)} / ${escapeXml(model.brandEnglishName)}</text><text x="600" y="285" font-size="40">${escapeXml(model.title)}</text><text x="600" y="400" font-size="48">${escapeXml(model.learnerName)}</text><text x="600" y="505" font-size="30">${escapeXml(model.courseTitle)}</text><text x="600" y="650" font-size="24">${escapeXml(model.disclaimer)}</text></g></svg>`;
+}
+```
+
+### File: `modules/features/commerce/admin-page.tsx`
+
+SHA-256: `123b7be654969a936614710249b1ed7b511b1880fd40b71408a78700708a1d0f`
+
+```tsx
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readCommerceTargets } from "./repositories/targets";
+import { readCommerceList } from "./repositories/admin-records";
+import { commerceCopy as labels } from "@platform/data/commerce";
+import { routes } from "@platform/config/navigation";
+import { adminUsersCopy } from "@platform/data/admin-users";
+import ManageCommerceRecords from "@platform/components/commerce/admin/manage-records";
+import CommerceFilters from "@platform/components/commerce/admin/filters";
+import CommerceTabs from "@platform/components/commerce/admin/tabs";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import type { CommerceKind } from "@platform/types/commerce";
+export default async function CommerceAdminPage({kind,query}:{kind:CommerceKind;query:Record<string,string | string[] | undefined>}) {
+ await requireAdminPage();
+ const search=typeof query.q==='string' ? query.q.slice(0,100) : '',status=['active','inactive'].includes(String(query.status)) ? String(query.status) : 'all',page=Math.min(10000,Math.max(1,Math.floor(Number(query.page)||1)));
+ const [result,options]=await Promise.all([readCommerceList(kind,search,status,page),readCommerceTargets()]);
+ const choices=options.courses,targets=[...choices.map(course=>({value:`course:${course.slug}`,label:`${labels.course}: ${course.title}`})),...options.bundles.map(bundle=>({value:`bundle:${bundle.slug}`,label:`${labels.bundle}: ${bundle.title}`}))];
+ const href=(page:number)=>routes.adminCommerce(kind)+'?'+new URLSearchParams({q:search,status,page:String(page)});
+ return <main className="lms-dashboard-page"><h1>{labels.title}</h1><CommerceTabs {...{kind,labels}} /><CommerceFilters {...{kind,labels,search,status}} />
+ <ManageCommerceRecords kind={kind} records={result.records} labels={labels} courses={choices} targets={targets} closeLabel={adminUsersCopy.close} />
+ <AdminPagination page={page} previousHref={page>1 ? href(page-1) : undefined} nextHref={page*5<result.total ? href(page+1) : undefined} labels={{heading:labels.title,previous:labels.previous,next:labels.next,page:''}} /></main>;
+}
+```
+
+### File: `modules/features/commerce/bundles-catalog.tsx`
+
+SHA-256: `604658d6b4a6c10f7ec5041c53c9a7c50384fded7457b45f637681998d59d5c3`
+
+```tsx
+import { publicBundles } from "./repositories/bundles";
+import { listCourses } from "@platform/features/catalog/service";
+import { commerceCopy } from "@platform/data/commerce";
+import BundleGrid from "@platform/components/commerce/bundle-grid";
+export default async function BundlesCatalog() {
+ const [bundles,courses]=await Promise.all([publicBundles(),listCourses()]);
+ return <BundleGrid bundles={bundles} courses={courses.map(({slug,title,delivery})=>({slug,title,delivery}))} labels={commerceCopy} />;
+}
+```
+
+### File: `modules/features/commerce/checkout-page.tsx`
+
+SHA-256: `d6fa7307b8cca606dab1a93b1e6239d3c08e7c3152221e35572bdf381d7a9441`
+
+```tsx
+import Link from "next/link";
+import { notFound,redirect } from "next/navigation";
+import { currentIdentity } from "@platform/features/auth/server/identity";
+import { readAccount } from "@platform/features/account/repositories/read-account";
+import { findCourse } from "@platform/features/catalog/service";
+import { findBundle } from "./repositories/bundles";
+import { quotePurchase } from "./repositories/quote";
+import CheckoutControls from "@platform/components/commerce/checkout-controls";
+import { commerceCopy } from "@platform/data/commerce";
+import { paymentCopy as labels } from "@platform/data/payment-copy";
+import { routes } from "@platform/config/navigation";
+export default async function CommerceCheckoutPage({slug,bundle}:{slug:string;bundle:boolean}) {
+ const identity=await currentIdentity();if(!identity) redirect(routes.login);
+ const product=bundle ? await findBundle(slug) : await findCourse(slug);if(!product) notFound();
+ const input=bundle ? {bundleSlug:slug} : {courseSlug:slug},quote=await quotePurchase(input);
+ const enrolled=await identity.client.from('enrollments').select('course_slug').eq('user_id',identity.user.id).in('course_slug',quote.courseSlugs);
+ if(enrolled.error) throw new Error('Enrollment lookup failed');if(enrolled.data.length) redirect(routes.library);
+ const paid=await identity.client.from('payment_orders').select('id').eq('user_id',identity.user.id).eq(bundle ? 'bundle_slug' : 'course_slug',slug).eq('status','paid').limit(1).maybeSingle();
+ if(paid.error) throw new Error('Payment lookup failed');if(paid.data) redirect(routes.payment(paid.data.id));
+ if(quote.baseMinor<=0) redirect(routes.courses);
+ const account=await readAccount(),verified=account.emailVerified && account.phoneVerified;
+ const backHref=bundle ? routes.bundle(slug) : routes.course(slug,'delivery' in product ? product.delivery : undefined);
+ return <main className="container lms-public-main"><div className="lms-payment-layout"><h1>{labels.title}</h1><p>{labels.summary}</p><section className="lms-profile-card lms-payment-card" data-reveal="true"><h2>{product.title}</h2><p>{product.description}</p>
+ {verified ? <CheckoutControls input={input} initial={quote} labels={commerceCopy} paymentLabels={labels} /> : <><p>{labels.verification}</p><Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>{labels.settings}</Link></>}
+ <Link className="lms-payment-back" href={backHref}>{labels.back}</Link></section></div></main>;
+}
+```
+
+### File: `modules/features/commerce/handle-admin.ts`
+
+SHA-256: `d135d9646f3281a80e980e4e09f4db0780e2d0a08021459a176ea6eb91e84518`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson,sameOrigin } from "@platform/lib/server-request";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { commerceKinds,commercePolicy } from "@platform/config/commerce";
+import { validateCommerceRecord } from "./helpers/validate-record";
+import { readCommerceList } from "./repositories/admin-records";
+import { saveCommerceRecord,deleteCommerceRecord } from "./repositories/save-record";
+import type { CommerceKind } from "@platform/types/commerce";
+export function handleCommerceAdmin(request:Request,kind:string) {
+ return apiResponse(async()=>{
+  await requireAdmin();if(!commerceKinds.includes(kind as CommerceKind)) throw new ApiError(404,"NOT_FOUND");
+  const category=kind as CommerceKind;
+  if(request.method==='GET') {
+   const params=new URL(request.url).searchParams;
+   return Response.json(await readCommerceList(category,(params.get('q') ?? '').slice(0,commercePolicy.maxSearch),params.get('status') ?? 'all',Math.min(10000,Math.max(1,Math.floor(Number(params.get('page')) || 1)))));
+  }
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const body=await readJson(request);
+  if(request.method==='DELETE') {
+   if(typeof body?.key!=='string' || body.key.length>100 || typeof body.revision!=="number" || !Number.isInteger(body.revision) || body.revision<1) throw new ApiError(400,"INVALID_INPUT");
+   return Response.json(await deleteCommerceRecord(category,body.key,body.revision));
+  }
+  const input=validateCommerceRecord(category,body);if(!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await saveCommerceRecord(category,input));
+ });
+}
+```
+
+### File: `modules/features/commerce/handle-quote.ts`
+
+SHA-256: `9a72c35794fec0779a9b056ef1923d8933f36b23a58095ea510aa3da51196bf9`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson,sameOrigin } from "@platform/lib/server-request";
+import { currentIdentity } from "@platform/features/auth/server/identity";
+import { validatePurchase } from "./helpers/validate-purchase";
+import { quotePurchase } from "./repositories/quote";
+export function handlePriceQuote(request:Request) {
+ return apiResponse(async()=>{
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const input=validatePurchase(await readJson(request));if(!input) throw new ApiError(400,"INVALID_INPUT");
+  const identity=await currentIdentity();
+  if(input.couponCode && !identity) throw new ApiError(401,"UNAUTHENTICATED");
+  return Response.json(await quotePurchase(input,identity?.user.id));
+ });
+}
+```
+
+### File: `modules/features/commerce/handle-sales.ts`
+
+SHA-256: `fd1cc356fa1d77c0a76cd7cbcbbbaef8d292224fdc914de6e267fac6110fe64d`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { readSales } from "./repositories/sales";
+export function handleSales(request:Request) {
+ return apiResponse(async()=>{await requireAdmin();const params=new URL(request.url).searchParams;return Response.json(await readSales((params.get('q') ?? '').slice(0,100),params.get('status') ?? 'all',Math.min(10000,Math.max(1,Math.floor(Number(params.get('page')) || 1)))));});
+}
+```
+
+### File: `modules/features/commerce/helpers/database-error.ts`
+
+SHA-256: `ee5caf81123d528c8374985960d7652a5973b460f88faace7100540e20814501`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+export function commerceDatabaseError(error: {message:string;code?:string}): never {
+ const codes: Record<string,number> = {COUPON_UNAVAILABLE:400,UNAUTHENTICATED:401,INVALID_BUNDLE_COURSES:400,INVALID_PAYMENT_COURSE:404,COMMERCE_CONFLICT:409,PAYMENT_OVERLAP:409,PAYMENT_PRICE_CHANGED:409,PAYMENT_PRICE_LOCKED:409,ALREADY_ENROLLED:409,PAYMENT_ALREADY_PAID:409,CONTACT_VERIFICATION_REQUIRED:403,INVALID_INPUT:400};
+ const code = Object.keys(codes).find(key => error.message.includes(key));
+ if (code) throw new ApiError(codes[code],code);
+ if (error.code === "23505") throw new ApiError(409,"COMMERCE_DUPLICATE");
+ if (error.code === "23503") throw new ApiError(409,"COMMERCE_IN_USE");
+ if (error.code === "23514" || error.code === "22P02") throw new ApiError(400,"INVALID_INPUT");
+ throw new ApiError(503,"INTERNAL_ERROR");
+}
+```
+
+### File: `modules/features/commerce/helpers/empty-record.ts`
+
+SHA-256: `1fdf65ddbdf8b3d2c45fd72f7686f6e30b8ebceb92f3dea04240e5a319ab7417`
+
+```typescript
+import type { CommerceRecord } from "@platform/types/commerce";
+export function emptyCommerceRecord(): CommerceRecord {
+ return {key:"",title:"",description:"",amountMinor:0,courseSlugs:[],courseSlug:null,bundleSlug:null,discountType:"percent",discountValue:10,startsAt:null,endsAt:null,enabled:false,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0,createdAt:"",updatedAt:""};
+}
+```
+
+### File: `modules/features/commerce/helpers/offer-base-amount.ts`
+
+SHA-256: `8f5aabce4fda4b68dd45b0af99063d31e0a79e4363e79135175e5f3d23cb4b60`
+
+```typescript
+import type { CourseOffer } from "@platform/types/lms";
+/** A zero-priced promotion still goes through verified checkout instead of free-course enrollment. */
+export function offerBaseAmount(offer:CourseOffer) { return offer.baseAmount ?? offer.amount; }
+```
+
+### File: `modules/features/commerce/helpers/read-form.ts`
+
+SHA-256: `2f2e2b4ba7b31c6a879818671f9e173e282af2ae4f9553d3060d97c985022f3e`
+
+```typescript
+import type { CommerceInput,CommerceRecord } from "@platform/types/commerce";
+const minor=(value:FormDataEntryValue | null)=> /^\d+$/.test(String(value ?? '')) ? Number(value)*100 : -1;
+const nullable=(value:FormDataEntryValue | null)=>value ? String(value) : null;
+const date=(value:FormDataEntryValue | null)=>value ? new Date(String(value)).toISOString() : null;
+export function readCommerceForm(form:FormData,record:CommerceRecord): CommerceInput {
+ const type=String(form.get('discountType') ?? record.discountType) as 'percent' | 'fixed';
+ const target=String(form.get('target') ?? '').split(':');
+ return {...record,key:String(form.get('key') ?? record.key).trim(),title:String(form.get('title') ?? '').trim(),description:String(form.get('description') ?? ''),amountMinor:form.has('amount') ? minor(form.get('amount')) : record.amountMinor,
+  courseSlugs:form.getAll('courseSlugs').map(String),courseSlug:target[0]==='course' ? target[1] : null,bundleSlug:target[0]==='bundle' ? target[1] : null,
+  discountType:type,discountValue:form.has('discountValue') ? type==='fixed' ? minor(form.get('discountValue')) : Number(form.get('discountValue')) : record.discountValue,
+  startsAt:date(form.get('startsAt')),endsAt:date(form.get('endsAt')),enabled:form.has('enabled'),stackable:form.has('stackable'),minimumMinor:form.has('minimum') ? minor(form.get('minimum')) : 0,
+  maximumUses:nullable(form.get('maximumUses')) ? Number(form.get('maximumUses')) : null,perUserLimit:Number(form.get('perUserLimit') ?? 1)};
+}
+export function localDateInput(value:string | null) {
+ if(!value) return '';
+ const date=new Date(value);return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
+```
+
+### File: `modules/features/commerce/helpers/read-record.ts`
+
+SHA-256: `5834506b919f518a48c118dd209d9ba4f709af4b2f1315cac729ba6c1ec2024d`
+
+```typescript
+import type { Tables } from "@platform/types/database";
+import type { CommerceRecord } from "@platform/types/commerce";
+import { emptyCommerceRecord } from "./empty-record";
+export function readBundleRecord(row: Tables<"commerce_bundles">, courseSlugs: string[]): CommerceRecord {
+ return {...emptyCommerceRecord(),key:row.slug,title:row.title,description:row.description,amountMinor:row.amount_minor,enabled:row.enabled,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,courseSlugs};
+}
+export function readDiscountRecord(row: Tables<"commerce_discounts">): CommerceRecord {
+ return {...emptyCommerceRecord(),key:row.key,title:row.title,description:row.description,courseSlug:row.course_slug,bundleSlug:row.bundle_slug,discountType:row.discount_type as "percent" | "fixed",discountValue:row.discount_value,startsAt:row.starts_at,endsAt:row.ends_at,enabled:row.enabled,stackable:row.stackable,minimumMinor:row.minimum_minor,maximumUses:row.maximum_uses,perUserLimit:row.per_user_limit,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at};
+}
+```
+
+### File: `modules/features/commerce/helpers/search-filter.ts`
+
+SHA-256: `a2a9144ea517f934d3b1259c50429c7461af9fc3e0a585f49e0130e7dcb9be41`
+
+```typescript
+/** Quotes no PostgREST grammar: accepts letters, numbers and names, escaping LIKE wildcards. */
+export function commerceSearchFilter(search:string,identifier:'key' | 'slug') {
+ const value=search.replace(/[^\p{L}\p{N} _-]/gu,'').replaceAll('_','\\_');
+ return `title.ilike.%${value}%,${identifier}.ilike.%${value}%`;
+}
+```
+
+### File: `modules/features/commerce/helpers/validate-purchase.ts`
+
+SHA-256: `2ee94d6a20b30f65d6c2b195b3e65f5866f0d24eb316b122a7de72f6c6473981`
+
+```typescript
+import type { PurchaseInput } from "@platform/types/commerce";
+export function validatePurchase(value: unknown): PurchaseInput | null {
+ if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+ const input = value as Record<string,unknown>;
+ if (Object.keys(input).some(key => !["courseSlug","bundleSlug","couponCode","expectedTotalMinor"].includes(key))) return null;
+ if (Boolean(input.courseSlug) === Boolean(input.bundleSlug)) return null;
+ const slug = input.courseSlug ?? input.bundleSlug;
+ if (typeof slug !== "string" || slug.length > 100 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
+ if (input.couponCode !== undefined && (typeof input.couponCode !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(input.couponCode))) return null;
+ if(input.expectedTotalMinor !== undefined && (!Number.isInteger(input.expectedTotalMinor) || Number(input.expectedTotalMinor)<0 || Number(input.expectedTotalMinor)>100_000_000)) return null;
+ return { ...(input.expectedTotalMinor !== undefined ? {expectedTotalMinor:Number(input.expectedTotalMinor)} : {}), ...(input.courseSlug ? {courseSlug:slug} : {bundleSlug:slug}), ...(input.couponCode ? {couponCode:String(input.couponCode).toUpperCase()} : {}) };
+}
+```
+
+### File: `modules/features/commerce/helpers/validate-record.ts`
+
+SHA-256: `09c7946f1abaf1ae9cfe1b55bc12bee44c03e210fff89c87f98d84688b65fa0e`
+
+```typescript
+import { commercePolicy } from "@platform/config/commerce";
+import type { CommerceInput, CommerceKind } from "@platform/types/commerce";
+const integer = (value: unknown, min: number, max: number) => Number.isInteger(value) && Number(value) >= min && Number(value) <= max;
+const slug = (value: unknown) => typeof value === "string" && value.length <= 100 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+const date = (value: unknown) => value === null || typeof value === "string" && Number.isFinite(Date.parse(value));
+export function validateCommerceRecord(kind: CommerceKind, value: unknown): CommerceInput | null {
+ if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+ const v = value as CommerceInput;
+ if (typeof v.key !== "string" || !(kind === "coupons" ? /^[A-Z0-9_-]{1,40}$/.test(v.key) : slug(v.key))) return null;
+ if (typeof v.title !== "string" || !v.title.trim() || v.title.length > commercePolicy.maxTitle || typeof v.description !== "string" || v.description.length > commercePolicy.maxDescription) return null;
+ if (!integer(v.revision,0,2_000_000_000) || typeof v.enabled !== "boolean" || typeof v.stackable !== "boolean") return null;
+ if (!date(v.startsAt) || !date(v.endsAt) || v.startsAt && v.endsAt && Date.parse(v.startsAt) >= Date.parse(v.endsAt)) return null;
+ if (v.courseSlug !== null && !slug(v.courseSlug) || v.bundleSlug !== null && !slug(v.bundleSlug) || v.courseSlug && v.bundleSlug) return null;
+ if (!Array.isArray(v.courseSlugs) || v.courseSlugs.length > commercePolicy.maxCourses || !v.courseSlugs.every(slug) || new Set(v.courseSlugs).size !== v.courseSlugs.length) return null;
+ if (!integer(v.amountMinor,0,commercePolicy.maximumMinor) || !integer(v.minimumMinor,0,commercePolicy.maximumMinor)) return null;
+ if (kind === "bundles" && (v.courseSlugs.length < 2 || v.amountMinor < 100)) return null;
+ if (kind === "offers" && !v.courseSlug && !v.bundleSlug) return null;
+ if (!["percent","fixed"].includes(v.discountType) || !integer(v.discountValue,1,v.discountType === "percent" ? 100 : commercePolicy.maximumMinor)) return null;
+ if (v.maximumUses !== null && !integer(v.maximumUses,1,1_000_000) || !integer(v.perUserLimit,1,1_000_000)) return null;
+ return {key:v.key,title:v.title.trim(),description:v.description.trim(),amountMinor:v.amountMinor,courseSlugs:v.courseSlugs,courseSlug:v.courseSlug,bundleSlug:v.bundleSlug,discountType:v.discountType,discountValue:v.discountValue,startsAt:v.startsAt,endsAt:v.endsAt,enabled:v.enabled,stackable:v.stackable,minimumMinor:v.minimumMinor,maximumUses:v.maximumUses,perUserLimit:v.perUserLimit,revision:v.revision};
+}
+```
+
+### File: `modules/features/commerce/repositories/admin-records.ts`
+
+SHA-256: `7a0534d871df074ce4a2a584d16fe3d12b7dc0eb73bdbcd98c997ff5b99268be`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+import { readBundleRecord,readDiscountRecord } from "../helpers/read-record";
+import { commerceSearchFilter } from "../helpers/search-filter";
+import { commercePolicy } from "@platform/config/commerce";
+import type { CommerceKind, CommerceList } from "@platform/types/commerce";
+export async function readCommerceList(kind:CommerceKind, search="", status="all", page=1): Promise<CommerceList> {
+ const client=createAuthAdministrator(),from=(page-1)*commercePolicy.pageSize;
+ if(kind==='bundles') {
+  let query=client.from('commerce_bundles').select('*',{count:'exact'}).order('updated_at',{ascending:false}).order('slug').range(from,from+commercePolicy.pageSize-1);
+  if(search) query=query.or(commerceSearchFilter(search,'slug'));
+  if(status!=='all') query=query.eq('enabled',status==='active');
+  const result=await query;if(result.error) commerceDatabaseError(result.error);
+  const slugs=(result.data ?? []).map(row=>row.slug);
+  const members=slugs.length ? await client.from('commerce_bundle_courses').select('bundle_slug,course_slug').in('bundle_slug',slugs).order('position') : {data:[],error:null};
+  if(members.error) commerceDatabaseError(members.error);
+  return {records:(result.data ?? []).map(row=>readBundleRecord(row,(members.data ?? []).filter(item=>item.bundle_slug===row.slug).map(item=>item.course_slug))),total:result.count ?? 0,page};
+ }
+ let query=client.from('commerce_discounts').select('*',{count:'exact'}).eq('kind',kind).order('updated_at',{ascending:false}).order('key').range(from,from+commercePolicy.pageSize-1);
+ if(search) query=query.or(commerceSearchFilter(search,'key'));
+ if(status!=='all') query=query.eq('enabled',status==='active');
+ const result=await query;if(result.error) commerceDatabaseError(result.error);
+ return {records:(result.data ?? []).map(readDiscountRecord),total:result.count ?? 0,page};
+}
+```
+
+### File: `modules/features/commerce/repositories/bundles.ts`
+
+SHA-256: `867eb644fb9b0fc84c37e9395009898a543191bbeb20f37c1a33f0ff30572aa6`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+import type { BundleProduct } from "@platform/types/commerce";
+export async function publicBundles(): Promise<BundleProduct[]> {
+ const {data,error}=await createAuthAdministrator().rpc("commerce_bundle_catalog");
+ if(error) commerceDatabaseError(error);
+ return (data as unknown as BundleProduct[]).map(bundle=>({...bundle,courseSlugs:bundle.quote.courseSlugs}));
+}
+export async function findBundle(slug:string) { return (await publicBundles()).find(bundle=>bundle.slug===slug); }
+```
+
+### File: `modules/features/commerce/repositories/catalog-prices.ts`
+
+SHA-256: `253a11ee51d325593f9822659b628776bbc5be619c5fa4531e77d16aac114f7b`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+import type { Course } from "@platform/types/lms";
+export async function applyCatalogPrices(courses: Course[]) {
+ const {data,error} = await createAuthAdministrator().rpc("catalog_offer_prices");
+ if (error) commerceDatabaseError(error);
+ const prices = data as Record<string,{baseMinor:number;totalMinor:number;title:string;endsAt:string | null}>;
+ return courses.map(course => {
+  const price=prices[course.slug];
+  return !price ? course : {...course,offer:{...course.offer,amount:price.totalMinor/100,baseAmount:price.baseMinor/100,saleTitle:price.title,saleEndsAt:price.endsAt,caption:price.title}};
+ });
+}
+```
+
+### File: `modules/features/commerce/repositories/quote.ts`
+
+SHA-256: `04658e11464ae538c0991439baca5563f93e409ac50ef53ac224e957a8738f74`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+import type { PurchaseInput, PriceQuote } from "@platform/types/commerce";
+export async function quotePurchase(input: PurchaseInput, userId?: string): Promise<PriceQuote> {
+ const {data,error} = await createAuthAdministrator().rpc("quote_commerce",{p_kind:input.bundleSlug ? "bundle" : "course",p_slug:input.bundleSlug ?? input.courseSlug!,p_coupon:input.couponCode,p_user:userId});
+ if (error) commerceDatabaseError(error);
+ const quote = data as unknown as PriceQuote;
+ return {kind:quote.kind,slug:quote.slug,title:quote.title,courseSlugs:quote.courseSlugs,baseMinor:quote.baseMinor,offerMinor:quote.offerMinor,couponMinor:quote.couponMinor,totalMinor:quote.totalMinor,offerTitle:quote.offerTitle,couponCode:quote.couponCode,endsAt:quote.endsAt};
+}
+```
+
+### File: `modules/features/commerce/repositories/sales.ts`
+
+SHA-256: `3619322aa7f4f560e17a6fbb1b4f428cd05c48fb65e79a916cf626b8f66bcf2c`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commercePolicy } from "@platform/config/commerce";
+import { commerceDatabaseError } from "../helpers/database-error";
+import type { SaleRecord } from "@platform/types/sales";
+export async function readSales(search:string,status:string,page:number) {
+ const client=createAuthAdministrator(),start=(page-1)*commercePolicy.pageSize;
+ let query=client.from('payment_orders').select('id,course_title,amount_minor,created_at,paid_at,status,live,user_id,bundle_slug,pricing_snapshot',{count:'exact'}).order('created_at',{ascending:false}).order('id').range(start,start+commercePolicy.pageSize-1);
+ if(search) query=query.ilike('course_title',`%${search.replace(/[%_\\]/g,'')}%`);
+ if(status!=='all') query=query.eq('status',status);
+ const result=await query;if(result.error) commerceDatabaseError(result.error);
+ const ids=(result.data ?? []).flatMap(row=>row.user_id ? [row.user_id] : []);
+ const profiles=ids.length ? await client.from('profiles').select('id,name,username').in('id',ids) : {data:[],error:null};
+ if(profiles.error) commerceDatabaseError(profiles.error);
+ const records:SaleRecord[]=(result.data ?? []).map(row=>{
+  const profile=profiles.data?.find(profile=>profile.id===row.user_id),snapshot=row.pricing_snapshot;
+  const price=snapshot && typeof snapshot==='object' && !Array.isArray(snapshot) ? snapshot : {};
+  return {id:row.id,title:row.course_title,amountMinor:row.amount_minor,createdAt:row.created_at,paidAt:row.paid_at,status:row.status,live:row.live,username:profile?.username ?? null,name:profile?.name ?? '',bundle:Boolean(row.bundle_slug),couponCode:typeof price.couponCode==='string' ? price.couponCode : null,discountMinor:Number(price.offerMinor ?? 0)+Number(price.couponMinor ?? 0)};
+ });
+ return {records,total:result.count ?? 0,page};
+}
+```
+
+### File: `modules/features/commerce/repositories/save-record.ts`
+
+SHA-256: `fa616e0953c11806e4b9fb16421091bd837c98af60ec61ce0befaa5be64c6492`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+import type { Json } from "@platform/types/database";
+import type { CommerceKind,CommerceInput } from "@platform/types/commerce";
+export async function saveCommerceRecord(kind:CommerceKind,input:CommerceInput) {
+ const client=createAuthAdministrator(),p_input=input as unknown as Json;
+ const result=kind==='bundles' ? await client.rpc('save_commerce_bundle',{p_input}) : await client.rpc('save_commerce_discount',{p_kind:kind,p_input});
+ if(result.error) commerceDatabaseError(result.error);
+ return {saved:true};
+}
+export async function deleteCommerceRecord(kind:CommerceKind,key:string,revision:number) {
+ const result=await createAuthAdministrator().rpc('delete_commerce_record',{p_kind:kind,p_key:key,p_revision:revision});
+ if(result.error) commerceDatabaseError(result.error);
+ return {deleted:true};
+}
+```
+
+### File: `modules/features/commerce/repositories/targets.ts`
+
+SHA-256: `07a7a183f2419f471e6aef1a2380927ca8b8bc4b14e3923a8e87ca40542dca7f`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { commerceDatabaseError } from "../helpers/database-error";
+/** Editors need identifiers and names, not every course's full curriculum. */
+export async function readCommerceTargets() {
+ const client=createAuthAdministrator();
+ const [courses,bundles]=await Promise.all([
+  client.from('courses').select('slug,title:metadata->>title').order('position'),
+  client.from('commerce_bundles').select('slug,title').order('title'),
+ ]);
+ if(courses.error) commerceDatabaseError(courses.error);
+ if(bundles.error) commerceDatabaseError(bundles.error);
+ return {courses:(courses.data ?? []).map(row=>({slug:row.slug,title:row.title ?? row.slug})),bundles:bundles.data ?? []};
 }
 ```
 
@@ -13120,9 +13903,10 @@ export const readStudentState = cache(async () => {
 
 ### File: `modules/features/learning/repositories/enroll-course.ts`
 
-SHA-256: `7d22ee17a28ba4c3727a7b4a80f0ab34ee835c81583ddc42b5724448ff5c0462`
+SHA-256: `d4215bae4986f2bf5f1041a86e200826440e85a49faeb9ab46d533cda01004a6`
 
 ```typescript
+import { offerBaseAmount } from "@platform/features/commerce/helpers/offer-base-amount";
 import { requireIdentity } from "@platform/features/auth/server/identity";
 import { ApiError } from "@platform/lib/api/error";
 import { findCourse } from "@platform/features/catalog/service";
@@ -13137,7 +13921,7 @@ export async function enrollCourse(slug: string) {
     const verification = await client.rpc("contacts_verified");
     if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
     if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
-    if (course.delivery === "live" || course.offer.amountLabel || course.offer.amount > 0) throw new ApiError(403, "PAYMENT_REQUIRED");
+    if (course.delivery === "live" || course.offer.amountLabel || offerBaseAmount(course.offer) > 0) throw new ApiError(403, "PAYMENT_REQUIRED");
     const { error } = await client.from("enrollments").insert({ user_id: user.id, course_slug: slug });
     if (error && error.code !== "23505") throw new ApiError(503, "INTERNAL_ERROR");
   }
@@ -13518,9 +14302,10 @@ export function createHeroModel(courses: Course[]): LandingModel["hero"] {
 
 ### File: `modules/features/marketing/models/workshop-course.ts`
 
-SHA-256: `df5869c986667312a370a8a7e0795927c5f1a3e2f00174cab78bea7a6ee6963c`
+SHA-256: `3d5a76b5815786be906a43befca2b81b8e1850bf54fab91bfd71a52388ede590`
 
 ```typescript
+import { offerBaseAmount } from "@platform/features/commerce/helpers/offer-base-amount";
 import { routes } from "@platform/config/navigation";
 import type { MarketingPageContent } from "@khatab/design/types/marketing";
 import type { Course } from "@platform/types/lms";
@@ -13533,7 +14318,7 @@ export function workshopCourseContent(
   defaults: Course,
 ): MarketingPageContent {
   const action =
-    course.offer.amount > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
+    offerBaseAmount(course.offer) > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
   return {
     ...content,
     header: { ...content.header, action: action ?? content.header.action },
@@ -13937,26 +14722,20 @@ export async function paymentToken(force = false) {
 
 ### File: `modules/features/payments/handle-checkout.ts`
 
-SHA-256: `edec9a9de7006c932eb9764ea8d9a6464b6131c66f526d07ee45377789b32873`
+SHA-256: `d3bd29b91030d5ff59830a86b2a8eef9aac7dc32d764f031d4f3a03bba1845e7`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
 import { createCheckout } from "./repositories/create-checkout";
+import { validatePurchase } from "@platform/features/commerce/helpers/validate-purchase";
 export function handleCheckout(request: Request) {
   return apiResponse(async () => {
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
-    const body = await readJson(request);
-    if (
-      !body ||
-      typeof body.courseSlug !== "string" ||
-      body.courseSlug.length > 100 ||
-      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(body.courseSlug) ||
-      Object.keys(body).some((key) => key !== "courseSlug")
-    )
-      throw new ApiError(400, "INVALID_INPUT");
-    return Response.json(await createCheckout(body.courseSlug));
+    const input = validatePurchase(await readJson(request));
+    if (!input) throw new ApiError(400, "INVALID_INPUT");
+    return Response.json(await createCheckout(input));
   });
 }
 ```
@@ -14018,6 +14797,20 @@ SHA-256: `313bcacd870d0de487155ef8e5bffea63cff1119ce93ac3143d8b7e341a106e0`
 /** Provider identifiers are opaque text, independent of our UUID order IDs. */
 export const isPaymentIntentKey = (value: unknown): value is string =>
   typeof value === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
+```
+
+### File: `modules/features/payments/helpers/order-courses.ts`
+
+SHA-256: `6def6de053739786cbb6a0c2cda8f2d0e1c2b17fe667faef99a90010e65512bf`
+
+```typescript
+import type { PaymentOrder } from "../types";
+export function paymentCourseSlugs(order:Pick<PaymentOrder,"course_slug" | "pricing_snapshot">): string[] {
+ const snapshot=order.pricing_snapshot;
+ if(snapshot && typeof snapshot==='object' && !Array.isArray(snapshot) && Array.isArray(snapshot.courseSlugs))
+  return snapshot.courseSlugs.filter((value): value is string => typeof value==='string');
+ return order.course_slug ? [order.course_slug] : [];
+}
 ```
 
 ### File: `modules/features/payments/helpers/order-id.ts`
@@ -14133,37 +14926,27 @@ export function verifyPaymentSignature(body: Record<string, unknown>, key: strin
 
 ### File: `modules/features/payments/repositories/begin-order.ts`
 
-SHA-256: `7ceaf32782c524079f93d0bd6bad0f27cc28d6c3658f81b15d505aac1e206852`
+SHA-256: `b8acadb95f1e436023b1ef59ef0453f487a79f0b3460a2a0c8ef1435b48eb7f4`
 
 ```typescript
 import "server-only";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { paymentEnvironment } from "../gateway/environment";
-import { ApiError } from "@platform/lib/api/error";
 import type { PaymentOrder } from "../types";
-const orderErrors: Record<string, number> = {
-  PAYMENT_ALREADY_PAID: 409,
-  CONTACT_VERIFICATION_REQUIRED: 403,
-  ALREADY_ENROLLED: 409,
-  INVALID_PAYMENT_COURSE: 400,
-};
-export async function beginPaymentOrder(userId: string, slug: string) {
-  const result = await createAuthAdministrator().rpc("begin_course_payment", {
-    p_user: userId,
-    p_slug: slug,
-    p_live: paymentEnvironment().live,
-  });
-  if (result.error) {
-    const code = Object.keys(orderErrors).find((key) => result.error!.message.includes(key));
-    throw new ApiError(code ? orderErrors[code] : 503, code ?? "INTERNAL_ERROR");
-  }
-  return result.data as unknown as { order: PaymentOrder; created: boolean };
+import type { PurchaseInput } from "@platform/types/commerce";
+import { commerceDatabaseError } from "@platform/features/commerce/helpers/database-error";
+export async function beginPaymentOrder(userId: string, input: PurchaseInput) {
+ const result = await createAuthAdministrator().rpc("begin_commerce_payment", {
+  p_expected:input.expectedTotalMinor,p_user:userId,p_kind:input.bundleSlug ? "bundle" : "course",p_slug:input.bundleSlug ?? input.courseSlug!,p_coupon:input.couponCode ?? "",p_live:paymentEnvironment().live,
+ });
+ if(result.error) commerceDatabaseError(result.error);
+ return result.data as unknown as {order:PaymentOrder;created:boolean};
 }
 ```
 
 ### File: `modules/features/payments/repositories/create-checkout.ts`
 
-SHA-256: `6d7718bd4b2b01091e36772f38c2dd078e79efa32b9ec95bfdbda05f82d01146`
+SHA-256: `42ab4d8629d1ad6881dd83d57740e834a82e1ffd85108e16978b1b23721cbeaa`
 
 ```typescript
 import "server-only";
@@ -14173,13 +14956,16 @@ import { createGatewayCheckout } from "../gateway/create-checkout";
 import { beginPaymentOrder } from "./begin-order";
 import { saveCheckout } from "./save-checkout";
 import { ApiError } from "@platform/lib/api/error";
-export async function createCheckout(slug: string) {
+import { routes } from "@platform/config/navigation";
+import type { PurchaseInput } from "@platform/types/commerce";
+export async function createCheckout(input: PurchaseInput) {
   const { client, user } = await requireIdentity();
   const verification = await client.rpc("contacts_verified");
   if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
   const account = await readAccount(),
-    record = await beginPaymentOrder(user.id, slug);
+    record = await beginPaymentOrder(user.id, input);
+  if (record.order.amount_minor === 0) return {orderId:record.order.id,checkoutUrl:routes.payment(record.order.id)};
   if (!record.created) {
     if (!record.order.checkout_url) throw new ApiError(409, "PAYMENT_CREATING");
     return { orderId: record.order.id, checkoutUrl: record.order.checkout_url };
@@ -14222,7 +15008,7 @@ export async function markUnpaid(order: PaymentOrder, statusText: unknown) {
 
 ### File: `modules/features/payments/repositories/read-order.ts`
 
-SHA-256: `c97dace75868dca4625e00de2a9be2e6ef992497b108dadb08d38b5abffb3d02`
+SHA-256: `693d9c502672261e33cb5d0249c664932ffd7150111a37e411516b68248a460e`
 
 ```typescript
 import "server-only";
@@ -14230,6 +15016,7 @@ import { requireIdentity } from "@platform/features/auth/server/identity";
 import { ApiError } from "@platform/lib/api/error";
 import { isOrderId } from "../helpers/order-id";
 import type { PaymentOrder } from "../types";
+import { paymentCourseSlugs } from "../helpers/order-courses";
 export async function readPaymentOrder(id: string): Promise<PaymentOrder> {
   const { client, user } = await requireIdentity();
   if (!isOrderId(id)) throw new ApiError(404, "NOT_FOUND");
@@ -14247,6 +15034,7 @@ export function publicPaymentOrder(order: PaymentOrder) {
   return {
     id: order.id,
     courseSlug: order.course_slug,
+    bundleSlug: order.bundle_slug,
     title: order.course_title,
     amount: order.amount_minor / 100,
     currency: order.currency,
@@ -14256,14 +15044,10 @@ export function publicPaymentOrder(order: PaymentOrder) {
 }
 export async function readPaymentReceipt(order: PaymentOrder) {
   const { client, user } = await requireIdentity();
-  const result = await client
-    .from("enrollments")
-    .select("course_slug")
-    .eq("user_id", user.id)
-    .eq("course_slug", order.course_slug)
-    .maybeSingle();
+  const slugs=paymentCourseSlugs(order);
+  const result = await client.from("enrollments").select("course_slug").eq("user_id",user.id).in("course_slug",slugs);
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return { ...publicPaymentOrder(order), enrolled: Boolean(result.data) };
+  return {...publicPaymentOrder(order), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug))};
 }
 ```
 
@@ -14352,13 +15136,15 @@ export async function settleOrder(order: PaymentOrder, transactionId: number) {
 
 ### File: `modules/features/payments/types.ts`
 
-SHA-256: `a24718bc05da2f0ea44a5153f6f0f62c446af04dadfc959a530a504c850248c3`
+SHA-256: `1d79b35db32c4c59ed35efc1b1043969355b7fd4e5f23bce67168b590ec49b02`
 
 ```typescript
 export interface PaymentOrder {
   id: string;
   user_id: string | null;
-  course_slug: string;
+  course_slug: string | null;
+  bundle_slug?: string | null;
+  pricing_snapshot?: import("@platform/types/database").Json;
   course_title: string;
   amount_minor: number;
   currency: string;
@@ -15096,6 +15882,54 @@ export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageM
 }
 ```
 
+### File: `modules/hooks/use-checkout-quote.ts`
+
+SHA-256: `92063ed610b16738de61ab7854bab23d3b4730ef39f7f0ecefac6d578ebe05eb`
+
+```typescript
+"use client";
+import { useState } from "react";
+import { useAsyncCommand } from "./use-async-command";
+import { paymentRequest } from "@platform/features/payments/client/request";
+import { endpoints } from "@platform/config/navigation";
+import type { PriceQuote,PurchaseInput } from "@platform/types/commerce";
+export function useCheckoutQuote(input:PurchaseInput,initial:PriceQuote,error:string) {
+ const command=useAsyncCommand(error),[quote,setQuote]=useState(initial),[coupon,setCoupon]=useState('');
+ async function apply(remove=false) {
+  const result=await command.run(()=>paymentRequest<PriceQuote>(endpoints.paymentQuote,{...input,...(!remove && coupon.trim() ? {couponCode:coupon.trim()} : {})}));
+  if(result) {setQuote(result);if(remove) setCoupon('');}
+ }
+ return {...command,quote,coupon,setCoupon,apply};
+}
+```
+
+### File: `modules/hooks/use-commerce-editor.ts`
+
+SHA-256: `47d05f890ee091e58ae4ae1b6058cf59936a0a6e9e5b260a64afd88b4711a84e`
+
+```typescript
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAsyncCommand } from "./use-async-command";
+import { endpoints } from "@platform/config/navigation";
+import { readCommerceForm } from "@platform/features/commerce/helpers/read-form";
+import type { CommerceKind,CommerceRecord } from "@platform/types/commerce";
+export function useCommerceEditor(kind:CommerceKind,error:string) {
+ const router=useRouter(),command=useAsyncCommand(error);
+ const [selected,setSelected]=useState<CommerceRecord | null>(null),[deleting,setDeleting]=useState(false);
+ async function submit(form?:FormData) {
+  if(!selected) return;
+  const result=await command.run(async()=>{
+   const response=await fetch(endpoints.adminCommerce(kind),{method:deleting ? 'DELETE' : 'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(deleting ? {key:selected.key,revision:selected.revision} : readCommerceForm(form!,selected)),signal:AbortSignal.timeout(30000)});
+   const result=await response.json();if(!response.ok) throw new Error(result.error);return true;
+  });
+  if(result) {setSelected(null);router.refresh();}
+ }
+ return {...command,selected,deleting,submit,open:(record:CommerceRecord,remove=false)=>{setDeleting(remove);setSelected(record);},close:()=>setSelected(null)};
+}
+```
+
 ### File: `modules/hooks/use-course-enrollment.ts`
 
 SHA-256: `9e4658cdbdd21243a01d2ed6b0da594d591762a8bca27f631ea64d6c84dc9063`
@@ -15184,6 +16018,20 @@ export function useCurrentTime(interval: number) {
   }, [interval]);
   return now;
 }
+```
+
+### File: `modules/hooks/use-hydration-state.ts`
+
+SHA-256: `a628ef6c07853d388d531a3199ae5b6ebc1de985492c92d1ec9eb53c9b0e75fa`
+
+```typescript
+"use client";
+import { useSyncExternalStore } from "react";
+const subscribe=()=>()=>{};
+const clientSnapshot=()=>true;
+const serverSnapshot=()=>false;
+/** Use a deterministic hydration render before displaying browser-local values. */
+export function useHydrationState() { return useSyncExternalStore(subscribe,clientSnapshot,serverSnapshot); }
 ```
 
 ### File: `modules/hooks/use-lesson-completion.ts`
@@ -16348,6 +17196,48 @@ SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
 .lms-auth-alternate a { color: var(--primary-red); transition: color var(--motion-duration-control) var(--motion-easing); }
 .lms-auth-alternate a:hover { text-decoration: underline; }
 .lms-auth-status { color: var(--text-muted); font-size: var(--font-size-caption); }
+```
+
+### File: `modules/styles/commerce.css`
+
+SHA-256: `d0640bf1bebd41a3d8b50619b89956fcd51b3dbc145360000f83d3be569707ef`
+
+```css
+.lms-price-original { display: block; font-size: var(--font-size-caption); color: var(--text-muted); font-weight: var(--weight-regular); }
+.lms-commerce-tabs { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-block: var(--space-lg); }
+.lms-commerce-tabs a { padding: var(--space-sm) var(--space-md); border-bottom: var(--size-1px) solid transparent; transition: color var(--transition-smooth); }
+.lms-commerce-tabs a:hover,.lms-commerce-tabs a[aria-current] { color: var(--primary-red); border-color: var(--primary-red); }
+.lms-commerce-form,.lms-commerce-form > fieldset { display: grid; gap: var(--space-lg); min-width: 0; }
+.lms-commerce-form { padding: 0; }
+.lms-commerce-form fieldset { border: none; padding: 0; }
+.lms-commerce-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-md); }
+.lms-commerce-course-picker { max-height: var(--lms-size-320px); overflow-y: auto; }
+.lms-commerce-course-picker legend { font-weight: var(--weight-bold); margin-bottom: var(--space-sm); }
+.lms-commerce-course-picker .ds-choice { margin-block: var(--space-unit); }
+.lms-commerce-empty { padding: var(--space-xl); color: var(--text-muted); }
+.lms-commerce-price-summary { display: grid; gap: var(--space-sm); margin: 0; }
+.lms-commerce-price-summary > div { display: flex; justify-content: space-between; gap: var(--space-md); }
+.lms-commerce-price-summary dd { margin: 0; }
+.lms-commerce-price-summary .lms-payment-total { margin-top: var(--space-md); }
+.lms-commerce-coupon { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-sm); }
+.lms-commerce-coupon .lms-form-field { flex: 1; min-width: 0; }
+.lms-commerce-coupon > button { min-height: var(--size-44px); }
+.lms-commerce-bundle-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-lg); }
+.lms-bundles-section { margin-block: var(--space-2xl); }
+.lms-bundles-section > h2 { margin-bottom: var(--space-lg); }
+.lms-bundle-card { display: grid; gap: var(--space-lg); min-width: 0; }
+.lms-bundle-card > p { color: var(--text-secondary); }
+.lms-bundle-card ul { list-style: none; padding: 0; display: grid; gap: var(--space-sm); margin-top: var(--space-sm); }
+.lms-bundle-card .btn-primary { align-self: end; }
+.lms-bundle-details { max-width: var(--container-narrow); }
+.lms-bundle-details > h1 { margin-bottom: var(--space-lg); }
+@media(max-width:768px) { .lms-commerce-fields,.lms-commerce-bundle-grid { grid-template-columns: minmax(0,1fr); } }
+
+.lms-commerce-table td,.lms-commerce-table th { overflow-wrap: anywhere; }
+.lms-commerce-tabs a { min-height: var(--control-target-size); }
+
+.lms-commerce-filters > .ds-select { margin-block: var(--space-md); }
+@media(max-width:480px) { .lms-commerce-coupon .lms-form-field { flex-basis: 100%; } }
 ```
 
 ### File: `modules/styles/course-details.css`
@@ -20086,6 +20976,43 @@ export interface AuthPageModel {
 }
 ```
 
+### File: `modules/types/commerce.ts`
+
+SHA-256: `1709905d35168f4bd64fc332363456deb1b4d4fb646d4cbba851065abf8d979d`
+
+```typescript
+export type CommerceKind = "bundles" | "offers" | "coupons";
+export type ProductKind = "course" | "bundle";
+export interface PurchaseInput { courseSlug?: string; bundleSlug?: string; couponCode?: string; expectedTotalMinor?: number; }
+export interface PriceQuote {
+ kind: ProductKind; slug: string; title: string; courseSlugs: string[];
+ baseMinor: number; offerMinor: number; couponMinor: number; totalMinor: number;
+ offerTitle: string | null; couponCode: string | null; endsAt: string | null;
+}
+export interface CommerceRecord {
+ key: string; title: string; description: string; amountMinor: number;
+ courseSlugs: string[]; courseSlug: string | null; bundleSlug: string | null;
+ discountType: "percent" | "fixed"; discountValue: number;
+ startsAt: string | null; endsAt: string | null; enabled: boolean;
+ stackable: boolean; minimumMinor: number; maximumUses: number | null;
+ perUserLimit: number; revision: number; createdAt: string; updatedAt: string;
+}
+export type CommerceInput = Omit<CommerceRecord,"createdAt" | "updatedAt">;
+export interface CommerceList { records: CommerceRecord[]; total: number; page: number; }
+export interface BundleProduct { slug: string; title: string; description: string; courseSlugs: string[]; quote: PriceQuote; }
+export interface CommerceLabels {
+ title: string; bundles: string; offers: string; coupons: string; create: string; edit: string; remove: string;
+ name: string; key: string; description: string; amount: string; courses: string; course: string; bundle: string;
+ discountType: string; percent: string; fixed: string; discountValue: string; startsAt: string; endsAt: string;
+ enabled: string; stackable: string; minimum: string; maximumUses: string; perUserLimit: string; unlimited: string;
+ search: string; status: string; all: string; active: string; inactive: string; apply: string; clear: string;
+ save: string; saving: string; saved: string; error: string; empty: string; previous: string; next: string;
+ deleteConfirm: string; currency: string; revision: string; targetHint: string; datesHint: string; bundleHint: string;
+ coupon: string; applyCoupon: string; removeCoupon: string; subtotal: string; offerDiscount: string; couponDiscount: string;
+ total: string; freeCheckoutHint: string; buyBundle: string; bundlesHeading: string; includes: string; free: string; checkout: string;
+}
+```
+
 ### File: `modules/types/content.ts`
 
 SHA-256: `26198ab60d17985279c3b10cd41db692457a27d908589313c1f25a04572bcfa7`
@@ -20204,7 +21131,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `4255b5edd5551c350116fc71f6116bb353232415d652ecb85d530184681787cc`
+SHA-256: `6b4d8996f09736d9786113dc100e84a6e1717cc4576eb65d76a881265e9f246c`
 
 ```typescript
 
@@ -20301,6 +21228,72 @@ export type Database = {
                   }
                   Relationships: [
 
+                  ]
+                },"commerce_bundle_courses": {
+                  Row: {
+                    "bundle_slug": string,"course_slug": string,"position": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bundle_slug": string,"course_slug": string,"position": number
+                  }
+                  Update: {
+                    "bundle_slug"?: string,"course_slug"?: string,"position"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commerce_bundle_courses_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "commerce_bundle_courses_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
+                },"commerce_bundles": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"commerce_discounts": {
+                  Row: {
+                    "bundle_slug": string | null,"course_slug": string | null,"created_at": string,"description": string,"discount_type": string,"discount_value": number,"enabled": boolean,"ends_at": string | null,"id": string,"key": string,"kind": string,"maximum_uses": number | null,"minimum_minor": number,"per_user_limit": number,"revision": number,"stackable": boolean,"starts_at": string | null,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"created_at"?: string,"description"?: string,"discount_type": string,"discount_value": number,"enabled"?: boolean,"ends_at"?: string | null,"id"?: string,"key": string,"kind": string,"maximum_uses"?: number | null,"minimum_minor"?: number,"per_user_limit"?: number,"revision"?: number,"stackable"?: boolean,"starts_at"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"created_at"?: string,"description"?: string,"discount_type"?: string,"discount_value"?: number,"enabled"?: boolean,"ends_at"?: string | null,"id"?: string,"key"?: string,"kind"?: string,"maximum_uses"?: number | null,"minimum_minor"?: number,"per_user_limit"?: number,"revision"?: number,"stackable"?: boolean,"starts_at"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commerce_discounts_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "commerce_discounts_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
                   ]
                 },"courses": {
                   Row: {
@@ -20408,19 +21401,57 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
-                },"payment_orders": {
+                },"payment_order_items": {
                   Row: {
-                    "amount_minor": number,"checkout_url": string | null,"course_slug": string,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                    "course_slug": string,"order_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_minor": number,"checkout_url"?: string | null,"course_slug": string,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                    "course_slug": string,"order_id": string
                   }
                   Update: {
-                    "amount_minor"?: number,"checkout_url"?: string | null,"course_slug"?: string,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                    "course_slug"?: string,"order_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "payment_order_items_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "payment_order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "payment_orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payment_orders": {
+                  Row: {
+                    "amount_minor": number,"bundle_slug": string | null,"checkout_url": string | null,"coupon_id": string | null,"course_slug": string | null,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"pricing_snapshot": Json | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"bundle_slug"?: string | null,"checkout_url"?: string | null,"coupon_id"?: string | null,"course_slug"?: string | null,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"pricing_snapshot"?: Json | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "amount_minor"?: number,"bundle_slug"?: string | null,"checkout_url"?: string | null,"coupon_id"?: string | null,"course_slug"?: string | null,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"pricing_snapshot"?: Json | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_orders_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "payment_orders_coupon_id_fkey"
+      columns: ["coupon_id"]
+isOneToOne: false
+      referencedRelation: "commerce_discounts"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "payment_orders_course_slug_fkey"
       columns: ["course_slug"]
 isOneToOne: false
@@ -20468,11 +21499,20 @@ isOneToOne: false
 "admin_dashboard_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"begin_commerce_payment":
+{ Args: { "p_coupon": string,"p_expected"?: number,"p_kind": string,"p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
+                           },
 "begin_course_payment":
 { Args: { "p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
                            },
+"catalog_offer_prices":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "claim_payment_check":
 { Args: { "p_order": string }; Returns: boolean
+                           },
+"commerce_bundle_catalog":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
@@ -20486,17 +21526,29 @@ isOneToOne: false
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
                            },
+"delete_commerce_record":
+{ Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
+                           },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
                            },
+"quote_commerce":
+{ Args: { "p_coupon"?: string,"p_kind": string,"p_slug": string,"p_user"?: string }; Returns: Json
+                           },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
                            },
 "save_admin_curriculum":
 { Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
+                           },
+"save_commerce_bundle":
+{ Args: { "p_input": Json }; Returns: undefined
+                           },
+"save_commerce_discount":
+{ Args: { "p_input": Json,"p_kind": string }; Returns: undefined
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json
@@ -20682,7 +21734,7 @@ export type LandingHeroProps = {
 
 ### File: `modules/types/lms.ts`
 
-SHA-256: `bd6808c52f090c07837ba16417d2f4bb01332da0296ebaa6de2f708ab92512be`
+SHA-256: `8c5004a9a951a381a8c70ff880f93759522aa48bf94159cb4ecee06bd2cef34f`
 
 ```typescript
 import type { Category, ArtworkKind } from "@platform/config/catalog";
@@ -20706,6 +21758,9 @@ export interface CourseModule {
   lessons: Lesson[];
 }
 export interface CourseOffer {
+  baseAmount?: number;
+  saleTitle?: string;
+  saleEndsAt?: string | null;
   amountLabel?: string;
   amount: number;
   currencyLabel: string;
@@ -20796,6 +21851,15 @@ export type PortfolioAction = {
   icon: "arrow" | "play" | "email" | "whatsapp";
   external?: boolean;
 };
+```
+
+### File: `modules/types/sales.ts`
+
+SHA-256: `41fa314da3625433ae5d02707d7a1efe3aa2582b60db10863041a4e15ffab4f4`
+
+```typescript
+export interface SaleRecord { id:string; title:string; amountMinor:number; createdAt:string; paidAt:string | null; status:string; live:boolean; username:string | null; name:string; bundle:boolean; couponCode:string | null; discountMinor:number; }
+export interface SalesLabels { heading:string; search:string; status:string; all:string; apply:string; clear:string; customer:string; product:string; amount:string; date:string; discount:string; noCustomer:string; test:string; live:string; empty:string; previous:string; next:string; currency:string; states:Record<string,string>; }
 ```
 
 ### File: `next.config.ts`
@@ -32129,6 +33193,169 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 };
 ```
 
+### File: `tests/backend/commerce-browser.cjs`
+
+SHA-256: `4826693e18ab9887005641918c7a8af25d1fb37ad303110ee6f44f555147181b`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Commerce UI and responsive checkout with isolated data. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async({manager,user,bundleSlug,coupon,url,verify})=>{
+ const browser=await chromium.launch(),page=await browser.newPage({timezoneId:'Africa/Cairo'}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',message=>{if(message.type()==='error'&&/hydration|hydrated|didn.t match/i.test(message.text()))errors.push(message.text());});
+ try {
+  await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:manager.email,password:manager.password}});
+  for(const width of [320,390,768,1440]) {
+   await page.setViewportSize({width,height:900});await page.goto(url+'/admin/dashboard/commerce/coupons');await page.waitForLoadState('networkidle');
+   verify(await page.locator('tbody tr').count()<=5,'Admin commerce shows at most five records at '+width);
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin commerce fits '+width);
+   await page.locator('.lms-admin-table-wrap').scrollIntoViewIfNeeded();await expect(page.locator('.lms-admin-table-wrap')).toHaveCSS('opacity','1');verify(true,'Commerce records reveal on screen at '+width);await page.evaluate(()=>scrollTo(0,0));
+   if([390,1440].includes(width)){fs.mkdirSync('docs/evidence/commerce',{recursive:true});await page.screenshot({path:`docs/evidence/commerce/admin-coupons-${width}.png`,fullPage:true});}
+   await page.getByRole('button',{name:'إضافة جديد',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();
+   verify(await page.getByRole('dialog').evaluate(el=>el.getBoundingClientRect().left>=0&&el.getBoundingClientRect().right<=innerWidth),'Commerce dialog fits '+width);
+   await page.getByRole('button',{name:'إغلاق',exact:true}).click();
+  }
+  await page.setViewportSize({width:1440,height:1000});await page.goto(url+'/admin/dashboard/commerce/bundles');await page.waitForLoadState('networkidle');
+  await page.getByRole('button',{name:'تعديل',exact:true}).first().click();await expect(page.getByLabel('سعر الباقة (ج.م)')).toHaveValue('1200');
+  verify(await page.getByRole('checkbox',{name:'مفعّل',exact:true}).isChecked(),'Edit modal preserves bundle fields');
+  await page.getByRole('button',{name:'إغلاق',exact:true}).click();
+  await page.goto(url+'/admin/dashboard/commerce/coupons');await page.waitForLoadState('networkidle');
+  const scheduled=page.locator('tbody tr').filter({hasText:'LATER_'});await scheduled.getByRole('button',{name:'تعديل',exact:true}).click();
+  const date=page.locator('input[name="startsAt"]');await expect(date).not.toHaveValue('');
+  const scheduledRecord=JSON.parse((await manager.api('/api/admin/commerce/coupons')).data).records.find(record=>record.key.startsWith('LATER_'));
+  const roundTrip=await date.evaluate(el=>new Date(el.value).toISOString());verify(Math.abs(Date.parse(roundTrip)-Date.parse(scheduledRecord.startsAt))<60000,'Cairo-local date preserves stored campaign instant after hydration');
+  await page.getByRole('button',{name:'إغلاق',exact:true}).click();
+  const uiCode='UI_'+require('node:crypto').randomUUID().replaceAll('-','').slice(0,12).toUpperCase();
+  await page.getByRole('button',{name:'إضافة جديد',exact:true}).click();
+  await page.getByLabel('الاسم',{exact:true}).fill('Browser coupon');await page.getByLabel('الرابط أو كود الكوبون',{exact:true}).fill(uiCode);
+  await page.getByRole('checkbox',{name:'مفعّل',exact:true}).check();await page.getByRole('dialog').getByRole('button',{name:'حفظ',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByLabel('بحث بالاسم أو الكود').fill(uiCode);await page.getByRole('button',{name:'تطبيق',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);
+  verify(true,'Browser creates coupon and combined search finds it');
+  await page.getByRole('button',{name:'حذف',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'حذف',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('tbody tr')).toHaveCount(0);
+  verify(true,'Browser deletes unused coupon through confirmation dialog');
+  await page.goto(url+'/admin/dashboard/sales');await expect(page.getByRole('heading',{name:'المبيعات',exact:true})).toBeVisible();verify(await page.locator('tbody tr').count()<=5,'Admin sales table uses real paginated orders');
+  await page.context().request.post(url+'/api/auth/logout',{headers:{Origin:url},data:{}});
+  await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:user.email,password:user.password}});
+  for(const width of [320,390,768,1440]) {
+   await page.setViewportSize({width,height:900});await page.goto(url+'/checkout/'+bundleSlug+'?kind=bundle');await page.waitForLoadState('networkidle');
+   await expect(page.getByLabel('كود الخصم',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'الانتقال للدفع الآمن',exact:true})).toBeVisible();
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Bundle checkout fits '+width);
+   const input=page.getByLabel('كود الخصم',{exact:true});verify(await input.evaluate(el=>getComputedStyle(el).backgroundColor==='rgb(16, 19, 23)'&&el.getBoundingClientRect().height>=44),'Coupon field uses shared dark input at '+width);
+   if(width===390) await page.screenshot({path:'docs/evidence/commerce/checkout-390.png',fullPage:true});
+  }
+  await page.getByLabel('كود الخصم',{exact:true}).fill(coupon);await page.getByRole('button',{name:'تطبيق الكوبون',exact:true}).click();
+  await expect(page.getByText('خصم الكوبون',{exact:true})).toBeVisible();await expect(page.locator('.lms-payment-total dd')).toHaveText('1100 ج.م');
+  verify(true,'Applying coupon visibly updates checkout breakdown');
+  await page.getByRole('button',{name:new RegExp('إزالة الكوبون')}).click();await expect(page.locator('.lms-payment-total dd')).toHaveText('1200 ج.م');
+  verify(true,'Removing coupon restores current bundle total');
+  fs.mkdirSync('docs/evidence/commerce',{recursive:true});await page.screenshot({path:'docs/evidence/commerce/checkout-1440.png',fullPage:true});
+  await page.goto(url+'/bundles/'+bundleSlug);await expect(page.locator('.lms-bundle-card li')).toHaveCount(2);verify(true,'Bundle detail lists included courses with individual links');
+  verify(errors.length===0,'Commerce pages have no hydration or runtime errors');
+ } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/commerce.cjs`
+
+SHA-256: `c36bb2066d5fedd68ff751ad345f285e5c996a03472da171e94e55c63cc85626`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local commerce fixtures; mock gateway never charges. */
+const assert=require('node:assert/strict'),{randomUUID,createHmac}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url,gateway})=>{
+ const manager=await provision('Commerce Manager'),buyer=await provision('Commerce Buyer'),other=await provision('Commerce Other');
+ await admin.from('admin_users').insert({user_id:manager.id});
+ const suffix=randomUUID(),slugs=[`sale-a-${suffix}`,`sale-b-${suffix}`],bundleSlug=`bundle-${suffix}`;
+ const template=(await admin.from('courses').select('*').eq('slug','editing-foundations').single()).data;
+ const base={key:'',title:'اختبار',description:'عرض تجريبي محلي',amountMinor:120000,courseSlugs:slugs,courseSlug:null,bundleSlug:null,discountType:'percent',discountValue:10,startsAt:null,endsAt:null,enabled:true,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0};
+ const coupon=`TEST_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`,offer=`offer-${suffix}`;
+ const parse=r=>JSON.parse(r.data),save=(kind,patch)=>manager.api('/api/admin/commerce/'+kind,{...base,...patch});
+ const quote=(api,input)=>api('/api/payments/quote',input),checkout=(api,input)=>api('/api/payments/checkout',input);
+ const rows=await admin.from('courses').insert(slugs.map((slug,i)=>({slug,amount:i ? 600 : 1000,published:true,metadata:{...template.metadata,slug,title:`Commerce ${i}`,offer:{...template.metadata.offer,amount:i ? 600 : 1000}}})));assert.ok(!rows.error);
+ const order=async id=>(await admin.from('payment_orders').select('*').eq('id',id).single()).data;
+ const pay=async o=>{const tr=gateway.transactions.get(o.provider_intent_key);tr.paid=1;const body={transaction_key:o.provider_intent_key,transaction_id:tr.transaction_id,payment_method:'Fawry'};body.transactionHashKey=createHmac('sha256','local-payment-hmac').update(`TransactionId=${body.transaction_id}&TransactionKey=${body.transaction_key}&PaymentMethod=${body.payment_method}`).digest('hex');return fetch(url+'/api/payments/fawaterak/webhook_json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});};
+ try {
+  verify((await anonymous('/api/admin/commerce/coupons')).status===401,'Commerce administration denies guests');
+  verify((await buyer.api('/api/admin/commerce/coupons')).status===403,'Student cannot read coupon configuration');
+  verify((await buyer.direct.from('commerce_discounts').select('*')).error,'Direct authenticated Data API cannot read coupons');
+  verify((await buyer.direct.rpc('quote_commerce',{p_kind:'course',p_slug:slugs[0]})).error,'Direct RPC cannot impersonate another buyer');
+  verify((await save('bundles',{key:bundleSlug})).status===200,'Admin creates normalized course bundle');
+  verify((await manager.api('/api/admin/courses/'+slugs[0]+'/delete',{confirmSlug:slugs[0]})).status===409,'Course in bundle is protected from deletion');
+  verify((await save('offers',{key:offer,courseSlug:slugs[0]})).status===200,'Admin creates course sale');
+  verify((await save('offers',{key:`duplicate-${suffix}`,courseSlug:slugs[0]})).status===409,'Only one enabled offer per product');
+  verify((await save('coupons',{key:coupon,discountType:'fixed',discountValue:10000,stackable:true})).status===200,'Admin creates a fixed coupon allowing offers');
+  let q=parse(await quote(buyer.api,{courseSlug:slugs[0],couponCode:coupon.toLowerCase()}));
+  verify(q.baseMinor===100000&&q.offerMinor===10000&&q.couponMinor===10000&&q.totalMinor===80000,'Offer and coupon use canonical minor units, case-insensitive code');
+  const notStack=`NOSTACK_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`;
+  await save('coupons',{key:notStack});verify((await quote(buyer.api,{courseSlug:slugs[0],couponCode:notStack})).status===400,'Coupon can prohibit combining with course offers');
+  const scoped=`SCOPE_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`;
+  await save('coupons',{key:scoped,courseSlug:slugs[1],minimumMinor:70000});verify((await quote(buyer.api,{courseSlug:slugs[0],couponCode:scoped})).status===400,'Course coupon cannot be applied to a different course');
+  verify((await quote(buyer.api,{courseSlug:slugs[1],couponCode:scoped})).status===400,'Minimum spend uses the applicable order subtotal');
+  const later=`LATER_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`;
+  await save('coupons',{key:later,startsAt:new Date(Date.now()+60000).toISOString()});verify((await quote(buyer.api,{bundleSlug,couponCode:later})).status===400,'Scheduled coupon stays unavailable before its start');
+  const catalog=parse(await anonymous('/api/courses')).courses.find(course=>course.slug===slugs[0]);
+  verify(catalog.offer.amount===900&&catalog.offer.baseAmount===1000,'Catalog exposes real original and sale prices');
+  verify((await quote(anonymous,{courseSlug:slugs[0],couponCode:coupon})).status===401,'Coupon quote requires a session');
+  verify((await quote(buyer.api,{courseSlug:slugs[0],couponCode:"x');drop table courses;--"})).status===400,'Coupon injection payload rejected at boundary');
+  verify((await checkout(buyer.api,{courseSlug:slugs[0],amount:1})).status===400,'Client cannot supply a price');
+  const stale=await checkout(buyer.api,{courseSlug:slugs[0],expectedTotalMinor:1});
+  verify(stale.status===409,'Stale or forged expected total never becomes charged amount');
+  verify((await checkout(buyer.api,{courseSlug:slugs[0],bundleSlug})).status===400,'Ambiguous product rejected');
+  const first=parse(await checkout(buyer.api,{courseSlug:slugs[0],couponCode:coupon,expectedTotalMinor:80000}));
+  const o=await order(first.orderId);verify(o.amount_minor===80000&&gateway.transactions.get(o.provider_intent_key).request.cartTotal===800,'Gateway receives discounted persisted price');
+  verify((await checkout(buyer.api,{courseSlug:slugs[0]})).status===409,'Changing coupon cannot silently reuse differently priced order');
+  verify((await checkout(buyer.api,{bundleSlug})).status===409,'Pending course blocks overlapping bundle charge');
+  verify((await buyer.api('/api/admin/sales')).status===403,'Students cannot view sales');
+  const sales=parse(await manager.api('/api/admin/sales'));verify(sales.records.some(r=>r.id===o.id&&r.amountMinor===80000)&&!JSON.stringify(sales).includes(o.provider_intent_key),'Admin sales shows discounted amount without provider secrets');
+  verify((await buyer.api('/api/payments/'+o.id)).status===200&&(await other.api('/api/payments/'+o.id)).status===404,'Discounted receipt remains owner-only');
+  verify((await pay(o)).status===200&&(await pay(o)).status===200,'Verified provider settlement and replay succeed');
+  verify((await admin.from('enrollments').select('*').eq('user_id',buyer.id).in('course_slug',slugs)).data.length===1,'Course settlement grants exactly one enrollment');
+  verify((await quote(buyer.api,{courseSlug:slugs[1],couponCode:coupon})).status===400,'Per-user coupon limit applies across courses');
+  const bundled=parse(await checkout(other.api,{bundleSlug,expectedTotalMinor:120000})),bo=await order(bundled.orderId);
+  verify(bo.course_slug===null&&bo.bundle_slug===bundleSlug&&bo.pricing_snapshot.courseSlugs.length===2,'Bundle order saves all courses and original product');
+  verify((await pay(bo)).status===200,'Bundle payment settles through existing verified webhook');
+  verify((await admin.from('enrollments').select('*').eq('user_id',other.id).in('course_slug',slugs)).data.length===2,'Paid bundle atomically grants all included courses');
+  verify(parse(await other.api('/api/payments/'+bo.id)).enrolled,'Bundle receipt confirms all courses, not just first');
+  verify((await checkout(other.api,{bundleSlug})).status===409,'Already owned bundle cannot charge twice');
+  const freeUser=await provision('Free Coupon Buyer');
+  const free=`FREE_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`;
+  verify((await save('coupons',{key:free,discountValue:100,bundleSlug,maximumUses:1})).status===200,'Create 100% bundle coupon');
+  const before=gateway.counts().created,freeCheckout=parse(await checkout(freeUser.api,{bundleSlug,couponCode:free}));
+  verify(freeCheckout.checkoutUrl.startsWith('/payments/')&&gateway.counts().created===before,'Zero-total checkout does not contact provider');
+  verify((await admin.from('enrollments').select('*').eq('user_id',freeUser.id).in('course_slug',slugs)).data.length===2,'100% coupon grants bundle atomically to verified buyer');
+  const raceA=await provision('Coupon Race A'),raceB=await provision('Coupon Race B'),single=`ONE_${suffix.replaceAll('-','').slice(0,12).toUpperCase()}`;
+  await save('coupons',{key:single,maximumUses:1});
+  const races=await Promise.all([checkout(raceA.api,{courseSlug:slugs[1],couponCode:single}),checkout(raceB.api,{courseSlug:slugs[1],couponCode:single})]);
+  verify(races.filter(r=>r.status===200).length===1&&races.filter(r=>r.status===400).length===1,'Concurrent final coupon redemption has one winner');
+  const winner=parse(races.find(r=>r.status===200)),winnerOrder=await order(winner.orderId);
+  await admin.from('payment_orders').update({expires_at:new Date(Date.now()-1000).toISOString(),status:'expired'}).eq('id',winner.orderId);
+  verify((await quote(buyer.api,{courseSlug:slugs[1],couponCode:single})).status===400,'Provider intent keeps final coupon slot reserved after local expiry');
+  await admin.from('payment_orders').update({status:'failed'}).eq('id',winnerOrder.id);
+  verify((await quote(buyer.api,{courseSlug:slugs[1],couponCode:single})).status===200,'Confirmed failed payment releases coupon reservation');
+  const old=(await manager.api('/api/admin/commerce/offers')).data,record=JSON.parse(old).records.find(r=>r.key===offer);
+  verify((await save('offers',{...record,enabled:false})).status===200,'Admin can disable an offer without touching receipts');
+  verify((await save('offers',{...record,title:'stale edit'})).status===409,'Optimistic revision rejects stale overwrites');
+  verify((await quote(raceB.api,{courseSlug:slugs[0]})).status===200,'Disabled offer falls back to base course pricing');
+  verify((await manager.api('/api/admin/commerce/bundles',{key:bundleSlug,revision:1},{method:'DELETE'})).status===409,'Bundles used by payments cannot be deleted');
+  verify((await save('offers',{key:`expired-${suffix}`,courseSlug:slugs[0],endsAt:new Date(Date.now()-60000).toISOString()})).status===200,'Admin can retain an expired campaign');
+  verify(parse(await quote(raceB.api,{courseSlug:slugs[0]})).totalMinor===100000,'Expired campaign does not change total');
+  await save('offers',{key:`expired-${suffix}`,courseSlug:slugs[0],revision:1,enabled:false});
+  verify((await save('offers',{key:`free-offer-${suffix}`,courseSlug:slugs[0],discountValue:100})).status===200,'Admin can offer a course at zero checkout total');
+  const freeOfferUser=await provision('Zero Sale Buyer'),beforeSale=gateway.counts().created,zero=await checkout(freeOfferUser.api,{courseSlug:slugs[0],expectedTotalMinor:0});
+  verify(zero.status===200&&gateway.counts().created===beforeSale,'Zero course offer uses verified checkout without a provider charge');
+  verify((await admin.from('enrollments').select('*').eq('user_id',freeOfferUser.id).eq('course_slug',slugs[0])).data.length===1,'Zero sale grants only the purchased course');
+  verify((await save('coupons',{key:`BAD_${suffix.slice(0,8).toUpperCase()}`,discountValue:101})).status===400,'Invalid percentage rejected');
+  verify((await manager.api('/api/admin/commerce/coupons',{...base,key:'CSRF'},{headers:{Origin:'https://evil.example'}})).status===403,'Commerce mutations reject cross-origin requests');
+  await require('./commerce-browser.cjs')({manager,user:await provision('Commerce Browser Buyer'),bundleSlug,coupon,slugs,url,verify});
+ } finally {
+  await admin.from('payment_orders').delete().or(`course_slug.in.(${slugs.join(',')}),bundle_slug.eq.${bundleSlug}`);
+  await admin.from('commerce_discounts').delete().or(`course_slug.in.(${slugs.join(',')}),bundle_slug.eq.${bundleSlug},key.eq.${coupon}`);
+  await admin.from('commerce_discounts').delete().like('key',`%${suffix.replaceAll('-','').slice(0,12).toUpperCase()}%`);
+  await admin.from('commerce_bundles').delete().eq('slug',bundleSlug);
+  await admin.from('courses').delete().in('slug',slugs);
+ }
+};
+```
+
 ### File: `tests/backend/course-contracts.test.ts`
 
 SHA-256: `e8f7c7630a3c98cf29ab7b1e7be461ae0ad04c34d1bf34816491ecb9ad2d5009`
@@ -32188,7 +33415,7 @@ test("Creation rejects invalid media or duration values", () => {
 
 ### File: `tests/backend/course-details-browser.cjs`
 
-SHA-256: `d486fb6d108898eb8a064195954e43896bf3b4b649116e371f23bf199cbc3fde`
+SHA-256: `72aa4d6888da36ca1c5c5205eff10c8e7ad7011f6e1cb12f46ebe070d01cad08`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Responsive shared course details and real enrollment state. */
@@ -32214,7 +33441,7 @@ module.exports=async({manager,student,admin,course,liveSlug,url,verify})=>{
    if(width===390||width===1440){for(const section of await page.locator('main [data-reveal]').all()){await section.scrollIntoViewIfNeeded();await expect(section).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-details-${width}.png`,fullPage:true});}
   }
   await page.setViewportSize({width:1440,height:1000});await page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true}).click();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(1);verify(sdk===1,'Custom shared player accepts YouTube intro links');
-  await page.evaluate(()=>window.__customPlayerTest.players[0].emit(0));await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toBeVisible();verify(await page.locator('.lms-course-intro iframe').count()===0,'Finished intro returns to thumbnail and releases iframe');
+  await page.waitForFunction(()=>Boolean(window.__customPlayerTest?.players?.length));await page.evaluate(()=>window.__customPlayerTest.players[0].emit(0));await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toBeVisible();verify(await page.locator('.lms-course-intro iframe').count()===0,'Finished intro returns to thumbnail and releases iframe');
   await page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true}).click();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(1);await page.locator('footer').scrollIntoViewIfNeeded();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(0);verify(true,'Off-screen intro resets and disposes playback');
   await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
   await page.goto(url+'/courses/'+course.slug);await page.getByRole('button',{name:'اشترك الآن',exact:true}).click();await expect(page).toHaveURL(url+'/checkout/'+course.slug);verify(true,'Purchase action reaches existing checkout without charging');
@@ -32883,7 +34110,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `400ea0be7f7b153ac3c0217ded17fd94fbbd1342d9fc52d146dba1780c101e92`
+SHA-256: `a886d91263af6ae5083a75b8d9926c4d1cf78ad9226af9d47421cc376e601473`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -32897,7 +34124,7 @@ if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) thro
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
-if(process.env.BACKEND_SUITE === 'payments') {
+if(['payments','commerce'].includes(process.env.BACKEND_SUITE)) {
  paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
  Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
 }
@@ -32912,7 +34139,7 @@ function account() {
   return async (path, body, options = {}) => {
     const headers = { Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join('; '), ...options.headers };
     if (body !== undefined) { if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
-    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
+    const response = await fetch(url + path, { ...options, headers, method: options.method ?? (body === undefined ? 'GET' : 'POST'), body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
     for (const value of response.headers.getSetCookie()) {
       const [pair] = value.split(';'); const index = pair.indexOf('='); cookies.set(pair.slice(0,index), pair.slice(index + 1));
     }
@@ -32946,6 +34173,9 @@ async function run() {
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
+  if (process.env.BACKEND_SUITE === 'commerce') {
+    await require('./commerce.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock,config});return;
   }
   if (process.env.BACKEND_SUITE === 'payments') {
     await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
@@ -38047,6 +39277,49 @@ test("Reject foreign origins, credentials, invalid intents, and unrelated paths"
     assert.throws(() => readCheckoutLink({ intent_key, url }, origin), { code: "PAYMENTS_UNAVAILABLE" });
   for (const invalid of ["", "bad intent", "../escape", "x".repeat(129), null])
     assert.throws(() => readCheckoutLink({ intent_key: invalid, url: `${origin}/ts/a` }, origin), { code: "PAYMENTS_UNAVAILABLE" });
+});
+```
+
+### File: `tests/security/commerce.test.ts`
+
+SHA-256: `db691573a1f45de7004a61082d2385aa1629461de16d332ec0de44d782539816`
+
+```typescript
+import test from "node:test";
+import assert from "node:assert/strict";
+import { validatePurchase } from "../../modules/features/commerce/helpers/validate-purchase";
+import { validateCommerceRecord } from "../../modules/features/commerce/helpers/validate-record";
+import { emptyCommerceRecord } from "../../modules/features/commerce/helpers/empty-record";
+import { readCommerceForm } from "../../modules/features/commerce/helpers/read-form";
+import { offerBaseAmount } from "../../modules/features/commerce/helpers/offer-base-amount";
+import { paymentCourseSlugs } from "../../modules/features/payments/helpers/order-courses";
+test("purchase boundary accepts exactly one product and optional canonical coupon",()=>{
+ assert.deepEqual(validatePurchase({courseSlug:'motion-essentials',couponCode:'save_10',expectedTotalMinor:80000}),{courseSlug:'motion-essentials',couponCode:'SAVE_10',expectedTotalMinor:80000});
+ for(const input of [{},{courseSlug:'a',bundleSlug:'b'},{courseSlug:'a',amount:1},{courseSlug:'a',expectedTotalMinor:-1},{courseSlug:'a',expectedTotalMinor:1.2},{courseSlug:'../a'},{bundleSlug:'a',couponCode:"x' OR 1=1"}]) assert.equal(validatePurchase(input),null);
+});
+test("bundle records require distinct existing-style slug identifiers and positive whole-unit price",()=>{
+ const input={...emptyCommerceRecord(),key:'my-bundle',title:'باقة',amountMinor:10000,courseSlugs:['editing','motion']};
+ assert.ok(validateCommerceRecord('bundles',input));
+ for(const patch of [{courseSlugs:['editing']},{courseSlugs:['editing','editing']},{amountMinor:0},{amountMinor:1.5},{enabled:'true'}]) assert.equal(validateCommerceRecord('bundles',{...input,...patch}),null);
+});
+test("discounts validate target, percentage, limits and date ordering",()=>{
+ const input={...emptyCommerceRecord(),key:'SAVE10',title:'خصم',discountValue:10};
+ assert.ok(validateCommerceRecord('coupons',input));assert.equal(validateCommerceRecord('offers',{...input,key:'offer'}),null);
+ for(const patch of [{discountValue:101},{discountValue:-1},{maximumUses:0},{perUserLimit:0},{courseSlug:'editing',bundleSlug:'bundle'},{startsAt:'2026-10-13T00:00:00Z',endsAt:'2026-10-12T00:00:00Z'}]) assert.equal(validateCommerceRecord('coupons',{...input,...patch}),null);
+});
+test("form decoder converts fixed monetary discounts to cents and optional limits to null",()=>{
+ const form=new FormData();for(const [key,value] of Object.entries({key:'FIXED',title:'عرض',description:'',discountType:'fixed',discountValue:'100',minimum:'500',perUserLimit:'1',target:'bundle:my-bundle',enabled:'on'}))form.set(key,value);
+ const input=readCommerceForm(form,emptyCommerceRecord());assert.equal(input.discountValue,10000);assert.equal(input.minimumMinor,50000);assert.equal(input.maximumUses,null);assert.equal(input.bundleSlug,'my-bundle');assert.equal(input.enabled,true);
+});
+test("receipts use purchased course snapshot and retain legacy single-course fallback",()=>{
+ assert.deepEqual(paymentCourseSlugs({course_slug:null,pricing_snapshot:{courseSlugs:['editing','motion']}}),['editing','motion']);
+ assert.deepEqual(paymentCourseSlugs({course_slug:'editing'}),['editing']);
+ assert.deepEqual(paymentCourseSlugs({course_slug:null,pricing_snapshot:'invalid'}),[]);
+});
+
+test("zero-total sales retain original paid-product checkout semantics",()=>{
+ assert.equal(offerBaseAmount({amount:0,baseAmount:500,currencyLabel:'',caption:'',actionLabel:''}),500);
+ assert.equal(offerBaseAmount({amount:0,currencyLabel:'',caption:'',actionLabel:''}),0);
 });
 ```
 

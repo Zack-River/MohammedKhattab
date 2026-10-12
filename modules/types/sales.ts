@@ -1,0 +1,2 @@
+export interface SaleRecord { id:string; title:string; amountMinor:number; createdAt:string; paidAt:string | null; status:string; live:boolean; username:string | null; name:string; bundle:boolean; couponCode:string | null; discountMinor:number; }
+export interface SalesLabels { heading:string; search:string; status:string; all:string; apply:string; clear:string; customer:string; product:string; amount:string; date:string; discount:string; noCustomer:string; test:string; live:string; empty:string; previous:string; next:string; currency:string; states:Record<string,string>; }

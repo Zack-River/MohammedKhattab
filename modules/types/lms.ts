@@ -19,6 +19,9 @@ export interface CourseModule {
   lessons: Lesson[];
 }
 export interface CourseOffer {
+  baseAmount?: number;
+  saleTitle?: string;
+  saleEndsAt?: string | null;
   amountLabel?: string;
   amount: number;
   currencyLabel: string;

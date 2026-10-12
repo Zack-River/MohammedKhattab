@@ -14,6 +14,7 @@ export default function CoursePrice({
     <div className={`lms-course-price${compact ? " lms-price-compact" : ""}`}>
       <div>
         {!compact && <span className="lms-price-label">{offerCopy.price}</span>}
+        {offer.baseAmount !== undefined && offer.baseAmount > offer.amount && <del className="lms-price-original numeral">{offer.baseAmount} {offer.currencyLabel}</del>}
         <strong>
           {offer.amountLabel ?? <><bdi className="numeral">{offer.amount}</bdi>{" "}<small>{offer.currencyLabel}</small></>}
         </strong>

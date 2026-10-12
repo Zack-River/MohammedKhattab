@@ -18,6 +18,10 @@ export const sectionIds = {
   courseContent: "course-content",
 } as const;
 export const routes = {
+  bundles: "/bundles",
+  bundle: (slug: string) => `/bundles/${segment(slug)}`,
+  bundleCheckout: (slug: string) => `/checkout/${segment(slug)}?kind=bundle`,
+  adminCommerce: (kind = "bundles") => `/admin/dashboard/commerce/${segment(kind)}`,
   payment: (id: string) => `/payments/${segment(id)}`,
   checkout: (slug: string) => `/checkout/${segment(slug)}`,
   home: projectRoutes.learning,
@@ -36,6 +40,7 @@ export const routes = {
   profile: `${learningBase}/dashboard/profile`,
   settings: `${learningBase}/dashboard/settings`,
   admin: "/admin/dashboard/courses",
+  adminSales: "/admin/dashboard/sales",
   adminDashboard: "/admin/dashboard",
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
@@ -63,12 +68,15 @@ export const routes = {
   },
 };
 export const endpoints = {
+  paymentQuote: "/api/payments/quote",
+  adminCommerce: (kind: string) => `/api/admin/commerce/${segment(kind)}`,
   paymentCheckout: "/api/payments/checkout",
   paymentStatus: (id: string) => `/api/payments/${segment(id)}`,
   paymentReconcile: (id: string) => `${endpoints.paymentStatus(id)}/reconcile`,
   adminCourses: "/api/admin/courses",
   adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",
+  adminSales: "/api/admin/sales",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,

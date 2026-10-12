@@ -4,16 +4,20 @@ import { paymentRequest } from "@platform/features/payments/client/request";
 import { endpoints } from "@platform/config/navigation";
 import Action from "@khatab/design/ui/action";
 export default function CheckoutButton({
-  slug,
+  input,
+  totalMinor,
+  disabled = false,
   labels,
 }: {
-  slug: string;
+  input: import("@platform/types/commerce").PurchaseInput;
+  totalMinor: number;
+  disabled?: boolean;
   labels: { pay: string; pending: string; error: string };
 }) {
   const command = useAsyncCommand(labels.error);
   const checkout = () =>
     command.run(async () => {
-      const result = await paymentRequest<{ checkoutUrl: string }>(endpoints.paymentCheckout, { courseSlug: slug });
+      const result = await paymentRequest<{ checkoutUrl: string }>(endpoints.paymentCheckout, { ...input, expectedTotalMinor: totalMinor });
       window.location.assign(result.checkoutUrl);
     });
   return (
@@ -22,7 +26,7 @@ export default function CheckoutButton({
         kind="button"
         type="button"
         className="btn-primary lms-full-button"
-        disabled={command.pending}
+        disabled={command.pending || disabled}
         onClick={checkout}
       >
         {command.pending ? labels.pending : labels.pay}

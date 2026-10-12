@@ -10,6 +10,7 @@ import EmptyState from "@platform/components/ui/empty-state";
 import PageHeading from "@platform/components/ui/page-heading";
 import { listCourses } from "@platform/features/catalog";
 import { copy } from "@platform/data/site";
+import BundlesCatalog from "@platform/features/commerce/bundles-catalog";
 export const metadata = { title: interfaceCopy.courseBreadcrumb };
 export default async function CoursesPage({
   searchParams,
@@ -61,6 +62,7 @@ export default async function CoursesPage({
           label={copy.reset}
         />
       )}
+      <Suspense><BundlesCatalog /></Suspense>
     </main>
   );
 }

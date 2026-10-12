@@ -24,7 +24,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ orderI
           initial={await readPaymentReceipt(order)}
           labels={labels}
           libraryHref={routes.library}
-          retryHref={routes.checkout(order.course_slug)}
+          retryHref={order.bundle_slug ? routes.bundleCheckout(order.bundle_slug) : routes.checkout(order.course_slug!)}
           settingsHref={routes.settings}
         />
       </div>

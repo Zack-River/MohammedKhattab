@@ -1,7 +1,9 @@
 export interface PaymentOrder {
   id: string;
   user_id: string | null;
-  course_slug: string;
+  course_slug: string | null;
+  bundle_slug?: string | null;
+  pricing_snapshot?: import("@platform/types/database").Json;
   course_title: string;
   amount_minor: number;
   currency: string;

@@ -1,3 +1,4 @@
+import { offerBaseAmount } from "@platform/features/commerce/helpers/offer-base-amount";
 import { routes } from "@platform/config/navigation";
 import type { MarketingPageContent } from "@khatab/design/types/marketing";
 import type { Course } from "@platform/types/lms";
@@ -10,7 +11,7 @@ export function workshopCourseContent(
   defaults: Course,
 ): MarketingPageContent {
   const action =
-    course.offer.amount > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
+    offerBaseAmount(course.offer) > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
   return {
     ...content,
     header: { ...content.header, action: action ?? content.header.action },

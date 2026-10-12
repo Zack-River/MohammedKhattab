@@ -93,6 +93,72 @@ export type Database = {
                   Relationships: [
 
                   ]
+                },"commerce_bundle_courses": {
+                  Row: {
+                    "bundle_slug": string,"course_slug": string,"position": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bundle_slug": string,"course_slug": string,"position": number
+                  }
+                  Update: {
+                    "bundle_slug"?: string,"course_slug"?: string,"position"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commerce_bundle_courses_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "commerce_bundle_courses_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
+                },"commerce_bundles": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"commerce_discounts": {
+                  Row: {
+                    "bundle_slug": string | null,"course_slug": string | null,"created_at": string,"description": string,"discount_type": string,"discount_value": number,"enabled": boolean,"ends_at": string | null,"id": string,"key": string,"kind": string,"maximum_uses": number | null,"minimum_minor": number,"per_user_limit": number,"revision": number,"stackable": boolean,"starts_at": string | null,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"created_at"?: string,"description"?: string,"discount_type": string,"discount_value": number,"enabled"?: boolean,"ends_at"?: string | null,"id"?: string,"key": string,"kind": string,"maximum_uses"?: number | null,"minimum_minor"?: number,"per_user_limit"?: number,"revision"?: number,"stackable"?: boolean,"starts_at"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"created_at"?: string,"description"?: string,"discount_type"?: string,"discount_value"?: number,"enabled"?: boolean,"ends_at"?: string | null,"id"?: string,"key"?: string,"kind"?: string,"maximum_uses"?: number | null,"minimum_minor"?: number,"per_user_limit"?: number,"revision"?: number,"stackable"?: boolean,"starts_at"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commerce_discounts_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "commerce_discounts_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"courses": {
                   Row: {
                     "amount": number,"created_at": string | null,"metadata": NonNullable<Json>,"position": number,"published": boolean,"revision": number,"slug": string,"updated_at": string | null
@@ -199,19 +265,57 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
-                },"payment_orders": {
+                },"payment_order_items": {
                   Row: {
-                    "amount_minor": number,"checkout_url": string | null,"course_slug": string,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                    "course_slug": string,"order_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_minor": number,"checkout_url"?: string | null,"course_slug": string,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                    "course_slug": string,"order_id": string
                   }
                   Update: {
-                    "amount_minor"?: number,"checkout_url"?: string | null,"course_slug"?: string,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                    "course_slug"?: string,"order_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "payment_order_items_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "payment_order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "payment_orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payment_orders": {
+                  Row: {
+                    "amount_minor": number,"bundle_slug": string | null,"checkout_url": string | null,"coupon_id": string | null,"course_slug": string | null,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"pricing_snapshot": Json | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"bundle_slug"?: string | null,"checkout_url"?: string | null,"coupon_id"?: string | null,"course_slug"?: string | null,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"pricing_snapshot"?: Json | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "amount_minor"?: number,"bundle_slug"?: string | null,"checkout_url"?: string | null,"coupon_id"?: string | null,"course_slug"?: string | null,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"pricing_snapshot"?: Json | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_orders_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: false
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
+      foreignKeyName: "payment_orders_coupon_id_fkey"
+      columns: ["coupon_id"]
+isOneToOne: false
+      referencedRelation: "commerce_discounts"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "payment_orders_course_slug_fkey"
       columns: ["course_slug"]
 isOneToOne: false
@@ -259,11 +363,20 @@ isOneToOne: false
 "admin_dashboard_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"begin_commerce_payment":
+{ Args: { "p_coupon": string,"p_expected"?: number,"p_kind": string,"p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
+                           },
 "begin_course_payment":
 { Args: { "p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
                            },
+"catalog_offer_prices":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "claim_payment_check":
 { Args: { "p_order": string }; Returns: boolean
+                           },
+"commerce_bundle_catalog":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
@@ -277,17 +390,29 @@ isOneToOne: false
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
                            },
+"delete_commerce_record":
+{ Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
+                           },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
                            },
+"quote_commerce":
+{ Args: { "p_coupon"?: string,"p_kind": string,"p_slug": string,"p_user"?: string }; Returns: Json
+                           },
 "save_account_settings":
 { Args: { "p_first_name": string,"p_last_name": string,"p_phone": string,"p_user_id": string,"p_username": string }; Returns: undefined
                            },
 "save_admin_curriculum":
 { Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
+                           },
+"save_commerce_bundle":
+{ Args: { "p_input": Json }; Returns: undefined
+                           },
+"save_commerce_discount":
+{ Args: { "p_input": Json,"p_kind": string }; Returns: undefined
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json

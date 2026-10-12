@@ -9,7 +9,7 @@ if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) thro
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
-if(process.env.BACKEND_SUITE === 'payments') {
+if(['payments','commerce'].includes(process.env.BACKEND_SUITE)) {
  paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
  Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
 }
@@ -24,7 +24,7 @@ function account() {
   return async (path, body, options = {}) => {
     const headers = { Cookie: [...cookies].map(([k,v]) => `${k}=${v}`).join('; '), ...options.headers };
     if (body !== undefined) { if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json'; headers.Origin ??= url; }
-    const response = await fetch(url + path, { ...options, headers, method: body === undefined ? 'GET' : 'POST', body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
+    const response = await fetch(url + path, { ...options, headers, method: options.method ?? (body === undefined ? 'GET' : 'POST'), body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body), redirect: 'manual' });
     for (const value of response.headers.getSetCookie()) {
       const [pair] = value.split(';'); const index = pair.indexOf('='); cookies.set(pair.slice(0,index), pair.slice(index + 1));
     }
@@ -58,6 +58,9 @@ async function run() {
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
+  if (process.env.BACKEND_SUITE === 'commerce') {
+    await require('./commerce.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock,config});return;
   }
   if (process.env.BACKEND_SUITE === 'payments') {
     await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
