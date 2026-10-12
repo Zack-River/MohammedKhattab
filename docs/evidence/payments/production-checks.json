@@ -1,0 +1,31 @@
+{
+  "commit": "6631f95",
+  "checkedAt": "2026-10-12T13:01:10.377Z",
+  "checks": [
+    {
+      "path": "/api/courses",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/api/payments/checkout",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/payments/11111111-1111-1111-1111-111111111111",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/checkout/7days-freelance",
+      "loginProtected": true
+    },
+    {
+      "path": "/api/payments/fawaterak/webhook_json",
+      "status": 401,
+      "code": "INVALID_PAYMENT_SIGNATURE",
+      "credentialsConfigured": true
+    }
+  ]
+}
