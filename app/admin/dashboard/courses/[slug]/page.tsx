@@ -1,3 +1,4 @@
+import { templateCopy } from "@platform/data/workshop-template";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { readAdminCourses } from "@platform/features/admin/repositories/courses";
@@ -16,6 +17,6 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
   return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
-    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
+    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} templateLabel={record.course.delivery === "live" ? templateCopy.title : undefined} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
 }

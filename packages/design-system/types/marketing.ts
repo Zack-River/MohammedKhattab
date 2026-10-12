@@ -149,3 +149,6 @@ export interface MarketingPageContent {
   offer: CountdownOptions;
   motion: RevealOptions;
 }
+
+export const workshopSectionKeys = ["hero", "clients", "transformation", "roadmap", "testimonials", "instructor", "guarantee", "faq", "finalCta"] as const;
+export type WorkshopSectionKey = typeof workshopSectionKeys[number];

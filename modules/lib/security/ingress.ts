@@ -1,3 +1,4 @@
+import { isTemplateEndpoint,templatePolicy } from "@platform/config/workshop-template";
 import { sameOrigin } from "@platform/lib/server-request";
 import { endpoints } from "@platform/config/navigation";
 import { imageUploadPolicy } from "@platform/config/image-upload";
@@ -23,7 +24,7 @@ export async function checkIngress(request: NextRequest, requestId: string) {
   }
   if (request.url.length > securityPolicy.maxUrlLength) return denial("INVALID_INPUT", 414, requestId);
   const length = request.headers.get("content-length");
-  const max = request.nextUrl.pathname === endpoints.imageUpload ? imageUploadPolicy.maxRequestBytes : requestPolicy.maxJsonBytes;
+  const max = request.nextUrl.pathname === endpoints.imageUpload ? imageUploadPolicy.maxRequestBytes : isTemplateEndpoint(request.nextUrl.pathname) ? templatePolicy.maxRequestBytes : requestPolicy.maxJsonBytes;
   if (length && (!/^\d+$/.test(length) || Number(length) > max)) return denial("REQUEST_TOO_LARGE", 413, requestId);
   try {
     const budget = await requestBudget(request);

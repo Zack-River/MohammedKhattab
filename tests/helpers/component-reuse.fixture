@@ -14,7 +14,7 @@ runCase("sections render alternate content, assets, counts, identifiers, and act
   const clients = renderToStaticMarkup(<ClientsSection content={{
     ...workshopPage.clients, creators: [{ name: "New creator", platform: "Podcast", image: { src: "/alternate.png", alt: "Alternate portrait", width: 44, height: 44 } }], reels: [],
   }} />);
-  expect(clients.match(/src="\/alternate.png"/g)).toHaveLength(2);
+  expect(clients.match(/src="[^"]*(?:%2Falternate\.png|\/alternate\.png)[^"]*"/g)).toHaveLength(2);
   expect(clients).toContain("Alternate portrait");
   expect(clients).not.toContain('class="reel-card"');
   const roadmap = renderToStaticMarkup(<RoadmapSection content={{ ...workshopPage.roadmap, days: [workshopPage.roadmap.days[0]] }} />);

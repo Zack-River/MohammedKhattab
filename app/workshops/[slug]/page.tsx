@@ -1,10 +1,8 @@
-import { WorkshopPage } from "@/app/components/workshop";
-import { workshopPage } from "@/app/data/workshop";
+import FeaturedWorkshop from "@platform/features/marketing/templates/featured-workshop";
 import { workshopMetadata } from "@/app/config/workshop-metadata";
 import { findCourse } from "@platform/features/catalog/service";
 import { routes } from "@platform/config/navigation";
 import { liveWorkshopCourse } from "@platform/data/workshop-course";
-import { workshopCourseContent } from "@platform/features/marketing/models/workshop-course";
 import { isFeaturedWorkshop } from "@platform/features/catalog/helpers/is-featured-workshop";
 import CourseDetailsPage from "@platform/features/catalog/course-details-page";
 import PublicSiteShell from "@platform/features/marketing/public-site-shell";
@@ -22,5 +20,5 @@ export default async function FreelanceWorkshopPage({ params }: WorkshopParams) 
   const course = await findCourse(slug);
   if (!course || course.delivery !== "live") notFound();
   if (!isFeaturedWorkshop(course)) return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
-  return <WorkshopPage content={workshopCourseContent(workshopPage,course,liveWorkshopCourse)} />;
+  return <FeaturedWorkshop course={course} />;
 }

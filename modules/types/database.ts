@@ -351,6 +351,26 @@ isOneToOne: false
                   Relationships: [
 
                   ]
+                },"workshop_templates": {
+                  Row: {
+                    "course_slug": string,"document": NonNullable<Json>,"revision": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"document": NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "course_slug"?: string,"document"?: NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workshop_templates_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: true
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 }
           }
           Views: {

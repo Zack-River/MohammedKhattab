@@ -1,0 +1,10 @@
+/* Shared theme roles; nested editors never expand the page horizontally. */
+.lms-template-editor { width: 100%; min-width: 0; }
+.lms-template-editor > fieldset { display: grid; gap: var(--space-lg); min-width: 0; }
+.lms-template-fields, .lms-template-list { display: grid; gap: var(--space-md); min-width: 0; }
+.lms-template-editor summary { cursor: pointer; font-weight: var(--font-weight-label); padding-block: var(--space-sm); }
+.lms-template-item { border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-sm); min-width: 0; }
+.lms-template-item-actions, .lms-template-order-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.lms-template-order-row { justify-content: space-between; padding-block: var(--space-xs); }
+.lms-template-editor textarea { resize: vertical; width: 100%; }
+.lms-template-editor .lms-text-link:disabled { color: var(--text-muted); cursor: default; }

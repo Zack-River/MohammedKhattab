@@ -355,3 +355,7 @@ The existing workshop marketing design is reserved for live workshops whose save
 ## Commercial pages (2026-10-12)
 
 Sales, bundles, offers and coupons reuse the administrator table/card reflow, five-row pagination, filters, native modal, shared form fields, custom selects/checkboxes, red actions and existing reveal timing. No commercial-specific palette or dependency was added. The student price summary has one prominent total; it only displays an original subtotal when a discount applies. Course sales strike through the original price using the muted caption role. Bundle cards share dark surfaces, restrained borders, linked course titles and the primary purchase action. Coupon inputs reuse the settings/course form styling, with a full-width input on narrow phones. Pricing and campaign copy is centralized separately from presentation. See `docs/COMMERCE.md`.
+
+## Featured workshop customization (2026-10-13)
+
+Featured live workshops use the shared Ta3llam navbar. Their per-workshop editor changes section text/rich highlights, media, links, records, visibility/order, footer and countdown/signup content. Theme values, stable section IDs, icon geometry and the reveal policy stay shared. Persisted marketing documents do not overwrite course prices or private lesson access. See `docs/WORKSHOP_TEMPLATES.md` for editor, snapshot and security contracts.

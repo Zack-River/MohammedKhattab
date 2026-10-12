@@ -1,12 +1,9 @@
 import RevealContent from "@platform/components/marketing/reveal-content";
-import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
 import { interfaceCopy } from "@platform/data/interface-copy";
-import { marketingNavigation } from "@platform/data/site";
-import { copy } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import SiteHeader from "@platform/components/layout/site-header";
+import { marketingNavigation,copy,site } from "@platform/data/site";
+import MainSiteHeader from "./main-site-header";
 import SiteFooter from "@platform/components/layout/site-footer";
 export default async function PublicSiteShell({
   children,
@@ -15,15 +12,7 @@ export default async function PublicSiteShell({
 }) {
   return (
     <>
-      <SiteHeader
-        account={await readNavigationAccount()}
-        interfaceCopy={{
-          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-        }}
-        marketingNavigation={marketingNavigation}
-        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
-        site={{ name: site.name, englishName: site.englishName }}
-      />
+      <MainSiteHeader />
       <RevealContent as="div">{children}</RevealContent>
       <SiteFooter
         credit={designerCredit}

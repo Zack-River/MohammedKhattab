@@ -533,9 +533,10 @@ export default async function Page({params,searchParams}:{params:Promise<{kind:s
 
 ### File: `app/admin/dashboard/courses/[slug]/content/page.tsx`
 
-SHA-256: `8be201280c7c87e7f08d0244cedc461cd11f4d1b72246db3037173c0024e7c25`
+SHA-256: `e6c23503dda4f24d59b2efdc855225c096e401df36f17d129d8076ed8a19e4e3`
 
 ```tsx
+import { templateCopy } from "@platform/data/workshop-template";
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readAdminCourses, readAdminLessons } from "@platform/features/admin/repositories/courses";
@@ -548,15 +549,16 @@ export default async function CourseContentPage({ params }: { params: Promise<{ 
  await requireAdminPage();const {slug}=await params;
  const [records,lessons]=await Promise.all([readAdminCourses(slug),readAdminLessons(slug)]),record=records[0];
  if (!record) notFound();
- return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} /><CourseContent course={record.course} revision={record.revision} published={record.published} lessons={lessons} labels={curriculumCopy} /></>;
+ return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} templateLabel={record.course.delivery === "live" ? templateCopy.title : undefined} /><CourseContent course={record.course} revision={record.revision} published={record.published} lessons={lessons} labels={curriculumCopy} /></>;
 }
 ```
 
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `605f0ab91274713332fdef6911465ff3184849533a14b393ed4f37e666c930a5`
+SHA-256: `648db356e914fc875c0bb74d72d02e758eef5c20d9472ed155850c53aa00f002`
 
 ```tsx
+import { templateCopy } from "@platform/data/workshop-template";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { readAdminCourses } from "@platform/features/admin/repositories/courses";
@@ -575,8 +577,32 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
   return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
-    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
+    <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} templateLabel={record.course.delivery === "live" ? templateCopy.title : undefined} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
+}
+```
+
+### File: `app/admin/dashboard/courses/[slug]/template/page.tsx`
+
+SHA-256: `d8e57deef765603882c8e0345e1f5851fa1bf825d4b1e24f6802178be7a3814d`
+
+```tsx
+import { notFound } from "next/navigation";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { readWorkshopTemplate } from "@platform/features/marketing/templates/repository";
+import { defaultWorkshopTemplate } from "@platform/features/marketing/templates/default-template";
+import { liveWorkshopCourse } from "@platform/data/workshop-course";
+import { templateCopy,templateFieldLabels } from "@platform/data/workshop-template";
+import { adminCoursesCopy } from "@platform/data/admin-courses";
+import CourseEditorTabs from "@platform/components/admin/course-editor-tabs";
+import PageHeading from "@platform/components/ui/page-heading";
+import WorkshopTemplateEditor from "@platform/components/admin/template/template-editor";
+export default async function TemplatePage({params}:{params:Promise<{slug:string}>}) {
+ await requireAdminPage();const {slug}=await params,record=(await readAdminCourses(slug))[0];
+ if(!record || record.course.delivery!=='live') notFound();
+ const template=await readWorkshopTemplate(record.course);
+ return <><PageHeading title={templateCopy.title} /><CourseEditorTabs slug={slug} active="template" labels={adminCoursesCopy} templateLabel={templateCopy.title} /><WorkshopTemplateEditor key={template.revision} slug={slug} record={template} defaults={defaultWorkshopTemplate(record.course)} labels={{copy:templateCopy,fields:templateFieldLabels}} sample={defaultWorkshopTemplate(liveWorkshopCourse)} /></>;
 }
 ```
 
@@ -926,6 +952,17 @@ export async function GET(_request: Request, { params }: Context) { return handl
 export async function POST(request: Request, { params }: Context) { return handleAdminCourse((await params).slug, request); }
 ```
 
+### File: `app/api/admin/courses/[slug]/template/route.ts`
+
+SHA-256: `3a4abf70290f28bed768676a143017c66063d1fbd379bd281c2c05b1cacc8ef7`
+
+```typescript
+import { handleWorkshopTemplate } from "@platform/features/marketing/templates/handle-template";
+type Context={params:Promise<{slug:string}>};
+export async function GET(_request:Request,{params}:Context) {return handleWorkshopTemplate((await params).slug);}
+export async function POST(request:Request,{params}:Context) {return handleWorkshopTemplate((await params).slug,request);}
+```
+
 ### File: `app/api/admin/courses/route.ts`
 
 SHA-256: `db709471695b15b96ca5d02187ec7a0f69a67a9039303f1543297e5b9704f1b3`
@@ -1162,6 +1199,31 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     if (!course) throw new ApiError(404, "NOT_FOUND");
     return Response.json(course);
   });
+}
+```
+
+### File: `app/api/courses/[slug]/template-media/route.ts`
+
+SHA-256: `5c6a17686304ec9bc603c10e508b3117e6100a1b9d55ab0f898cfe4377eb4ba6`
+
+```typescript
+import { findCourse } from "@platform/features/catalog/service";
+import { isFeaturedWorkshop } from "@platform/features/catalog/helpers/is-featured-workshop";
+import { readWorkshopTemplate } from "@platform/features/marketing/templates/repository";
+import { templateMediaUrl } from "@platform/features/marketing/templates/helpers/template-media";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import { streamDrive } from "@platform/features/catalog/stream-drive";
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+export async function GET(request:Request,{params}:{params:Promise<{slug:string}>}) {
+ return apiResponse(async()=>{
+  const course=await findCourse((await params).slug);
+  if(!course || !isFeaturedWorkshop(course)) throw new ApiError(404,'NOT_FOUND');
+  const {document}=await readWorkshopTemplate(course),clip=new URL(request.url).searchParams.get('clip') ?? '';
+  const url=templateMediaUrl(document,clip);
+  if(!url || !driveFileId(url) || !document.order.includes(clip==='hero' ? 'hero' : 'clients')) throw new ApiError(404,'NOT_FOUND');
+  return streamDrive(url,request);
+ });
 }
 ```
 
@@ -1927,51 +1989,42 @@ export default function WorkshopContent({
 
 ### File: `app/components/workshop/workshop-page.tsx`
 
-SHA-256: `d15444a3d6261430e0c2686b49f391210cc109bf539288cc6a6cc7960a21581e`
+SHA-256: `077a86d1728178b96979f3f1e2ecb75777c6511e8beb87583aa7fb728838308c`
 
 ```tsx
-import SiteHeader from "@/app/components/workshop/site-header";
-import WorkshopContent from "@/app/components/workshop/workshop-content";
-import SiteFooter from "@/app/components/workshop/site-footer";
-import RecentSignupToast from "@/app/components/workshop/recent-signup-toast";
-import HeroSection from "@/app/components/workshop/hero-section";
+import type { ReactNode } from "react";
+import SiteHeader from "./site-header";
+import WorkshopContent from "./workshop-content";
+import WorkshopSections from "./workshop-sections";
+import SiteFooter from "./site-footer";
+import RecentSignupToast from "./recent-signup-toast";
+import type { MarketingPageContent } from "@khatab/design/types/marketing";
+import { workshopSectionKeys,type WorkshopSectionKey } from "@khatab/design/types/marketing";
+export default function WorkshopPage({content,header,order=workshopSectionKeys,showSignup=true}:{content:MarketingPageContent;header?:ReactNode;order?:readonly WorkshopSectionKey[];showSignup?:boolean}) {
+ return <>{header ?? <SiteHeader content={content.header} offer={content.offer} />}<WorkshopContent motion={content.motion}><WorkshopSections content={content} order={order} /></WorkshopContent><SiteFooter content={content.footer} />{showSignup && <RecentSignupToast content={content.signup.content} options={content.signup.options} />}</>;
+}
+```
+
+### File: `app/components/workshop/workshop-sections.tsx`
+
+SHA-256: `1981616f20b51feb4ddee2a8332acd06bee191a62afc74dd9c429997d93891b5`
+
+```tsx
+import { Fragment } from "react";
+import HeroSection from "./hero-section";
 import ClientsSection from "@khatab/design/ui/clients-section";
 import TransformationSection from "@khatab/design/ui/transformation-section";
-import RoadmapSection from "@/app/components/workshop/roadmap-section";
+import RoadmapSection from "./roadmap-section";
 import TestimonialsSection from "@khatab/design/ui/testimonials-section";
 import InstructorSection from "@khatab/design/ui/instructor-section";
-import GuaranteeSection from "@/app/components/workshop/guarantee-section";
+import GuaranteeSection from "./guarantee-section";
 import FaqSection from "@khatab/design/ui/faq-section";
-import FinalCtaSection from "@/app/components/workshop/final-cta-section";
-
+import FinalCtaSection from "./final-cta-section";
 import type { MarketingPageContent } from "@khatab/design/types/marketing";
-
-export default function WorkshopPage({
-  content,
-}: {
-  content: MarketingPageContent;
-}) {
-  return (
-    <>
-      <SiteHeader content={content.header} offer={content.offer} />
-      <WorkshopContent motion={content.motion}>
-        <HeroSection content={content.hero} />
-        <ClientsSection content={content.clients} />
-        <TransformationSection content={content.transformation} />
-        <RoadmapSection content={content.roadmap} />
-        <TestimonialsSection content={content.testimonials} />
-        <InstructorSection content={content.instructor} />
-        <GuaranteeSection content={content.guarantee} />
-        <FaqSection content={content.faq} />
-        <FinalCtaSection content={content.finalCta} />
-      </WorkshopContent>
-      <SiteFooter content={content.footer} />
-      <RecentSignupToast
-        content={content.signup.content}
-        options={content.signup.options}
-      />
-    </>
-  );
+import type { WorkshopSectionKey } from "@khatab/design/types/marketing";
+export default function WorkshopSections({content,order}:{content:MarketingPageContent;order:readonly WorkshopSectionKey[]}) {
+ const sections={hero:<HeroSection content={content.hero} />,clients:<ClientsSection content={content.clients} />,transformation:<TransformationSection content={content.transformation} />,roadmap:<RoadmapSection content={content.roadmap} />,testimonials:<TestimonialsSection content={content.testimonials} />,instructor:<InstructorSection content={content.instructor} />,guarantee:<GuaranteeSection content={content.guarantee} />,faq:<FaqSection content={content.faq} />,finalCta:<FinalCtaSection content={content.finalCta} />};
+ return order.map(key=><Fragment key={key}>{sections[key]}</Fragment>);
 }
 ```
 
@@ -3017,7 +3070,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `cecc163c92f858ddb28cb34379a4b192c03f6db0310849ccee9788efa444c983`
+SHA-256: `c7f580e025fa32a489523058a3dc137420e45b519e56da3f40b97fd090cf2dc3`
 
 ```css
 @import "./styles/theme.css";
@@ -3046,6 +3099,8 @@ SHA-256: `cecc163c92f858ddb28cb34379a4b192c03f6db0310849ccee9788efa444c983`
 @import "../modules/styles/course-details.css";
 
 @import "../modules/styles/commerce.css";
+
+@import "../modules/styles/workshop-template.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -3549,16 +3604,14 @@ SHA-256: `fce48b8d3894060f92c19608724647c79f19c30ed95cb67cd23462858ebe7fd6`
 
 ### File: `app/workshops/[slug]/page.tsx`
 
-SHA-256: `6718e6c5ac01a4b4ab9101f92c471612ee9f5ffdef7ec9ebb3fb91ec08ab380a`
+SHA-256: `0c5d36805327a0e0db0927537bd19be70de85c143146c895b6ba97d74b263654`
 
 ```tsx
-import { WorkshopPage } from "@/app/components/workshop";
-import { workshopPage } from "@/app/data/workshop";
+import FeaturedWorkshop from "@platform/features/marketing/templates/featured-workshop";
 import { workshopMetadata } from "@/app/config/workshop-metadata";
 import { findCourse } from "@platform/features/catalog/service";
 import { routes } from "@platform/config/navigation";
 import { liveWorkshopCourse } from "@platform/data/workshop-course";
-import { workshopCourseContent } from "@platform/features/marketing/models/workshop-course";
 import { isFeaturedWorkshop } from "@platform/features/catalog/helpers/is-featured-workshop";
 import CourseDetailsPage from "@platform/features/catalog/course-details-page";
 import PublicSiteShell from "@platform/features/marketing/public-site-shell";
@@ -3576,7 +3629,7 @@ export default async function FreelanceWorkshopPage({ params }: WorkshopParams) 
   const course = await findCourse(slug);
   if (!course || course.delivery !== "live") notFound();
   if (!isFeaturedWorkshop(course)) return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
-  return <WorkshopPage content={workshopCourseContent(workshopPage,course,liveWorkshopCourse)} />;
+  return <FeaturedWorkshop course={course} />;
 }
 ```
 
@@ -5335,14 +5388,14 @@ export default function CourseDeleteButton({ course, labels }: { course: AdminCo
 
 ### File: `modules/components/admin/course-editor-tabs.tsx`
 
-SHA-256: `b28ff1e34c05c888f85a775a88076c59f71e2c9ccfd65d86903e8deed80212eb`
+SHA-256: `6ff8b637e967dc165db1611f36a5e77c3663dc1943870f24f85f75593b457508`
 
 ```tsx
 import Link from "next/link";
 import { routes } from "@platform/config/navigation";
 import type { AdminCoursesLabels } from "@platform/types/admin-courses";
-export default function CourseEditorTabs({ slug, active, labels }: { slug: string; active: "overview" | "content"; labels: AdminCoursesLabels }) {
- return <nav className="lms-course-editor-tabs" aria-label={labels.heading}><Link className="lms-secondary-button" aria-current={active === "overview" ? "page" : undefined} href={routes.adminCourse(slug)}>{labels.overview}</Link><Link className="lms-secondary-button" aria-current={active === "content" ? "page" : undefined} href={routes.adminCourseContent(slug)}>{labels.content}</Link></nav>;
+export default function CourseEditorTabs({ slug, active, labels, templateLabel }: { slug: string; active: "overview" | "content" | "template"; templateLabel?: string; labels: AdminCoursesLabels }) {
+ return <nav className="lms-course-editor-tabs" aria-label={labels.heading}><Link className="lms-secondary-button" aria-current={active === "overview" ? "page" : undefined} href={routes.adminCourse(slug)}>{labels.overview}</Link><Link className="lms-secondary-button" aria-current={active === "content" ? "page" : undefined} href={routes.adminCourseContent(slug)}>{labels.content}</Link>{templateLabel && <Link className="lms-secondary-button" aria-current={active === "template" ? "page" : undefined} href={routes.adminCourseTemplate(slug)}>{templateLabel}</Link>}</nav>;
 }
 ```
 
@@ -5854,6 +5907,107 @@ import Action from "@khatab/design/ui/action";
 export default function SaveFeedback({ pending, saved, error, labels }: { pending: boolean; saved: boolean; error: string; labels: { save: string; saving: string; saved: string } }) {
   return <><Action kind="button" type="submit" className="btn-primary" disabled={pending}>{pending ? labels.saving : labels.save}</Action>
     {error && <p className="lms-error" role="alert">{error}</p>}{saved && <p className="lms-success" role="status">{labels.saved}</p>}</>;
+}
+```
+
+### File: `modules/components/admin/template/item-actions.tsx`
+
+SHA-256: `64b0d4207f2bf920e99114b709bbe6460becce462cab5480512173fd242cc59f`
+
+```tsx
+import { useTemplateLabels } from "@platform/hooks/use-template-labels";
+export default function TemplateItemActions({index,count,onMove,onRemove}:{index:number;count:number;onMove:(to:number)=>void;onRemove:()=>void}) {
+ const {copy:templateCopy}=useTemplateLabels();
+ return <div className="lms-template-item-actions"><button type="button" className="lms-text-link" disabled={index===0} onClick={()=>onMove(index-1)} aria-label={`${templateCopy.up} ${index+1}`}>↑</button><button type="button" className="lms-text-link" disabled={index===count-1} onClick={()=>onMove(index+1)} aria-label={`${templateCopy.down} ${index+1}`}>↓</button><button type="button" className="lms-text-link" onClick={onRemove}>{templateCopy.remove}</button></div>;
+}
+```
+
+### File: `modules/components/admin/template/primitive-field.tsx`
+
+SHA-256: `e111428b24906ffff9ca8220229875b7eeba0c8c1cf095a9ca34718010b7aa3d`
+
+```tsx
+import FormField from "@platform/components/ui/form-field";
+import TextareaField from "@platform/components/ui/textarea-field";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import type { TemplateValue } from "@platform/types/workshop-template";
+export default function TemplatePrimitiveField({label,value,onChange,nullable}:{label:string;value:string | number | boolean | null;onChange:(value:TemplateValue)=>void;nullable?:boolean}) {
+ if(typeof value==='boolean') return <Checkbox label={label} checked={value} onChange={e=>onChange(e.currentTarget.checked)} />;
+ if(typeof value==='number') return <FormField label={label} type="number" min={0} max={1000000} value={value} onChange={e=>onChange(e.currentTarget.valueAsNumber || 0)} />;
+ return <TextareaField label={label} rows={value && value.length>120 ? 3 : 1} maxLength={6000} value={value ?? ''} onChange={e=>onChange(nullable && !e.target.value ? null : e.target.value)} />;
+}
+```
+
+### File: `modules/components/admin/template/section-order.tsx`
+
+SHA-256: `80b862f3c228190ae8c3fc7fe3c8a3e86509222293e24c92903fb67ed821bd71`
+
+```tsx
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import { workshopSectionKeys } from "@platform/config/workshop-template";
+import { useTemplateLabels } from "@platform/hooks/use-template-labels";
+import { moveTemplateItem } from "@platform/features/marketing/templates/helpers/move-items";
+import type { WorkshopSectionKey } from "@platform/types/workshop-template";
+export default function TemplateSectionOrder({order,onChange}:{order:WorkshopSectionKey[];onChange:(order:WorkshopSectionKey[])=>void}) {
+ const {copy:templateCopy,fields:templateFieldLabels}=useTemplateLabels();
+ return <section className="lms-profile-card"><h2>{templateCopy.visibility}</h2>{[...order,...workshopSectionKeys.filter(k=>!order.includes(k))].map((key,index)=><div className="lms-template-order-row" key={key}><Checkbox label={templateFieldLabels[key]} checked={order.includes(key)} disabled={key==='hero'} onChange={e=>onChange(e.currentTarget.checked ? [...order,key] : order.filter(k=>k!==key))} />{order.includes(key) && <div className="lms-template-item-actions"><button type="button" className="lms-text-link" disabled={index===0} aria-label={`${templateCopy.up} ${templateFieldLabels[key]}`} onClick={()=>onChange(moveTemplateItem(order,index,index-1))}>↑</button><button type="button" className="lms-text-link" disabled={index===order.length-1} aria-label={`${templateCopy.down} ${templateFieldLabels[key]}`} onClick={()=>onChange(moveTemplateItem(order,index,index+1))}>↓</button></div>}</div>)}</section>;
+}
+```
+
+### File: `modules/components/admin/template/template-editor.tsx`
+
+SHA-256: `ef2243d378fc10e9457d2c182d5ed545021a177ef9c4ee3fb4f24bc7cad7670a`
+
+```tsx
+"use client";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import { templateContentKeys } from "@platform/config/workshop-template";
+import { TemplateLabelsContext,type TemplateLabels } from "@platform/hooks/use-template-labels";
+import { useWorkshopTemplateEditor } from "@platform/hooks/use-workshop-template-editor";
+import type { TemplateRecord,WorkshopTemplate,TemplateValue } from "@platform/types/workshop-template";
+import TemplateValueFields from "./value-fields";
+import TemplateSectionOrder from "./section-order";
+import SaveFeedback from "../save-feedback";
+export default function WorkshopTemplateEditor({slug,record,defaults,sample,labels}:{slug:string;record:TemplateRecord;defaults:WorkshopTemplate;sample:WorkshopTemplate;labels:TemplateLabels}) {
+ const {copy:templateCopy,fields:templateFieldLabels}=labels;
+ const command=useWorkshopTemplateEditor(slug,record,templateCopy.error),{document,setDocument}=command;
+ return <TemplateLabelsContext value={labels}><form className="lms-profile-form lms-template-editor" onSubmit={e=>{e.preventDefault();void command.save();}}><p className="lms-field-hint">{templateCopy.hint}</p><fieldset disabled={command.pending}>
+ <TemplateSectionOrder order={document.order} onChange={order=>setDocument(v=>({...v,order}))} />
+ <section className="lms-profile-card"><Checkbox label={templateCopy.showCountdown} checked={document.showCountdown} onChange={e=>setDocument(v=>({...v,showCountdown:e.target.checked}))} /><Checkbox label={templateCopy.showSignup} checked={document.showSignup} onChange={e=>setDocument(v=>({...v,showSignup:e.target.checked}))} /></section>
+ {templateContentKeys.map(key=><details className="lms-profile-card" key={key}><summary>{templateFieldLabels[key]}</summary><TemplateValueFields name={key} value={document.content[key] as unknown as TemplateValue} sample={sample.content[key as keyof typeof sample.content] as unknown as TemplateValue} onChange={next=>setDocument(v=>({...v,content:{...v.content,[key]:next}}))} /></details>)}
+ <button type="button" className="lms-text-link" onClick={()=>{if(window.confirm(templateCopy.confirmReset)) setDocument(structuredClone(defaults));}}>{templateCopy.reset}</button></fieldset><SaveFeedback {...command} labels={templateCopy} /></form></TemplateLabelsContext>;
+}
+```
+
+### File: `modules/components/admin/template/value-fields.tsx`
+
+SHA-256: `fc5706930a4165d0404d631add2011e81ff0af484c5e81b5982c2608ab9e8924`
+
+```tsx
+import { templateLockedFields,templatePolicy } from "@platform/config/workshop-template";
+import { useTemplateLabels } from "@platform/hooks/use-template-labels";
+import { moveTemplateItem } from "@platform/features/marketing/templates/helpers/move-items";
+import type { TemplateValue } from "@platform/types/workshop-template";
+import TemplatePrimitiveField from "./primitive-field";
+import TemplateItemActions from "./item-actions";
+type Props={value:TemplateValue;sample:TemplateValue;name:string;onChange:(value:TemplateValue)=>void};
+export default function TemplateValueFields({value,sample,name,onChange}:Props) {
+ const {copy:templateCopy,fields:templateFieldLabels}=useTemplateLabels();
+ const label=templateFieldLabels[name] ?? name;
+ if(templateLockedFields.has(name)) return null;
+ if(value===null || typeof value!=='object') return <TemplatePrimitiveField {...{label,value,onChange}} nullable={sample===null} />;
+ if(Array.isArray(value)) {
+  const prototypes=Array.isArray(sample) ? sample : [],rich=['title','description','manifesto','children'].includes(name);
+  const add=(item:TemplateValue)=>onChange([...value,structuredClone(item)]);
+  return <div className="lms-template-list"><h3>{label}</h3>{value.map((item,index)=><details className="lms-template-item" key={index}><summary>{label} {index+1}</summary><TemplateItemActions index={index} count={value.length} onMove={to=>onChange(moveTemplateItem(value,index,to))} onRemove={()=>onChange(value.filter((_,i)=>i!==index))} /><TemplateValueFields value={item} sample={prototypes.find(p=>typeof p===typeof item) ?? item} name={typeof item==='object' ? '' : templateCopy.item} onChange={next=>onChange(value.map((v,i)=>i===index ? next : v))} /></details>)}
+   {value.length<templatePolicy.maxItems && <div className="lms-template-item-actions">{rich ? <><button type="button" className="lms-text-link" onClick={()=>add('')}>{templateCopy.text}</button><button type="button" className="lms-text-link" onClick={()=>add({kind:'span',className:'highlight-red',children:['']})}>{templateCopy.highlight}</button></> : <button type="button" className="lms-text-link" disabled={!prototypes.length && !value.length} onClick={()=>add(prototypes[0] ?? value[0])}>{templateCopy.add}</button>}</div>}
+  </div>;
+ }
+ const baseline=sample && typeof sample==='object' && !Array.isArray(sample) ? sample : {};
+ return <div className="lms-template-fields">{Object.entries(value).filter(([key])=>!templateLockedFields.has(key)).map(([key,item])=>{
+  const fields=<TemplateValueFields value={item} sample={baseline[key] ?? item} name={key} onChange={next=>onChange({...value,[key]:next})} />;
+  return item && typeof item==='object' && !Array.isArray(item) ? <details className="lms-template-item" key={key}><summary>{templateFieldLabels[key] ?? key}</summary>{fields}</details> : <div key={key}>{fields}</div>;
+ })}</div>;
 }
 ```
 
@@ -9652,7 +9806,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `f6d23a7503423b1a807b33f6eb459e7b8c0ec20feeb27bbc6f29df8a63162ae5`
+SHA-256: `3caa969e10f0ba9ac95fbf99511d1548da451b7389eb00d48bd1fc9cb41ff1bd`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9708,6 +9862,7 @@ export const routes = {
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
   },
   adminCourseCreate: "/admin/dashboard/courses/new",
+  adminCourseTemplate: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/template`,
   adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
@@ -9740,6 +9895,8 @@ export const endpoints = {
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminMediaStream: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/stream?url=${encodeURIComponent(url)}`,
+  templateMedia: (slug: string, clip: string) => `/api/courses/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
+  adminTemplate: (slug: string) => `/api/admin/courses/${segment(slug)}/template`,
   adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,
   adminLesson: (slug: string, id: string) => `${endpoints.adminCourse(slug)}/lessons/${segment(id)}`,
   courses: "/api/courses",
@@ -9827,6 +9984,21 @@ export const suspensionPeriods = [
 export const userAdministration = { pageSize: 5, searchMaxLength: 100, newcomerDays: 7, permanentBanHours: 876000, refreshMs: 60000 } as const;
 export const userStatusFilters = ["suspended", "banned"] as const;
 export const userSearchModes = ["contains", "prefix"] as const;
+```
+
+### File: `modules/config/workshop-template.ts`
+
+SHA-256: `657ce762bb75a5efc95e2bb27f9329d4b2935388633bc092b2ec52788d96ede6`
+
+```typescript
+import { workshopSectionKeys as sharedSectionKeys } from "@khatab/design/types/marketing";
+export const workshopSectionKeys=sharedSectionKeys;
+export const templatePolicy = { maxBytes: 96 * 1024, maxRequestBytes: 128 * 1024, maxItems: 40, maxDepth: 14, maxString: 6000 } as const;
+export const templateLockedFields = new Set(["section", "className", "icon", "kind", "controlsVariant", "returnToPosterOnEnd", "key", "platform"]);
+
+export const isTemplateEndpoint=(path:string)=>/^\/api\/admin\/courses\/[a-z0-9]+(?:-[a-z0-9]+)*\/template$/.test(path);
+
+export const templateContentKeys=[...workshopSectionKeys,"scarcity","offer","footer","signup"] as const;
 ```
 
 ### File: `modules/data/account.ts`
@@ -10965,6 +11137,27 @@ export const liveWorkshopCourse: Course = {
   thumbnailUrl: creatorMedia.workshopIntro.poster, introVideoUrl: creatorMedia.workshopIntro.url,
   artwork: "business", modules: [], outcomes: roadmapDays.filter(day => day.kind !== "pause").map(day => day.title),
   offer: { ...courseOffers["7days-freelance"], caption: "سعر مبدئي قابل للتعديل", actionLabel: siteConfig.enrollmentLabel },
+};
+```
+
+### File: `modules/data/workshop-template.ts`
+
+SHA-256: `709cfc701b34cef250f9f6f4bea4bed53f34470eaab6b4aba546d998b6b7c254`
+
+```typescript
+import { arabicPlayerLabels } from "@khatab/design/lib/player-labels";
+export const templateCopy = {
+ title: "تصميم الورشة المميزة", hint: "خصّص النصوص والوسائط والروابط. افتح القسم لتعديله، وأضف العناصر أو رتّبها. قيم الألوان والخطوط والحركة مشتركة مع المنصة.",
+ save: "حفظ التصميم", saving: "جارٍ الحفظ…", saved: "تم حفظ التصميم", error: "تعذّر الحفظ. راجع البيانات وحدّث الصفحة عند تعارض التعديلات.",
+ add: "إضافة عنصر", remove: "حذف العنصر", up: "تحريك لأعلى", down: "تحريك لأسفل", reset: "استعادة التصميم الافتراضي", confirmReset: "استعادة القالب الافتراضي؟ لن تُحفظ الاستعادة قبل الضغط على حفظ التصميم.",
+ showCountdown: "إظهار شريط العد التنازلي", showSignup: "إظهار إشعار التسجيل التجريبي", visibility: "الأقسام وترتيبها", show: "إظهار القسم", item: "عنصر", highlight: "إضافة نص مميز", text: "إضافة نص", nullableHint: "اتركه فارغًا بدون قيمة.",
+} as const;
+export const templateFieldLabels: Record<string,string> = {
+ ...arabicPlayerLabels,
+ hero:"المقدمة", clients:"الأعمال والعملاء", transformation:"التحول", roadmap:"خريطة الورشة", testimonials:"آراء الطلاب", instructor:"المدرب", guarantee:"الضمان", faq:"الأسئلة الشائعة", finalCta:"دعوة الاشتراك", footer:"تذييل الصفحة", signup:"إشعار التسجيل", offer:"العد التنازلي", scarcity:"نصوص الشريط",
+ title:"العنوان", description:"الوصف", heading:"عنوان القسم", eyebrow:"النص الصغير", name:"الاسم", label:"النص", href:"وجهة الرابط", external:"رابط خارجي", action:"رابط الإجراء", microcopy:"النصوص التوضيحية", video:"الفيديو", source:"مصدر الفيديو", url:"رابط الفيديو", poster:"الصورة المصغرة", src:"رابط الصورة", alt:"وصف الصورة", width:"العرض", height:"الارتفاع", playLabel:"نص زر التشغيل", caption:"تعليق الفيديو", hint:"التوضيح", showVideo:"إظهار الفيديو",
+ creators:"العملاء", reels:"نماذج الأعمال", marqueeLabel:"وصف شريط العملاء", stages:"المراحل", number:"الرقم", formula:"المعادلة", inputs:"الخطوات", result:"النتيجة", days:"الأيام والفصول", type:"النوع", lessons:"الموضوعات", pauseHeading:"عنوان الاستراحة", pauseDescription:"وصف الاستراحة",
+ featured:"الرأي البارز", reviews:"الآراء", text:"النص", country:"البلد", image:"الصورة", badge:"الشارة", quoteMark:"علامة الاقتباس", expansion:"عرض المزيد", initialCount:"العدد الظاهر أولًا", showMoreLabel:"نص عرض المزيد", tagline:"التعريف", manifesto:"نبذة", experience:"الخبرة", stats:"الإحصاءات", value:"القيمة", target:"العدد المتحرك", prefix:"قبل العدد", suffix:"بعد العدد", items:"العناصر", question:"السؤال", answer:"الإجابة", brand:"العلامة", copyright:"حقوق النشر", credit:"المصمم", social:"روابط التواصل", projectNavigation:"روابط المنصة", links:"الروابط", ariaLabel:"وصف الوصول", format:"نوع الفيديو", duration:"المدة", preview:"النص البديل", children:"النصوص", options:"خيارات الإشعار", content:"المحتوى", names:"الأسماء التجريبية", initialName:"الاسم الأول", delayMs:"التأخير (مللي ثانية)", visibleMs:"مدة الظهور (مللي ثانية)", intervalMs:"الفاصل (مللي ثانية)", status:"نص الإشعار", closeLabel:"إغلاق", endsAt:"موعد النهاية (ISO مع المنطقة الزمنية)", durationSeconds:"المدة (ثوانٍ)", storageKey:"معرف العداد", tickMs:"تحديث العداد (مللي ثانية)", scarcityLabel:"وصف الشريط", viewerCount:"عدد المشاهدين التجريبي", viewerLabel:"وصف المشاهدين", countdown:"العداد", accessibleLabel:"وصف الوصول", units:"وحدات الوقت", controls:"نصوص المشغل",
 };
 ```
 
@@ -14041,6 +14234,20 @@ export default function Landing({
 }
 ```
 
+### File: `modules/features/marketing/main-site-header.tsx`
+
+SHA-256: `839558b058a4d8fc445dda86147c210081d23fb2424b6adc59fe8c6b6f490d5d`
+
+```tsx
+import SiteHeader from "@platform/components/layout/site-header";
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { marketingNavigation,copy,site } from "@platform/data/site";
+export default async function MainSiteHeader() {
+ return <SiteHeader account={await readNavigationAccount()} interfaceCopy={{mainNavigationLabel:interfaceCopy.mainNavigationLabel}} marketingNavigation={marketingNavigation} copy={{start:copy.start,close:copy.close,menu:copy.menu}} site={{name:site.name,englishName:site.englishName}} />;
+}
+```
+
 ### File: `modules/features/marketing/models/closing.ts`
 
 SHA-256: `fef77063ee873b9a3652ec46bfc8cee6848948e2f8499204483bdc5427cbb91b`
@@ -14339,18 +14546,15 @@ export function workshopCourseContent(
 
 ### File: `modules/features/marketing/public-site-shell.tsx`
 
-SHA-256: `fc1d6ece6b7beb3e5d6c9af82874ba28c8598696ae0b9ce76e945d06ced73dad`
+SHA-256: `45af06eb17b408c6557e8eaa1be9663dcb047dc3b8c2ab44c5a9cd169ea2ae3c`
 
 ```tsx
 import RevealContent from "@platform/components/marketing/reveal-content";
-import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
 import { designerCredit } from "@/config/designer";
 import { projectNavigation } from "@/config/project-navigation";
 import { interfaceCopy } from "@platform/data/interface-copy";
-import { marketingNavigation } from "@platform/data/site";
-import { copy } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import SiteHeader from "@platform/components/layout/site-header";
+import { marketingNavigation,copy,site } from "@platform/data/site";
+import MainSiteHeader from "./main-site-header";
 import SiteFooter from "@platform/components/layout/site-footer";
 export default async function PublicSiteShell({
   children,
@@ -14359,15 +14563,7 @@ export default async function PublicSiteShell({
 }) {
   return (
     <>
-      <SiteHeader
-        account={await readNavigationAccount()}
-        interfaceCopy={{
-          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-        }}
-        marketingNavigation={marketingNavigation}
-        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
-        site={{ name: site.name, englishName: site.englishName }}
-      />
+      <MainSiteHeader />
       <RevealContent as="div">{children}</RevealContent>
       <SiteFooter
         credit={designerCredit}
@@ -14384,6 +14580,242 @@ export default async function PublicSiteShell({
       />
     </>
   );
+}
+```
+
+### File: `modules/features/marketing/templates/default-template.ts`
+
+SHA-256: `dbd8ae26498ef3132e4bdf82c55b084c45bbec86864f567ac4ba05cd4f9eee50`
+
+```typescript
+import { workshopPage } from "@/app/data/workshop";
+import { liveWorkshopCourse } from "@platform/data/workshop-course";
+import { workshopCourseContent } from "../models/workshop-course";
+import { workshopSectionKeys } from "@platform/config/workshop-template";
+import type { Course } from "@platform/types/lms";
+import type { WorkshopTemplate, TemplateContent } from "@platform/types/workshop-template";
+export function defaultWorkshopTemplate(course: Course): WorkshopTemplate {
+ const page = workshopCourseContent(workshopPage,course,liveWorkshopCourse);
+ const content = Object.fromEntries(workshopSectionKeys.map(key=>[key,page[key]])) as Pick<TemplateContent,typeof workshopSectionKeys[number]>;
+ const original = course.introVideoUrl || workshopPage.hero.video.source.url;
+ const video = {controls:page.hero.video.controls,controlsVariant:page.hero.video.controlsVariant,returnToPosterOnEnd:page.hero.video.returnToPosterOnEnd,title:page.hero.video.title,playLabel:page.hero.video.playLabel,caption:page.hero.video.caption,hint:page.hero.video.hint,poster:page.hero.video.poster};
+ content.hero = { ...content.hero, video: { ...video, source:{kind:"file",url:original} } };
+ return JSON.parse(JSON.stringify({content:{...content,footer:page.footer,signup:page.signup,offer:{...page.offer,storageKey:`workshop-${course.slug}-deadline`},scarcity:{scarcityLabel:page.header.scarcityLabel,viewerCount:page.header.viewerCount,viewerLabel:page.header.viewerLabel,countdown:page.header.countdown}},order:[...workshopSectionKeys],showCountdown:true,showSignup:course.slug===liveWorkshopCourse.slug}));
+}
+```
+
+### File: `modules/features/marketing/templates/featured-workshop.tsx`
+
+SHA-256: `be0d0c14a26722dad1f86b897055bceee85fd268d2dd09da48f8b5fbe4d71ca1`
+
+```tsx
+import { WorkshopPage } from "@/app/components/workshop";
+import { workshopPage } from "@/app/data/workshop";
+import ScarcityBar from "@/app/components/workshop/scarcity-bar";
+import MainSiteHeader from "../main-site-header";
+import { readWorkshopTemplate } from "./repository";
+import { resolveTemplateMedia } from "./helpers/template-media";
+import type { Course } from "@platform/types/lms";
+export default async function FeaturedWorkshop({course}:{course:Course}) {
+ const {document:stored}=await readWorkshopTemplate(course),document=resolveTemplateMedia(stored,course.slug);
+ const {scarcity,...editable}=document.content;
+ const content={...workshopPage,...editable,header:{...workshopPage.header,...scarcity}};
+ return <WorkshopPage content={content} order={document.order} showSignup={document.showSignup} header={<><MainSiteHeader />{document.showCountdown && <ScarcityBar content={scarcity} offer={editable.offer} />}</>} />;
+}
+```
+
+### File: `modules/features/marketing/templates/handle-template.ts`
+
+SHA-256: `d333042aefdd84950411e1e36698177ffdb1b35246e6683a5958fa9bab9ba798`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { sameOrigin } from "@platform/lib/server-request";
+import { readRequestBytes } from "@platform/lib/read-request-bytes";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { templatePolicy } from "@platform/config/workshop-template";
+import { defaultWorkshopTemplate } from "./default-template";
+import { validateWorkshopTemplate } from "./helpers/validate-document";
+import { readWorkshopTemplate,saveWorkshopTemplate } from "./repository";
+export function handleWorkshopTemplate(slug:string,request?:Request) {
+ return apiResponse(async()=>{
+  await requireAdmin();const record=(await readAdminCourses(slug))[0];
+  if(!record || record.course.delivery!=='live') throw new ApiError(404,'NOT_FOUND');
+  if(!request) return Response.json(await readWorkshopTemplate(record.course));
+  if(!sameOrigin(request)) throw new ApiError(403,'FORBIDDEN');
+  if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '')) throw new ApiError(400,'INVALID_INPUT');
+  const bytes=await readRequestBytes(request,templatePolicy.maxRequestBytes);let body;
+  try {body=JSON.parse(new TextDecoder().decode(bytes ?? new Uint8Array()));}catch{throw new ApiError(400,'INVALID_INPUT');}
+  if(!body || !Number.isInteger(body.revision) || body.revision<0 || body.revision>2_000_000_000 || !validateWorkshopTemplate(body.document,defaultWorkshopTemplate(record.course))) throw new ApiError(400,'INVALID_INPUT');
+  return Response.json(await saveWorkshopTemplate(slug,body.document,body.revision));
+ });
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/array-prototypes.ts`
+
+SHA-256: `fd2acd523d08f69ba833a43bed121c84b9a319fd15277f905e9fccd2754ab7ff`
+
+```typescript
+import { workshopPage } from "@/app/data/workshop";
+export function templateArrayPrototypes(key:string):unknown[] {
+ function find(value:unknown):unknown[] | undefined {
+  if(!value || typeof value!=='object') return;
+  if(!Array.isArray(value) && key in value && Array.isArray((value as Record<string,unknown>)[key])) return (value as Record<string,unknown>)[key] as unknown[];
+  for(const child of Object.values(value)) {const result=find(child);if(result) return result;}
+ }
+ return find(workshopPage) ?? [];
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/move-items.ts`
+
+SHA-256: `c24744da1795d20610b10162a949a2ebb6abf6e4a4e5188d8a44abcdd6858871`
+
+```typescript
+export function moveTemplateItem<T>(items:readonly T[],from:number,to:number):T[] {
+ const next=[...items]; if(to<0 || to>=next.length) return next;
+ const [item]=next.splice(from,1);next.splice(to,0,item);return next;
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/template-media.ts`
+
+SHA-256: `6844de57e87579966a1e055aac4ffe5b6dabd9aad4720594648e5b4571b59b98`
+
+```typescript
+import type { VideoContent } from "@khatab/design/types/ui";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import { endpoints } from "@platform/config/navigation";
+import type { WorkshopTemplate } from "@platform/types/workshop-template";
+export function templateMediaUrl(document:WorkshopTemplate,clip:string):string | undefined {
+ if(clip==='hero') return document.content.hero.video.source?.url ?? document.content.hero.video.url;
+ if(!/^reel-\d{1,2}$/.test(clip)) return;
+ return document.content.clients.reels[Number(clip.slice(5))]?.video?.source.url;
+}
+export function resolveTemplateMedia(document:WorkshopTemplate,slug:string):WorkshopTemplate {
+ const resolve=(url:string,clip:string)=>driveFileId(url) ? endpoints.templateMedia(slug,clip) : url;
+ const hero=document.content.hero,video=hero.video;
+ const resolvedVideo:VideoContent=video.source ? {...video,source:{...video.source,url:resolve(video.source.url,'hero')}} : {...video,url:resolve(video.url,'hero')};
+ return {...document,content:{...document.content,hero:{...hero,video:resolvedVideo},clients:{...document.content.clients,reels:document.content.clients.reels.map((reel,index)=>({...reel,...(reel.video ? {video:{...reel.video,source:{...reel.video.source,url:resolve(reel.video.source.url,`reel-${index}`)}}} : {})}))}}};
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/validate-document.ts`
+
+SHA-256: `1a2648d0d6f9d8daee2f194401cfe2818fdb67a50c53aa288d745638b5c0bab1`
+
+```typescript
+import { workshopSectionKeys,templatePolicy } from "@platform/config/workshop-template";
+import { validTemplateValue } from "./validate-value";
+import type { WorkshopTemplate } from "@platform/types/workshop-template";
+export function validateWorkshopTemplate(value:unknown,sample:WorkshopTemplate):value is WorkshopTemplate {
+ if(!value || typeof value!=='object' || Array.isArray(value)) return false;
+ const v=value as WorkshopTemplate;
+ if(Object.keys(v).some(k=>!['content','order','showCountdown','showSignup'].includes(k)) || typeof v.showCountdown!=='boolean' || typeof v.showSignup!=='boolean') return false;
+ if(!Array.isArray(v.order) || !v.order.includes('hero') || v.order.length>workshopSectionKeys.length || new Set(v.order).size!==v.order.length || v.order.some(key=>!workshopSectionKeys.includes(key))) return false;
+ if(new TextEncoder().encode(JSON.stringify(v)).length>templatePolicy.maxBytes) return false;
+ return validTemplateValue(v.content,sample.content);
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/validate-rich-text.ts`
+
+SHA-256: `3b9a853aca4070218504ea737c882298bfc6b9dc51f4ca3794f56942e3eff1ba`
+
+```typescript
+import { templatePolicy } from "@platform/config/workshop-template";
+const classes = new Set(["highlight-red","highlight-editors","numeral","trans-from","trans-arrow","trans-to"]);
+export function validTemplateRichText(value:unknown,depth=0):boolean {
+ if(depth>templatePolicy.maxDepth || !Array.isArray(value) || value.length>templatePolicy.maxItems) return false;
+ return value.every(part=>{
+  if(typeof part==='string') return part.length<=templatePolicy.maxString;
+  if(!part || typeof part!=='object' || Array.isArray(part)) return false;
+  const p=part as Record<string,unknown>;
+  if(p.kind==='break') return Object.keys(p).length===1;
+  if(!['span','strong'].includes(String(p.kind)) || Object.keys(p).some(k=>!['kind','className','decorative','icon','children'].includes(k))) return false;
+  if(p.className!==undefined && !classes.has(String(p.className)) || p.decorative!==undefined && typeof p.decorative!=='boolean') return false;
+  if(p.icon!==undefined) {
+   const i=p.icon as Record<string,unknown>;
+   if(!i || typeof i!=='object' || Object.keys(i).some(k=>!['name','className','width','height'].includes(k)) || !['arrow','sparkle','shield','play','reel-play','menu','chevron'].includes(String(i.name))) return false;
+   if(i.className!==undefined && i.className!=='badge-sparkle-icon' || ['width','height'].some(k=>i[k]!==undefined && (typeof i[k]!=='number' || !Number.isFinite(i[k]) || Number(i[k])<1 || Number(i[k])>100))) return false;
+  }
+  return validTemplateRichText(p.children,depth+1);
+ });
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/validate-value.ts`
+
+SHA-256: `6bd1b02ca141e000e42413b92996e25168686ca1e33210ee0fb6ce94739ac52c`
+
+```typescript
+import { templatePolicy,templateLockedFields } from "@platform/config/workshop-template";
+import { validMediaUrl } from "@platform/features/admin/helpers/validate-media-url";
+import { templateArrayPrototypes } from "./array-prototypes";
+import { validTemplateRichText } from "./validate-rich-text";
+export function validTemplateValue(value:unknown,sample:unknown,key='',depth=0):boolean {
+ if(depth>templatePolicy.maxDepth) return false;
+ if(templateLockedFields.has(key)) return JSON.stringify(value)===JSON.stringify(sample);
+ if(sample===null) return value===null || key==='endsAt' && typeof value==='string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(value) && Number.isFinite(Date.parse(value));
+ if(typeof sample==='string') {
+  if(typeof value!=='string' || value.length>templatePolicy.maxString) return false;
+  if(['src','url','poster'].includes(key)) return Boolean(value) && validMediaUrl(value);
+  if(key==='href') return /^(?:\/(?!\/)|#[a-zA-Z][\w-]*$)/.test(value) || Boolean(value) && validMediaUrl(value);
+  return true;
+ }
+ if(typeof sample==='boolean') return typeof value==='boolean';
+ if(typeof sample==='number') {
+  if(typeof value!=='number' || !Number.isFinite(value) || value<0 || value>1_000_000) return false;
+  if(['width','height','tickMs','visibleMs','intervalMs'].includes(key) && value<1) return false;
+  if(['tickMs','intervalMs'].includes(key) && value<200) return false;
+  return true;
+ }
+ if(Array.isArray(sample)) {
+  if(!Array.isArray(value) || value.length>templatePolicy.maxItems) return false;
+  if(['title','description','manifesto','children'].includes(key)) return validTemplateRichText(value);
+  const prototypes=sample.length ? sample : templateArrayPrototypes(key);
+  return value.every(item=>prototypes.some(prototype=>validTemplateValue(item,prototype,'',depth+1)));
+ }
+ if(sample && typeof sample==='object') {
+  if(!value || typeof value!=='object' || Array.isArray(value)) return false;
+  const s=sample as Record<string,unknown>,v=value as Record<string,unknown>;
+  return Object.keys(v).every(k=>Object.hasOwn(s,k)) && Object.keys(s).every(k=>Object.hasOwn(v,k) && validTemplateValue(v[k],s[k],k,depth+1));
+ }
+ return false;
+}
+```
+
+### File: `modules/features/marketing/templates/repository.ts`
+
+SHA-256: `98e4c3d941120ed08604eb6ec91e6c2797fd7a075f7bb8e95319af0dcb573659`
+
+```typescript
+import "server-only";
+import { createDatabaseClient } from "@platform/lib/supabase/server";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { defaultWorkshopTemplate } from "./default-template";
+import { validateWorkshopTemplate } from "./helpers/validate-document";
+import type { Course } from "@platform/types/lms";
+import type { TemplateRecord, WorkshopTemplate } from "@platform/types/workshop-template";
+import type { Json } from "@platform/types/database";
+export async function readWorkshopTemplate(course:Course):Promise<TemplateRecord> {
+ const client=await createDatabaseClient();
+ const {data,error}=await client.from('workshop_templates').select('document,revision').eq('course_slug',course.slug).maybeSingle();
+ if(error) throw new ApiError(503,'INTERNAL_ERROR');
+ const fallback=defaultWorkshopTemplate(course);
+ return {document:data && validateWorkshopTemplate(data.document,fallback) ? data.document : fallback, revision:data?.revision ?? 0};
+}
+export async function saveWorkshopTemplate(slug:string,document:WorkshopTemplate,revision:number) {
+ const {client}=await requireAdmin();
+ const values={document:JSON.parse(JSON.stringify(document)) as NonNullable<Json>,revision:revision+1,updated_at:new Date().toISOString()};
+ const result=revision===0 ? await client.from('workshop_templates').insert({...values,course_slug:slug}).select('revision').single() : await client.from('workshop_templates').update(values).eq('course_slug',slug).eq('revision',revision).select('revision').maybeSingle();
+ if(result.error?.code==='23505' || !result.error && !result.data) throw new ApiError(409,'COURSE_CONFLICT');
+ if(result.error) throw new ApiError(503,'INTERNAL_ERROR');
+ return {saved:true,revision:result.data!.revision};
 }
 ```
 
@@ -16284,6 +16716,23 @@ export function useProtectedSession(pathname: string, endpoint: string, login: s
 }
 ```
 
+### File: `modules/hooks/use-template-labels.ts`
+
+SHA-256: `3f1fc2b4054317b11815c10d08922962944f28cd51c387928c65485d5896c164`
+
+```typescript
+"use client";
+import { createContext,useContext } from "react";
+import type { templateCopy } from "@platform/data/workshop-template";
+export interface TemplateLabels { copy:typeof templateCopy; fields:Record<string,string>; }
+export const TemplateLabelsContext=createContext<TemplateLabels | null>(null);
+export function useTemplateLabels() {
+ const labels=useContext(TemplateLabelsContext);
+ if(!labels) throw new Error("Template labels provider missing");
+ return labels;
+}
+```
+
 ### File: `modules/hooks/use-user-moderation.ts`
 
 SHA-256: `1079d19e8f968472c12d148305c3c386a7af2b870c16c3998cc64b07283103ac`
@@ -16302,6 +16751,24 @@ export function useUserModeration(id: string, errorLabel: string) {
     return saved;
   };
   return { execute, pending: command.pending, error: command.error };
+}
+```
+
+### File: `modules/hooks/use-workshop-template-editor.ts`
+
+SHA-256: `ec689d394955dcbff13edbb88922e71449aaacf2c74fe5077211e345c695ebf0`
+
+```typescript
+"use client";
+import { useState } from "react";
+import { endpoints } from "@platform/config/navigation";
+import { useAdminSave } from "./use-admin-save";
+import type { TemplateRecord } from "@platform/types/workshop-template";
+export function useWorkshopTemplateEditor(slug:string,record:TemplateRecord,errorLabel:string) {
+ const [document,setDocument]=useState(record.document),[revision,setRevision]=useState(record.revision);
+ const command=useAdminSave(endpoints.adminTemplate(slug),errorLabel,{refresh:false});
+ async function save(){if(await command.save({document,revision})) setRevision(v=>v+1);}
+ return {...command,document,setDocument,save};
 }
 ```
 
@@ -16568,9 +17035,10 @@ export const securityHeaders = [
 
 ### File: `modules/lib/security/ingress.ts`
 
-SHA-256: `d3d84735b4c28f3094fa13d922402fd5bc5cdb48b5c71d9c311d2ae3c07d1425`
+SHA-256: `dccae482adb36b4b367f7b5be94cc07a49617dec715caeef863072d9fa952e03`
 
 ```typescript
+import { isTemplateEndpoint,templatePolicy } from "@platform/config/workshop-template";
 import { sameOrigin } from "@platform/lib/server-request";
 import { endpoints } from "@platform/config/navigation";
 import { imageUploadPolicy } from "@platform/config/image-upload";
@@ -16596,7 +17064,7 @@ export async function checkIngress(request: NextRequest, requestId: string) {
   }
   if (request.url.length > securityPolicy.maxUrlLength) return denial("INVALID_INPUT", 414, requestId);
   const length = request.headers.get("content-length");
-  const max = request.nextUrl.pathname === endpoints.imageUpload ? imageUploadPolicy.maxRequestBytes : requestPolicy.maxJsonBytes;
+  const max = request.nextUrl.pathname === endpoints.imageUpload ? imageUploadPolicy.maxRequestBytes : isTemplateEndpoint(request.nextUrl.pathname) ? templatePolicy.maxRequestBytes : requestPolicy.maxJsonBytes;
   if (length && (!/^\d+$/.test(length) || Number(length) > max)) return denial("REQUEST_TOO_LARGE", 413, requestId);
   try {
     const budget = await requestBudget(request);
@@ -20852,6 +21320,23 @@ SHA-256: `daa5378e3319f1c86b480af2ed93eb4d15b23e79bf07361931888dfe7e9e1364`
 }
 ```
 
+### File: `modules/styles/workshop-template.css`
+
+SHA-256: `5bb23c6c81e66a7ed934e1e6e9b7da65cfdde511a6d4966c1d5789374dce5d9e`
+
+```css
+/* Shared theme roles; nested editors never expand the page horizontally. */
+.lms-template-editor { width: 100%; min-width: 0; }
+.lms-template-editor > fieldset { display: grid; gap: var(--space-lg); min-width: 0; }
+.lms-template-fields, .lms-template-list { display: grid; gap: var(--space-md); min-width: 0; }
+.lms-template-editor summary { cursor: pointer; font-weight: var(--font-weight-label); padding-block: var(--space-sm); }
+.lms-template-item { border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-sm); min-width: 0; }
+.lms-template-item-actions, .lms-template-order-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.lms-template-order-row { justify-content: space-between; padding-block: var(--space-xs); }
+.lms-template-editor textarea { resize: vertical; width: 100%; }
+.lms-template-editor .lms-text-link:disabled { color: var(--text-muted); cursor: default; }
+```
+
 ### File: `modules/types/account-copy.ts`
 
 SHA-256: `45bb17d038cf6ec36b22d8ca554db02bcbf34d8d6332ecdf053f3205bf1cf5ca`
@@ -21131,7 +21616,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `6b4d8996f09736d9786113dc100e84a6e1717cc4576eb65d76a881265e9f246c`
+SHA-256: `94623b6d7297bb35fce0197680ef609b0882c3b3e52cf1935070317dd9bc4ceb`
 
 ```typescript
 
@@ -21486,6 +21971,26 @@ isOneToOne: false
                   }
                   Relationships: [
 
+                  ]
+                },"workshop_templates": {
+                  Row: {
+                    "course_slug": string,"document": NonNullable<Json>,"revision": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"document": NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "course_slug"?: string,"document"?: NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workshop_templates_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: true
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
                   ]
                 }
           }
@@ -21860,6 +22365,19 @@ SHA-256: `41fa314da3625433ae5d02707d7a1efe3aa2582b60db10863041a4e15ffab4f4`
 ```typescript
 export interface SaleRecord { id:string; title:string; amountMinor:number; createdAt:string; paidAt:string | null; status:string; live:boolean; username:string | null; name:string; bundle:boolean; couponCode:string | null; discountMinor:number; }
 export interface SalesLabels { heading:string; search:string; status:string; all:string; apply:string; clear:string; customer:string; product:string; amount:string; date:string; discount:string; noCustomer:string; test:string; live:string; empty:string; previous:string; next:string; currency:string; states:Record<string,string>; }
+```
+
+### File: `modules/types/workshop-template.ts`
+
+SHA-256: `33546cc0cb883c4cff4ad113a7daedfd0fab39ca3070a0d0bd3c3c808e065a29`
+
+```typescript
+import type { MarketingPageContent,WorkshopSectionKey } from "@khatab/design/types/marketing";
+export type { WorkshopSectionKey } from "@khatab/design/types/marketing";
+export type TemplateContent = Pick<MarketingPageContent, WorkshopSectionKey | "footer" | "signup" | "offer"> & { scarcity: Pick<MarketingPageContent["header"], "scarcityLabel" | "viewerCount" | "viewerLabel" | "countdown"> };
+export interface WorkshopTemplate { content: TemplateContent; order: WorkshopSectionKey[]; showCountdown: boolean; showSignup: boolean; }
+export interface TemplateRecord { document: WorkshopTemplate; revision: number; }
+export type TemplateValue = string | number | boolean | null | TemplateValue[] | { [key: string]: TemplateValue };
 ```
 
 ### File: `next.config.ts`
@@ -28355,7 +28873,7 @@ export interface RevealOptions {
 
 ### File: `packages/design-system/types/marketing.ts`
 
-SHA-256: `fe80f82a7c278386561cb7eb74f3ad8670afe2093b2cc8bc21fa3d1b7485f56b`
+SHA-256: `9d1fa6740c8a63a29fcc7027edb556524fce3024208e8967450479a872656e26`
 
 ```typescript
 import type { ProjectNavigationContent } from "./project-navigation";
@@ -28509,6 +29027,9 @@ export interface MarketingPageContent {
   offer: CountdownOptions;
   motion: RevealOptions;
 }
+
+export const workshopSectionKeys = ["hero", "clients", "transformation", "roadmap", "testimonials", "instructor", "guarantee", "faq", "finalCta"] as const;
+export type WorkshopSectionKey = typeof workshopSectionKeys[number];
 ```
 
 ### File: `packages/design-system/types/media-player.ts`
@@ -34110,7 +34631,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `a886d91263af6ae5083a75b8d9926c4d1cf78ad9226af9d47421cc376e601473`
+SHA-256: `6c496875d42c270f22be68b802cac1d1a812f76ba0e1fa33f3b126b850105c48`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -34173,6 +34694,9 @@ async function run() {
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
+  if (process.env.BACKEND_SUITE === 'workshop-template') {
+    await require('./workshop-template.cjs')({admin,provision,anonymous,verify,url});return;
   }
   if (process.env.BACKEND_SUITE === 'commerce') {
     await require('./commerce.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock,config});return;
@@ -34905,6 +35429,97 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
 };
 ```
 
+### File: `tests/backend/workshop-template-browser.cjs`
+
+SHA-256: `bb24241b97638594f5a62422f6e468e5e052b75b578f1fccda30134f18b8584f`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real editor interactions and responsive main navigation. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async({manager,slug,url,verify})=>{
+ const browser=await chromium.launch(),page=await browser.newPage({reducedMotion:"reduce"}),errors=[];
+ page.on('pageerror',error=>errors.push(error.message));page.on('console',message=>{if(message.type()==='error'&&/hydration|hydrated|didn.t match/i.test(message.text()))errors.push(message.text());});
+ try{
+  await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:manager.email,password:manager.password}});
+  const path='/admin/dashboard/courses/'+slug+'/template';
+  for(const width of [320,390,768,1440]) {
+   await page.setViewportSize({width,height:900});await page.goto(url+path);await page.waitForLoadState('networkidle');
+   await page.locator('.lms-template-editor > fieldset > details').first().locator('summary').first().click();
+   await expect(page.getByLabel('الوصف',{exact:true}).first()).toBeVisible();
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Template editor fits '+width);
+   if([390,1440].includes(width)){await page.evaluate(()=>scrollTo(0,0));fs.mkdirSync('docs/evidence/workshop-template',{recursive:true});await page.screenshot({path:`docs/evidence/workshop-template/editor-${width}.png`,fullPage:true});}
+  }
+  await page.getByLabel('الوصف',{exact:true}).first().fill('Saved using the reusable template editor');
+  const response=page.waitForResponse(r=>r.url().endsWith('/api/admin/courses/'+slug+'/template')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'حفظ التصميم',exact:true}).click();verify((await response).status()===200,'Browser saves template through protected API');
+  await expect(page.getByText('تم حفظ التصميم',{exact:true})).toBeVisible();
+  await page.reload();await page.locator('.lms-template-editor > fieldset > details').first().locator('summary').first().click();
+  await expect(page.getByLabel('الوصف',{exact:true}).first()).toHaveValue('Saved using the reusable template editor');verify(true,'Edited template survives reload');
+  for(const width of [390,1440]) {
+   await page.setViewportSize({width,height:900});await page.goto(url+'/workshops/'+slug);await page.waitForLoadState('networkidle');
+   await expect(page.getByText('Saved using the reusable template editor',{exact:true})).toBeVisible();
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Featured workshop fits '+width);
+   verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('header').count()===1,'Featured workshop has exactly one shared navbar at '+width);
+   if(width===390){await page.getByRole('button',{name:'فتح قائمة التنقل',exact:true}).click();await expect(page.locator('.lms-marketing-links')).toBeVisible();}
+   await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`docs/evidence/workshop-template/public-${width}.png`,fullPage:true});
+  }
+  verify(errors.length===0,'Template editor and public page have no runtime or hydration errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/workshop-template.cjs`
+
+SHA-256: `3de32cd8a538d6a55991d3c3d517eb4486596f7017dc8652f855c5a9592d64b3`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated featured template CRUD and permission checks. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Template Manager'),student=await provision('Template Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='template-'+randomUUID(),path='/api/admin/courses/'+slug+'/template',parse=r=>JSON.parse(r.data);
+ try {
+  // Next dev may serve the shallow catalog before discovering nested routes.
+  for(let attempt=0;attempt<20;attempt++){
+   const ready=await anonymous(path);
+   if(ready.status!==404 || !ready.data.startsWith('<!DOCTYPE html>')) break;
+   if(attempt===19) throw new Error('Template API route discovery did not complete');
+   await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  const body={slug,title:'Editable featured workshop',description:'A workshop with unique editable marketing content.',amount:500,category:'business',delivery:'live',duration:'7 days',featured:true};
+  verify((await manager.api('/api/admin/courses',body)).status===201,'Admin creates featured workshop');
+  let course=parse(await manager.api('/api/admin/courses/'+slug));
+  verify((await manager.api('/api/admin/courses/'+slug,{...body,revision:course.revision,published:true,thumbnailUrl:'',introVideoUrl:''})).status===200,'Featured workshop publishes');
+  const guest=await anonymous(path);verify(guest.status===401,`Guest cannot read template editor (${guest.status}: ${guest.data.slice(0,160)})`);
+  verify((await student.api(path)).status===403,'Student cannot read template editor');
+  let record=parse(await manager.api(path));verify(record.revision===0&&record.document.order.length===9,'Unsaved template derives course defaults');
+  const v=record.document;v.content.hero.title=['Unique featured heading'];v.content.hero.description='Completely edited hero description';v.content.faq.items=[{question:'Unique question?',answer:'Unique custom answer.'}];v.order=v.order.filter(k=>k!=='guarantee');v.showCountdown=false;v.showSignup=false;
+  v.content.hero.showVideo=true;v.content.hero.video.source.url='https://youtu.be/svTNN9S7ipc';
+  verify((await student.api(path,{document:v,revision:0})).status===403,'Student cannot save template');
+  verify((await manager.api(path,{document:v,revision:0},{headers:{Origin:'https://hostile.example'}})).status===403,'Cross-origin template write blocked');
+  verify((await manager.api(path,{document:v,revision:0})).status===200,'Admin saves custom content and section visibility');
+  verify((await manager.api(path,{document:v,revision:0})).status===409,'Concurrent initial template write rejects stale revision');
+  record=parse(await manager.api(path));verify(record.revision===1&&record.document.content.hero.title[0]==='Unique featured heading','Template persists full content');
+  const publicPage=await anonymous('/workshops/'+slug);
+  verify(publicPage.status===200&&publicPage.data.includes('Unique featured heading')&&publicPage.data.includes('Unique question?')&&!publicPage.data.includes('guarantee-section'),'Published template uses edited text and hides section');
+  verify(publicPage.data.includes('lms-site-header')&&!publicPage.data.includes('top-scarcity-bar'),'Featured template uses main navbar and hides countdown');
+  verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('course_slug',slug).select()).data?.length,'RLS prevents student direct writes');
+  const bad=structuredClone(v);bad.content.hero.action.href='javascript:alert(1)';verify((await manager.api(path,{document:bad,revision:1})).status===400,'Unsafe template link rejected');
+  bad.content.hero.action.href='/';bad.content.hero.section.id='hacked';verify((await manager.api(path,{document:bad,revision:1})).status===400,'Template cannot break section IDs or animation contract');
+  v.order=['hero','faq',...v.order.filter(k=>!['hero','faq'].includes(k))];
+  verify((await manager.api(path,{document:v,revision:1})).status===200,'Admin saves custom section order');
+  const reordered=await anonymous('/workshops/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
+  verify((await manager.api(path,{document:v,revision:1})).status===409,'Stale template edit cannot overwrite newer document');
+  verify((await anonymous('/api/courses/'+slug+'/template-media?clip=../../secret')).status===404,'Public media endpoint rejects arbitrary clip lookup');
+  await require('./workshop-template-browser.cjs')({manager,slug,url,verify});
+  course=parse(await manager.api('/api/admin/courses/'+slug));
+  verify((await manager.api('/api/admin/courses/'+slug,{...body,revision:course.revision,published:false,thumbnailUrl:'',introVideoUrl:''})).status===200,'Workshop can return to draft');
+  verify(!(await student.direct.from('workshop_templates').select('course_slug').eq('course_slug',slug)).data?.length,'Draft template hidden by RLS');
+ }finally{await admin.from('courses').delete().eq('slug',slug);}
+};
+```
+
 ### File: `tests/countdown.spec.ts`
 
 SHA-256: `c186cfa88692f8d6c6083d8f5f58ab982e61feca2bd51de88012f0634fab9240`
@@ -35264,7 +35879,7 @@ module.exports = { bundleBrowserModule };
 
 ### File: `tests/helpers/component-reuse.fixture`
 
-SHA-256: `c89a06afdd6318595a240d7e42fa05328deaabc989e3618694af1a3353ce6022`
+SHA-256: `1450a86774c4b1f1783fb9d4720df65f31539d4388eff9648158a1076294991b`
 
 ```typescript
 runCase("sections render alternate content, assets, counts, identifiers, and actions", () => {
@@ -35283,7 +35898,7 @@ runCase("sections render alternate content, assets, counts, identifiers, and act
   const clients = renderToStaticMarkup(<ClientsSection content={{
     ...workshopPage.clients, creators: [{ name: "New creator", platform: "Podcast", image: { src: "/alternate.png", alt: "Alternate portrait", width: 44, height: 44 } }], reels: [],
   }} />);
-  expect(clients.match(/src="\/alternate.png"/g)).toHaveLength(2);
+  expect(clients.match(/src="[^"]*(?:%2Falternate\.png|\/alternate\.png)[^"]*"/g)).toHaveLength(2);
   expect(clients).toContain("Alternate portrait");
   expect(clients).not.toContain('class="reel-card"');
   const roadmap = renderToStaticMarkup(<RoadmapSection content={{ ...workshopPage.roadmap, days: [workshopPage.roadmap.days[0]] }} />);
@@ -39577,6 +40192,28 @@ test("Drive and direct-file playback retain their existing routing", () => {
   assert.equal(playableUrl("https://drive.google.com/file/d/1234567890/view", "course", "lesson"), "/api/courses/course/lessons/lesson/stream");
   assert.equal(playableUrl("/assets/video/workshop-intro.mp4", "course"), "/assets/video/workshop-intro.mp4");
 });
+```
+
+### File: `tests/security/workshop-template.test.ts`
+
+SHA-256: `3acaeb48ac254cf0aa758859197e4f7fb29b99818ba8f819513ba421e49d2dc7`
+
+```typescript
+import test from "node:test";
+import assert from "node:assert/strict";
+import { defaultWorkshopTemplate } from "../../modules/features/marketing/templates/default-template";
+import { liveWorkshopCourse } from "../../modules/data/workshop-course";
+import { validateWorkshopTemplate } from "../../modules/features/marketing/templates/helpers/validate-document";
+import { resolveTemplateMedia,templateMediaUrl } from "../../modules/features/marketing/templates/helpers/template-media";
+import { moveTemplateItem } from "../../modules/features/marketing/templates/helpers/move-items";
+const sample=defaultWorkshopTemplate(liveWorkshopCourse);
+test('complete default featured template validates',()=>assert.ok(validateWorkshopTemplate(sample,sample)));
+test('template edits preserve rich highlights and accept safe links',()=>{const v=structuredClone(sample);v.content.hero.title=['New ',{kind:'span',className:'highlight-red',children:['workshop']}];v.content.hero.action.href='/checkout/7days-freelance';assert.ok(validateWorkshopTemplate(v,sample));});
+test('template rejects active links, layout injection and oversized content',()=>{
+ for(const mutation of [(v:typeof sample)=>v.content.hero.action.href='javascript:alert(1)',(v:typeof sample)=>v.content.hero.section.id='other',(v:typeof sample)=>v.content.hero.description='x'.repeat(6001),(v:typeof sample)=>v.content.offer.tickMs=0,(v:typeof sample)=>v.order.push('hero')]){const v=structuredClone(sample);mutation(v);assert.equal(validateWorkshopTemplate(v,sample),false);}
+});
+test('Drive media resolves only stored clip identifiers',()=>{const v=structuredClone(sample);v.content.hero.video={...sample.content.hero.video,url:undefined,source:{kind:'file',url:'https://drive.google.com/file/d/1pVLFPEqSMCXJAjAR3VRl69hg_3zVQctu/view'}};assert.match(resolveTemplateMedia(v,'7days-freelance').content.hero.video.source!.url,/template-media\?clip=hero/);assert.equal(templateMediaUrl(v,'../../secret'),undefined);});
+test('list ordering does not mutate input and ignores out-of-range moves',()=>{const items=['one','two'];assert.deepEqual(moveTemplateItem(items,0,1),['two','one']);assert.deepEqual(items,['one','two']);assert.deepEqual(moveTemplateItem(items,0,-1),items);});
 ```
 
 ### File: `tests/shared-contracts.typecheck.ts`
