@@ -38,7 +38,7 @@ Price update `a5703ee` deployed successfully. Nineteen read-only live editor che
 
 ## Shared creation/editor design
 
-Creation and editing compose `CourseFormLayout`, `CourseFields` and `CourseMediaFields`, retaining one responsive three-card layout. Creation supplies slug/delivery controls and a draft-only save action. Duration, thumbnail URL and intro URL are validated and persisted on initial creation; older API payloads can omit them. Uploading a thumbnail requires saving the draft first, preserving existing upload permissions. Creation request state is in `useCreateCourse`; form decoding and response validation remain separate helpers.
+Creation and editing compose `CourseFormLayout`, `CourseFields` and `CourseMediaFields`, retaining one responsive three-card layout. Creation supplies slug/delivery controls and a draft-only save action. Live schedule duration, thumbnail URL and intro URL are validated and persisted on initial creation; older API payloads can omit them. Uploading a thumbnail requires saving the draft first, preserving existing upload permissions. Creation request state is in `useCreateCourse`; form decoding and response validation remain separate helpers.
 
 Shared-form update `3c6d25d` is deployed. Five contract tests, 44 price/creation API-browser checks and 96 course-management regression checks passed. Twenty-eight read-only live checks confirmed responsive creation/editor parity and unchanged course data, with zero runtime errors.
 
@@ -47,3 +47,11 @@ Shared-form update `3c6d25d` is deployed. Five contract tests, 44 price/creation
 `LessonMediaFields` composes the video URL and read-only duration. `useLessonVideoDuration` owns lookup state and native form validity; `lessonProbeSource` validates/resolves the source; `probeVideoDuration` requests native video metadata and releases its media source on completion, failure, timeout or abort. Drive file URLs use the authenticated course `/media/stream` endpoint, while direct URLs are probed by the browser. The duration is rounded up to whole seconds and validated against the existing maximum. Failed or pending lookups clear stale values and prevent saving; retry is available. Existing durations are preserved for unchanged lesson links. Stored private playback URLs remain outside public metadata.
 
 Automatic-duration release `f95e764` is deployed. All 98 isolated curriculum API/browser checks passed, followed by six read-only live checks using the supplied real Drive video (42 seconds), with zero runtime errors and unchanged course data.
+
+## Automatic course duration
+
+Recorded courses derive their total from the canonical lesson `durationSeconds` values through `courseDuration`, using the existing Arabic duration formatter. Public catalog, learning and admin reads share this calculation. Section references do not count lessons twice. Adding, editing or deleting a lesson updates the next read automatically; an empty course has no duration. The displayed total is rounded to minutes, while lesson seconds retain their precision.
+
+Both create/edit forms show recorded duration as read-only with a centralized explanatory hint. Recorded overview writes ignore manual totals and keep no independent stored duration. Legacy recorded totals are ignored when reading, so no data migration is required. Live workshops retain their editable schedule duration and existing publication requirement. Switching delivery on creation updates the field's editability.
+
+Acceptance covers automatic totals after lesson creation/edit/removal, public/admin agreement, stale or forged overview totals, section deduplication, read-only recorded forms, live delivery switching and live schedule persistence. Tests: `tests/security/course-duration.test.ts`, `tests/backend/course-create-fields.test.ts`, and isolated `curriculum-authoring`, `course-price` and `admin-course-management` suites.

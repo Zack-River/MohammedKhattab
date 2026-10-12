@@ -5335,10 +5335,11 @@ export default function CourseContent({ course, revision, published, lessons, la
 
 ### File: `modules/components/admin/course-create-form.tsx`
 
-SHA-256: `96d9a2ee9290e3716edd1f083140ef86f99ed699bde8577e9ae56bcbfe668d20`
+SHA-256: `8df900e8df96b81b15d9ed686da785880c21b449b6f19eb65e04de3d549ab810`
 
 ```tsx
 "use client";
+import { useState } from "react";
 import { useCreateCourse } from "@platform/hooks/use-create-course";
 import { courseAdministration } from "@platform/config/course-administration";
 import FormField from "@platform/components/ui/form-field";
@@ -5352,11 +5353,12 @@ import SaveFeedback from "./save-feedback";
 type Props = Pick<CourseEditorProps,"categories" | "uploadLabels"> & { labels: AdminCoursesLabels; editorLabels: CourseEditorProps["labels"] };
 export default function CourseCreateForm({ labels, editorLabels, categories, uploadLabels }: Props) {
   const command = useCreateCourse(labels.error);
+  const [delivery, setDelivery] = useState<"recorded" | "live">("recorded");
   return <CourseFormLayout labels={editorLabels} pending={command.pending}
     onSubmit={event => { event.preventDefault(); void command.create(new FormData(event.currentTarget)); }}
-    details={<><CourseFields labels={editorLabels} categories={categories} />
+    details={<><CourseFields labels={editorLabels} categories={categories} delivery={delivery} />
       <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
-      <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
+      <Select name="delivery" label={labels.delivery} value={delivery} onValueChange={value => setDelivery(value as "recorded" | "live")} options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
     media={<CourseMediaFields labels={editorLabels} uploadLabels={uploadLabels} uploadHint={labels.uploadAfterCreate} />}
     actions={<><p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
 }
@@ -5437,7 +5439,7 @@ export default function CourseEditor({ course, published, revision, labels, cate
 
 ### File: `modules/components/admin/course-fields.tsx`
 
-SHA-256: `0b03d6e77a60e7a61cd6a327f254c12b6198da28fef5262f2a42d52fd3c86cbe`
+SHA-256: `5f9e19b951e0122f09fed6d90beea415464b08ac620ba6a3cf5818c32d69e96d`
 
 ```tsx
 "use client";
@@ -5447,12 +5449,13 @@ import Select from "@khatab/design/ui/select";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import TextareaField from "@platform/components/ui/textarea-field";
 import FormField from "@platform/components/ui/form-field";
-export default function CourseFields({ course, labels, categories }: Pick<CourseEditorProps,"labels" | "categories"> & { course?: CourseEditorProps["course"] }) {
+import { courseDuration } from "@platform/features/catalog/helpers/course-duration";
+export default function CourseFields({ course, labels, categories, delivery = course?.delivery ?? "recorded" }: Pick<CourseEditorProps,"labels" | "categories"> & { course?: CourseEditorProps["course"]; delivery?: "recorded" | "live" }) {
   return <>
     <FormField label={labels.title} name="title" defaultValue={course?.title} required maxLength={policy.titleMax} minLength={policy.titleMin} />
     <TextareaField label={labels.descriptionLabel} name="description" defaultValue={course?.description} required minLength={policy.descriptionMin} maxLength={policy.descriptionMax} rows={4} />
     <CoursePriceField initialAmount={course?.offer.amount} labels={labels} />
-    <FormField label={labels.duration} name="duration" defaultValue={course?.duration} maxLength={policy.durationMax} hint={(!course || course.delivery === "live") ? labels.durationHint : undefined} />
+    <FormField key={delivery} label={labels.duration} name={delivery === "live" ? "duration" : undefined} readOnly={delivery !== "live"} defaultValue={delivery === "live" ? course?.duration : course ? courseDuration(course) : ""} maxLength={policy.durationMax} hint={delivery === "live" ? labels.durationHint : labels.durationAutomaticHint} />
     <Select label={labels.category} name="category" defaultValue={course?.category ?? categories[0].id} options={categories.map(category => ({ value: category.id, label: category.label }))} />
   </>;
 }
@@ -9665,7 +9668,7 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `62fb64a1c206fa0c9ea93123af3099f35f5acc1752ba9aec2b6885f7b079e70a`
+SHA-256: `1049dff679dddc7c19a5f8224187492748b4c4b0377537b77b082733a1f19141`
 
 ```typescript
 export const adminCopy = {
@@ -9673,6 +9676,7 @@ export const adminCopy = {
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.", category: "التصنيف",
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
+  durationAutomaticHint: "تُحسب تلقائيًا من إجمالي مدد الدروس، وتتحدث عند تغيير المحتوى.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو YouTube قابل للتضمين، أو فيديو مباشر، أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
@@ -11425,7 +11429,7 @@ export function courseQueryUrl(query: AdminCourseQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/create-course-metadata.ts`
 
-SHA-256: `efa2d510abb76f71f832548cdef256e98b2abe13c69aa88c9c1b58ebcf7a64d6`
+SHA-256: `3f03a34a8008d9bd74e0e60fc180c7556afbc01293cbcb4940a4c48d33fbb28f`
 
 ```typescript
 import { categories } from "@platform/config/catalog";
@@ -11434,7 +11438,7 @@ import type { CreateCourseInput } from "@platform/types/admin-courses";
 const artworks = { editing: "timeline", motion: "motion", design: "design", business: "business" } as const;
 export function createCourseMetadata(input: CreateCourseInput, defaults: { currency: string; action: string; liveLabel: string }): Course {
  return { slug: input.slug, title: input.title, description: input.description, category: input.category, categoryLabel: categories.find(category => category.id === input.category)!.label, delivery: input.delivery,
-  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: input.duration ?? "", thumbnailUrl: input.thumbnailUrl ?? "", introVideoUrl: input.introVideoUrl ?? "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
+  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: input.delivery === "live" ? input.duration ?? "" : "", thumbnailUrl: input.thumbnailUrl ?? "", introVideoUrl: input.introVideoUrl ?? "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
 }
 ```
 
@@ -11489,7 +11493,7 @@ export function decodeCourseCreated(value: unknown, errorLabel: string): string 
 
 ### File: `modules/features/admin/helpers/edit-course-metadata.ts`
 
-SHA-256: `dfb0a942aee210e2a85c1003fae9a32af7dfcf25f0130d99f20951f3e02a0e94`
+SHA-256: `7122d36fc1ff627bde2eaaf2ebc9ba771ea0616d78c6b711266055df555cf5bd`
 
 ```typescript
 import { categories } from "@platform/config/catalog";
@@ -11500,7 +11504,7 @@ export function editCourseMetadata(current: Course, values: NonNullable<ReturnTy
     ...current,
     title: values.title,
     description: values.description,
-    duration: values.duration ?? current.duration,
+    duration: current.delivery === "live" ? values.duration ?? current.duration : "",
     category: values.category,
     categoryLabel: categories.find(category => category.id === values.category)!.label,
     thumbnailUrl: values.thumbnailUrl,
@@ -11615,11 +11619,11 @@ export function readCourseCreate(form: FormData) {
 
 ### File: `modules/features/admin/helpers/read-course-edit.ts`
 
-SHA-256: `ff9f3ee38a0184779204601018917a1e4842aed8d26c0c879c72b82114cd0741`
+SHA-256: `54ee93e56e5be369fbad43f482a6fd2094a065d255cbbdccee8054ead34506fd`
 
 ```typescript
 export function readCourseEdit(form: FormData) {
-  return { revision: Number(form.get("revision")), title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), duration: form.get("duration"),
+  return { revision: Number(form.get("revision")), title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), ...(form.has("duration") ? { duration: form.get("duration") } : {}),
     thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
 }
 ```
@@ -12334,6 +12338,22 @@ export async function requirePageIdentity() {
 }
 ```
 
+### File: `modules/features/catalog/helpers/course-duration.ts`
+
+SHA-256: `89fdcadaa5dc12baf1de978905c758cd76c948ee885fb48be71d259428620305`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import { courseSeconds } from "./course-seconds";
+import { formatCourseDuration } from "./format-course-duration";
+/** Recorded duration is derived, never an independently editable source of truth. */
+export function courseDuration(course: Pick<Course, "modules" | "delivery" | "duration">) {
+  if (course.delivery === "live") return course.duration;
+  const seconds = courseSeconds(course);
+  return seconds ? formatCourseDuration(seconds) : "";
+}
+```
+
 ### File: `modules/features/catalog/helpers/course-lessons.ts`
 
 SHA-256: `fbe6836f15c3c41d56c63f50ddba9ec7514dada443be4326d7bec2f32a3301cf`
@@ -12440,18 +12460,19 @@ export function parseLessonTime(value: string) {
 
 ### File: `modules/features/catalog/helpers/public-course.ts`
 
-SHA-256: `70d41a52cf167f6f2b95801591012a9e6c3895c6e1354fc981463c472a2e644f`
+SHA-256: `ceca4fe6c546537fee444d33224e29770c8f046a213cf7e0e738c762aa48881d`
 
 ```typescript
 import type { Course } from "@platform/types/lms";
 import { validateCourse } from "./validate-course";
 import { validateLessons } from "./validate-lessons";
+import { courseDuration } from "./course-duration";
 export function publicCourse(metadata: unknown, slug: string, amount: number, options: { draft?: boolean } = {}): Course {
   const course = metadata as Course;
   const result = { ...course, slug, offer: { ...course.offer, amount } };
   validateCourse(result, new Set(), options);
   validateLessons(result, result.modules.flatMap(section => section.lessons.flatMap(lesson => lesson.resourceIds)), options);
-  return { ...result, modules: result.modules.map(section => ({ ...section,
+  return { ...result, duration: courseDuration(result), modules: result.modules.map(section => ({ ...section,
     lessons: section.lessons.map(lesson => ({ ...lesson, videoUrl: "" })),
   })) };
 }
@@ -31376,7 +31397,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
 
 ### File: `tests/backend/admin-course-management-browser.cjs`
 
-SHA-256: `d8b28548bf3b5e49b9c5bd730efb4a85a1ec94b6ce987018eee50e02932a98c0`
+SHA-256: `ef6dfc09b1f3cf3000d2376d305cba4a67c68e5e0f6daf5ee97454e7b7d429a3`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated browser acceptance checks. */
@@ -31424,12 +31445,12 @@ module.exports=async({manager,verify,url,prefix,slugs})=>{
   await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();
   await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+newSlug);
   await expect(page.getByLabel('اسم الدورة',{exact:true})).toHaveValue('دورة من نموذج الإنشاء');
-  await page.reload();await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveValue('333');
+  await page.reload();await page.waitForLoadState("networkidle");await expect(page.getByLabel('السعر (ج.م)',{exact:true})).toHaveValue('333');
   verify(true,'Browser-created draft persists and opens its editor');
   await page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true}).check();
   await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('alert')).toHaveText('أدخل مدة الدورة المباشرة قبل النشر.');
   await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toHaveText('تم حفظ التغييرات');
-  await page.reload();await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('٧ أيام');await expect(page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true})).toBeChecked();
+  await page.reload();await page.waitForLoadState("networkidle");await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('٧ أيام');await expect(page.getByRole('checkbox',{name:'منشورة في المنصة',exact:true})).toBeChecked();
   verify(true,'Browser can supply required live duration, publish and retain it after refresh');
   await page.setViewportSize({width:320,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Course creation form fits 320px');
   verify(errors.length===0,'Course dashboard has no browser JavaScript errors');
@@ -32060,7 +32081,7 @@ test("Live courses require duration but may have no recorded lessons",()=>{
 
 ### File: `tests/backend/course-create-fields.test.ts`
 
-SHA-256: `fd44db675175f89131b79291f969fbcce964ab8b348422b977c705efc91ae66d`
+SHA-256: `3f83661710e48ed555993e649034c29c31bf2974a9e9b791c58e522bc9320af8`
 
 ```typescript
 import assert from "node:assert/strict";
@@ -32070,7 +32091,7 @@ import { createCourseMetadata } from "../../modules/features/admin/helpers/creat
 const base = { slug:"new-course",title:"New course",description:"Course description",amount:100,category:"editing",delivery:"recorded" };
 test("New optional overview fields validate and persist without breaking older creation requests", () => {
   const legacy = validateCourseCreate(base); assert.ok(legacy); assert.equal(legacy.thumbnailUrl,"");
-  const input = validateCourseCreate({...base,duration:" ٧ أيام ",thumbnailUrl:"https://example.com/photo.jpg",introVideoUrl:"https://drive.google.com/file/d/123/view"}); assert.ok(input);
+  const input = validateCourseCreate({...base,delivery:"live",duration:" ٧ أيام ",thumbnailUrl:"https://example.com/photo.jpg",introVideoUrl:"https://drive.google.com/file/d/123/view"}); assert.ok(input);
   const course = createCourseMetadata(input,{currency:"ج.م",action:"اشترك",liveLabel:"مباشرة"});
   assert.equal(course.duration,"٧ أيام");assert.equal(course.thumbnailUrl,input.thumbnailUrl);assert.equal(course.introVideoUrl,input.introVideoUrl);
 });
@@ -32083,7 +32104,7 @@ test("Creation rejects invalid media or duration values", () => {
 
 ### File: `tests/backend/course-price.cjs`
 
-SHA-256: `5ecce6f4915b9c2567b2079da17ddf60f962703c1ed436cf448df3856ef4dd3b`
+SHA-256: `53d3f606ebaad4e09797a5ac2ee61bec6e1aa89da863dd6468439009fddf5f9c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated course price API and browser acceptance. */
@@ -32106,17 +32127,19 @@ module.exports=async({admin,provision,verify,url})=>{
   browser=await chromium.launch();const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
   await page.goto(url+'/admin/dashboard/courses/'+slug);let price=page.getByLabel('السعر (ج.م)',{exact:true});const free=page.getByRole('checkbox',{name:'مجاني',exact:true});
+  await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveAttribute('readonly','');verify(true,'Recorded overview duration is read-only');
   await expect(price).toHaveAttribute('type','text');await expect(price).toHaveAttribute('inputmode','numeric');verify(true,'Price is a normal text field with numeric mobile keyboard');
   for(const value of ['0','-10','1.5','1e3','abc','1000001']){await price.fill('');await price.fill(value);await expect(price).toHaveValue('');verify(true,'Invalid text cannot become a paid amount');}
-  await price.fill('١٢٥٠');await expect(price).toHaveValue('1250');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===1250,'Arabic-digit integer persists');
-  await free.check();await expect(price).toBeDisabled();await expect(page.locator('input[type=hidden][name=amount]')).toHaveValue('0');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();await page.reload();await expect(free).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===0,'Free toggle persists through refresh');
+  const previousRevision=await page.locator('input[name=revision]').inputValue();await price.fill('١٢٥٠');await expect(price).toHaveValue('1250');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===1250,'Arabic-digit integer persists');
+  await expect(page.locator('input[name=revision]')).not.toHaveValue(previousRevision);await free.check();await expect(price).toBeDisabled();await expect(page.locator('input[type=hidden][name=amount]')).toHaveValue('0');await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.locator('.lms-admin-form').getByRole('status')).toBeVisible();await page.reload();await page.waitForLoadState('networkidle');await expect(free).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',slug).single()).data.amount===0,'Free toggle persists through refresh');
   await free.uncheck();await expect(price).toBeEnabled();await expect(price).toHaveValue('');let requests=0;page.on('request',request=>{if(request.url().endsWith(base)&&request.method()==='POST')requests++;});await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();verify(requests===0&&await price.evaluate(input=>input.validity.valueMissing),'Paid empty value is required and cannot silently save as free');
   for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Price field and free choice fit ${width}px`);}
   await page.goto(url+'/admin/dashboard/courses/new');price=page.getByLabel('السعر (ج.م)',{exact:true});await expect(price).toHaveAttribute('type','text');await expect(price).toBeEnabled();await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).not.toBeChecked();verify(true,'Creation reuses paid text/free choice with explicit selection');
-  await page.getByLabel('اسم الدورة',{exact:true}).fill('Free browser course');await page.getByLabel('رابط الدورة',{exact:true}).fill(created);await page.getByLabel('الوصف',{exact:true}).fill('Free creation test');await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByLabel('رابط الصورة المصغّرة',{exact:true}).fill('https://example.com/course.jpg');await page.getByLabel('رابط الفيديو التعريفي',{exact:true}).fill('https://drive.google.com/file/d/test-video/view');
+  await page.getByLabel('اسم الدورة',{exact:true}).fill('Free browser course');await page.getByLabel('رابط الدورة',{exact:true}).fill(created);await page.getByLabel('الوصف',{exact:true}).fill('Free creation test');await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveAttribute('readonly','');await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('');await page.getByLabel('رابط الصورة المصغّرة',{exact:true}).fill('https://example.com/course.jpg');await page.getByLabel('رابط الفيديو التعريفي',{exact:true}).fill('https://drive.google.com/file/d/test-video/view');
+  await page.getByRole('combobox',{name:'نوع الدورة',exact:true}).click();await page.getByRole('option',{name:'مباشرة',exact:true}).click();await expect(page.getByLabel('مدة الدورة',{exact:true})).not.toHaveAttribute('readonly','');await page.getByLabel('مدة الدورة',{exact:true}).fill('٧ أيام');await page.getByRole('combobox',{name:'نوع الدورة',exact:true}).click();await page.getByRole('option',{name:'مسجلة',exact:true}).click();await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveAttribute('readonly','');await expect(page.getByLabel('مدة الدورة',{exact:true})).toHaveValue('');verify(true,'Only live delivery allows manual schedule duration');
   await expect(page.getByLabel('الوصف',{exact:true})).toHaveJSProperty('tagName','TEXTAREA');await expect(page.locator('.lms-course-editor-layout > section')).toHaveCount(3);verify(true,'Creation reuses editor layout, textarea and media fields');
   for(const width of [320,390,768,1024,1440,1920]){await page.setViewportSize({width,height:1000});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Creation fits ${width}px`);if(width>1024){for(const card of await page.locator('.lms-course-editor-layout > section').all()){await card.scrollIntoViewIfNeeded();await expect(card).toHaveCSS('opacity','1');await expect(card).toHaveCSS('transform','none');}const boxes=await page.locator('.lms-course-editor-layout > section').evaluateAll(elements=>elements.map(element=>{const r=element.getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));verify(Math.abs(boxes[0].y-boxes[1].y)<2&&Math.abs(boxes[0].bottom-boxes[2].bottom)<2,`Creation card edges align at ${width}px: ${JSON.stringify(boxes)}`);}}
-  await page.getByRole('checkbox',{name:'مجاني',exact:true}).check();await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+created);await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',created).single()).data.amount===0,'Free creation persists to database');const record=(await admin.from('courses').select('metadata,published').eq('slug',created).single()).data;verify(record.metadata.duration==='٧ أيام'&&record.metadata.thumbnailUrl==='https://example.com/course.jpg'&&record.metadata.introVideoUrl==='https://drive.google.com/file/d/test-video/view'&&!record.published,'Creation persists overview media/duration as draft');verify(errors.length===0,'No price-editor runtime errors');
+  await page.getByRole('checkbox',{name:'مجاني',exact:true}).check();await page.getByRole('button',{name:'إنشاء دورة',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/courses/'+created);await expect(page.getByRole('checkbox',{name:'مجاني',exact:true})).toBeChecked();verify((await admin.from('courses').select('amount').eq('slug',created).single()).data.amount===0,'Free creation persists to database');const record=(await admin.from('courses').select('metadata,published').eq('slug',created).single()).data;verify(record.metadata.duration===''&&record.metadata.thumbnailUrl==='https://example.com/course.jpg'&&record.metadata.introVideoUrl==='https://drive.google.com/file/d/test-video/view'&&!record.published,'Creation persists media as draft and reserves recorded duration for lesson totals');verify(errors.length===0,'No price-editor runtime errors');
  }finally{await browser?.close();await admin.from('courses').delete().in('slug',[slug,created,slug+'-invalid']);}
 };
 ```
@@ -32195,7 +32218,7 @@ module.exports=async({manager,verify,url,slug})=>{
 
 ### File: `tests/backend/curriculum-authoring.cjs`
 
-SHA-256: `4decc95b5910a910a70957e0a23e17865a49ca67db9449fb36b6e119faaa7f97`
+SHA-256: `c1490e2c73e78a70faf8f15b4e68f4133c250730737b18eb3f0230ab0929a8a9`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated curriculum API acceptance checks. */
@@ -32226,6 +32249,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   for(const values of [{durationSeconds:0},{durationSeconds:1.5},{durationSeconds:86401},{videoUrl:'javascript:alert(1)'},{preview:'false'},{sectionId:'missing'}]) verify((await mutate({...lessonValues,...values})).status===400,'Invalid lesson metadata or assignment rejected');
   response=await mutate(lessonValues);verify(response.status===200,'Create lesson assigned to course and section');const lesson=parse(response).id;
   let current=await record(),stored=(await admin.from('lessons').select('*').eq('course_slug',slug).eq('id',lesson).single()).data;
+  verify(current.course.duration==='٢ دقيقة','Course duration derives from newly added lesson');
   verify(stored.video_url===lessonValues.videoUrl&&!current.course.modules[0].lessons[0].videoUrl,'Playback stored separately from public metadata');
   verify(current.course.modules[0].sections[0].lessonIds.includes(lesson),'Section references canonical lesson');
   verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:chapter})).status===409,'Non-empty section deletion blocked');
@@ -32234,7 +32258,8 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   const resource=(await admin.from('resources').select('id').limit(1)).data[0].id;await admin.from('lesson_resources').insert({resource_id:resource,course_slug:slug,lesson_id:lesson});
   verify((await mutate({kind:'section',operation:'edit',id:section,sourceChapterId:chapter,chapterId:second,title:'Moved section'})).status===200,'Move section and its lessons to another chapter');
   current=await record();verify(current.course.modules[0].lessons.length===0&&current.course.modules[1].lessons[0].id===lesson,'Section move preserves lesson identity');
-  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',durationSeconds:185,preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  verify((await record()).course.duration==='٣ دقائق','Lesson duration edits update course total');
   const progress=(await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data,resources=(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data;
   verify(progress.length===1&&progress[0].completed&&resources.length===1,'Moving and editing retain progress and resource associations');
   verify((await admin.from('lessons').select('preview').eq('course_slug',slug).eq('id',lesson).single()).data.preview,'Preview changes reach protected playback records');
@@ -32244,7 +32269,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   current=await record();verify((await manager.api(base,{...overview(current),published:true})).status===200,'Publish complete recorded curriculum');
   response=await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter});verify(response.status===400&&parse(response).code==='PUBLISHED_CURRICULUM_INCOMPLETE','Deleting last published lesson blocked');
   verify((await mutate({kind:'chapter',operation:'create',title:'Empty chapter'})).status===400,'Published course cannot acquire empty chapter');
-  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
+  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.duration==='٣ دقائق','Public course uses the same derived duration');verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
   current=await record();const concurrent=await Promise.all([manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent first',revision:current.revision}),manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent second',revision:current.revision})]);
   verify(concurrent.map(result=>result.status).sort().join(',')==='200,409','Concurrent edits accept one and reject stale revision');
   verify((await manager.api(base,overview(current))).status===409,'Stale overview cannot overwrite curriculum changes');
@@ -32252,6 +32277,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify(Boolean(rollback.error)&&(await record()).revision===before.revision,'Failed lesson write rolls back curriculum and revision');
   current=await record();verify((await manager.api(base,{...overview(current),published:false})).status===200,'Unpublish before destructive curriculum change');
   verify((await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter})).status===200,'Delete draft lesson');
+  verify((await record()).course.duration==='','Removing final lesson clears derived course duration');
   verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
   verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
   verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
@@ -37830,6 +37856,41 @@ test("Reject foreign origins, credentials, invalid intents, and unrelated paths"
     assert.throws(() => readCheckoutLink({ intent_key, url }, origin), { code: "PAYMENTS_UNAVAILABLE" });
   for (const invalid of ["", "bad intent", "../escape", "x".repeat(129), null])
     assert.throws(() => readCheckoutLink({ intent_key: invalid, url: `${origin}/ts/a` }, origin), { code: "PAYMENTS_UNAVAILABLE" });
+});
+```
+
+### File: `tests/security/course-duration.test.ts`
+
+SHA-256: `c34b4deba74b8099fbb30c76d486af2981d2617d4934764e1d651d6bbc601cba`
+
+```typescript
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+import { courseDuration } from "../../modules/features/catalog/helpers/course-duration";
+import { publicCourse } from "../../modules/features/catalog/helpers/public-course";
+import { editCourseMetadata } from "../../modules/features/admin/helpers/edit-course-metadata";
+const fixture = () => createCourseMetadata({ slug: "duration-course", title: "Duration course", description: "Course description", category: "editing", delivery: "recorded", amount: 0, duration: "wrong duration" }, { currency: "EGP", action: "Subscribe", liveLabel: "Live" });
+test("Recorded courses derive duration from canonical lessons and ignore stale stored values", () => {
+  const course = fixture(); assert.equal(course.duration, ""); assert.equal(courseDuration(course), "");
+  course.duration = "wrong duration";
+  const lesson = { id: "one", title: "Lesson", duration: "1:00", durationSeconds: 60, description: "", resourceIds: [], videoUrl: "", takeaway: [] };
+  course.modules = [{ title: "Chapter", lessons: [lesson], sections: [{ id: "section", title: "Section", lessonIds: ["one"] }] }];
+  assert.equal(publicCourse(course, course.slug, 0).duration, "١ دقيقة");
+  course.modules[0].lessons.push({ ...lesson, id: "two", durationSeconds: 3600 });
+  assert.equal(courseDuration(course), "ساعة و١ دقيقة");
+  course.modules[0].lessons.splice(0, 1);
+  assert.equal(courseDuration(course), "ساعة");
+  course.modules[0].lessons[0].durationSeconds = 120;
+  assert.equal(courseDuration(course), "٢ دقيقة");
+  course.modules[0].lessons = []; assert.equal(courseDuration(course), "");
+});
+test("Recorded overview edits cannot override totals; live schedules remain editable", () => {
+  const course = fixture(), values = { title: course.title, description: course.description, category: course.category, amount: 0, thumbnailUrl: "", introVideoUrl: "", published: false, duration: "٧ أيام" };
+  assert.equal(editCourseMetadata(course, values).duration, "");
+  course.delivery = "live"; course.duration = "٧ أيام";
+  assert.equal(courseDuration(course), "٧ أيام");
+  assert.equal(editCourseMetadata(course, { ...values, duration: "٣ أيام" }).duration, "٣ أيام");
 });
 ```
 

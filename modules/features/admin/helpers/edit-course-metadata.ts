@@ -6,7 +6,7 @@ export function editCourseMetadata(current: Course, values: NonNullable<ReturnTy
     ...current,
     title: values.title,
     description: values.description,
-    duration: values.duration ?? current.duration,
+    duration: current.delivery === "live" ? values.duration ?? current.duration : "",
     category: values.category,
     categoryLabel: categories.find(category => category.id === values.category)!.label,
     thumbnailUrl: values.thumbnailUrl,

@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — automatic recorded-course duration
+
+- Recorded course totals derive from canonical lesson seconds through one reusable helper on public/catalog/learning/admin reads. Lesson creation, editing and removal update the next read; section references are not counted twice. Existing stale recorded totals are ignored without a migration. Display uses the existing minute-rounded Arabic formatter.
+- Create/edit duration fields are read-only for recorded courses; recorded overview writes cannot override the lesson total. Live workshops retain their manually entered schedule and publication validation. Delivery selection on creation controls the field's editability. Copy remains centralized; no dependencies or design styles were added.
+- Acceptance passed: 103 curriculum/API/browser checks, 46 price/shared-form checks, 96 course-management checks, 21 security unit tests and two creation contract tests. Browser tests wait for revision refresh and page-load completion before successive interactions. Lint, architecture (708 files / zero violations), production build including TypeScript, secret scan and diff checks passed. Updated course-management documentation and exact source reproduction snapshot (854 files).
+
 ## Latest checkpoint — real montage bootcamp content
 
 - Created hosted draft `montage-income-bootcamp`: **معسكر المونتاج والربح منه🎬**, 599 EGP, supplied description and all 29 lesson names. Recorded the supplied 1,500 EGP previous price in the existing offer caption; no thumbnail/intro was invented. Removed unrelated WordPress navigation/admin/footer text from the supplied copy.

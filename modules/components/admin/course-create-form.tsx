@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { useCreateCourse } from "@platform/hooks/use-create-course";
 import { courseAdministration } from "@platform/config/course-administration";
 import FormField from "@platform/components/ui/form-field";
@@ -12,11 +13,12 @@ import SaveFeedback from "./save-feedback";
 type Props = Pick<CourseEditorProps,"categories" | "uploadLabels"> & { labels: AdminCoursesLabels; editorLabels: CourseEditorProps["labels"] };
 export default function CourseCreateForm({ labels, editorLabels, categories, uploadLabels }: Props) {
   const command = useCreateCourse(labels.error);
+  const [delivery, setDelivery] = useState<"recorded" | "live">("recorded");
   return <CourseFormLayout labels={editorLabels} pending={command.pending}
     onSubmit={event => { event.preventDefault(); void command.create(new FormData(event.currentTarget)); }}
-    details={<><CourseFields labels={editorLabels} categories={categories} />
+    details={<><CourseFields labels={editorLabels} categories={categories} delivery={delivery} />
       <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
-      <Select name="delivery" label={labels.delivery} defaultValue="recorded" options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
+      <Select name="delivery" label={labels.delivery} value={delivery} onValueChange={value => setDelivery(value as "recorded" | "live")} options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
     media={<CourseMediaFields labels={editorLabels} uploadLabels={uploadLabels} uploadHint={labels.uploadAfterCreate} />}
     actions={<><p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
 }

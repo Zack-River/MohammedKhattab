@@ -26,6 +26,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   for(const values of [{durationSeconds:0},{durationSeconds:1.5},{durationSeconds:86401},{videoUrl:'javascript:alert(1)'},{preview:'false'},{sectionId:'missing'}]) verify((await mutate({...lessonValues,...values})).status===400,'Invalid lesson metadata or assignment rejected');
   response=await mutate(lessonValues);verify(response.status===200,'Create lesson assigned to course and section');const lesson=parse(response).id;
   let current=await record(),stored=(await admin.from('lessons').select('*').eq('course_slug',slug).eq('id',lesson).single()).data;
+  verify(current.course.duration==='٢ دقيقة','Course duration derives from newly added lesson');
   verify(stored.video_url===lessonValues.videoUrl&&!current.course.modules[0].lessons[0].videoUrl,'Playback stored separately from public metadata');
   verify(current.course.modules[0].sections[0].lessonIds.includes(lesson),'Section references canonical lesson');
   verify((await mutate({kind:'section',operation:'delete',id:section,chapterId:chapter})).status===409,'Non-empty section deletion blocked');
@@ -34,7 +35,8 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   const resource=(await admin.from('resources').select('id').limit(1)).data[0].id;await admin.from('lesson_resources').insert({resource_id:resource,course_slug:slug,lesson_id:lesson});
   verify((await mutate({kind:'section',operation:'edit',id:section,sourceChapterId:chapter,chapterId:second,title:'Moved section'})).status===200,'Move section and its lessons to another chapter');
   current=await record();verify(current.course.modules[0].lessons.length===0&&current.course.modules[1].lessons[0].id===lesson,'Section move preserves lesson identity');
-  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  verify((await mutate({...lessonValues,operation:'edit',id:lesson,chapterId:chapter,sectionId:'',title:'Updated lesson',durationSeconds:185,preview:true})).status===200,'Edit lesson and reassign chapter without section');
+  verify((await record()).course.duration==='٣ دقائق','Lesson duration edits update course total');
   const progress=(await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data,resources=(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data;
   verify(progress.length===1&&progress[0].completed&&resources.length===1,'Moving and editing retain progress and resource associations');
   verify((await admin.from('lessons').select('preview').eq('course_slug',slug).eq('id',lesson).single()).data.preview,'Preview changes reach protected playback records');
@@ -44,7 +46,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   current=await record();verify((await manager.api(base,{...overview(current),published:true})).status===200,'Publish complete recorded curriculum');
   response=await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter});verify(response.status===400&&parse(response).code==='PUBLISHED_CURRICULUM_INCOMPLETE','Deleting last published lesson blocked');
   verify((await mutate({kind:'chapter',operation:'create',title:'Empty chapter'})).status===400,'Published course cannot acquire empty chapter');
-  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
+  const publicCourse=parse(await anonymous('/api/courses/'+slug));verify(publicCourse.duration==='٣ دقائق','Public course uses the same derived duration');verify(publicCourse.modules[0].lessons[0].videoUrl==='','Published metadata never leaks video URL');
   current=await record();const concurrent=await Promise.all([manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent first',revision:current.revision}),manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Concurrent second',revision:current.revision})]);
   verify(concurrent.map(result=>result.status).sort().join(',')==='200,409','Concurrent edits accept one and reject stale revision');
   verify((await manager.api(base,overview(current))).status===409,'Stale overview cannot overwrite curriculum changes');
@@ -52,6 +54,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify(Boolean(rollback.error)&&(await record()).revision===before.revision,'Failed lesson write rolls back curriculum and revision');
   current=await record();verify((await manager.api(base,{...overview(current),published:false})).status===200,'Unpublish before destructive curriculum change');
   verify((await mutate({kind:'lesson',operation:'delete',id:lesson,chapterId:chapter})).status===200,'Delete draft lesson');
+  verify((await record()).course.duration==='','Removing final lesson clears derived course duration');
   verify((await admin.from('lesson_progress').select('*').eq('course_slug',slug)).data.length===0&&(await admin.from('lesson_resources').select('*').eq('course_slug',slug)).data.length===0,'Lesson removal cleans progress and resource links atomically');
   verify((await mutate({...lessonValues,operation:'edit',id:'missing',chapterId:chapter,sectionId:''})).status===404,'Unknown lesson edit rejected');
   verify((await manager.api(base+'/content',{kind:'chapter',operation:'edit',id:chapter,title:'Old edit',revision:initial.revision})).status===409,'Initial revision cannot overwrite subsequent changes');
