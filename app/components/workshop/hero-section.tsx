@@ -16,9 +16,9 @@ export default function HeroSection({ content }: { content: HeroContent }) {
             <RichText content={content.title} />
           </h1>
           <p className="hero-support-text">{content.description}</p>
-          <div className="hero-video-centered">
+          {content.showVideo !== false && <div className="hero-video-centered">
             <HeroVideo content={content.video} />
-          </div>
+          </div>}
           <div className="hero-cta-wrapper">
             <ActionLink action={content.action} />
             <Microcopy items={content.microcopy} />

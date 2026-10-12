@@ -2,6 +2,14 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — shared course details and featured workshops
+
+- Built the user-requested course-details structure from the supplied HTML reference using the existing theme, shared player, controls and reveal system. Recorded courses and ordinary workshops have title/category, preview, paragraph-preserving description, optional outcomes, grouped chapter/section curriculum and enrollment/instructor panels. Desktop uses a sticky sidebar; mobile places enrollment after the preview and before detailed content. No package was added.
+- Added the workshop-only **ورشة مميزة** setting to admin creation/editing, strict boolean decoding/validation and protected persistence. Only featured live workshops select the marketing template. The existing seven-day workshop remains featured with its approved copy and design. Other featured workshops use their own intro and curriculum rather than seven-day media/lesson names. Ordinary workshops retain their `/workshops/[slug]` URLs.
+- Components, pure grouping/selection helpers, page data adapters and centralized copy remain separated. The same curriculum grouping helper now serves admin and public views. Shared MediaPlayer selects the existing native/YouTube backend; reusable choice controls separate accessible label and hint with stable IDs. Removed replaced/unused detail CSS. No private playback permission was changed.
+- Verified **44 course-details API/browser checks**, **46 shared price/creation regression checks**, **24 security unit tests** and **six creation/curriculum helper tests**. Coverage includes six viewport widths, keyboard disclosures, preview/private links, checkout navigation without payment, enrolled state, native/YouTube deferred playback, poster/reset cleanup, missing media, workshop support/booking and the actual featured toggle. Lint, production build/TypeScript and architecture (724 files, zero violations) passed.
+- Applied `20261012170000_featured_workshop_template.sql` locally and to hosted Supabase without seeding. Read-only hosted verification confirms the existing live workshop is published and featured; advisors found no issues. The migration preserves any explicit saved choice. Design documentation: `docs/COURSE_DETAILS.md`; screenshots: `docs/evidence/backend/course-details-390.png` and `course-details-1440.png`.
+
 ## Latest checkpoint — automatic recorded-course duration
 
 - Recorded course totals derive from canonical lesson seconds through one reusable helper on public/catalog/learning/admin reads. Lesson creation, editing and removal update the next read; section references are not counted twice. Existing stale recorded totals are ignored without a migration. Display uses the existing minute-rounded Arabic formatter.

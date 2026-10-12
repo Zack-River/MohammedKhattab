@@ -10,6 +10,7 @@ const paths = {
   check: "m5 12 4 4L19 6",
   arrow: "M20 12H4m6-6-6 6 6 6",
   clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm0-16v6l4 2",
+  lock: "M6 11h12v10H6V11zm3 0V7a3 3 0 0 1 6 0v4",
   search: "M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm6-2 6 6",
   menu: "M3 6h18M3 12h18M3 18h18",
   close: "m5 5 14 14M19 5 5 19",

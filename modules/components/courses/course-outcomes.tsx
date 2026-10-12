@@ -8,7 +8,7 @@ export default function CourseOutcomes({
   course: Pick<import("@platform/types/lms").Course, "outcomes">;
 }) {
   return (
-    <div className="lms-outcomes">
+    <section className="lms-outcomes" data-reveal>
       <h2>{copy.outcome}</h2>
       <ul>
         {course.outcomes.map((item) => (
@@ -18,6 +18,6 @@ export default function CourseOutcomes({
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

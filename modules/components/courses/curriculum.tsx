@@ -1,47 +1,10 @@
-import { numbered } from "@platform/features/catalog/helpers/numbered";
-import { routes } from "@platform/config/navigation";
-import type { ContentBindings } from "@platform/types/content";
-import Link from "next/link";
-import Symbol from "@platform/components/ui/symbol";
-import type { Course } from "@platform/types/lms";
-export default function Curriculum({
-  course,
-  copy,
-}: { course: Course } & {
-  copy: Pick<ContentBindings["copy"], "lessons" | "preview">;
-}) {
-  return (
-    <div className="lms-curriculum">
-      {course.modules.map((module, index) => (
-        <details key={module.title} open={index === 0}>
-          <summary>
-            <span className="numeral">
-              {numbered(index)}
-            </span>
-            <b>{module.title}</b>
-            <small>
-              {module.lessons.length} {copy.lessons}
-            </small>
-          </summary>
-          <ul>
-            {module.lessons.map((lesson) => (
-              <li key={lesson.id}>
-                <Symbol name="play" />
-                <span>{lesson.title}</span>
-                {lesson.preview && (
-                  <Link
-                    className="lms-preview-link"
-                    href={routes.lesson(course.slug, lesson.id)}
-                  >
-                    {copy.preview}
-                  </Link>
-                )}
-                <time className="numeral">{lesson.duration}</time>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
-    </div>
-  );
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import CurriculumChapter from "./curriculum-chapter";
+import { sectionIds } from "@platform/config/navigation";
+export default function Curriculum({ course, labels, enrolled }: Pick<CourseDetailsProps,"course" | "labels" | "enrolled">) {
+  return <section className="lms-course-curriculum" id={sectionIds.courseContent} data-reveal>
+    <div className="lms-content-heading"><h2>{labels.content}</h2></div>
+    {course.modules.length ? <div className="lms-curriculum">{course.modules.map((chapter,index) => <CurriculumChapter key={chapter.id ?? index} chapter={chapter} index={index} slug={course.slug} enrolled={enrolled} labels={labels} />)}</div>
+      : <p className="lms-field-hint">{labels.upcomingContent}</p>}
+  </section>;
 }

@@ -15,6 +15,7 @@ export const sectionIds = {
   faq: "faq",
   steps: "how-it-works",
   enrollment: "course-enrollment",
+  courseContent: "course-content",
 } as const;
 export const routes = {
   payment: (id: string) => `/payments/${segment(id)}`,

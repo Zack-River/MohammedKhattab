@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { PlayerControlsVariant, VideoPlayerLabels } from "./video-player";
 
 export interface MediaPlayerProps {
-  /** Direct playable media URL (MP4, WebM, or a future streaming API URL). */
+  /** Playable file/stream URL or embeddable individual YouTube URL. */
   videoUrl: string;
   thumbnailUrl: string;
   title?: string;

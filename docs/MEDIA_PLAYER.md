@@ -1,7 +1,6 @@
 # Reusable MediaPlayer
 
-Import from `@khatab/design/ui/media-player`, or use the workshop adapter
-`@/app/components/ui/media-player`. Load the shared theme and
+Import from `@khatab/design/ui/media-player`. Load the shared theme and
 `@khatab/design/styles/video-player.css` once in the consuming app's global styles.
 The workshop already does this.
 
@@ -20,8 +19,8 @@ import MediaPlayer from "@khatab/design/ui/media-player";
 
 | Prop | Behavior |
 | --- | --- |
-| `videoUrl` | Required direct playable file URL, such as MP4/WebM or a future media API response URL. |
-| `thumbnailUrl` | Required image URL; local and external images work without Next image-host configuration. |
+| `videoUrl` | Required playable file/stream URL or embeddable individual YouTube URL. |
+| `thumbnailUrl` | Image URL; local and external images work without Next image-host configuration. An empty string can use a supplied themed placeholder child. |
 | `width`, `height` | Numbers mean pixels; CSS strings such as `100%`, `24rem`, `auto` or `clamp(...)` are accepted. Width is constrained to its container for responsive use. |
 | `aspectRatio` | Defaults to `16 / 9`; supplies automatic height when height is omitted. Use `9 / 16` for a freestanding portrait player. |
 | `color` | Per-instance playback-button/timeline accent; falls back to the global primary theme. |
@@ -41,8 +40,7 @@ props apply to both thumbnail and active playback and never overwrite global the
 values. Dynamic inline dimensions and a scoped accent CSS variable are intentional
 configuration; default visual values remain canonical theme tokens.
 
-A Drive folder/share-page URL or a YouTube watch URL is not a direct video file URL.
-The existing deferred YouTube backend remains separate for callers that need embeds.
+Drive links must resolve through the existing product stream adapter. Individual YouTube links select the existing deferred custom YouTube backend automatically. Playlist-only URLs are not videos.
 MediaPlayer does not make public files private or prevent a viewer from saving them.
 
 HeroVideo and ReelCard compose this component. The isolated test page at

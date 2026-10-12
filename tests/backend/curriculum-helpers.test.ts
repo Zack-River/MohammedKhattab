@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { applyCurriculumMutation } from "../../modules/features/admin/helpers/apply-curriculum-mutation";
 import { curriculumCourse } from "../../modules/features/admin/helpers/curriculum-course";
 import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
-import { courseContentGroups } from "../../modules/features/admin/helpers/course-content-groups";
+import { courseContentGroups } from "../../modules/features/catalog/helpers/course-content-groups";
 import type { Course } from "../../modules/types/lms";
 function fixture(): Course {
   const course = createCourseMetadata({slug:"reusable-course",title:"Reusable course",description:"Description",amount:0,category:"editing",delivery:"recorded"},{currency:"EGP",action:"Enroll",liveLabel:"Live"});

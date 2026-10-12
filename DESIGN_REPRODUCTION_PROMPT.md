@@ -347,90 +347,24 @@ export default function ConfirmEmailPage() {
 
 ### File: `app/(public)/courses/[slug]/page.tsx`
 
-SHA-256: `1bf830b157b0ddf4f4371d08f71a67b36585830868dcf495eb6005b08297b5b6`
+SHA-256: `d1a3b4547935305b3c31d3f6b1e2b227ca531ea3131ffa547858c857aeaa07b7`
 
 ```tsx
-import EnrollmentPanel from "@platform/components/courses/enrollment-panel";
-import CourseOutcomes from "@platform/components/courses/course-outcomes";
-import { routes } from "@platform/config/navigation";
-import { site } from "@platform/data/site";
-import { offerCopy } from "@platform/data/offers";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { findCourse, courseLessons } from "@platform/features/catalog";
-import { readLearningState, courseProgress } from "@platform/features/learning";
-import Curriculum from "@platform/components/courses/curriculum";
-import CourseOverview from "@platform/components/courses/course-overview";
-import { copy } from "@platform/data/site";
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  return {
-    title: (await findCourse(slug))?.title ?? interfaceCopy.courseNotFound,
-  };
+import { findCourse } from "@platform/features/catalog";
+import { routes } from "@platform/config/navigation";
+import CourseDetailsPage from "@platform/features/catalog/course-details-page";
+type CourseParams = { params: Promise<{ slug: string }> };
+export async function generateMetadata({ params }: CourseParams) {
+  const { slug } = await params, course = await findCourse(slug);
+  if (!course) notFound();
+  return { title: course.title, description: course.description, alternates: { canonical: routes.course(course.slug,course.delivery) } };
 }
-export default async function CoursePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const course = await findCourse(slug);
+export default async function CoursePage({ params }: CourseParams) {
+  const { slug } = await params, course = await findCourse(slug);
   if (!course) notFound();
   if (course.delivery === "live") redirect(routes.workshopPage(slug));
-  const state = await readLearningState();
-  const progress = courseProgress(course, state);
-  return (
-    <main className="container lms-public-main">
-      <div className="lms-breadcrumb">
-        <Link href={routes.courses}>{interfaceCopy.courseBreadcrumb}</Link>
-        <span>/</span>
-        <span>{course.categoryLabel}</span>
-      </div>
-      <div className="lms-course-detail">
-        <CourseOverview
-          course={course}
-          instructorName={interfaceCopy.instructorName}
-          lessonCount={courseLessons(course).length}
-          lessonsLabel={copy.lessons}
-        >
-          <CourseOutcomes copy={{ outcome: copy.outcome }} course={course} />
-          <div className="lms-content-heading">
-            <h2>{copy.courseContent}</h2>
-            <p>{copy.curriculumIntro}</p>
-          </div>
-          <Curriculum
-            copy={{ lessons: copy.lessons, preview: copy.preview }}
-            course={course}
-          />
-        </CourseOverview>
-        <EnrollmentPanel
-          site={{ englishName: site.englishName }}
-          offerCopy={{ price: offerCopy.price }}
-          interfaceCopy={{
-            courseNotesBenefit: interfaceCopy.courseNotesBenefit,
-            courseProgressBenefit: interfaceCopy.courseProgressBenefit,
-          }}
-          copy={{
-            artworkLessonLabel: copy.artworkLessonLabel,
-            demoVideo: copy.demoVideo,
-            error: copy.error,
-            saving: copy.saving,
-            continue: copy.continue,
-            enrollLabel: copy.enrollLabel,
-          }}
-          course={course}
-          slug={slug}
-          progress={progress}
-          enrolled={state.enrolled.includes(slug)}
-        />
-      </div>
-    </main>
-  );
+  return <CourseDetailsPage course={course} />;
 }
 ```
 
@@ -525,51 +459,12 @@ export default function ForgotPasswordPage() {
 
 ### File: `app/(public)/layout.tsx`
 
-SHA-256: `629562632aeab684f85b37ff137caf9275fa0eb7d54ab1c7801dd959cb714f7a`
+SHA-256: `7bb634e75bb1f3accea6fd366fdba6e4f7f7dd9653d6f9001a23d047192be851`
 
 ```tsx
-import RevealContent from "@platform/components/marketing/reveal-content";
-import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
-import { designerCredit } from "@/config/designer";
-import { projectNavigation } from "@/config/project-navigation";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import { marketingNavigation } from "@platform/data/site";
-import { copy } from "@platform/data/site";
-import { site } from "@platform/data/site";
-import SiteHeader from "@platform/components/layout/site-header";
-import SiteFooter from "@platform/components/layout/site-footer";
-export default async function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <SiteHeader
-        account={await readNavigationAccount()}
-        interfaceCopy={{
-          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
-        }}
-        marketingNavigation={marketingNavigation}
-        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
-        site={{ name: site.name, englishName: site.englishName }}
-      />
-      <RevealContent as="div">{children}</RevealContent>
-      <SiteFooter
-        credit={designerCredit}
-        projectNavigation={projectNavigation}
-        interfaceCopy={{ contactLabel: interfaceCopy.contactLabel }}
-        copy={{ footer: copy.footer, copyright: copy.copyright }}
-        site={{
-          email: site.email,
-          demoLabel: site.demoLabel,
-          name: site.name,
-          englishName: site.englishName,
-        }}
-        marketingNavigation={marketingNavigation}
-      />
-    </>
-  );
+import PublicSiteShell from "@platform/features/marketing/public-site-shell";
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
+  return <PublicSiteShell>{children}</PublicSiteShell>;
 }
 ```
 
@@ -1508,7 +1403,7 @@ export default function GuaranteeSection({
 
 ### File: `app/components/workshop/hero-section.tsx`
 
-SHA-256: `9accec229be60922cbbf8fd426793a6a479a3ebea76cf37823f98005c11415ca`
+SHA-256: `adde9ab0cbfe6e1bd5b0c50fb1507e91804ebf5f7fe86db0ab04acd804f1729a`
 
 ```tsx
 import Container from "@khatab/design/ui/container";
@@ -1529,9 +1424,9 @@ export default function HeroSection({ content }: { content: HeroContent }) {
             <RichText content={content.title} />
           </h1>
           <p className="hero-support-text">{content.description}</p>
-          <div className="hero-video-centered">
+          {content.showVideo !== false && <div className="hero-video-centered">
             <HeroVideo content={content.video} />
-          </div>
+          </div>}
           <div className="hero-cta-wrapper">
             <ActionLink action={content.action} />
             <Microcopy items={content.microcopy} />
@@ -3090,7 +2985,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `82018d4c91a190ab02adacc836816ed9f378fa8475cd0bf419637b6804c7fd43`
+SHA-256: `28a117ce2f8cff2775127ca68526b5c6b6edbc86c218cf662b304dbd8888bd4e`
 
 ```css
 @import "./styles/theme.css";
@@ -3116,6 +3011,7 @@ SHA-256: `82018d4c91a190ab02adacc836816ed9f378fa8475cd0bf419637b6804c7fd43`
 @import "../modules/styles/analytics.css";
 
 @import "../modules/styles/payments.css";
+@import "../modules/styles/course-details.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -3619,7 +3515,7 @@ SHA-256: `fce48b8d3894060f92c19608724647c79f19c30ed95cb67cd23462858ebe7fd6`
 
 ### File: `app/workshops/[slug]/page.tsx`
 
-SHA-256: `a44e0d3035c8a991d9eaa2928906d9a857d9e6810ff418ca03c0c9d78f20e451`
+SHA-256: `6718e6c5ac01a4b4ab9101f92c471612ee9f5ffdef7ec9ebb3fb91ec08ab380a`
 
 ```tsx
 import { WorkshopPage } from "@/app/components/workshop";
@@ -3629,18 +3525,23 @@ import { findCourse } from "@platform/features/catalog/service";
 import { routes } from "@platform/config/navigation";
 import { liveWorkshopCourse } from "@platform/data/workshop-course";
 import { workshopCourseContent } from "@platform/features/marketing/models/workshop-course";
+import { isFeaturedWorkshop } from "@platform/features/catalog/helpers/is-featured-workshop";
+import CourseDetailsPage from "@platform/features/catalog/course-details-page";
+import PublicSiteShell from "@platform/features/marketing/public-site-shell";
 import { notFound } from "next/navigation";
 type WorkshopParams = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: WorkshopParams) {
   const { slug } = await params;
   const course = await findCourse(slug);
   if (!course || course.delivery !== "live") notFound();
+  if (!isFeaturedWorkshop(course)) return { title: course.title, description: course.description, alternates: { canonical: routes.workshopPage(course.slug) } };
   return { ...workshopMetadata, alternates: { canonical: routes.workshopPage(slug) }, title: { absolute: course?.title ?? liveWorkshopCourse.title }, description: course?.description ?? workshopMetadata.description };
 }
 export default async function FreelanceWorkshopPage({ params }: WorkshopParams) {
   const { slug } = await params;
   const course = await findCourse(slug);
   if (!course || course.delivery !== "live") notFound();
+  if (!isFeaturedWorkshop(course)) return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
   return <WorkshopPage content={workshopCourseContent(workshopPage,course,liveWorkshopCourse)} />;
 }
 ```
@@ -5335,7 +5236,7 @@ export default function CourseContent({ course, revision, published, lessons, la
 
 ### File: `modules/components/admin/course-create-form.tsx`
 
-SHA-256: `8df900e8df96b81b15d9ed686da785880c21b449b6f19eb65e04de3d549ab810`
+SHA-256: `1ad9c469130807c55db9d3d10975d5b5dcdc064dad0fe2b922550184dab965dc`
 
 ```tsx
 "use client";
@@ -5350,6 +5251,7 @@ import CourseFormLayout from "./course-form-layout";
 import CourseFields from "./course-fields";
 import CourseMediaFields from "./course-media-fields";
 import SaveFeedback from "./save-feedback";
+import WorkshopFeaturedField from "./workshop-featured-field";
 type Props = Pick<CourseEditorProps,"categories" | "uploadLabels"> & { labels: AdminCoursesLabels; editorLabels: CourseEditorProps["labels"] };
 export default function CourseCreateForm({ labels, editorLabels, categories, uploadLabels }: Props) {
   const command = useCreateCourse(labels.error);
@@ -5360,7 +5262,7 @@ export default function CourseCreateForm({ labels, editorLabels, categories, upl
       <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
       <Select name="delivery" label={labels.delivery} value={delivery} onValueChange={value => setDelivery(value as "recorded" | "live")} options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
     media={<CourseMediaFields labels={editorLabels} uploadLabels={uploadLabels} uploadHint={labels.uploadAfterCreate} />}
-    actions={<><p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
+    actions={<>{delivery === "live" && <WorkshopFeaturedField labels={editorLabels} />}<p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
 }
 ```
 
@@ -5412,7 +5314,7 @@ export default function CourseEditorTabs({ slug, active, labels }: { slug: strin
 
 ### File: `modules/components/admin/course-editor.tsx`
 
-SHA-256: `5d63fb27440060996af2bd3c9eab2b3b3d01e38adafb607ac590eb63f19eb473`
+SHA-256: `1249f627bf632413285b83bb0c09440c5730d3a5bd87ec2af50f1dd379ff31dc`
 
 ```tsx
 "use client";
@@ -5425,13 +5327,14 @@ import { Checkbox } from "@khatab/design/ui/choice-controls";
 import CourseFields from "./course-fields";
 import CourseFormLayout from "./course-form-layout";
 import SaveFeedback from "./save-feedback";
+import WorkshopFeaturedField from "./workshop-featured-field";
 export default function CourseEditor({ course, published, revision, labels, categories, uploadLabels }: CourseEditorProps) {
   const command = useAdminSave(endpoints.adminCourse(course.slug), labels.error);
   return <CourseFormLayout method="post" labels={labels} pending={command.pending}
     onSubmit={event => { event.preventDefault(); void command.save(readCourseEdit(new FormData(event.currentTarget))); }}
     details={<CourseFields course={course} labels={labels} categories={categories} />}
     media={<CourseMediaFields course={course} labels={labels} uploadLabels={uploadLabels} />}
-    actions={<><Checkbox label={labels.published} name="published" defaultChecked={published} disabled={command.pending} /><SaveFeedback {...command} labels={labels} /></>}>
+    actions={<>{course.delivery === "live" && <WorkshopFeaturedField featured={course.featured} labels={labels} />}<Checkbox label={labels.published} name="published" defaultChecked={published} disabled={command.pending} /><SaveFeedback {...command} labels={labels} /></>}>
     <input type="hidden" name="revision" value={revision} />
   </CourseFormLayout>;
 }
@@ -5605,11 +5508,11 @@ export default function CourseThumbnailField({ slug, initialUrl, label, maxLengt
 
 ### File: `modules/components/admin/curriculum/chapter-card.tsx`
 
-SHA-256: `508d1d8116091282bf296b408f99553db894912d757dd963037709124956f98f`
+SHA-256: `e65d765e0d84516d61cc30e93974473085c5aac5ec5bb2af502fd3718000331b`
 
 ```tsx
 import type { CurriculumChapter, CurriculumContext } from "@platform/types/curriculum";
-import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
+import { courseContentGroups } from "@platform/features/catalog/helpers/course-content-groups";
 import CurriculumAction from "./curriculum-action";
 import EntityActions from "./entity-actions";
 import SectionGroup from "./section-group";
@@ -6117,6 +6020,22 @@ export default function UsersTable({ users, labels }: { users: AdminUser[]; labe
 }
 ```
 
+### File: `modules/components/admin/workshop-featured-field.tsx`
+
+SHA-256: `0d32394ef901857b3f987c14a6160b4bb0e06b6d83ac04a5bdc6641bd1403836`
+
+```tsx
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+export default function WorkshopFeaturedField({ featured = false, labels }: {
+  featured?: boolean; labels: { featuredWorkshop: string; featuredWorkshopHint: string };
+}) {
+  return <>
+    <input type="hidden" name="featured" value="false" />
+    <Checkbox name="featured" label={labels.featuredWorkshop} hint={labels.featuredWorkshopHint} defaultChecked={featured} />
+  </>;
+}
+```
+
 ### File: `modules/components/certificates/certificate-card.tsx`
 
 SHA-256: `37cfd5f0c8d046adeb9daa7b16280ee4705e1b438024c356544c18664eb1e285`
@@ -6586,6 +6505,85 @@ export default function CourseCard({
 }
 ```
 
+### File: `modules/components/courses/course-description.tsx`
+
+SHA-256: `9fc043e6f33668c78292314ed3271c0bbbd2131b8c83490ab699d23b6bb8c041`
+
+```tsx
+export default function CourseDescription({ title, description }: { title: string; description: string }) {
+  return <section className="lms-course-description" data-reveal>
+    <h2>{title}</h2>
+    <div className="lms-course-prose">{description.split(/\n\s*\n/).filter(Boolean).map((paragraph,index) => <p key={index}>{paragraph}</p>)}</div>
+  </section>;
+}
+```
+
+### File: `modules/components/courses/course-details.tsx`
+
+SHA-256: `1353e71e1ab1c2a8ee9c3c2ff999a61ee98ed9b218b5daf03a78b5a297aa1ffc`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import CourseOverview from "./course-overview";
+import CourseIntro from "./course-intro";
+import CourseDescription from "./course-description";
+import CourseOutcomes from "./course-outcomes";
+import Curriculum from "./curriculum";
+import CourseInstructor from "./course-instructor";
+import EnrollmentPanel from "./enrollment-panel";
+export default function CourseDetails(props: CourseDetailsProps) {
+  const { course, labels, instructor, site, copy } = props;
+  return <main className="container lms-public-main lms-course-details-page">
+    <nav className="lms-breadcrumb" aria-label={props.breadcrumbLabel}><Link href={routes.courses}>{props.breadcrumbLabel}</Link><span aria-hidden="true">/</span><span>{course.categoryLabel}</span></nav>
+    <CourseOverview course={course} instructor={instructor} />
+    <div className="lms-course-detail">
+      <div className="lms-course-detail-content"><CourseIntro course={{slug:course.slug,title:course.title,introVideoUrl:course.introVideoUrl,thumbnailUrl:course.thumbnailUrl,artwork:course.artwork}} site={site} playLabel={labels.intro} />
+        <div className="lms-course-detail-body"><CourseDescription title={labels.about} description={course.description} />
+        {course.outcomes.length > 0 && <CourseOutcomes copy={copy} course={course} />}
+        <Curriculum course={course} labels={labels} enrolled={props.enrolled} /></div>
+      </div>
+      <aside className="lms-course-detail-sidebar"><EnrollmentPanel {...props} /><CourseInstructor instructor={instructor} labels={labels} /></aside>
+    </div>
+  </main>;
+}
+```
+
+### File: `modules/components/courses/course-enrollment-action.tsx`
+
+SHA-256: `772905005fd7c4c56b2d1b9d783a4cb9795b0109243f1b48f6b71b06f0ce2466`
+
+```tsx
+import Action from "@khatab/design/ui/action";
+import Symbol from "@platform/components/ui/symbol";
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import EnrollButton from "./enroll-button";
+export default function CourseEnrollmentAction({ course, copy, labels, enrolled, nextLesson, supportHref }: Pick<CourseDetailsProps,"course" | "copy" | "labels" | "enrolled" | "nextLesson" | "supportHref">) {
+  if (course.delivery === "live" && !nextLesson && (enrolled || course.offer.amount === 0))
+    return <Action kind="anchor" href={supportHref} className="btn-primary lms-full-button">{enrolled ? labels.workshopSupport : labels.workshopBooking}<Symbol name="arrow" /></Action>;
+  return <EnrollButton copy={copy} slug={course.slug} firstLesson={nextLesson} enrolled={enrolled} paid={course.offer.amount > 0} />;
+}
+```
+
+### File: `modules/components/courses/course-facts.tsx`
+
+SHA-256: `3fce765d1a9da2c9999b2b383c51a1bdc8b4221268a7ffea6816e29a83580a8f`
+
+```tsx
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import { courseLessons } from "@platform/features/catalog/helpers/course-lessons";
+export default function CourseFacts({ course, labels }: Pick<CourseDetailsProps,"course" | "labels">) {
+  const lessons = courseLessons(course).length;
+  const facts = [
+    { label: labels.delivery, value: course.delivery === "live" ? course.deliveryLabel || labels.live : labels.recorded },
+    ...(course.duration ? [{ label: labels.duration, value: course.duration }] : []),
+    ...(lessons ? [{ label: labels.lessons, value: lessons }, { label: labels.chapters, value: course.modules.length }] : []),
+  ];
+  return <dl className="lms-course-facts">{facts.map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>;
+}
+```
+
 ### File: `modules/components/courses/course-grid.tsx`
 
 SHA-256: `7e4f8af2c6ceefe0a5a5bbd161bd0c385155768ff571bdf9cd145bcb5217a65a`
@@ -6643,9 +6641,52 @@ export default function CourseGrid({
 }
 ```
 
+### File: `modules/components/courses/course-instructor.tsx`
+
+SHA-256: `3350590550fcd4cd6e1b30e6859f9239513c90bd2f4d06186009ecc4fb39850c`
+
+```tsx
+import Link from "next/link";
+import AssetImage from "@khatab/design/ui/asset-image";
+import Symbol from "@platform/components/ui/symbol";
+import type { CourseDetailsProps } from "@platform/types/course-details";
+export default function CourseInstructor({ instructor, labels }: Pick<CourseDetailsProps,"instructor" | "labels">) {
+  return <section className="lms-course-instructor" data-reveal>
+    <h2>{labels.aboutInstructor}</h2>
+    <div><AssetImage asset={instructor.image} /><div><h3>{instructor.name}</h3><p>{instructor.tagline}</p></div></div>
+    <Link className="lms-course-text-link" href={instructor.href}>{labels.instructorAction}<Symbol name="arrow" /></Link>
+  </section>;
+}
+```
+
+### File: `modules/components/courses/course-intro.tsx`
+
+SHA-256: `b81ba6fac50ff42d91ccf7efbe8c7e9e5bbd4ecceef12d6fefa0f69d9ba15ec3`
+
+```tsx
+"use client";
+import MediaPlayer from "@khatab/design/ui/media-player";
+import CourseArtwork from "./course-artwork";
+import { playableUrl } from "@platform/helpers/media/playable-url";
+import { thumbnailUrl } from "@platform/helpers/media/thumbnail-url";
+import type { Course } from "@platform/types/lms";
+export default function CourseIntro({ course, site, playLabel }: {
+  course: Pick<Course,"slug" | "title" | "introVideoUrl" | "thumbnailUrl" | "artwork">; site: { englishName: string }; playLabel: string;
+}) {
+  const poster = course.thumbnailUrl ? thumbnailUrl(course.thumbnailUrl) : "";
+  const artwork = { ...course, modules: [], tool: "", categoryLabel: "" };
+  return <div className="lms-course-intro" data-reveal>
+    {course.introVideoUrl ? <MediaPlayer videoUrl={playableUrl(course.introVideoUrl,course.slug)} thumbnailUrl={poster}
+      title={course.title} playLabel={playLabel} controlsVariant="overlay" returnToPosterOnEnd>
+      {!poster && <CourseArtwork course={artwork} site={site} showLabels={false} large />}
+    </MediaPlayer> : <CourseArtwork course={artwork} site={site} showLabels={false} large />}
+  </div>;
+}
+```
+
 ### File: `modules/components/courses/course-outcomes.tsx`
 
-SHA-256: `7f0887275b26d622cda54634bdda9ce4812338def46cccb0e8d2f3807967657a`
+SHA-256: `f184072cb8683293006d95f48d76edcaca2f092f3e8ffd75b99a5eb6b5ca98ac`
 
 ```tsx
 import type { ContentBindings } from "@platform/types/content";
@@ -6658,7 +6699,7 @@ export default function CourseOutcomes({
   course: Pick<import("@platform/types/lms").Course, "outcomes">;
 }) {
   return (
-    <div className="lms-outcomes">
+    <section className="lms-outcomes" data-reveal>
       <h2>{copy.outcome}</h2>
       <ul>
         {course.outcomes.map((item) => (
@@ -6668,53 +6709,25 @@ export default function CourseOutcomes({
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
 ```
 
 ### File: `modules/components/courses/course-overview.tsx`
 
-SHA-256: `33df9d5a03b5ca017653688c4b9b6af743543708ba8d32573f77b23fd184bbe8`
+SHA-256: `4d2b4a3922bd507fa57d071e0af7edce5ad1c75a6da537d81df736c51499c81f`
 
 ```tsx
+import Link from "next/link";
 import Symbol from "@platform/components/ui/symbol";
-import type { Course } from "@platform/types/lms";
-export default function CourseOverview({
-  course,
-  instructorName,
-  lessonCount,
-  lessonsLabel,
-  children,
-}: {
-  course: Pick<Course, "categoryLabel" | "title" | "description" | "duration">;
-  instructorName: string;
-  lessonCount: number;
-  lessonsLabel: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="lms-heading-context">{course.categoryLabel}</p>
-      <h1 className="lms-course-title">{course.title}</h1>
-      <p className="body-large">{course.description}</p>
-      <div className="lms-detail-meta">
-        <span>
-          <Symbol name="user" />
-          {instructorName}
-        </span>
-        <span>
-          <Symbol name="book" />
-          {lessonCount} {lessonsLabel}
-        </span>
-        <span>
-          <Symbol name="clock" />
-          {course.duration}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
+import type { CourseDetailsProps } from "@platform/types/course-details";
+export default function CourseOverview({ course, instructor }: Pick<CourseDetailsProps,"course" | "instructor">) {
+  return <header className="lms-course-overview" data-reveal>
+    <p className="lms-heading-context">{course.categoryLabel}</p>
+    <h1 className="lms-course-title">{course.title}</h1>
+    <Link className="lms-course-author" href={instructor.href}><Symbol name="user" />{instructor.name}</Link>
+  </header>;
 }
 ```
 
@@ -6749,57 +6762,68 @@ export default function CoursePrice({
 }
 ```
 
-### File: `modules/components/courses/curriculum.tsx`
+### File: `modules/components/courses/curriculum-chapter.tsx`
 
-SHA-256: `19defd8cbaf61b3a5f4fb0a0ded2ce942f5774ac5de82fd25ef76d2f312b576e`
+SHA-256: `af2c75c139a74001b72eb69f2b2b5afac98c59f47b4ef2f7a1d078bdbe75f3e5`
 
 ```tsx
+import { courseContentGroups } from "@platform/features/catalog/helpers/course-content-groups";
 import { numbered } from "@platform/features/catalog/helpers/numbered";
-import { routes } from "@platform/config/navigation";
-import type { ContentBindings } from "@platform/types/content";
+import { formatCourseDuration } from "@platform/features/catalog/helpers/format-course-duration";
+import type { CourseModule } from "@platform/types/lms";
+import type { CourseDetailsLabels } from "@platform/types/course-details";
+import CurriculumLesson from "./curriculum-lesson";
+export default function CurriculumChapter({ chapter, index, slug, enrolled, labels }: { chapter: CourseModule; index: number; slug: string; enrolled: boolean; labels: CourseDetailsLabels }) {
+  const seconds = chapter.lessons.reduce((sum,lesson) => sum+lesson.durationSeconds,0);
+  return <details open={index === 0}>
+    <summary><span className="numeral">{numbered(index)}</span><b>{chapter.title}</b>
+      <small>{chapter.lessons.length} {labels.lessons}{seconds > 0 && <> · {formatCourseDuration(seconds)}</>}</small>
+    </summary>
+    <div className="lms-curriculum-chapter-body">{courseContentGroups(chapter,labels.ungrouped).map(group => <div key={group.sectionId ? `section-${group.sectionId}` : "unassigned"}>
+      {group.title && <h3>{group.title}</h3>}
+      <ul>{group.lessons.map(lesson => <CurriculumLesson key={lesson.id} lesson={lesson} slug={slug} enrolled={enrolled} labels={labels} />)}</ul>
+    </div>)}</div>
+  </details>;
+}
+```
+
+### File: `modules/components/courses/curriculum-lesson.tsx`
+
+SHA-256: `be325daf0793596f046c1c894f5122301e10dc28aa18c7cee3b9b02c64226057`
+
+```tsx
 import Link from "next/link";
 import Symbol from "@platform/components/ui/symbol";
-import type { Course } from "@platform/types/lms";
-export default function Curriculum({
-  course,
-  copy,
-}: { course: Course } & {
-  copy: Pick<ContentBindings["copy"], "lessons" | "preview">;
-}) {
-  return (
-    <div className="lms-curriculum">
-      {course.modules.map((module, index) => (
-        <details key={module.title} open={index === 0}>
-          <summary>
-            <span className="numeral">
-              {numbered(index)}
-            </span>
-            <b>{module.title}</b>
-            <small>
-              {module.lessons.length} {copy.lessons}
-            </small>
-          </summary>
-          <ul>
-            {module.lessons.map((lesson) => (
-              <li key={lesson.id}>
-                <Symbol name="play" />
-                <span>{lesson.title}</span>
-                {lesson.preview && (
-                  <Link
-                    className="lms-preview-link"
-                    href={routes.lesson(course.slug, lesson.id)}
-                  >
-                    {copy.preview}
-                  </Link>
-                )}
-                <time className="numeral">{lesson.duration}</time>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ))}
+import { routes } from "@platform/config/navigation";
+import type { Lesson } from "@platform/types/lms";
+import type { CourseDetailsLabels } from "@platform/types/course-details";
+export default function CurriculumLesson({ lesson, slug, enrolled, labels }: { lesson: Lesson; slug: string; enrolled: boolean; labels: CourseDetailsLabels }) {
+  const accessible = enrolled || lesson.preview;
+  return <li>
+    <Symbol name="play" />
+    <div className="lms-curriculum-lesson-title">{accessible ? <Link href={routes.lesson(slug,lesson.id)}>{lesson.title}</Link> : <span>{lesson.title}</span>}
+      {!enrolled && lesson.preview && <small>{labels.preview}</small>}
     </div>
-  );
+    <time className="numeral" dateTime={`PT${lesson.durationSeconds}S`}>{lesson.duration}</time>
+    {!accessible && <span className="lms-lesson-lock" aria-label={labels.locked} title={labels.locked}><Symbol name="lock" /></span>}
+  </li>;
+}
+```
+
+### File: `modules/components/courses/curriculum.tsx`
+
+SHA-256: `2afc2970d1b292da14a07cd1316877209f97fa6fd9df889c7f64143a423679f8`
+
+```tsx
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import CurriculumChapter from "./curriculum-chapter";
+import { sectionIds } from "@platform/config/navigation";
+export default function Curriculum({ course, labels, enrolled }: Pick<CourseDetailsProps,"course" | "labels" | "enrolled">) {
+  return <section className="lms-course-curriculum" id={sectionIds.courseContent} data-reveal>
+    <div className="lms-content-heading"><h2>{labels.content}</h2></div>
+    {course.modules.length ? <div className="lms-curriculum">{course.modules.map((chapter,index) => <CurriculumChapter key={chapter.id ?? index} chapter={chapter} index={index} slug={course.slug} enrolled={enrolled} labels={labels} />)}</div>
+      : <p className="lms-field-hint">{labels.upcomingContent}</p>}
+  </section>;
 }
 ```
 
@@ -6857,88 +6881,24 @@ export default function EnrollButton({
 
 ### File: `modules/components/courses/enrollment-panel.tsx`
 
-SHA-256: `38f62a4d18017024be9626de15718b5ef4fe827860f03553dffdc1b93b9fa5ca`
+SHA-256: `e98f4ff24b875f7ddd28f413b7e62b2348169ccc60773349f8e2c55e3a0a9de1`
 
 ```tsx
 import { sectionIds } from "@platform/config/navigation";
-import type { ContentBindings } from "@platform/types/content";
-import { courseLessons } from "@platform/features/catalog/helpers";
-import CourseArtwork from "@platform/components/courses/course-artwork";
-import CoursePrice from "@platform/components/courses/course-price";
-import EnrollButton from "@platform/components/courses/enroll-button";
-import Symbol from "@platform/components/ui/symbol";
-export default function EnrollmentPanel({
-  site,
-  offerCopy,
-  interfaceCopy,
-  copy,
-  course,
-  slug,
-  progress,
-  enrolled,
-}: {
-  site: Pick<ContentBindings["site"], "englishName">;
-  offerCopy: Pick<ContentBindings["offerCopy"], "price">;
-  interfaceCopy: Pick<
-    ContentBindings["interfaceCopy"],
-    "courseNotesBenefit" | "courseProgressBenefit"
-  >;
-  copy: Pick<
-    ContentBindings["copy"],
-    | "artworkLessonLabel"
-    | "demoVideo"
-    | "error"
-    | "saving"
-    | "continue"
-    | "enrollLabel"
-  >;
-  course: import("@platform/types/lms").Course;
-  slug: string;
-  progress: import("@platform/features/learning/helpers").CourseProgress;
-  enrolled: boolean;
-}) {
-  return (
-    <aside className="lms-enrollment-card" id={sectionIds.enrollment}>
-      <CourseArtwork
-        lessonLabel={copy.artworkLessonLabel}
-        site={{ englishName: site.englishName }}
-        course={course}
-        large
-      />
-      <div className="lms-enrollment-body">
-        <CoursePrice
-          offerCopy={{ price: offerCopy.price }}
-          offer={course.offer}
-        />
-        <EnrollButton
-          copy={{
-            error: copy.error,
-            saving: copy.saving,
-            continue: copy.continue,
-            enrollLabel: copy.enrollLabel,
-          }}
-          slug={slug}
-          firstLesson={progress.next?.id ?? courseLessons(course)[0]?.id}
-          enrolled={enrolled}
-          paid={course.offer.amount > 0}
-        />
-        <ul>
-          {[
-            course.level,
-            course.tool,
-            interfaceCopy.courseNotesBenefit,
-            interfaceCopy.courseProgressBenefit,
-          ].map((item) => (
-            <li key={item}>
-              <Symbol name="check" />
-              {item}
-            </li>
-          ))}
-        </ul>
-        <p className="lms-demo-note">{copy.demoVideo}</p>
-      </div>
-    </aside>
-  );
+import type { CourseDetailsProps } from "@platform/types/course-details";
+import CoursePrice from "./course-price";
+import CourseFacts from "./course-facts";
+import CourseEnrollmentAction from "./course-enrollment-action";
+export default function EnrollmentPanel({ course, copy, labels, priceLabel, enrolled, nextLesson, supportHref }: Pick<CourseDetailsProps,"course" | "copy" | "labels" | "priceLabel" | "enrolled" | "nextLesson" | "supportHref">) {
+  return <section className="lms-enrollment-card" id={sectionIds.enrollment} aria-label={labels.included}>
+    <div className="lms-enrollment-body">
+      <CoursePrice offer={course.offer.amount === 0 ? { ...course.offer, amountLabel: labels.free } : course.offer} offerCopy={{price:priceLabel}} />
+      <CourseEnrollmentAction course={course} copy={copy} labels={labels} enrolled={enrolled} nextLesson={nextLesson} supportHref={supportHref} />
+      {!enrolled && <p className="lms-course-purchase-hint">{labels.purchaseHint}</p>}
+      <CourseFacts course={course} labels={labels} />
+      {course.modules.length > 0 && <a className="lms-course-text-link" href={`#${sectionIds.courseContent}`}>{labels.curriculumNavigation}</a>}
+    </div>
+  </section>;
 }
 ```
 
@@ -9197,7 +9157,7 @@ export default function SectionHeading(props: ComponentProps<typeof Heading>) {
 
 ### File: `modules/components/ui/symbol.tsx`
 
-SHA-256: `302e2a06c2da6dbd1ed41448fba82efeb48b5a515b9c4503843be89fee3b53d1`
+SHA-256: `4e50628f7db9999040d33453ae3aad27e52420abe8cbd6fa8c7650f34a8d6105`
 
 ```tsx
 import type { ComponentPropsWithoutRef } from "react";
@@ -9212,6 +9172,7 @@ const paths = {
   check: "m5 12 4 4L19 6",
   arrow: "M20 12H4m6-6-6 6 6 6",
   clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm0-16v6l4 2",
+  lock: "M6 11h12v10H6V11zm3 0V7a3 3 0 0 1 6 0v4",
   search: "M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm6-2 6 6",
   menu: "M3 6h18M3 12h18M3 18h18",
   close: "m5 5 14 14M19 5 5 19",
@@ -9395,7 +9356,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `4ad3f5cb53129defa4df0b6ac22d4fe28ddfb169db4100230b2dfdb6945ce198`
+SHA-256: `d63e0d300902589a203614e9161feb6c630cd8e429d374ba20e9d4f611f7a8b6`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9415,6 +9376,7 @@ export const sectionIds = {
   faq: "faq",
   steps: "how-it-works",
   enrollment: "course-enrollment",
+  courseContent: "course-content",
 } as const;
 export const routes = {
   payment: (id: string) => `/payments/${segment(id)}`,
@@ -9668,7 +9630,7 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `1049dff679dddc7c19a5f8224187492748b4c4b0377537b77b082733a1f19141`
+SHA-256: `85f2f1a7648ecd74254e8f73ea9f3d596e4224cbfe4633f739d7ecd2822c3b5b`
 
 ```typescript
 export const adminCopy = {
@@ -9677,6 +9639,8 @@ export const adminCopy = {
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.", category: "التصنيف",
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   durationAutomaticHint: "تُحسب تلقائيًا من إجمالي مدد الدروس، وتتحدث عند تغيير المحتوى.",
+  featuredWorkshop: "ورشة مميزة",
+  featuredWorkshopHint: "استخدم صفحة الورشة الترويجية بدل صفحة التفاصيل المعتادة.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو YouTube قابل للتضمين، أو فيديو مباشر، أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
@@ -9798,6 +9762,24 @@ export const lessonResources: Record<string, readonly string[]> = {
   "editing-foundations/editor-mindset": ["creative-brief"],
   "first-client/portfolio": ["portfolio-plan"],
 };
+```
+
+### File: `modules/data/course-details.ts`
+
+SHA-256: `e1f0524baa5198578d5c7aa4099635e51c8351cf7bff795d8ed214d5c0fbb991`
+
+```typescript
+export const courseDetailsCopy = {
+  about: "عن الدورة", intro: "شاهد الفيديو التعريفي", content: "محتوى الدورة",
+  aboutInstructor: "عن المدرب", instructorAction: "تعرّف على محمد خطاب",
+  included: "تفاصيل الدورة", duration: "المدة", lessons: "الدروس", chapters: "الفصول",
+  delivery: "نوع الدورة", recorded: "دروس مسجلة", live: "ورشة مباشرة",
+  locked: "متاح بعد الاشتراك", preview: "معاينة مجانية", ungrouped: "دروس إضافية",
+  upcomingContent: "سيُعلن محتوى الورشة قبل موعدها.",
+  curriculumNavigation: "عرض محتوى الدورة", free: "مجاني",
+  purchaseHint: "الدورة متاحة في حسابك بعد تأكيد الاشتراك.",
+  workshopBooking: "احجز مكانك", workshopSupport: "متابعة الورشة",
+} as const;
 ```
 
 ### File: `modules/data/course-draft.ts`
@@ -10623,7 +10605,7 @@ export const skillStripItems = [
 
 ### File: `modules/data/workshop-course.ts`
 
-SHA-256: `5fe8f9d0edebd3d56c203ac56a31b2d777218be7b6f18945c11cf7582a08b36e`
+SHA-256: `a540c547402333c52c967b443555e24b95b19c69a4eef2355f6ff3f8259296c9`
 
 ```typescript
 import { courseOffers } from "./offers";
@@ -10638,7 +10620,7 @@ export const liveWorkshopCourse: Course = {
   description: siteConfig.description, subtitle: siteConfig.promotionalDescription,
   category: "business", categoryLabel: categories.find(category => category.id === "business")!.label, tool: "Premiere Pro + After Effects",
   level: "مناسب للمبتدئين", duration: workshopCourseConfig.duration,
-  delivery: "live", deliveryLabel: workshopCourseConfig.deliveryLabel,
+  delivery: "live", deliveryLabel: workshopCourseConfig.deliveryLabel, featured: true,
   thumbnailUrl: creatorMedia.workshopIntro.poster, introVideoUrl: creatorMedia.workshopIntro.url,
   artwork: "business", modules: [], outcomes: roadmapDays.filter(day => day.kind !== "pause").map(day => day.title),
   offer: { ...courseOffers["7days-freelance"], caption: "سعر مبدئي قابل للتعديل", actionLabel: siteConfig.enrollmentLabel },
@@ -11375,24 +11357,6 @@ export function assertCourseContent(course: Course, published: boolean, code = "
 }
 ```
 
-### File: `modules/features/admin/helpers/course-content-groups.ts`
-
-SHA-256: `b74a987b66f9e681886d2c52f324f05546af09cb6c7837317773aa89d02234a5`
-
-```typescript
-import type { CourseModule } from "@platform/types/lms";
-export function courseContentGroups(chapter: CourseModule, ungroupedLabel: string) {
-  const grouped = new Set(chapter.sections?.flatMap(section => section.lessonIds));
-  const groups = (chapter.sections ?? []).map(section => ({
-    id: section.id, sectionId: section.id as string | undefined, title: section.title,
-    lessons: chapter.lessons.filter(lesson => section.lessonIds.includes(lesson.id)),
-  }));
-  const ungrouped = chapter.lessons.filter(lesson => !grouped.has(lesson.id));
-  if (ungrouped.length) groups.push({ id: "ungrouped", sectionId: undefined, title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
-  return groups;
-}
-```
-
 ### File: `modules/features/admin/helpers/course-price.ts`
 
 SHA-256: `b1d1bd597ea5253200619e56d2ddc1abc9690d3dff5f511b1a32e0f1113e0608`
@@ -11429,7 +11393,7 @@ export function courseQueryUrl(query: AdminCourseQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/create-course-metadata.ts`
 
-SHA-256: `3f03a34a8008d9bd74e0e60fc180c7556afbc01293cbcb4940a4c48d33fbb28f`
+SHA-256: `fc92975000611da40d50c3d8bb25739a3a90f9643a5a415d25292562b622cc89`
 
 ```typescript
 import { categories } from "@platform/config/catalog";
@@ -11438,7 +11402,7 @@ import type { CreateCourseInput } from "@platform/types/admin-courses";
 const artworks = { editing: "timeline", motion: "motion", design: "design", business: "business" } as const;
 export function createCourseMetadata(input: CreateCourseInput, defaults: { currency: string; action: string; liveLabel: string }): Course {
  return { slug: input.slug, title: input.title, description: input.description, category: input.category, categoryLabel: categories.find(category => category.id === input.category)!.label, delivery: input.delivery,
-  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel } : {}), tool: "", level: "", duration: input.delivery === "live" ? input.duration ?? "" : "", thumbnailUrl: input.thumbnailUrl ?? "", introVideoUrl: input.introVideoUrl ?? "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
+  ...(input.delivery === "live" ? { deliveryLabel: defaults.liveLabel, featured: input.featured ?? false } : {}), tool: "", level: "", duration: input.delivery === "live" ? input.duration ?? "" : "", thumbnailUrl: input.thumbnailUrl ?? "", introVideoUrl: input.introVideoUrl ?? "", subtitle: "", outcomes: [], modules: [], artwork: artworks[input.category], offer: { amount: input.amount, currencyLabel: defaults.currency, caption: "", actionLabel: defaults.action } };
 }
 ```
 
@@ -11493,7 +11457,7 @@ export function decodeCourseCreated(value: unknown, errorLabel: string): string 
 
 ### File: `modules/features/admin/helpers/edit-course-metadata.ts`
 
-SHA-256: `7122d36fc1ff627bde2eaaf2ebc9ba771ea0616d78c6b711266055df555cf5bd`
+SHA-256: `65b20464ce19fd70dd133952fb73505dc2576cce143a962ab3fe61fc871f1061`
 
 ```typescript
 import { categories } from "@platform/config/catalog";
@@ -11502,6 +11466,7 @@ import type { validateCourseEdit } from "./validate-course-edit";
 export function editCourseMetadata(current: Course, values: NonNullable<ReturnType<typeof validateCourseEdit>>): Course {
   return {
     ...current,
+    ...(current.delivery === "live" && values.featured !== undefined ? { featured: values.featured } : {}),
     title: values.title,
     description: values.description,
     duration: current.delivery === "live" ? values.duration ?? current.duration : "",
@@ -11609,22 +11574,22 @@ export function readAdminPage(value?: string | null) {
 
 ### File: `modules/features/admin/helpers/read-course-create.ts`
 
-SHA-256: `32bc78f92c9ffcc614b33f38e07dc0b228bc5dc588d9318cbe80a3537a6fae15`
+SHA-256: `48aab1411184c6259b20c30acb15f6750a81b9d5176a4b0662d98e15f05ecd3a`
 
 ```typescript
 export function readCourseCreate(form: FormData) {
-  return { ...Object.fromEntries(form), amount: Number(form.get("amount")) };
+  return { ...Object.fromEntries(form), ...(form.has("featured") ? { featured: form.getAll("featured").includes("on") } : {}), amount: Number(form.get("amount")) };
 }
 ```
 
 ### File: `modules/features/admin/helpers/read-course-edit.ts`
 
-SHA-256: `54ee93e56e5be369fbad43f482a6fd2094a065d255cbbdccee8054ead34506fd`
+SHA-256: `5d266632624f52718e513a7ebcff4ef948276ef718841c8a6742948750fd1746`
 
 ```typescript
 export function readCourseEdit(form: FormData) {
   return { revision: Number(form.get("revision")), title: form.get("title"), description: form.get("description"), amount: Number(form.get("amount")), category: form.get("category"), ...(form.has("duration") ? { duration: form.get("duration") } : {}),
-    thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
+    ...(form.has("featured") ? { featured: form.getAll("featured").includes("on") } : {}), thumbnailUrl: form.get("thumbnailUrl"), introVideoUrl: form.get("introVideoUrl"), published: form.get("published") === "on" };
 }
 ```
 
@@ -11788,7 +11753,7 @@ export function userQueryUrl(query: AdminUserQuery, page = query.page) {
 
 ### File: `modules/features/admin/helpers/validate-course-create.ts`
 
-SHA-256: `96080ab708fde698ce77c5d37527546053cb1934df23263f10d0adc98fb47e74`
+SHA-256: `83d10c084a122a98bd324ae07b3617ed4656f025f1b8feed3668203642f33ba9`
 
 ```typescript
 import { validMediaUrl } from "./validate-media-url";
@@ -11800,14 +11765,14 @@ import type { CreateCourseInput } from "@platform/types/admin-courses";
 export function validateCourseCreate(input: Record<string, unknown> | null): CreateCourseInput | null {
  if (!input || typeof input.slug !== "string" || input.slug === "new" || input.slug.length > courseAdministration.slugMaxLength || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax || typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax || !validCourseAmount(input.amount) || !categories.some(category => category.id !== "all" && category.id === input.category) || !["live","recorded"].includes(String(input.delivery))) return null;
  const thumbnailUrl = input.thumbnailUrl === undefined ? "" : input.thumbnailUrl, introVideoUrl = input.introVideoUrl === undefined ? "" : input.introVideoUrl;
- if ((input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) || !validMediaUrl(thumbnailUrl) || !validMediaUrl(introVideoUrl)) return null;
- return { duration: typeof input.duration === "string" ? input.duration.trim() : "", thumbnailUrl, introVideoUrl, slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
+ if ((input.featured !== undefined && typeof input.featured !== "boolean") || (input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) || !validMediaUrl(thumbnailUrl) || !validMediaUrl(introVideoUrl)) return null;
+ return { featured: input.featured as boolean | undefined, duration: typeof input.duration === "string" ? input.duration.trim() : "", thumbnailUrl, introVideoUrl, slug: input.slug, title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as CreateCourseInput["category"], delivery: input.delivery as CreateCourseInput["delivery"] };
 }
 ```
 
 ### File: `modules/features/admin/helpers/validate-course-edit.ts`
 
-SHA-256: `67be1c3a618cf7768004bc48a8b7a15e78346e59acdda0ba7a06c080e484e0ef`
+SHA-256: `edfa5d4abdffd99ac5aa44a00df67b714734ff53264b4e1fa2c3d0788eabbf8e`
 
 ```typescript
 import { validCourseAmount } from "./course-price";
@@ -11817,12 +11782,13 @@ import { validMediaUrl } from "./validate-media-url";
 export function validateCourseEdit(input: Record<string, unknown> | null) {
   if (!input || (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || Number(input.revision) < 0)) || typeof input.title !== "string" || input.title.trim().length < policy.titleMin || input.title.length > policy.titleMax ||
     typeof input.description !== "string" || input.description.trim().length < policy.descriptionMin || input.description.length > policy.descriptionMax ||
-    !validCourseAmount(input.amount) ||
+    !validCourseAmount(input.amount) || (input.featured !== undefined && typeof input.featured !== "boolean") ||
     (input.duration !== undefined && (typeof input.duration !== "string" || input.duration.length > policy.durationMax)) ||
     !categories.some(category => category.id !== "all" && category.id === input.category) ||
     !validMediaUrl(input.thumbnailUrl) || !validMediaUrl(input.introVideoUrl) || typeof input.published !== "boolean") return null;
   return { ...(input.revision !== undefined ? { revision: Number(input.revision) } : {}), title: input.title.trim(), description: input.description.trim(), amount: input.amount, category: input.category as Exclude<typeof categories[number]["id"], "all">,
     ...(typeof input.duration === "string" ? { duration: input.duration.trim() } : {}),
+    ...(typeof input.featured === "boolean" ? { featured: input.featured } : {}),
     thumbnailUrl: input.thumbnailUrl, introVideoUrl: input.introVideoUrl, published: input.published };
 }
 ```
@@ -12338,6 +12304,48 @@ export async function requirePageIdentity() {
 }
 ```
 
+### File: `modules/features/catalog/course-details-page.tsx`
+
+SHA-256: `487d0128a78a9e3799b514d612464e2820eb7397a4d8a5fd302e074583b342e8`
+
+```tsx
+import { courseLessons } from "@platform/features/catalog/helpers/course-lessons";
+import { readLearningState, courseProgress } from "@platform/features/learning";
+import { courseDetailsCopy } from "@platform/data/course-details";
+import { copy, instructor, site } from "@platform/data/site";
+import { offerCopy } from "@platform/data/offers";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { routes } from "@platform/config/navigation";
+import type { Course } from "@platform/types/lms";
+import CourseDetails from "@platform/components/courses/course-details";
+import { creatorContacts } from "@/config/creator-contacts";
+export default async function CourseDetailsPage({ course }: { course: Course }) {
+  const state = await readLearningState();
+  const nextLesson = courseProgress(course,state).next?.id ?? courseLessons(course)[0]?.id;
+  return <CourseDetails course={course} enrolled={state.enrolled.includes(course.slug)} nextLesson={nextLesson}
+    labels={courseDetailsCopy} copy={{error:copy.error,saving:copy.saving,continue:copy.continue,enrollLabel:copy.enrollLabel,outcome:copy.outcome}} site={{englishName:site.englishName}} priceLabel={offerCopy.price} breadcrumbLabel={interfaceCopy.courseBreadcrumb}
+    instructor={{ name: instructor.name, tagline: instructor.tagline, image: instructor.image, href: routes.portfolio }} supportHref={creatorContacts.whatsapp} />;
+}
+```
+
+### File: `modules/features/catalog/helpers/course-content-groups.ts`
+
+SHA-256: `b74a987b66f9e681886d2c52f324f05546af09cb6c7837317773aa89d02234a5`
+
+```typescript
+import type { CourseModule } from "@platform/types/lms";
+export function courseContentGroups(chapter: CourseModule, ungroupedLabel: string) {
+  const grouped = new Set(chapter.sections?.flatMap(section => section.lessonIds));
+  const groups = (chapter.sections ?? []).map(section => ({
+    id: section.id, sectionId: section.id as string | undefined, title: section.title,
+    lessons: chapter.lessons.filter(lesson => section.lessonIds.includes(lesson.id)),
+  }));
+  const ungrouped = chapter.lessons.filter(lesson => !grouped.has(lesson.id));
+  if (ungrouped.length) groups.push({ id: "ungrouped", sectionId: undefined, title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
+  return groups;
+}
+```
+
 ### File: `modules/features/catalog/helpers/course-duration.ts`
 
 SHA-256: `89fdcadaa5dc12baf1de978905c758cd76c948ee885fb48be71d259428620305`
@@ -12423,6 +12431,16 @@ export * from "./parse-lesson-time";
 export * from "./select-courses";
 export * from "./select-preview";
 export { validateCatalog } from "./validate-catalog";
+```
+
+### File: `modules/features/catalog/helpers/is-featured-workshop.ts`
+
+SHA-256: `edb64cb906430b277b02c8c2bf986bd9976a97a86a908238ed87bd8aed9efa79`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+export const isFeaturedWorkshop = (course: Pick<Course, "delivery" | "featured">) =>
+  course.delivery === "live" && course.featured === true;
 ```
 
 ### File: `modules/features/catalog/helpers/lesson-key.ts`
@@ -13392,6 +13410,25 @@ export function createCoursesModel(courses: Course[]): LandingModel["courses"] {
 }
 ```
 
+### File: `modules/features/marketing/models/featured-workshop-roadmap.ts`
+
+SHA-256: `f2ec2869ff034bf7165da969d8aa620aa68de22c67a388bce2c1ae45feff4d59`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import type { RoadmapContent } from "@khatab/design/types/marketing";
+import { numbered } from "@platform/features/catalog/helpers/numbered";
+import { courseDetailsCopy } from "@platform/data/course-details";
+export function featuredWorkshopRoadmap(content: RoadmapContent, course: Course, referenceSlug: string): RoadmapContent {
+  if (course.slug === referenceSlug) return content;
+  return { ...content, heading: { title: [courseDetailsCopy.content], description: [course.modules.length ? course.description : courseDetailsCopy.upcomingContent] },
+    formula: { title: courseDetailsCopy.about, inputs: course.outcomes, result: course.title },
+    days: course.modules.map((chapter,index) => ({ number: numbered(index), label: courseDetailsCopy.chapters, title: chapter.title,
+      type: course.deliveryLabel || courseDetailsCopy.live, kind: "lesson", lessons: chapter.lessons.map(lesson => lesson.title) })),
+  };
+}
+```
+
 ### File: `modules/features/marketing/models/footer.ts`
 
 SHA-256: `46bc4e93045aeab2d26af19af77cff0eb83bb39a5087376d357036a9ec6c7c67`
@@ -13481,7 +13518,7 @@ export function createHeroModel(courses: Course[]): LandingModel["hero"] {
 
 ### File: `modules/features/marketing/models/workshop-course.ts`
 
-SHA-256: `269a66ed23ee5e9e3f11fc874bb126aa6b40aefd4888ad40a267544b86afd63a`
+SHA-256: `df5869c986667312a370a8a7e0795927c5f1a3e2f00174cab78bea7a6ee6963c`
 
 ```typescript
 import { routes } from "@platform/config/navigation";
@@ -13489,6 +13526,7 @@ import type { MarketingPageContent } from "@khatab/design/types/marketing";
 import type { Course } from "@platform/types/lms";
 import { courseIntroVideo } from "./course-intro-video";
 import { paymentCopy } from "@platform/data/payment-copy";
+import { featuredWorkshopRoadmap } from "./featured-workshop-roadmap";
 export function workshopCourseContent(
   content: MarketingPageContent,
   course: Course,
@@ -13499,16 +13537,68 @@ export function workshopCourseContent(
   return {
     ...content,
     header: { ...content.header, action: action ?? content.header.action },
-    roadmap: { ...content.roadmap, action: action ?? content.roadmap.action },
+    roadmap: { ...featuredWorkshopRoadmap(content.roadmap,course,defaults.slug), action: action ?? content.roadmap.action },
     finalCta: { ...content.finalCta, action: action ?? content.finalCta.action },
     hero: {
       ...content.hero,
       video: courseIntroVideo(content.hero.video, course, defaults),
+      showVideo: course.slug === defaults.slug || Boolean(course.introVideoUrl),
+      microcopy: course.slug === defaults.slug ? content.hero.microcopy : [course.duration,course.deliveryLabel ?? ""].filter(Boolean),
       action: action ?? content.hero.action,
       title: course.title === defaults.title ? content.hero.title : [course.title],
       description: course.description === defaults.description ? content.hero.description : course.description,
     },
   };
+}
+```
+
+### File: `modules/features/marketing/public-site-shell.tsx`
+
+SHA-256: `fc1d6ece6b7beb3e5d6c9af82874ba28c8598696ae0b9ce76e945d06ced73dad`
+
+```tsx
+import RevealContent from "@platform/components/marketing/reveal-content";
+import { readNavigationAccount } from "@platform/features/auth/server/navigation-account";
+import { designerCredit } from "@/config/designer";
+import { projectNavigation } from "@/config/project-navigation";
+import { interfaceCopy } from "@platform/data/interface-copy";
+import { marketingNavigation } from "@platform/data/site";
+import { copy } from "@platform/data/site";
+import { site } from "@platform/data/site";
+import SiteHeader from "@platform/components/layout/site-header";
+import SiteFooter from "@platform/components/layout/site-footer";
+export default async function PublicSiteShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <SiteHeader
+        account={await readNavigationAccount()}
+        interfaceCopy={{
+          mainNavigationLabel: interfaceCopy.mainNavigationLabel,
+        }}
+        marketingNavigation={marketingNavigation}
+        copy={{ start: copy.start, close: copy.close, menu: copy.menu }}
+        site={{ name: site.name, englishName: site.englishName }}
+      />
+      <RevealContent as="div">{children}</RevealContent>
+      <SiteFooter
+        credit={designerCredit}
+        projectNavigation={projectNavigation}
+        interfaceCopy={{ contactLabel: interfaceCopy.contactLabel }}
+        copy={{ footer: copy.footer, copyright: copy.copyright }}
+        site={{
+          email: site.email,
+          demoLabel: site.demoLabel,
+          name: site.name,
+          englishName: site.englishName,
+        }}
+        marketingNavigation={marketingNavigation}
+      />
+    </>
+  );
 }
 ```
 
@@ -16260,9 +16350,73 @@ SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
 .lms-auth-status { color: var(--text-muted); font-size: var(--font-size-caption); }
 ```
 
+### File: `modules/styles/course-details.css`
+
+SHA-256: `f7f10a5bc74f59c95e0b9fb2ce2c288f639ed51593cd603024366bccd748567f`
+
+```css
+.lms-course-overview { margin-bottom: var(--space-xl); }
+.lms-course-overview .lms-heading-context { margin-bottom: var(--space-sm); }
+.lms-course-title { font-size: clamp(var(--size-2rem), var(--size-3_5vw), var(--size-2_75rem)); line-height: var(--leading-title); margin: 0 0 var(--space-md); overflow-wrap: anywhere; }
+.lms-course-author { display: inline-flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary); font-size: var(--font-size-caption); transition: color var(--transition-smooth); }
+.lms-course-author:hover, .lms-course-author:focus-visible { color: var(--primary-red); }
+.lms-course-detail { display: grid; grid-template-columns: minmax(0,1fr) var(--size-360px); gap: var(--space-xl); align-items: start; }
+.lms-course-detail-content, .lms-course-detail-body { display: grid; gap: var(--space-xl); min-width: 0; }
+.lms-course-intro { aspect-ratio: 16 / 9; overflow: hidden; border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--bg-surface); }
+.lms-course-intro > .lms-course-art, .lms-course-intro .media-player-poster > .lms-course-art { width: 100%; height: 100%; border-radius: 0; }
+.lms-course-intro .media-player { height: 100%; }
+.lms-course-description h2, .lms-course-instructor h2 { font-size: var(--lms-size-1_4rem); margin: 0 0 var(--space-md); }
+.lms-course-prose { display: grid; gap: var(--space-md); color: var(--text-secondary); line-height: var(--leading-longform); }
+.lms-course-prose p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.lms-course-details-page .lms-outcomes { margin: 0; }
+.lms-course-curriculum { scroll-margin-top: var(--size-110px); min-width: 0; }
+.lms-course-detail-sidebar { position: sticky; top: var(--size-110px); display: grid; gap: var(--space-lg); min-width: 0; }
+.lms-enrollment-card { background: var(--bg-surface); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; scroll-margin-top: var(--size-110px); }
+.lms-course-purchase-hint { color: var(--text-muted); font-size: var(--font-size-caption); line-height: var(--leading-copy); margin: var(--space-md) 0 0; }
+.lms-course-facts { display: grid; gap: var(--space-control); margin: var(--space-lg) 0; padding-top: var(--space-lg); border-top: var(--size-1px) solid var(--border-subtle); }
+.lms-course-facts > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-control); font-size: var(--font-size-caption); }
+.lms-course-facts dt { color: var(--text-muted); }
+.lms-course-facts dd { margin: 0; color: var(--text-primary); }
+.lms-course-text-link { display: inline-flex; align-items: center; gap: var(--space-sm); color: var(--text-primary); font-size: var(--font-size-caption); transition: color var(--transition-smooth); }
+.lms-course-text-link:hover, .lms-course-text-link:focus-visible { color: var(--primary-red); text-decoration: underline; text-underline-offset: var(--space-xs); }
+.lms-course-instructor { padding: var(--space-lg); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-lg); }
+.lms-course-instructor > div { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md); }
+.lms-course-instructor img { width: var(--space-3xl); height: var(--space-3xl); object-fit: cover; object-position: top; border-radius: var(--radius-md); }
+.lms-course-instructor h3 { font-size: var(--font-size-body); margin: 0 0 var(--space-xs); }
+.lms-course-instructor p { color: var(--text-muted); font-size: var(--font-size-caption); line-height: var(--leading-copy); margin: 0; }
+.lms-course-curriculum summary { flex-wrap: wrap; min-height: var(--control-target-size); }
+.lms-course-curriculum summary b { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.lms-course-curriculum summary::after { margin-inline-start: 0; }
+.lms-course-curriculum summary small { flex-shrink: 0; }
+.lms-curriculum-chapter-body h3 { margin: 0; padding: var(--space-md) var(--space-comfortable); font-size: var(--font-size-body); color: var(--text-primary); background: var(--bg-main); border-top: var(--size-1px) solid var(--border-hairline); }
+.lms-course-curriculum li { align-items: center; }
+.lms-curriculum-lesson-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.lms-curriculum-lesson-title a { transition: color var(--transition-smooth); }
+.lms-curriculum-lesson-title a:hover, .lms-curriculum-lesson-title a:focus-visible { color: var(--primary-red); }
+.lms-curriculum-lesson-title small { display: block; margin-top: var(--space-xs); color: var(--text-accent-readable); font-size: var(--font-size-caption); }
+.lms-course-curriculum time { margin: 0; white-space: nowrap; font-size: var(--font-size-caption); flex-shrink: 0; }
+.lms-lesson-lock { flex-shrink: 0; display: inline-flex; color: var(--text-muted); }
+.lms-lesson-lock .lms-icon { width: var(--space-md); height: var(--space-md); }
+@media (max-width: 1024px) {
+  .lms-course-detail { grid-template-columns: minmax(0,1fr); gap: var(--space-lg); }
+  .lms-course-detail-content { display: contents; }
+  .lms-course-intro { order: 0; }
+  .lms-course-detail-sidebar { position: static; order: 1; }
+  .lms-course-detail-body { order: 2; }
+}
+@media (max-width: 480px) {
+  .lms-course-title { font-size: var(--lms-size-1_7rem); }
+  .lms-course-overview { margin-bottom: var(--space-lg); }
+  .lms-course-instructor, .lms-course-details-page .lms-enrollment-body { padding: var(--space-md); }
+  .lms-course-curriculum summary { gap: var(--space-sm); }
+  .lms-course-curriculum summary small { width: 100%; order: 1; padding-inline-start: var(--space-lg); }
+  .lms-course-curriculum li { padding: var(--space-md); gap: var(--space-sm); }
+}
+```
+
 ### File: `modules/styles/lms.css`
 
-SHA-256: `05a37de50cd4251eb20991a3821a43144bedc7dc17e92867a089708d54bb065c`
+SHA-256: `bce53f60b3c460a9e5d1ac53c422a887c2e1777cf28b088ffbf08023513f699c`
 
 ```css
 .lms-icon {
@@ -16791,30 +16945,6 @@ button:disabled {
 .lms-breadcrumb a:hover {
   color: var(--primary-red);
 }
-.lms-course-detail {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--size-360px);
-  gap: var(--space-2xl);
-  align-items: start;
-}
-.lms-course-title {
-  font-size: clamp(var(--size-2rem), var(--size-3_5vw), var(--size-2_75rem));
-  line-height: var(--leading-normal);
-  margin-bottom: var(--size-20px);
-}
-.lms-detail-meta {
-  display: flex;
-  gap: var(--size-20px);
-  flex-wrap: wrap;
-  color: var(--text-muted);
-  font-size: var(--font-size-caption);
-  margin: var(--space-lg) 0;
-}
-.lms-detail-meta span {
-  display: flex;
-  align-items: center;
-  gap: var(--size-6px);
-}
 .lms-outcomes {
   margin: var(--space-xl) 0;
   padding: var(--space-lg);
@@ -16827,14 +16957,12 @@ button:disabled {
   margin-bottom: var(--space-comfortable);
 }
 .lms-outcomes ul,
-.lms-enrollment-body ul,
 .lms-takeaways {
   list-style: none;
   display: grid;
   gap: var(--space-heading-tight);
 }
 .lms-outcomes li,
-.lms-enrollment-body li,
 .lms-takeaways li {
   display: flex;
   align-items: center;
@@ -16843,7 +16971,6 @@ button:disabled {
   color: var(--text-secondary);
 }
 .lms-outcomes .lms-icon,
-.lms-enrollment-body li .lms-icon,
 .lms-takeaways .lms-icon {
   color: var(--primary-red);
   width: var(--dimension-18);
@@ -16855,10 +16982,6 @@ button:disabled {
 .lms-content-heading h2 {
   font-size: var(--lms-size-1_4rem);
   margin-bottom: var(--space-unit);
-}
-.lms-content-heading p {
-  color: var(--text-muted);
-  font-size: var(--size-0_9rem);
 }
 .lms-curriculum {
   display: grid;
@@ -16923,44 +17046,13 @@ button:disabled {
   color: var(--text-muted);
   direction: ltr;
 }
-.lms-preview-link {
-  font-size: var(--font-size-caption);
-  color: var(--text-accent-readable);
-  white-space: nowrap;
-}
-.lms-enrollment-card {
-  position: sticky;
-  top: var(--size-110px);
-  background: var(--bg-surface);
-  border: var(--size-1px) solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
 .lms-enrollment-body {
   padding: var(--space-lg);
-}
-.lms-enrollment-body h2 {
-  font-size: var(--size-1_25rem);
-  line-height: var(--leading-relaxed);
-  margin-bottom: var(--space-lg);
-}
-.lms-enrollment-body ul {
-  margin: var(--space-lg) 0;
-}
-.lms-enrollment-body li {
-  font-size: var(--font-size-caption);
 }
 .lms-full-button {
   width: 100%;
   font-size: var(--font-size-action);
   padding: var(--space-heading-tight) !important;
-}
-.lms-demo-note {
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-  line-height: var(--leading-spacious);
-  padding-top: var(--space-md);
-  border-top: var(--size-1px) solid var(--border-hairline);
 }
 .lms-app-header {
   position: sticky;
@@ -17703,10 +17795,6 @@ button:disabled {
   .lms-course-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .lms-course-detail {
-    grid-template-columns: minmax(0, 1fr) var(--lms-size-320px);
-    gap: var(--size-28px);
-  }
   .lms-app-grid {
     grid-template-columns: var(--lms-size-210px) minmax(0, 1fr);
   }
@@ -17845,29 +17933,8 @@ button:disabled {
   .lms-footer-links {
     gap: var(--space-md);
   }
-  .lms-course-detail {
-    grid-template-columns: 1fr;
-    gap: var(--space-xl);
-  }
-  .lms-enrollment-card {
-    position: static;
-    order: -1;
-  }
-  .lms-enrollment-card > .lms-course-art {
-    display: none;
-  }
   .lms-enrollment-body {
     padding: var(--size-20px);
-  }
-  .lms-enrollment-body ul {
-    display: none;
-  }
-  .lms-enrollment-body h2 {
-    font-size: var(--size-1_1rem);
-    margin-bottom: var(--space-md);
-  }
-  .lms-enrollment-body .lms-demo-note {
-    margin-top: var(--space-md);
   }
   .lms-public-main {
     padding-top: var(--space-xl);
@@ -18044,12 +18111,6 @@ button:disabled {
   }
   .lms-curriculum summary small {
     font-size: var(--font-size-caption);
-  }
-  .lms-detail-meta {
-    gap: var(--space-heading-tight);
-  }
-  .lms-course-title {
-    font-size: var(--lms-size-1_7rem);
   }
   .lms-lesson-title {
     flex-direction: column;
@@ -18230,7 +18291,6 @@ button:disabled {
 .lms-footer-links a,
 .lms-breadcrumb a,
 .lms-preview-lessons > a,
-.lms-preview-link,
 .lms-sidebar-help a {
   transition: color var(--transition-fast);
 }
@@ -19963,7 +20023,7 @@ export type AnalyticsLabels = { [K in keyof typeof analyticsCopy]: K extends "so
 
 ### File: `modules/types/admin-courses.ts`
 
-SHA-256: `90f26769b9dd13a64812bdba9540c452b7a634581e73d4fd487d07ed0444665b`
+SHA-256: `07f3b6f88fd591aa2354becaf33373b6410420b75b55453d1176b8855a4a99f7`
 
 ```typescript
 import type { courseSorts, courseStatuses, courseDeliveries } from "@platform/config/course-administration";
@@ -19973,7 +20033,7 @@ export type AdminCoursesLabels = { [K in keyof typeof adminCoursesCopy]: string 
 export interface AdminCourseQuery { page: number; search: string; category: Category; statuses: typeof courseStatuses[number][]; delivery: typeof courseDeliveries[number]; sort: typeof courseSorts[number]; direction: "asc" | "desc"; }
 export interface AdminCourseRow { slug: string; title: string; category: Exclude<Category,"all">; delivery: "recorded" | "live"; published: boolean; createdAt: string | null; updatedAt: string | null; students: number; lessons: number; chapters: number; sections: number; }
 export interface AdminCourseResults { courses: AdminCourseRow[]; page: number; total: number; hasNext: boolean; }
-export interface CreateCourseInput { slug: string; title: string; description: string; amount: number; category: Exclude<Category,"all">; delivery: "recorded" | "live"; duration?: string; thumbnailUrl?: string; introVideoUrl?: string; }
+export interface CreateCourseInput { slug: string; title: string; description: string; amount: number; category: Exclude<Category,"all">; delivery: "recorded" | "live"; featured?: boolean; duration?: string; thumbnailUrl?: string; introVideoUrl?: string; }
 ```
 
 ### File: `modules/types/admin-users.ts`
@@ -20041,6 +20101,25 @@ export interface ContentBindings {
  dashboardNavigation: readonly { href: string; label: string; symbol: import("@platform/components/ui/symbol").SymbolName }[];
  marketingNavigation: Widen<typeof import("@platform/data/site").marketingNavigation>;
  courses: typeof import("@platform/data/courses").courses;
+}
+```
+
+### File: `modules/types/course-details.ts`
+
+SHA-256: `a23cd5764a517ed39159c360f35f59b433919733da64c635ecc21ef3bd0950fd`
+
+```typescript
+import type { Course } from "./lms";
+import type { ImageAsset } from "@khatab/design/types/ui";
+import type { ContentBindings } from "./content";
+export type CourseDetailsLabels = { [K in keyof typeof import("@platform/data/course-details").courseDetailsCopy]: string };
+export interface CourseDetailsProps {
+  course: Course; enrolled: boolean; nextLesson?: string;
+  labels: CourseDetailsLabels;
+  copy: Pick<ContentBindings["copy"], "error" | "saving" | "continue" | "enrollLabel" | "outcome">;
+  instructor: { name: string; tagline: string; image: ImageAsset; href: string };
+  site: { englishName: string }; priceLabel: string; breadcrumbLabel: string;
+  supportHref: string;
 }
 ```
 
@@ -27212,7 +27291,7 @@ export interface RevealOptions {
 
 ### File: `packages/design-system/types/marketing.ts`
 
-SHA-256: `480b88c76f340fb8ea1cb321e0219945d67246cdf89362ca3e9510d586498df9`
+SHA-256: `fe80f82a7c278386561cb7eb74f3ad8670afe2093b2cc8bc21fa3d1b7485f56b`
 
 ```typescript
 import type { ProjectNavigationContent } from "./project-navigation";
@@ -27282,6 +27361,7 @@ export interface HeroContent extends BaseSectionContent {
   title: RichTextContent;
   description: string;
   video: VideoContent;
+  showVideo?: boolean;
   action: LinkData;
   microcopy: readonly string[];
 }
@@ -27369,14 +27449,14 @@ export interface MarketingPageContent {
 
 ### File: `packages/design-system/types/media-player.ts`
 
-SHA-256: `1a4fc02db81d40315ff70345dca21164886bd10b5f7d10a04774201c467cfebc`
+SHA-256: `010c2e314e719a7a211c4bae5f34e4fbdf3246bfaba40b97b74f2c96e568e8f8`
 
 ```typescript
 import type { CSSProperties, ReactNode } from "react";
 import type { PlayerControlsVariant, VideoPlayerLabels } from "./video-player";
 
 export interface MediaPlayerProps {
-  /** Direct playable media URL (MP4, WebM, or a future streaming API URL). */
+  /** Playable file/stream URL or embeddable individual YouTube URL. */
   videoUrl: string;
   thumbnailUrl: string;
   title?: string;
@@ -27845,21 +27925,24 @@ export default function ChartTooltip({ active, payload, labels }: {
 
 ### File: `packages/design-system/ui/choice-controls.tsx`
 
-SHA-256: `fb3211790ac3373fddb42253e5e06cf07a8c7f90075de32d258ca92afe5d3219`
+SHA-256: `2842a9714fb712db150d14dbf2685296d5cc6a9a72651c85f95bebb94b058f58`
 
 ```tsx
-import type { InputHTMLAttributes, ReactNode } from "react";
+"use client";
+import { useId, type InputHTMLAttributes, type ReactNode } from "react";
 export interface ChoiceProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: ReactNode;
   hint?: ReactNode;
 }
 function Choice({ kind, label, hint, className = "", ...input }: ChoiceProps & { kind: "checkbox" | "radio" }) {
+  const id = useId();
   return <label className={`ds-choice ${className}`}>
-    <input {...input} type={kind} className="ds-choice-input" />
+    <input {...input} type={kind} className="ds-choice-input" aria-labelledby={input["aria-labelledby"] ?? (input["aria-label"] ? undefined : `${id}-label`)}
+      aria-describedby={[input["aria-describedby"], hint && `${id}-hint`].filter(Boolean).join(" ") || undefined} />
     <span className={`ds-choice-marker ds-choice-${kind}`} aria-hidden="true">
       {kind === "checkbox" && <svg viewBox="0 0 16 16" fill="none"><path d="m3 8 3 3 7-7" /></svg>}
     </span>
-    <span className="ds-choice-copy"><span>{label}</span>{hint && <small>{hint}</small>}</span>
+    <span className="ds-choice-copy"><span id={`${id}-label`}>{label}</span>{hint && <small id={`${id}-hint`}>{hint}</small>}</span>
   </label>;
 }
 export function Checkbox(props: ChoiceProps) { return <Choice {...props} kind="checkbox" />; }
@@ -28557,7 +28640,7 @@ export default function InstructorStats({
 
 ### File: `packages/design-system/ui/media-player.tsx`
 
-SHA-256: `dfcedc30a83667fcca76ecd52d2edaedfacfffb8f136f5a15e108ae97f3d72ce`
+SHA-256: `d757e30f8bd6aece13a5adb84f3459f4af2441518c80bc17925d1294401cd4c1`
 
 ```tsx
 "use client";
@@ -28567,8 +28650,9 @@ import type { MediaPlayerProps } from "../types/media-player";
 import { arabicPlayerLabels } from "../lib/player-labels";
 import DeferredVideoPlayer from "./deferred-video-player";
 import PlayerIcon from "./player-icon";
+import { getYouTubeEmbedUrl } from "../lib/video";
 
-/** Portable native-file player: configuration changes appearance, not playback logic. */
+/** Portable file/YouTube player: configuration changes appearance, not playback logic. */
 export default function MediaPlayer({
   videoUrl,
   thumbnailUrl,
@@ -28603,7 +28687,7 @@ export default function MediaPlayer({
     >
       <DeferredVideoPlayer
         key={`${videoUrl}:${generation}`}
-        source={{ kind: "file", url: videoUrl, poster: thumbnailUrl }}
+        {...(getYouTubeEmbedUrl(videoUrl) ? { url: videoUrl } : { source: { kind: "file" as const, url: videoUrl, poster: thumbnailUrl } })}
         title={title ?? labels.controls}
         labels={labels}
         playLabel={playLabel ?? labels.play}
@@ -28615,13 +28699,13 @@ export default function MediaPlayer({
       >
         {/* Arbitrary thumbnail URLs stay portable and bypass Next image-host configuration. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {thumbnailUrl && <img
           src={thumbnailUrl}
           alt=""
           loading={thumbnailLoading}
           decoding="async"
           fetchPriority={thumbnailLoading === "eager" ? "high" : undefined}
-        />
+        />}
         <span
           className={`media-player-toggle ${playButtonClassName}`.trim()}
           aria-hidden="true"
@@ -32102,6 +32186,89 @@ test("Creation rejects invalid media or duration values", () => {
 });
 ```
 
+### File: `tests/backend/course-details-browser.cjs`
+
+SHA-256: `d486fb6d108898eb8a064195954e43896bf3b4b649116e371f23bf199cbc3fde`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Responsive shared course details and real enrollment state. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async({manager,student,admin,course,liveSlug,url,verify})=>{
+ const browser=await chromium.launch();
+ try{
+  const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  let sdk=0;await page.route('https://www.youtube.com/iframe_api',route=>{sdk++;return route.fulfill({contentType:'application/javascript',body:fs.readFileSync('tests/helpers/youtube-sdk.fixture','utf8')});});
+  await page.route('**/embed/**',route=>route.fulfill({contentType:'text/html',body:'<html></html>'}));
+  await page.goto(url+'/courses/'+course.slug);await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading',{level:1})).toHaveText(course.title);await expect(page.getByRole('heading',{name:'عن الدورة',exact:true})).toBeVisible();
+  await expect(page.locator('.lms-course-prose p')).toHaveCount(2);await expect(page.getByRole('heading',{name:'فهم الأساسيات',exact:true})).toBeVisible();
+  verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('.lms-course-price strong').innerText()==='499 ج.م','One shared header and database price');
+  verify(sdk===0&&await page.locator('iframe').count()===0,'Intro player is deferred until explicit activation');
+  verify(await page.getByRole('link',{name:course.modules[0].lessons[0].title,exact:true}).count()===1&&await page.getByRole('link',{name:course.modules[0].lessons[1].title,exact:true}).count()===0,'Guests see preview links and locked private lessons');
+  const summary=page.locator('.lms-course-curriculum summary').first();await summary.focus();await page.keyboard.press('Enter');await expect(page.locator('.lms-course-curriculum details').first()).not.toHaveAttribute('open','');await page.keyboard.press('Enter');verify(true,'Curriculum disclosures work with keyboard');
+  for(const width of [320,390,768,1024,1440,1920]){
+   await page.setViewportSize({width,height:1000});await page.locator('.lms-course-intro').scrollIntoViewIfNeeded();await expect(page.locator('.lms-course-intro')).toHaveCSS('opacity','1');
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Details fit ${width}px without overflow`);
+   const boxes=await page.locator('.lms-course-overview,.lms-course-intro,.lms-course-detail-body,.lms-course-detail-sidebar').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};}));
+   verify(width>1024?boxes[3].right<=boxes[1].left:boxes[0].bottom<=boxes[1].top&&boxes[1].bottom<=boxes[3].top&&boxes[3].bottom<=boxes[2].top,`Correct desktop/sidebar or mobile purchase order at ${width}px`);
+   if(width===390||width===1440){for(const section of await page.locator('main [data-reveal]').all()){await section.scrollIntoViewIfNeeded();await expect(section).toHaveCSS('opacity','1');}await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:`docs/evidence/backend/course-details-${width}.png`,fullPage:true});}
+  }
+  await page.setViewportSize({width:1440,height:1000});await page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true}).click();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(1);verify(sdk===1,'Custom shared player accepts YouTube intro links');
+  await page.evaluate(()=>window.__customPlayerTest.players[0].emit(0));await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toBeVisible();verify(await page.locator('.lms-course-intro iframe').count()===0,'Finished intro returns to thumbnail and releases iframe');
+  await page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true}).click();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(1);await page.locator('footer').scrollIntoViewIfNeeded();await expect(page.locator('.lms-course-intro iframe')).toHaveCount(0);verify(true,'Off-screen intro resets and disposes playback');
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(student.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/dashboard');
+  await page.goto(url+'/courses/'+course.slug);await page.getByRole('button',{name:'اشترك الآن',exact:true}).click();await expect(page).toHaveURL(url+'/checkout/'+course.slug);verify(true,'Purchase action reaches existing checkout without charging');
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:course.slug});await page.goto(url+'/courses/'+course.slug);
+  await expect(page.getByRole('link',{name:course.modules[0].lessons[1].title,exact:true})).toBeVisible();await page.getByRole('button',{name:'كمّل تعلّمك',exact:true}).click();await expect(page).toHaveURL(url+'/learn/'+course.slug+'/'+course.modules[0].lessons[0].id);verify(true,'Enrolled learners get unlocked lesson links and continue action');
+  await admin.from('courses').update({metadata:{...course,introVideoUrl:'/assets/video/workshop-intro.mp4'}}).eq('slug',course.slug);await page.goto(url+'/courses/'+course.slug);
+  await page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true}).click();await expect(page.locator('.lms-course-intro video')).toBeVisible();await expect(page.locator('.lms-course-intro video')).toHaveJSProperty('controls',false);verify(true,'Native intros retain the same custom player without browser controls');
+  await admin.from('courses').update({metadata:{...course,introVideoUrl:'',thumbnailUrl:''}}).eq('slug',course.slug);await page.goto(url+'/courses/'+course.slug);
+  await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toHaveCount(0);await expect(page.locator('.lms-course-intro .lms-course-art')).toBeVisible();verify(true,'Courses without media show their themed artwork without an invalid play action');
+  await require('./featured-workshop-browser.cjs')({browser,manager,url,liveSlug,verify});
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:liveSlug});await page.goto(url+'/workshops/'+liveSlug);
+  await expect(page.getByRole('link',{name:'متابعة الورشة',exact:true})).toHaveAttribute('href',/^https:\/\/wa\.me\//);verify(true,'Enrolled live workshop without lessons has a working support action');
+  verify(errors.length===0,'Detail pages have no browser runtime or hydration errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/course-details.cjs`
+
+SHA-256: `03429cbbac275cb0e156ac642f4f34732536f31e46674486a9b121b660580646`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated detail-template and featured-setting acceptance. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Detail Manager'),student=await provision('Detail Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='details-'+randomUUID(),liveSlug=slug+'-live',parse=r=>JSON.parse(r.data);
+ const source=parse(await anonymous('/api/courses/editing-foundations'));
+ const first=source.modules[0].lessons[0],second=source.modules[0].lessons[1];
+ const course={...source,slug,description:'تعلّم المونتاج خطوة بخطوة.\n\nطبّق على مشروعك وراجع النتيجة.',introVideoUrl:'https://youtu.be/svTNN9S7ipc',thumbnailUrl:'/assets/images/personal/workshop.png',modules:[{id:'chapter-one',title:'البداية والتطبيق',sections:[{id:'section-one',title:'فهم الأساسيات',lessonIds:[first.id]}],lessons:[{...first,preview:true},{...second,preview:false}]},{id:'chapter-two',title:'الخطوة التالية',lessons:[{...first,id:'next-step',preview:false}]}]};
+ const live={slug:liveSlug,title:'ورشة تجريبية مباشرة',description:'وصف خاص بالورشة التجريبية',amount:500,category:'business',delivery:'live',duration:'٧ أيام',featured:false};
+ const edit=current=>({title:current.course.title,description:current.course.description,amount:current.course.offer.amount,category:current.course.category,duration:current.course.duration,thumbnailUrl:'',introVideoUrl:'',published:true,revision:current.revision});
+ const read=async()=>parse(await manager.api('/api/admin/courses/'+liveSlug));
+ try{
+  assert.ok(!(await admin.from('courses').insert({slug,metadata:course,amount:499,published:true,position:100})).error);
+  assert.ok(!(await admin.from('lessons').insert(course.modules.flatMap(chapter=>chapter.lessons.map(lesson=>({course_slug:slug,id:lesson.id,preview:lesson.preview,video_url:'/assets/video/workshop-intro.mp4'}))))).error);
+  verify((await student.api('/api/admin/courses',live)).status===403,'Students cannot set featured workshop status');
+  verify((await manager.api('/api/admin/courses',live)).status===201,'Admin creates ordinary workshop');
+  let current=await read();verify(current.course.featured===false,'Ordinary status persists');
+  verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:'true'})).status===400,'Non-boolean featured edit rejected');
+  verify((await manager.api('/api/admin/courses/'+liveSlug,edit(current))).status===200,'Ordinary live workshop publishes');
+  const ordinary=await anonymous('/workshops/'+liveSlug);verify(ordinary.status===200&&ordinary.data.includes('lms-course-details-page')&&!ordinary.data.includes('roadmap-section'),'Ordinary workshops render shared details');
+  current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:true})).status===200,'Admin enables featured design');
+  const featured=await anonymous('/workshops/'+liveSlug);verify(featured.status===200&&featured.data.includes('roadmap-section')&&!featured.data.includes('lms-course-details-page'),'Featured workshops render campaign template');
+  verify(!featured.data.includes('تأسيس العقلية والبرنامج الأساسي')&&!featured.data.includes('class="hero-video-shell"'),'New featured workshops do not inherit the seven-day curriculum or intro video');
+  const legacy=await anonymous('/workshops/7days-freelance');verify(legacy.status===200&&legacy.data.includes('roadmap-section'),'Existing seven-day workshop keeps approved design');
+  await require('./course-details-browser.cjs')({manager,student,admin,course,liveSlug,url,verify});
+  current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),amount:0,featured:false})).status===200,'Free ordinary live workshop can be saved');
+  const free=await anonymous('/workshops/'+liveSlug);verify(free.data.includes('احجز مكانك')&&free.data.includes('https://wa.me/'),'Free live workshops without lessons provide a booking action');
+ }finally{await admin.from('courses').delete().in('slug',[slug,liveSlug]);}
+};
+```
+
 ### File: `tests/backend/course-price.cjs`
 
 SHA-256: `53d3f606ebaad4e09797a5ac2ee61bec6e1aa89da863dd6468439009fddf5f9c`
@@ -32291,7 +32458,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
 
 ### File: `tests/backend/curriculum-helpers.test.ts`
 
-SHA-256: `6a8fff8339f680267b19f619c0edeaa5aafecec5b3854d48ac6d1df8a1bd05a5`
+SHA-256: `f58e26b4f39cc3f93984cc631edb051ceeb39337adba84acf98ab6d7803482ec`
 
 ```typescript
 import assert from "node:assert/strict";
@@ -32299,7 +32466,7 @@ import { test } from "node:test";
 import { applyCurriculumMutation } from "../../modules/features/admin/helpers/apply-curriculum-mutation";
 import { curriculumCourse } from "../../modules/features/admin/helpers/curriculum-course";
 import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
-import { courseContentGroups } from "../../modules/features/admin/helpers/course-content-groups";
+import { courseContentGroups } from "../../modules/features/catalog/helpers/course-content-groups";
 import type { Course } from "../../modules/types/lms";
 function fixture(): Course {
   const course = createCourseMetadata({slug:"reusable-course",title:"Reusable course",description:"Description",amount:0,category:"editing",delivery:"recorded"},{currency:"EGP",action:"Enroll",liveLabel:"Live"});
@@ -32476,6 +32643,27 @@ for (const input of ["{{ .NewEmail }}", "{{ .OldEmail }}", "{{ .Phone }}", "{{ .
   assert.throws(() => validateEmailVariables(input), /Unsupported|Malformed/);
 assert.deepEqual(validateEmailVariables("Plain Arabic text — تعلّم"), []);
 console.log("Email placeholder contract passed: seven allowed variables, whitespace variants, scoped/unknown/malformed rejection.");
+```
+
+### File: `tests/backend/featured-workshop-browser.cjs`
+
+SHA-256: `9597ded085518f7e48f0dd04812070ce55a005ff4107eaf496b12103e95a42d5`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Featured campaign selection through the admin UI. */
+const {expect}=require('@playwright/test');
+module.exports=async({browser,manager,url,liveSlug,verify})=>{
+ const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
+ await page.goto(url+'/workshops/'+liveSlug);await page.waitForLoadState('networkidle');await expect(page.getByRole('heading',{level:1})).toHaveText('ورشة تجريبية مباشرة');await expect(page.locator('.hero-video-shell')).toHaveCount(0);await expect(page.locator('.roadmap-timeline .day-item')).toHaveCount(0);verify(true,'Featured workshop browser uses own title and no invented media or timeline');
+ await page.goto(url+'/admin/dashboard/courses/'+liveSlug);await page.waitForLoadState('networkidle');const featured=page.getByRole('checkbox',{name:'ورشة مميزة',exact:true});
+ await expect(featured).toBeChecked();await featured.uncheck();await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toHaveText('تم حفظ التغييرات');
+ await page.reload();await page.waitForLoadState('networkidle');await expect(featured).not.toBeChecked();verify(true,'Admin can remove featured status and retain it after refresh');
+ await page.goto(url+'/workshops/'+liveSlug);await expect(page.locator('.lms-course-details-page')).toBeVisible();await expect(page.getByRole('heading',{name:'ورشة تجريبية مباشرة',exact:true})).toBeVisible();await expect(page.getByText('سيُعلن محتوى الورشة قبل موعدها.',{exact:true})).toBeVisible();verify(true,'Unfeatured workshop switches to its own shared detail page');
+ await page.goto(url+'/admin/dashboard/courses/new');await page.waitForLoadState('networkidle');await expect(page.getByRole('checkbox',{name:'ورشة مميزة',exact:true})).toHaveCount(0);
+ await page.getByRole('combobox',{name:'نوع الدورة',exact:true}).click();await page.getByRole('option',{name:'مباشرة',exact:true}).click();await expect(page.getByRole('checkbox',{name:'ورشة مميزة',exact:true})).toBeVisible();verify(true,'Creation only exposes featured design for workshops');
+ verify(errors.length===0,'Featured workshop and editor have no browser runtime errors');await page.close();
+};
 ```
 
 ### File: `tests/backend/form-controls-browser.cjs`
@@ -32695,7 +32883,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `0ece84dd3271373d4ee1f7d7a80476d3c7238054d3d63e0777a6a854df0847a9`
+SHA-256: `400ea0be7f7b153ac3c0217ded17fd94fbbd1342d9fc52d146dba1780c101e92`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -32765,6 +32953,9 @@ async function run() {
   if (process.env.BACKEND_SUITE === 'course-price') {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
+  }
+  if (process.env.BACKEND_SUITE === 'course-details') {
+    await require('./course-details.cjs')({admin,provision,anonymous,verify,url});return;
   }
   if (process.env.BACKEND_SUITE === 'curriculum-authoring') {
     await require('./curriculum-authoring.cjs')({admin,provision,anonymous,verify,url});
@@ -37938,6 +38129,48 @@ test("redirect loops have a finite request budget", async () => {
     await assert.rejects(fetchDrive(new URL("https://drive.usercontent.google.com/download"), {}, new AbortController().signal), { status: 503 });
     assert.equal(calls, 4);
   } finally { globalThis.fetch = original; }
+});
+```
+
+### File: `tests/security/featured-workshop.test.ts`
+
+SHA-256: `d996270f21170c6811702f761013f846f7594543240b88efc8c2c37ed45226a9`
+
+```typescript
+import assert from "node:assert/strict";
+import test from "node:test";
+import { isFeaturedWorkshop } from "../../modules/features/catalog/helpers/is-featured-workshop";
+import { validateCourseCreate } from "../../modules/features/admin/helpers/validate-course-create";
+import { validateCourseEdit } from "../../modules/features/admin/helpers/validate-course-edit";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+import { editCourseMetadata } from "../../modules/features/admin/helpers/edit-course-metadata";
+import { readCourseCreate } from "../../modules/features/admin/helpers/read-course-create";
+import { readCourseEdit } from "../../modules/features/admin/helpers/read-course-edit";
+const input = { slug: "featured-test", title: "Workshop test", description: "Workshop description", amount: 500, category: "editing", delivery: "live", featured: true };
+const defaults = { currency: "EGP", action: "Subscribe", liveLabel: "Live" };
+test("Only explicitly featured live workshops use the campaign template", () => {
+  assert.equal(isFeaturedWorkshop({delivery:"live",featured:true}),true);
+  for (const course of [{delivery:"live" as const},{delivery:"live" as const,featured:false},{delivery:"recorded" as const,featured:true}]) assert.equal(isFeaturedWorkshop(course),false);
+});
+test("Feature creation and editing validate booleans and retain omitted legacy values", () => {
+  const validated = validateCourseCreate(input)!;
+  const course = createCourseMetadata(validated,defaults);
+  const edit = { ...input, duration: "٧ أيام", published:false, thumbnailUrl:"", introVideoUrl:"" };
+  assert.equal(course.featured,true);
+  assert.equal(editCourseMetadata(course,validateCourseEdit({...edit,featured:false})!).featured,false);
+  assert.equal(editCourseMetadata(course,validateCourseEdit({...edit,featured:undefined})!).featured,true);
+  for (const featured of ["true",1,null]) {
+    assert.equal(validateCourseCreate({...input,featured}),null);
+    assert.equal(validateCourseEdit({...edit,featured}),null);
+  }
+  assert.equal(createCourseMetadata({...validated,delivery:"recorded"},defaults).featured,undefined);
+});
+test("Checked and unchecked native forms encode real booleans", () => {
+  const form = new FormData();form.append("featured","false");
+  assert.equal(readCourseCreate(form).featured,false);assert.equal(readCourseEdit(form).featured,false);
+  form.append("featured","on");
+  assert.equal(readCourseCreate(form).featured,true);assert.equal(readCourseEdit(form).featured,true);
+  form.delete("featured");assert.equal("featured" in readCourseEdit(form),false);
 });
 ```
 

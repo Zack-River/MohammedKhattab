@@ -65,6 +65,7 @@ export interface HeroContent extends BaseSectionContent {
   title: RichTextContent;
   description: string;
   video: VideoContent;
+  showVideo?: boolean;
   action: LinkData;
   microcopy: readonly string[];
 }

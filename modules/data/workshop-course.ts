@@ -10,7 +10,7 @@ export const liveWorkshopCourse: Course = {
   description: siteConfig.description, subtitle: siteConfig.promotionalDescription,
   category: "business", categoryLabel: categories.find(category => category.id === "business")!.label, tool: "Premiere Pro + After Effects",
   level: "مناسب للمبتدئين", duration: workshopCourseConfig.duration,
-  delivery: "live", deliveryLabel: workshopCourseConfig.deliveryLabel,
+  delivery: "live", deliveryLabel: workshopCourseConfig.deliveryLabel, featured: true,
   thumbnailUrl: creatorMedia.workshopIntro.poster, introVideoUrl: creatorMedia.workshopIntro.url,
   artwork: "business", modules: [], outcomes: roadmapDays.filter(day => day.kind !== "pause").map(day => day.title),
   offer: { ...courseOffers["7days-freelance"], caption: "سعر مبدئي قابل للتعديل", actionLabel: siteConfig.enrollmentLabel },

@@ -1,5 +1,5 @@
 import type { CurriculumChapter, CurriculumContext } from "@platform/types/curriculum";
-import { courseContentGroups } from "@platform/features/admin/helpers/course-content-groups";
+import { courseContentGroups } from "@platform/features/catalog/helpers/course-content-groups";
 import CurriculumAction from "./curriculum-action";
 import EntityActions from "./entity-actions";
 import SectionGroup from "./section-group";

@@ -524,30 +524,6 @@ button:disabled {
 .lms-breadcrumb a:hover {
   color: var(--primary-red);
 }
-.lms-course-detail {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--size-360px);
-  gap: var(--space-2xl);
-  align-items: start;
-}
-.lms-course-title {
-  font-size: clamp(var(--size-2rem), var(--size-3_5vw), var(--size-2_75rem));
-  line-height: var(--leading-normal);
-  margin-bottom: var(--size-20px);
-}
-.lms-detail-meta {
-  display: flex;
-  gap: var(--size-20px);
-  flex-wrap: wrap;
-  color: var(--text-muted);
-  font-size: var(--font-size-caption);
-  margin: var(--space-lg) 0;
-}
-.lms-detail-meta span {
-  display: flex;
-  align-items: center;
-  gap: var(--size-6px);
-}
 .lms-outcomes {
   margin: var(--space-xl) 0;
   padding: var(--space-lg);
@@ -560,14 +536,12 @@ button:disabled {
   margin-bottom: var(--space-comfortable);
 }
 .lms-outcomes ul,
-.lms-enrollment-body ul,
 .lms-takeaways {
   list-style: none;
   display: grid;
   gap: var(--space-heading-tight);
 }
 .lms-outcomes li,
-.lms-enrollment-body li,
 .lms-takeaways li {
   display: flex;
   align-items: center;
@@ -576,7 +550,6 @@ button:disabled {
   color: var(--text-secondary);
 }
 .lms-outcomes .lms-icon,
-.lms-enrollment-body li .lms-icon,
 .lms-takeaways .lms-icon {
   color: var(--primary-red);
   width: var(--dimension-18);
@@ -588,10 +561,6 @@ button:disabled {
 .lms-content-heading h2 {
   font-size: var(--lms-size-1_4rem);
   margin-bottom: var(--space-unit);
-}
-.lms-content-heading p {
-  color: var(--text-muted);
-  font-size: var(--size-0_9rem);
 }
 .lms-curriculum {
   display: grid;
@@ -656,44 +625,13 @@ button:disabled {
   color: var(--text-muted);
   direction: ltr;
 }
-.lms-preview-link {
-  font-size: var(--font-size-caption);
-  color: var(--text-accent-readable);
-  white-space: nowrap;
-}
-.lms-enrollment-card {
-  position: sticky;
-  top: var(--size-110px);
-  background: var(--bg-surface);
-  border: var(--size-1px) solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
 .lms-enrollment-body {
   padding: var(--space-lg);
-}
-.lms-enrollment-body h2 {
-  font-size: var(--size-1_25rem);
-  line-height: var(--leading-relaxed);
-  margin-bottom: var(--space-lg);
-}
-.lms-enrollment-body ul {
-  margin: var(--space-lg) 0;
-}
-.lms-enrollment-body li {
-  font-size: var(--font-size-caption);
 }
 .lms-full-button {
   width: 100%;
   font-size: var(--font-size-action);
   padding: var(--space-heading-tight) !important;
-}
-.lms-demo-note {
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
-  line-height: var(--leading-spacious);
-  padding-top: var(--space-md);
-  border-top: var(--size-1px) solid var(--border-hairline);
 }
 .lms-app-header {
   position: sticky;
@@ -1436,10 +1374,6 @@ button:disabled {
   .lms-course-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .lms-course-detail {
-    grid-template-columns: minmax(0, 1fr) var(--lms-size-320px);
-    gap: var(--size-28px);
-  }
   .lms-app-grid {
     grid-template-columns: var(--lms-size-210px) minmax(0, 1fr);
   }
@@ -1578,29 +1512,8 @@ button:disabled {
   .lms-footer-links {
     gap: var(--space-md);
   }
-  .lms-course-detail {
-    grid-template-columns: 1fr;
-    gap: var(--space-xl);
-  }
-  .lms-enrollment-card {
-    position: static;
-    order: -1;
-  }
-  .lms-enrollment-card > .lms-course-art {
-    display: none;
-  }
   .lms-enrollment-body {
     padding: var(--size-20px);
-  }
-  .lms-enrollment-body ul {
-    display: none;
-  }
-  .lms-enrollment-body h2 {
-    font-size: var(--size-1_1rem);
-    margin-bottom: var(--space-md);
-  }
-  .lms-enrollment-body .lms-demo-note {
-    margin-top: var(--space-md);
   }
   .lms-public-main {
     padding-top: var(--space-xl);
@@ -1777,12 +1690,6 @@ button:disabled {
   }
   .lms-curriculum summary small {
     font-size: var(--font-size-caption);
-  }
-  .lms-detail-meta {
-    gap: var(--space-heading-tight);
-  }
-  .lms-course-title {
-    font-size: var(--lms-size-1_7rem);
   }
   .lms-lesson-title {
     flex-direction: column;
@@ -1963,7 +1870,6 @@ button:disabled {
 .lms-footer-links a,
 .lms-breadcrumb a,
 .lms-preview-lessons > a,
-.lms-preview-link,
 .lms-sidebar-help a {
   transition: color var(--transition-fast);
 }

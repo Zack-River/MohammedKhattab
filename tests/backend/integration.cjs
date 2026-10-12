@@ -66,6 +66,9 @@ async function run() {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
   }
+  if (process.env.BACKEND_SUITE === 'course-details') {
+    await require('./course-details.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'curriculum-authoring') {
     await require('./curriculum-authoring.cjs')({admin,provision,anonymous,verify,url});
     return;

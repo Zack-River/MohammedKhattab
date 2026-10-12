@@ -5,8 +5,9 @@ import type { MediaPlayerProps } from "../types/media-player";
 import { arabicPlayerLabels } from "../lib/player-labels";
 import DeferredVideoPlayer from "./deferred-video-player";
 import PlayerIcon from "./player-icon";
+import { getYouTubeEmbedUrl } from "../lib/video";
 
-/** Portable native-file player: configuration changes appearance, not playback logic. */
+/** Portable file/YouTube player: configuration changes appearance, not playback logic. */
 export default function MediaPlayer({
   videoUrl,
   thumbnailUrl,
@@ -41,7 +42,7 @@ export default function MediaPlayer({
     >
       <DeferredVideoPlayer
         key={`${videoUrl}:${generation}`}
-        source={{ kind: "file", url: videoUrl, poster: thumbnailUrl }}
+        {...(getYouTubeEmbedUrl(videoUrl) ? { url: videoUrl } : { source: { kind: "file" as const, url: videoUrl, poster: thumbnailUrl } })}
         title={title ?? labels.controls}
         labels={labels}
         playLabel={playLabel ?? labels.play}
@@ -53,13 +54,13 @@ export default function MediaPlayer({
       >
         {/* Arbitrary thumbnail URLs stay portable and bypass Next image-host configuration. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {thumbnailUrl && <img
           src={thumbnailUrl}
           alt=""
           loading={thumbnailLoading}
           decoding="async"
           fetchPriority={thumbnailLoading === "eager" ? "high" : undefined}
-        />
+        />}
         <span
           className={`media-player-toggle ${playButtonClassName}`.trim()}
           aria-hidden="true"

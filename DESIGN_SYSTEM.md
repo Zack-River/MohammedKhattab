@@ -128,7 +128,7 @@ MP4. Portfolio thumbnails still use one-second frames from their original footag
 
 ## Reusable public player (2026-10-09)
 
-`@khatab/design/ui/media-player` is the native-file player entry point. Supply
+`@khatab/design/ui/media-player` is the shared file/stream and YouTube player entry point. Supply
 `videoUrl`, `thumbnailUrl`, `width`, `height`, and `color`; dimensions accept numbers
 or CSS strings. The default is a responsive 16:9 player with the theme accent,
 a centered play button while paused and thumbnail restoration. Labels default to the shared Arabic
@@ -345,3 +345,9 @@ Cloudinary stores avatars and course thumbnails only; Drive remains the video pr
 ## Admin course overview and curriculum separation (2026-10-12)
 
 The Courses dashboard uses the same semantic table, narrow-screen record cards, custom search/filter controls, modal and pagination as Users. Keep five records per page. Display dates and separate enrollment/lesson/chapter/section counts; detailed curriculum belongs to the content tab at `/admin/dashboard/courses/[slug]/content`. The top-right primary action creates an unpublished draft. Reuse the current theme and Server Component presentation; only create/delete/edit controls need client state. Existing modules are chapters; optional sections group canonical chapter lesson IDs. Missing historic dates display “غير مسجل”. See `docs/ADMIN_COURSE_MANAGEMENT.md` for behavior and verification.
+
+## Course details and featured workshops (2026-10-12)
+
+Recorded courses and ordinary workshops share the structure documented in `docs/COURSE_DETAILS.md`: title/category, course preview, description, optional outcomes, chapter/section disclosures and an enrollment/instructor sidebar. Preserve the approved dark surfaces, red purchase action, IBM Plex Sans Arabic and shared player/reveal behavior. At 1024px and below, place enrollment after the preview and before the detailed content. The course description retains saved paragraph breaks, and no new animation or player package is introduced.
+
+The existing workshop marketing design is reserved for live workshops whose saved `featured` flag is true. Admin forms expose “ورشة مميزة”; the seven-day workshop starts featured and retains its approved presentation. Other featured workshops use their own intro and curriculum data. Missing media never supplies the seven-day intro on a different workshop. Ordinary workshops stay under `/workshops/[slug]` with the shared details design; recorded courses stay under `/courses/[slug]`.
