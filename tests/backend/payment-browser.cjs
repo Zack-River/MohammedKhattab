@@ -17,7 +17,7 @@ module.exports=async function({url,user,slug,verify}){
    if(viewport.width!==320){fs.mkdirSync('docs/evidence/payments',{recursive:true});await page.screenshot({path:`docs/evidence/payments/checkout-${viewport.width}.png`,fullPage:true});}
   }
   await page.getByRole('button',{name:'الانتقال للدفع الآمن',exact:true}).click();
-  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:3046\/transactions\//);
+  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:3046\/ts\/[^?]+\?lg=ar$/);
   verify(true,'Checkout button redirects to the hosted provider instead of handling card data');
   verify(errors.length===0,'Checkout has no hydration or runtime errors');
  }finally{await browser.close();}

@@ -13679,29 +13679,19 @@ export function checkoutPayload(order: PaymentOrder, account: AccountProfile) {
 
 ### File: `modules/features/payments/gateway/create-checkout.ts`
 
-SHA-256: `b545d52348f1b8c2130fc5c2f36556ac2ff2bdfa601ef2e0a4266a030ad58788`
+SHA-256: `c9d0f1e025ce68f2e07ad4b78f7b09083a7aedf5f8480061052e9bb77f0abfac`
 
 ```typescript
 import "server-only";
-import { isOrderId } from "../helpers/order-id";
+import { readCheckoutLink } from "../helpers/read-checkout-link";
 import { checkoutPayload } from "./checkout-payload";
 import { paymentEnvironment } from "./environment";
 import { gatewayRequest } from "./request";
-import { ApiError } from "@platform/lib/api/error";
 import type { AccountProfile } from "@platform/types/account";
 import type { PaymentOrder } from "../types";
 export async function createGatewayCheckout(order: PaymentOrder, account: AccountProfile) {
   const result = await gatewayRequest("createTransaction", checkoutPayload(order, account));
-  if (!isOrderId(result.intent_key) || typeof result.url !== "string") throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
-  const url = new URL(result.url);
-  if (
-    url.origin !== paymentEnvironment().origin ||
-    !url.pathname.startsWith("/transactions/") ||
-    url.username ||
-    url.password
-  )
-    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
-  return { intentKey: result.intent_key, url: url.href };
+  return readCheckoutLink(result, paymentEnvironment().origin);
 }
 ```
 
@@ -13916,6 +13906,27 @@ SHA-256: `d7202b3ef41a030e7950b0cbb2adb76f8707311ca293ae9002359f1c1ad3243b`
 ```typescript
 export const isOrderId = (id: unknown): id is string =>
   typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+```
+
+### File: `modules/features/payments/helpers/read-checkout-link.ts`
+
+SHA-256: `7e03abb20c8079cd50b68f66b0bd99ea553edc07b1637089c34631df285e34a2`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+import { isOrderId } from "./order-id";
+
+/** Fawaterak serves hosted checkout using both full and shortened URLs. */
+export function readCheckoutLink(result: Record<string, unknown>, origin: string) {
+  if (!isOrderId(result.intent_key) || typeof result.url !== "string")
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  let url: URL;
+  try { url = new URL(result.url); }
+  catch { throw new ApiError(503, "PAYMENTS_UNAVAILABLE"); }
+  if (url.origin !== origin || !/^\/(?:transactions|ts)\/[a-zA-Z0-9_-]+\/?$/.test(url.pathname) || url.username || url.password)
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  return { intentKey: result.intent_key, url: url.href };
+}
 ```
 
 ### File: `modules/features/payments/helpers/read-gateway-envelope.ts`
@@ -32915,7 +32926,7 @@ module.exports=async function navigation({url,manager,student,verify}) {
 
 ### File: `tests/backend/payment-browser.cjs`
 
-SHA-256: `865966b1d3de3b2af4b0ef4564d2ce74632e094317354db2389e495b32d2caf4`
+SHA-256: `8cac627665d76554540166c8f168a0495af27c1997c805b43feedfa55a829ef7`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Checkout browser acceptance using the local test gateway. */
@@ -32937,7 +32948,7 @@ module.exports=async function({url,user,slug,verify}){
    if(viewport.width!==320){fs.mkdirSync('docs/evidence/payments',{recursive:true});await page.screenshot({path:`docs/evidence/payments/checkout-${viewport.width}.png`,fullPage:true});}
   }
   await page.getByRole('button',{name:'الانتقال للدفع الآمن',exact:true}).click();
-  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:3046\/transactions\//);
+  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:3046\/ts\/[^?]+\?lg=ar$/);
   verify(true,'Checkout button redirects to the hosted provider instead of handling card data');
   verify(errors.length===0,'Checkout has no hydration or runtime errors');
  }finally{await browser.close();}
@@ -32946,7 +32957,7 @@ module.exports=async function({url,user,slug,verify}){
 
 ### File: `tests/backend/payment-gateway.cjs`
 
-SHA-256: `9c97724e5dcddf9428c16101e3aac7780479e96ffad32a4012e4429307d0f202`
+SHA-256: `3e698fbc99e65d6b585029743f8f58c62820c59036460368f9bb312ad5dccf94`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated local payment provider, never charges money. */
@@ -32961,7 +32972,7 @@ function paymentGateway() {
   if(req.headers.authorization!=='Bearer local-payment-token'){res.statusCode=401;res.end('{}');return;}
   if(req.url==='/api/v3/createTransaction'){
    const intent=randomUUID();created++;transactions.set(intent,{intent_key:intent,transaction_id:created,paid:0,total:body.cartTotal,currency:body.currency,pay_load:body.pay_load,status_text:'unpaid',paid_at:null,request:body});
-   res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/transactions/${intent}`,expires_in:172800}}));return;
+   res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/ts/${intent}?lg=ar`,expires_in:172800}}));return;
   }
   if(req.url==='/api/v3/getTransactionData'){lookups++;res.end(JSON.stringify({status:'success',data:transactions.get(body.intent_key)}));return;}
   res.statusCode=404;res.end('{}');
@@ -37702,6 +37713,32 @@ module.exports = async function({ url, verify }) {
     verify(await page.evaluate(() => window.__injected !== true), 'Untrusted inline scripts are blocked by CSP');
   } finally { await browser.close(); }
 };
+```
+
+### File: `tests/security/checkout-link.test.ts`
+
+SHA-256: `9d680cbb9a132ea45825614e14124f7c201c5e233492387132aff10a45c3ed48`
+
+```typescript
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readCheckoutLink } from "../../modules/features/payments/helpers/read-checkout-link";
+
+const intent_key = "550e8400-e29b-41d4-a716-446655440000";
+const origin = "https://app.fawaterk.com";
+test("Accept Fawaterak short checkout links and retain Arabic language", () => {
+  const url = `${origin}/ts/a1b2c?lg=ar`;
+  assert.deepEqual(readCheckoutLink({ intent_key, url }, origin), { intentKey: intent_key, url });
+});
+test("Accept full checkout links and staging URLs on their own origin", () => {
+  for (const host of [origin, "https://staging.fawaterk.com"])
+    assert.equal(readCheckoutLink({ intent_key, url: `${host}/transactions/${intent_key}` }, host).intentKey, intent_key);
+});
+test("Reject foreign origins, credentials, invalid intents, and unrelated paths", () => {
+  for (const url of ["not a URL", "javascript:alert(1)", "https://evil.example/ts/a", "https://app.fawaterk.com.evil.example/ts/a", "https://user:password@app.fawaterk.com/ts/a", `${origin}/ts/`, `${origin}/transactions/a/extra`, `${origin}/unrelated/a`, "http://app.fawaterk.com/ts/a", "https://staging.fawaterk.com/ts/a"])
+    assert.throws(() => readCheckoutLink({ intent_key, url }, origin), { code: "PAYMENTS_UNAVAILABLE" });
+  assert.throws(() => readCheckoutLink({ intent_key: "invalid", url: `${origin}/ts/a` }, origin), { code: "PAYMENTS_UNAVAILABLE" });
+});
 ```
 
 ### File: `tests/security/drive-fetch.test.ts`

@@ -10,7 +10,7 @@ function paymentGateway() {
   if(req.headers.authorization!=='Bearer local-payment-token'){res.statusCode=401;res.end('{}');return;}
   if(req.url==='/api/v3/createTransaction'){
    const intent=randomUUID();created++;transactions.set(intent,{intent_key:intent,transaction_id:created,paid:0,total:body.cartTotal,currency:body.currency,pay_load:body.pay_load,status_text:'unpaid',paid_at:null,request:body});
-   res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/transactions/${intent}`,expires_in:172800}}));return;
+   res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/ts/${intent}?lg=ar`,expires_in:172800}}));return;
   }
   if(req.url==='/api/v3/getTransactionData'){lookups++;res.end(JSON.stringify({status:'success',data:transactions.get(body.intent_key)}));return;}
   res.statusCode=404;res.end('{}');

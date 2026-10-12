@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — Fawaterak short checkout links
+
+- Traced the production 503 followed by 409: the hosted order had no saved provider link and remained in `creating`. Live OAuth succeeds; a single diagnostic unpaid link creation returned a valid `/ts/<id>` URL, which our `/transactions/`-only validation rejected. No payment or customer message was sent.
+- Extracted checkout-link validation into a small reusable helper. Accepts `/ts/` and `/transactions/` links only on the configured provider origin; rejects malformed URLs, unrelated paths, credentials, foreign origins, and invalid intent UUIDs. Existing five-minute recovery and concurrency safeguards remain intact.
+- Updated the mock gateway and browser test to reproduce the real short URL including Arabic language query. All 56 isolated payment checks, 15 security unit tests, lint, TypeScript, production build and architecture validation passed. Live paid settlement remains for the merchant to test; this verification did not charge money.
+
 ## Latest checkpoint — OWASP 2025 hardening
 
 - Reviewed all ten current OWASP categories and recorded controls, evidence and remaining operational work in `docs/security/OWASP_REVIEW.md`. No exploitable SQL injection was found in reviewed parameterized/static SQL paths; adversarial literal-search and sort-input tests pass.

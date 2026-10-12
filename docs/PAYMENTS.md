@@ -10,12 +10,12 @@ Save these server-only variables in Vercel Production and redeploy:
 - `FAWATERAK_CLIENT_SECRET`
 - `FAWATERAK_TOKEN_URL` — `https://app.fawaterk.com/oauth/token`
 - `HASH_API_KEY` — Fawaterak's merchant API key used for the transaction webhook HMAC.
-- `APP_ORIGIN` — `https://ta3allam.vercel.app`
+- `APP_ORIGIN` — the deployed website origin, currently `https://ta3allam.zackriver.com`
 - `SUPABASE_SECRET_KEY` — the existing Supabase server key.
 
 The locally supplied `PROVIDER_KEY` belongs to Fawaterak's embedded browser integration. This implementation uses server-created hosted checkout, so it does not expose or require that key.
 
-Each transaction sends `https://ta3allam.vercel.app/api/payments/fawaterak/webhook_json` as its paid/pending webhook URL. The `_json` suffix requests JSON callbacks. Browser success, failure, pending, and back URLs all return to `/payments/<order UUID>`; browser redirects never grant course access.
+Each transaction sends `${APP_ORIGIN}/api/payments/fawaterak/webhook_json` as its paid/pending webhook URL. The `_json` suffix requests JSON callbacks. Browser success, failure, pending, and back URLs all return to `/payments/<order UUID>`; browser redirects never grant course access.
 
 ## Purchase and activation
 
@@ -30,6 +30,10 @@ Each transaction sends `https://ta3allam.vercel.app/api/payments/fawaterak/webho
 - Order APIs and pages are owner-only. Students cannot execute settlement functions or edit payment records.
 - Financial records survive account deletion, and courses with payment records cannot be deleted. Unpublish them instead.
 - Admin weekly/monthly revenue counts confirmed **live** payments in EGP before provider fees. Test/staging payments are excluded. Refund accounting and automatic refund access revocation are not implemented.
+
+## Hosted checkout URL compatibility
+
+Fawaterak currently returns shortened `/ts/<id>?lg=ar` URLs, in addition to documented `/transactions/<intent>` URLs. Both are accepted only on the configured gateway origin. Foreign origins, embedded credentials, unrelated paths, malformed URLs and invalid intent UUIDs are rejected. A failed creation without a saved checkout URL holds its order for five minutes before a retry can replace it; this avoids duplicate concurrent intents after uncertain upstream failures.
 
 ## Validation
 
