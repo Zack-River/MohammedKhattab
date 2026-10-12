@@ -2,6 +2,12 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — YouTube course-video support
+
+- Individual YouTube watch, short/share, mobile, Shorts, live-video and embed links normalize through the shared media helper and use the existing deferred YouTube backend with custom controls. Direct files and protected Drive routing remain supported. Playlist-only URLs are not individual lessons. No downloading, playlist import or rehosting was performed.
+- Added a reusable cancellable YouTube metadata probe through the existing shared iframe SDK; it reads duration without playing, polls delayed metadata, times out, and destroys the temporary player/iframe/timers on completion or cancellation. The lesson hook selects YouTube or native metadata probing and retains the same validation and maximum duration. Updated centralized admin form hints; no new dependency or design style added.
+- Verified 99 isolated curriculum/API/browser checks and 19 security unit tests. Browser acceptance covers YouTube automatic duration without playback and cleanup; URL tests cover supported forms, unsafe hosts/credentials/ports, playlist-only rejection and unchanged Drive/direct routing. Lint, production build and architecture passed (707 source files). YouTube videos must permit embedding; private/restricted/removed videos can fail, and source visibility remains controlled by YouTube.
+
 ## Latest checkpoint — opaque Fawaterak intent keys
 
 - Confirmed `a6e4891` deployed successfully, then reproduced the remaining rejection with the real customer/order payload. Fawaterak returns an 18-character alphanumeric intent key, despite the documentation declaring UUID. Our validator, webhook validator, database column and settlement argument all assumed UUID; the previous URL-only fix was incomplete.

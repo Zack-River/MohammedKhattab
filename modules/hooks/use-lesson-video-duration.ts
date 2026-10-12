@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { curriculumPolicy as policy } from "@platform/config/curriculum";
 import { lessonProbeSource } from "@platform/helpers/media/lesson-probe-source";
-import { probeVideoDuration } from "@platform/helpers/media/probe-video-duration";
+import { probeMediaDuration } from "@platform/helpers/media/probe-media-duration";
 export function useLessonVideoDuration(slug: string, initialUrl: string, initialSeconds: number | undefined, labels: { durationError: string; durationLoading: string }) {
   const inputRef = useRef<HTMLInputElement>(null), [url,setUrl] = useState(initialUrl), [attempt,retry] = useState(0);
   const [result,setResult] = useState({ url: initialSeconds ? initialUrl : "", seconds: initialSeconds, error: "" });
@@ -14,7 +14,7 @@ export function useLessonVideoDuration(slug: string, initialUrl: string, initial
     const controller = new AbortController();
     const timer = setTimeout(() => {
       const source = lessonProbeSource(slug,url);
-      const probe = source ? probeVideoDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
+      const probe = source ? probeMediaDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
       void probe.then(seconds => { if (!controller.signal.aborted) setResult({url,seconds,error:""}); })
         .catch(() => { if (!controller.signal.aborted) setResult({url,seconds:undefined,error:labels.durationError}); });
     },policy.metadataDelayMs);

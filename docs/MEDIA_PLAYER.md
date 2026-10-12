@@ -72,3 +72,9 @@ Fullscreen entry belongs to the stable outer player wrapper, so mounting the nat
 The supported-browser fullscreen toggle sits at the top right, fades in on hover, and appears when the toggle itself has keyboard focus. It remains visible on touch screens and while fullscreen as the exit control. Playback starts inline unless `fullscreenOnPlay` is explicitly enabled.
 
 Fullscreen/exit controls have transparent backgrounds in every state and no button border. Their white icons use a compact black drop shadow built from shared size and shadow-color tokens for stronger contrast; there is no red SVG outline.
+
+## Course YouTube links
+
+Course intro and lesson fields accept individual HTTPS YouTube watch, youtu.be, Shorts, mobile, live-video and embed links, alongside existing Drive and direct files. The shared normalizer resolves them to youtube-nocookie.com; lesson playback reuses the deferred YouTube backend and existing custom controls. A playlist-only URL does not identify a lesson. The creator must allow embedding; private/restricted videos can fail. The app does not download or rehost YouTube files.
+
+Admin lesson duration is measured through the shared YouTube iframe API using a disposable non-playing metadata probe. It polls until duration is available, times out, and destroys the iframe/timers on completion, cancellation or error. Changing/closing the form aborts the probe without tearing down the SDK used by other players. The existing maximum lesson duration and form validation apply. No YouTube API key or new player dependency is required.

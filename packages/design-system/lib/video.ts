@@ -2,10 +2,11 @@
 export function getYouTubeEmbedUrl(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
-    if (url.protocol !== "https:") return null;
+    if (url.protocol !== "https:" || url.username || url.password || url.port) return null;
     const hosts = [
       "youtube.com",
       "www.youtube.com",
+      "m.youtube.com",
       "youtube-nocookie.com",
       "www.youtube-nocookie.com",
     ];
@@ -15,7 +16,7 @@ export function getYouTubeEmbedUrl(rawUrl: string): string | null {
         : hosts.includes(url.hostname)
           ? url.pathname === "/watch"
             ? url.searchParams.get("v")
-            : url.pathname.match(/^\/(?:embed|shorts)\/([\w-]{11})\/?$/)?.[1]
+            : url.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})\/?$/)?.[1]
           : null;
     if (!id || !/^[\w-]{11}$/.test(id)) return null;
     return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1`;

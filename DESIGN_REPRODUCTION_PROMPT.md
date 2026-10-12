@@ -9665,7 +9665,7 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `e88b89280d6e6d66d61e9703bbfc613d4c477ea8cbf88396f58558f57c44eff5`
+SHA-256: `62fb64a1c206fa0c9ea93123af3099f35f5acc1752ba9aec2b6885f7b079e70a`
 
 ```typescript
 export const adminCopy = {
@@ -9675,7 +9675,7 @@ export const adminCopy = {
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
-  mediaHint: "رابط فيديو مباشر أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
+  mediaHint: "رابط فيديو YouTube قابل للتضمين، أو فيديو مباشر، أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
   publicPage: "عرض الصفحة", unavailable: "الدورة غير موجودة",
 };
 ```
@@ -10156,7 +10156,7 @@ export const courses: Course[] = [...records.map((course) => ({
 
 ### File: `modules/data/curriculum.ts`
 
-SHA-256: `9a7447cd1a8da6917745a8f4afeaf03bcc4acad3cb9d261c7c53fd34b1473049`
+SHA-256: `c57736628e4b6ce420605c337a0eb7572766fcdbefdb640df74969b2f3a3f1ef`
 
 ```typescript
 export const curriculumCopy = {
@@ -10165,7 +10165,7 @@ export const curriculumCopy = {
  save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر حفظ المحتوى. حاول مرة أخرى.",
  draftHint: "أضف الدروس وحدّد الفصل والقسم المناسب لكل درس قبل نشر الدورة.",
  deleteHint: "حذف الدرس يزيل تقدّمه وارتباطات موارده. حذف الفصل أو القسم متاح بعد نقل محتواه أو حذفه.",
- publishedHint: "لإضافة فصول فارغة أو حذف آخر درس، ألغِ النشر أولاً من بيانات الدورة، ثم أعد النشر بعد اكتمال المحتوى.", courseLabel: "الدورة", mediaHint: "فيديو مباشر أو ملف Google Drive عام.",
+ publishedHint: "لإضافة فصول فارغة أو حذف آخر درس، ألغِ النشر أولاً من بيانات الدورة، ثم أعد النشر بعد اكتمال المحتوى.", courseLabel: "الدورة", mediaHint: "رابط فيديو YouTube منفرد قابل للتضمين، أو فيديو مباشر، أو ملف Google Drive عام.",
 } as const;
 ```
 
@@ -14492,14 +14492,34 @@ export function lessonProbeSource(slug: string, value: string) {
 
 ### File: `modules/helpers/media/playable-url.ts`
 
-SHA-256: `4822f997188c46ebac4596b7649a6ec676bd9acefa0846cd1d77c78277b82bb0`
+SHA-256: `ba94e853fe115e9b3e97419de3dd0a3e1a90ceefe89124bc4af371f0d08e2e11`
 
 ```typescript
 import { driveFileId } from "./drive-file-id";
 import { endpoints } from "@platform/config/navigation";
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
 export function playableUrl(value: string, slug: string, lessonId?: string) {
+  const youtube = getYouTubeEmbedUrl(value.trim());
+  if (youtube) return youtube;
   if (!driveFileId(value)) return value;
   return lessonId ? endpoints.lessonStream(slug,lessonId) : endpoints.introStream(slug);
+}
+```
+
+### File: `modules/helpers/media/probe-media-duration.ts`
+
+SHA-256: `7ee8c2e5a3b476a05313319db9023698adb8d408e3c4973bb2c043ce99195f2f`
+
+```typescript
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
+import { probeYouTubeDuration } from "@khatab/design/helpers/media/youtube/probe-duration";
+import { curriculumPolicy } from "@platform/config/curriculum";
+import { probeVideoDuration } from "./probe-video-duration";
+export async function probeMediaDuration(source: string, signal: AbortSignal, errorLabel: string) {
+  if (!getYouTubeEmbedUrl(source)) return probeVideoDuration(source, signal, errorLabel);
+  const seconds = await probeYouTubeDuration(source, signal, curriculumPolicy.metadataTimeoutMs);
+  if (seconds > curriculumPolicy.maxDurationSeconds) throw new Error(errorLabel);
+  return seconds;
 }
 ```
 
@@ -15117,14 +15137,14 @@ export function useLessonNotes(key: string) {
 
 ### File: `modules/hooks/use-lesson-video-duration.ts`
 
-SHA-256: `c6c328df447a3e4bfa76cc457173493bda8801f4b35062ec7f8f5499181ca739`
+SHA-256: `25e1f2ce0bb9068eac9790d04879269a1cacc765ee31c406d12f25a819f79ce7`
 
 ```typescript
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { curriculumPolicy as policy } from "@platform/config/curriculum";
 import { lessonProbeSource } from "@platform/helpers/media/lesson-probe-source";
-import { probeVideoDuration } from "@platform/helpers/media/probe-video-duration";
+import { probeMediaDuration } from "@platform/helpers/media/probe-media-duration";
 export function useLessonVideoDuration(slug: string, initialUrl: string, initialSeconds: number | undefined, labels: { durationError: string; durationLoading: string }) {
   const inputRef = useRef<HTMLInputElement>(null), [url,setUrl] = useState(initialUrl), [attempt,retry] = useState(0);
   const [result,setResult] = useState({ url: initialSeconds ? initialUrl : "", seconds: initialSeconds, error: "" });
@@ -15136,7 +15156,7 @@ export function useLessonVideoDuration(slug: string, initialUrl: string, initial
     const controller = new AbortController();
     const timer = setTimeout(() => {
       const source = lessonProbeSource(slug,url);
-      const probe = source ? probeVideoDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
+      const probe = source ? probeMediaDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
       void probe.then(seconds => { if (!controller.signal.aborted) setResult({url,seconds,error:""}); })
         .catch(() => { if (!controller.signal.aborted) setResult({url,seconds:undefined,error:labels.durationError}); });
     },policy.metadataDelayMs);
@@ -21366,6 +21386,50 @@ export function stopYouTubePolling(session: YouTubeSession) {
 }
 ```
 
+### File: `packages/design-system/helpers/media/youtube/probe-duration.ts`
+
+SHA-256: `ec20ba4c6e11ad3b422e2b3e2be9c202ad0d803ed8bb48d14394181d5340e28b`
+
+```typescript
+import { loadYouTubeAPI } from "./load-api";
+import { getControlledYouTubeUrl } from "./controlled-url";
+import { createYouTubeIframe } from "./iframe";
+import { youtubePlayerPolicy } from "../../../config/youtube-player";
+import type { YouTubePlayerInstance } from "../../../types/video-player";
+/** Read cued metadata without playing; dispose this probe independently of other players. */
+export function probeYouTubeDuration(url: string, signal: AbortSignal, timeoutMs: number): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const source = getControlledYouTubeUrl(url, window.location.origin);
+    if (!source || signal.aborted) { reject(new Error("YouTube metadata unavailable")); return; }
+    const controlled = new URL(source); controlled.searchParams.set("autoplay", "0");
+    const iframe = createYouTubeIframe(controlled.href, "Video metadata");
+    iframe.hidden = true; iframe.setAttribute("aria-hidden", "true");
+    let player: YouTubePlayerInstance | undefined, settled = false;
+    const finish = (seconds?: number) => {
+      if (settled) return;
+      settled = true; clearTimeout(timeout); clearInterval(interval); signal.removeEventListener("abort", abort);
+      try { player?.destroy(); } catch { /* The iframe may already have been removed by the SDK. */ }
+      iframe.remove();
+      if (seconds) resolve(seconds); else reject(new Error("YouTube metadata unavailable"));
+    };
+    const sample = () => {
+      try { const seconds = player?.getDuration(); if (seconds && Number.isFinite(seconds) && seconds > 0) finish(Math.ceil(seconds)); }
+      catch { finish(); }
+    };
+    const abort = () => finish(), timeout = window.setTimeout(abort, timeoutMs);
+    const interval = window.setInterval(sample, youtubePlayerPolicy.sampleMs);
+    signal.addEventListener("abort", abort, { once: true }); document.body.append(iframe);
+    void loadYouTubeAPI().then(api => {
+      if (settled) return;
+      player = new api.Player(iframe, { events: {
+        onReady: event => { player = event.target; sample(); }, onStateChange: sample,
+        onError: abort, onAutoplayBlocked: sample,
+      } });
+    }).catch(abort);
+  });
+}
+```
+
 ### File: `packages/design-system/helpers/media/youtube/read-time.ts`
 
 SHA-256: `ed7fcaeac59777b50b73491d4d54b11158d682ec4da2fffe4a3bffa720838210`
@@ -22498,17 +22562,18 @@ module.exports = { parseTokens, resolveToken };
 
 ### File: `packages/design-system/lib/video.ts`
 
-SHA-256: `948f4defc50b6a6e367b0a85ef269928ad199f990c109a04d5b1154a52784e5e`
+SHA-256: `26035f3f56d5448e20db45894faa490347bcd458561c9aeb6078edfb8d6a77fb`
 
 ```typescript
 /** Validate a YouTube ID and normalize it to the privacy-enhanced iframe host. */
 export function getYouTubeEmbedUrl(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
-    if (url.protocol !== "https:") return null;
+    if (url.protocol !== "https:" || url.username || url.password || url.port) return null;
     const hosts = [
       "youtube.com",
       "www.youtube.com",
+      "m.youtube.com",
       "youtube-nocookie.com",
       "www.youtube-nocookie.com",
     ];
@@ -22518,7 +22583,7 @@ export function getYouTubeEmbedUrl(rawUrl: string): string | null {
         : hosts.includes(url.hostname)
           ? url.pathname === "/watch"
             ? url.searchParams.get("v")
-            : url.pathname.match(/^\/(?:embed|shorts)\/([\w-]{11})\/?$/)?.[1]
+            : url.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})\/?$/)?.[1]
           : null;
     if (!id || !/^[\w-]{11}$/.test(id)) return null;
     return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1`;
@@ -32816,7 +32881,7 @@ async function run() {
 
 ### File: `tests/backend/lesson-duration-browser.cjs`
 
-SHA-256: `fd90f30cf9a50b1be3061fa6e54a78aeedd3b9e82982d44be8aa40faffa50c4d`
+SHA-256: `4f682952b0f8cd2c186ffeee4dd65ebad9901f2616ca157cbb47ee15671bb8a1`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Automatic lesson-duration browser acceptance. */
@@ -32831,6 +32896,11 @@ module.exports=async({manager,verify,url,slug})=>{
   await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(/^[1-9][0-9]*$/);const expected=await duration.inputValue();verify(true,'Actual local video metadata calculates duration');await video.fill('/assets/video/workshop-intro.mp4');verify(await video.evaluate(input=>input.validity.valid),'Pasting the same resolved link keeps the field valid');
   let calls=0;await page.route('**/media/stream?*',route=>{calls++;return route.fulfill({status:200,contentType:'video/mp4',body:fs.readFileSync('public/assets/video/workshop-intro.mp4')});});
   await video.fill('https://drive.google.com/file/d/1234567890/view');await expect(duration).toHaveValue(expected);verify(calls>0,'Drive links route through protected stream and calculate duration');
+  await page.route('https://www.youtube.com/iframe_api',route=>route.fulfill({contentType:'application/javascript',body:fs.readFileSync('tests/helpers/youtube-sdk.fixture','utf8')}));
+  await page.route('**/embed/**',route=>route.fulfill({contentType:'text/html',body:'<html></html>'}));
+  await video.fill('https://youtu.be/svTNN9S7ipc');await expect(duration).toHaveValue('120');
+  verify(await page.evaluate(()=>window.__customPlayerTest.calls.length===0&&window.__customPlayerTest.destroyed===1),'YouTube metadata computes duration without playing and disposes its iframe');
+  await expect(page.locator('iframe')).toHaveCount(0);
   await video.fill('/assets/video/missing-duration.mp4');await expect(duration).toHaveValue('');await expect(dialog.getByRole('alert')).toContainText('تعذّر قراءة مدة الفيديو');
   await dialog.getByLabel('الاسم',{exact:true}).fill('Unsavable invalid video');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toBeVisible();verify(await video.evaluate(input=>!input.validity.valid),'Unavailable media blocks saving and clears stale duration');
   await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(expected);verify(true,'Changing to a valid source recovers automatically');
@@ -37911,6 +37981,34 @@ test("sensitive actions have independent budgets", () => {
   assert.equal(ratePolicy("/api/account/verification", "POST").name, "email");
   assert.equal(ratePolicy("/api/media/images", "POST").name, "upload");
   assert.equal(ratePolicy("/api/payments/fawaterak/webhook_json", "POST").name, "webhook");
+});
+```
+
+### File: `tests/security/video-links.test.ts`
+
+SHA-256: `1bf3921608195bc0e787c4e4a7bc99882a9d3e3dbf1a9d2fd8004aba0c21f477`
+
+```typescript
+import assert from "node:assert/strict";
+import test from "node:test";
+import { getYouTubeEmbedUrl } from "../../packages/design-system/lib/video";
+import { playableUrl } from "../../modules/helpers/media/playable-url";
+import { lessonProbeSource } from "../../modules/helpers/media/lesson-probe-source";
+const id = "svTNN9S7ipc", embed = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1`;
+test("YouTube formats resolve through the same course playback helper", () => {
+  for (const url of [`https://youtu.be/${id}?si=share`, `https://www.youtube.com/watch?v=${id}&list=playlist`, `https://m.youtube.com/watch?v=${id}`, `https://youtube.com/shorts/${id}`, `https://youtube.com/live/${id}`, `https://www.youtube-nocookie.com/embed/${id}`]) {
+    assert.equal(getYouTubeEmbedUrl(url), embed);
+    assert.equal(playableUrl(url, "course", "lesson"), embed);
+    assert.equal(lessonProbeSource("course", url), url);
+  }
+});
+test("YouTube embeds reject spoofed hosts, credentials, invalid IDs and playlist-only links", () => {
+  for (const url of [`https://youtube.com.evil.example/watch?v=${id}`, `https://user:password@youtube.com/watch?v=${id}`, `https://youtube.com:444/watch?v=${id}`, `http://youtube.com/watch?v=${id}`, "https://youtube.com/playlist?list=abc", "https://youtu.be/short", "javascript:alert(1)"])
+    assert.equal(getYouTubeEmbedUrl(url), null);
+});
+test("Drive and direct-file playback retain their existing routing", () => {
+  assert.equal(playableUrl("https://drive.google.com/file/d/1234567890/view", "course", "lesson"), "/api/courses/course/lessons/lesson/stream");
+  assert.equal(playableUrl("/assets/video/workshop-intro.mp4", "course"), "/assets/video/workshop-intro.mp4");
 });
 ```
 

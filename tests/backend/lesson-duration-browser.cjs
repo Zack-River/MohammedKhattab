@@ -10,6 +10,11 @@ module.exports=async({manager,verify,url,slug})=>{
   await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(/^[1-9][0-9]*$/);const expected=await duration.inputValue();verify(true,'Actual local video metadata calculates duration');await video.fill('/assets/video/workshop-intro.mp4');verify(await video.evaluate(input=>input.validity.valid),'Pasting the same resolved link keeps the field valid');
   let calls=0;await page.route('**/media/stream?*',route=>{calls++;return route.fulfill({status:200,contentType:'video/mp4',body:fs.readFileSync('public/assets/video/workshop-intro.mp4')});});
   await video.fill('https://drive.google.com/file/d/1234567890/view');await expect(duration).toHaveValue(expected);verify(calls>0,'Drive links route through protected stream and calculate duration');
+  await page.route('https://www.youtube.com/iframe_api',route=>route.fulfill({contentType:'application/javascript',body:fs.readFileSync('tests/helpers/youtube-sdk.fixture','utf8')}));
+  await page.route('**/embed/**',route=>route.fulfill({contentType:'text/html',body:'<html></html>'}));
+  await video.fill('https://youtu.be/svTNN9S7ipc');await expect(duration).toHaveValue('120');
+  verify(await page.evaluate(()=>window.__customPlayerTest.calls.length===0&&window.__customPlayerTest.destroyed===1),'YouTube metadata computes duration without playing and disposes its iframe');
+  await expect(page.locator('iframe')).toHaveCount(0);
   await video.fill('/assets/video/missing-duration.mp4');await expect(duration).toHaveValue('');await expect(dialog.getByRole('alert')).toContainText('تعذّر قراءة مدة الفيديو');
   await dialog.getByLabel('الاسم',{exact:true}).fill('Unsavable invalid video');await dialog.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(dialog).toBeVisible();verify(await video.evaluate(input=>!input.validity.valid),'Unavailable media blocks saving and clears stale duration');
   await video.fill('/assets/video/workshop-intro.mp4');await expect(duration).toHaveValue(expected);verify(true,'Changing to a valid source recovers automatically');
