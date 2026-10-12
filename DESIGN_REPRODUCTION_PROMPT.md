@@ -199,7 +199,7 @@ The source `package.json` is included exactly. Preserve the companion `package-l
 | `eslint-config-next` | `^16.3.8` | `16.3.8` |
 | `typescript` | `^5.9.2` | `5.9.3` |
 
-Companion `package-lock.json`: **268508 bytes**; SHA-256 `58907976565059872f4358b14af0fcf379aff2cd280be7ca3697f054bf6f6654`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
+Companion `package-lock.json`: **268505 bytes**; SHA-256 `1f449edbf8f458521e372934986639ae3d5217c7afa64add35ae3134d0059f1c`. Generated output (`.next/`, `node_modules/`, `next-env.d.ts`) is not source to copy from this prompt.
 ## 13. Original asset manifest
 
 Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompression, different flags, transparent padding, image cropping, and alternative font builds can change pixels. Unused alternative assets remain listed to preserve the available theme/media inventory. Names, alt text, rendered dimensions, and class treatment are defined by the embedded data/components; dimensions in a binary are not a substitute for the rendered dimensions. Font licenses/provenance remain in the original asset folder.
@@ -3370,9 +3370,10 @@ export function useRoadmapProgress(ref: RefObject<HTMLDivElement | null>, itemCo
 
 ### File: `app/layout.tsx`
 
-SHA-256: `0c6340f8775826821929805825ba7ff90e004021454cd742ffb718f69e0b806a`
+SHA-256: `30f0cba175b961a7bd72da5cc6eb4c4460992e46e70b93266f28fbe30f6d053e`
 
 ```tsx
+import { connection } from "next/server";
 import HistoryBoundary from "@khatab/design/ui/history-boundary";
 import FontPreloads from "@khatab/design/ui/font-preloads";
 import { criticalFontAssets } from "@/config/fonts";
@@ -3386,7 +3387,8 @@ export const metadata: Metadata = {
   icons: { icon: "/assets/images/favicon.svg" },
 };
 export const viewport: Viewport = { themeColor: palette.background };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <head><FontPreloads assets={criticalFontAssets} /></head>
@@ -4690,21 +4692,23 @@ export default function AuthFieldInput({ field, mode, copy, error, disabled }: {
 
 ### File: `modules/components/account/auth/form.tsx`
 
-SHA-256: `f3506e4d7b697af8edd7cfc6f8587fae887b6900514cc6173152c1b76268ae2e`
+SHA-256: `7452bbcff3794db5b55baef8b8d286015c81ff4e5f8a785cc7fe892dd2fa6637`
 
 ```tsx
 "use client";
+import { useHydrated } from "@khatab/design/hooks/use-hydrated";
 import Action from "@khatab/design/ui/action";
 import { authFields } from "@platform/config/auth";
 import { useAuthForm } from "@platform/hooks/use-auth-form";
 import type { AuthPageModel } from "@platform/types/auth";
 import AuthFieldInput from "./field";
 export default function AuthForm({ model }: { model: AuthPageModel }) {
+  const hydrated = useHydrated();
   const { submit, change, blur, pending, errors, error, confirmation } = useAuthForm(model);
   return <form className="lms-profile-form lms-auth-form" method="post" action={model.endpoint} noValidate onSubmit={submit} onChange={change} onBlur={blur} aria-busy={pending}>
     {authFields[model.mode].map((field) => <AuthFieldInput key={field} field={field} mode={model.mode}
       copy={model.copy} error={errors[field] && model.copy.errors[errors[field]]} disabled={pending} />)}
-    <Action kind="button" className="btn-primary" type="submit" disabled={pending}>
+    <Action kind="button" className="btn-primary" type="submit" disabled={pending || !hydrated}>
       {pending ? model.pending : model.submit}
     </Action>
     {confirmation && <p className="lms-success" role="status">{model.confirmationMessage}</p>}
@@ -9516,6 +9520,30 @@ SHA-256: `c83605b83cd1b1d26e30d32b67e09be13df357bb1ffe7ae5206d2bb0673f7144`
 export const requestPolicy = { maxJsonBytes: 16 * 1024 } as const;
 ```
 
+### File: `modules/config/security.ts`
+
+SHA-256: `b033e050cc3e055b7112918289b5e0251706f00c5d735c64d3f4c8189ea50484`
+
+```typescript
+/** Central resource budgets, shared by proxy, body readers, and upstream fetches. */
+export const securityPolicy = {
+  bodyTimeoutMs: 10_000,
+  uploadBodyTimeoutMs: 30_000,
+  budgetTimeoutMs: 3_000,
+  upstreamHeadersTimeoutMs: 15_000,
+  maxUrlLength: 2_048,
+  maxRangeLength: 80,
+  maxRedirects: 3,
+  page: { limit: 600, seconds: 60 },
+  api: { limit: 600, seconds: 60 },
+  auth: { limit: 30, seconds: 900 },
+  email: { limit: 8, seconds: 900 },
+  upload: { limit: 15, seconds: 60 },
+  mutation: { limit: 120, seconds: 60 },
+  webhook: { limit: 300, seconds: 60 },
+} as const;
+```
+
 ### File: `modules/config/user-moderation.ts`
 
 SHA-256: `136cefaa68e44a61ea50b88f2ed8f4f8114a3bd103c589236ab38e5338f9f6ae`
@@ -9694,10 +9722,13 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `c13e88d41707936fcdd09b4a7b13b9ad9324f6ba176dccaa5cb21b2f9d9b78a6`
+SHA-256: `38667e735fda41e7423f348e3157ab02dcea4de42c17404529d5e22d564fffb2`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
+  REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",
+  SECURITY_UNAVAILABLE: "الخدمة مشغولة حاليًا. حاول بعد قليل.",
   PAYMENTS_UNAVAILABLE: "خدمة الدفع غير متاحة حاليًا. حاول لاحقًا.",
   PAYMENT_MISMATCH: "لم نتمكن من مطابقة بيانات الدفع. تواصل مع الدعم.",
   INVALID_PAYMENT_SIGNATURE: "توقيع الدفع غير صالح.",
@@ -12614,9 +12645,11 @@ export async function findCourse(slug: string) { return (await catalog()).find((
 
 ### File: `modules/features/catalog/stream-drive.ts`
 
-SHA-256: `6e29e5198247591739d5d4bd3dd025a9aa5f458da8367fb05ce8d0055edca1c8`
+SHA-256: `9e5f95bdd49094123d13ee425eb855172cafa6cbf4796f519fcaf703cc0ffef6`
 
 ```typescript
+import { fetchDrive } from "@platform/lib/security/drive-fetch";
+import { validMediaRange } from "@platform/lib/security/media-range";
 import "server-only";
 import { driveFileId } from "@platform/helpers/media/drive-file-id";
 import { ApiError } from "@platform/lib/api/error";
@@ -12624,12 +12657,11 @@ export async function streamDrive(url: string, request: Request) {
   const id = driveFileId(url);
   if (!id) throw new ApiError(404,"NOT_FOUND");
   const range = request.headers.get("range");
-  if (range && !/^bytes=\d*-\d*$/.test(range)) throw new ApiError(400,"INVALID_INPUT");
-  const response = await fetch(`https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`, {
-    headers: range ? { Range: range } : {}, signal: request.signal, cache: "no-store",
-  });
+  if (range && !validMediaRange(range)) throw new ApiError(400,"INVALID_INPUT");
+  const response = await fetchDrive(new URL(`https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`),
+    range ? { Range: range } : {}, request.signal);
   if (!response.ok || !/^(video\/|application\/octet-stream)/i.test(response.headers.get("content-type") ?? "")) {
-    await response.body?.cancel(); throw new ApiError(503,"MEDIA_UNAVAILABLE");
+    void response.body?.cancel().catch(() => undefined); throw new ApiError(503,"MEDIA_UNAVAILABLE");
   }
   const headers = new Headers({ "Content-Type": response.headers.get("content-type") === "application/octet-stream" ? "video/mp4" : response.headers.get("content-type")!, "Cache-Control": "private, no-store" });
   for (const name of ["Content-Length","Content-Range","Accept-Ranges"]) { const value = response.headers.get(name); if (value) headers.set(name,value); }
@@ -13461,9 +13493,10 @@ export function workshopCourseContent(
 
 ### File: `modules/features/media/handle-image-upload.ts`
 
-SHA-256: `655dbe0e16a72406fabe74197d1c7f44c7096cb0fa572224f87778a7993dc724`
+SHA-256: `4cf32444ee606ea60294190777b25121fba29ae8b9ccd653ef6b7c2060e989ea`
 
 ```typescript
+import { requestBudget } from "@platform/lib/security/request-budget";
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { sameOrigin } from "@platform/lib/server-request";
@@ -13476,7 +13509,10 @@ import { saveAvatar } from "./repositories/save-avatar";
 export function handleImageUpload(request: Request) {
   return apiResponse(async () => {
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
-    const { user } = await requireIdentity(), input = await readImageUpload(request);
+    const { user } = await requireIdentity();
+    const budget = await requestBudget(request, user.id);
+    if (!budget.allowed) throw new ApiError(429, "RATE_LIMITED", budget.retryAfter);
+    const input = await readImageUpload(request);
     if (input.kind === "course") {
       const { client } = await requireAdmin();
       const course = await client.from("courses").select("slug").eq("slug", input.courseSlug).maybeSingle();
@@ -13494,15 +13530,16 @@ export function handleImageUpload(request: Request) {
 
 ### File: `modules/features/media/helpers/read-image-upload.ts`
 
-SHA-256: `ea880d25ded6a332cec9e8a68c02e4cc3816e518d85dc9050811b890d004c214`
+SHA-256: `0f70ffb6601378bb284ce51adaa2cac35768f8ea998330547adde8ccc2958e35`
 
 ```typescript
+import { securityPolicy } from "@platform/config/security";
 import { imageUploadPolicy as policy } from "@platform/config/image-upload";
 import { readRequestBytes } from "@platform/lib/read-request-bytes";
 import { ApiError } from "@platform/lib/api/error";
 export async function readImageUpload(request: Request) {
   if (!request.headers.get("content-type")?.startsWith("multipart/form-data;")) throw new ApiError(400, "INVALID_IMAGE");
-  const bytes = await readRequestBytes(request, policy.maxRequestBytes);
+  const bytes = await readRequestBytes(request, policy.maxRequestBytes, securityPolicy.uploadBodyTimeoutMs);
   if (!bytes) throw new ApiError(413, "IMAGE_TOO_LARGE");
   const form = await new Response(new Blob([Uint8Array.from(bytes).buffer]), { headers: { "Content-Type": request.headers.get("content-type")! } }).formData().catch(() => null);
   const file = form?.get("file"), kind = form?.get("kind"), courseSlug = form?.get("courseSlug");
@@ -14023,7 +14060,7 @@ export async function createCheckout(slug: string) {
 
 ### File: `modules/features/payments/repositories/mark-unpaid.ts`
 
-SHA-256: `29c199fa849366d9611463ea58e24441ffc7215ca7d2e454857333e97f30574d`
+SHA-256: `809c9b8f5eecdfec96fac8448394976ceac3780b8de2c3fd851f3ebd2ed54d34`
 
 ```typescript
 import "server-only";
@@ -14034,7 +14071,8 @@ export async function markUnpaid(order: PaymentOrder, statusText: unknown) {
   const terminal =
     typeof statusText === "string" && ["failed", "cancelled", "canceled", "expired"].includes(statusText.toLowerCase());
   if (!terminal && Date.parse(order.expires_at) > Date.now()) return order;
-  const result = await createAuthAdministrator()
+  const client = createAuthAdministrator();
+  const result = await client
     .from("payment_orders")
     .update({ status: terminal ? "failed" : "expired" })
     .eq("id", order.id)
@@ -14042,7 +14080,11 @@ export async function markUnpaid(order: PaymentOrder, statusText: unknown) {
     .select("*")
     .maybeSingle();
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return result.data ?? order;
+  if (result.data) return result.data;
+  // Settlement may have won the race: return its committed state, not the stale snapshot.
+  const latest = await client.from("payment_orders").select("*").eq("id", order.id).single();
+  if (latest.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return latest.data;
 }
 ```
 
@@ -15265,19 +15307,21 @@ export function useUserModeration(id: string, errorLabel: string) {
 
 ### File: `modules/lib/api/error.ts`
 
-SHA-256: `e4f448f3eff4d65617ed4bae4705d20b45ca924ca4210de36c099cec151c2707`
+SHA-256: `6f1e4dad5135e9ebb0659755177cc78360d95af4c34be6c9507f8c682fdde959`
 
 ```typescript
 export class ApiError extends Error {
-  constructor(public readonly status: number, public readonly code: string) { super(code); }
+  constructor(public readonly status: number, public readonly code: string, public readonly retryAfter?: number) { super(code); }
 }
 ```
 
 ### File: `modules/lib/api/respond.ts`
 
-SHA-256: `5ee90548ffc2fe231d71c81adeac3dcecd0dd9bc9229b11da8afe2d4d79943df`
+SHA-256: `dbc417ea3913cb8f2109910b8d3ebd4e18aabedf2aa70eb0bacb810f7686e791`
 
 ```typescript
+import { headers } from "next/headers";
+import { auditEvent } from "@platform/lib/security/audit-event";
 import { ApiError } from "./error";
 import { backendCopy } from "@platform/data/backend-copy";
 export async function apiResponse(action: () => Promise<Response>) {
@@ -15289,7 +15333,13 @@ export async function apiResponse(action: () => Promise<Response>) {
     const missing = error instanceof Error && error.message === "SUPABASE_NOT_CONFIGURED";
     const status = error instanceof ApiError ? error.status : missing ? 503 : 500;
     const code = error instanceof ApiError ? error.code : missing ? "SUPABASE_NOT_CONFIGURED" : "INTERNAL_ERROR";
-    return Response.json({ error: backendCopy[code] ?? backendCopy.INTERNAL_ERROR, code }, { status, headers: { "Cache-Control": "private, no-store" } });
+    if (status >= 500 || code === "INVALID_PAYMENT_SIGNATURE" || code === "FORBIDDEN") {
+      const requestId = (await headers()).get("x-request-id") ?? "unavailable";
+      auditEvent(code, status, requestId);
+    }
+    const responseHeaders: Record<string, string> = { "Cache-Control": "private, no-store" };
+    if (error instanceof ApiError && error.retryAfter) responseHeaders["Retry-After"] = String(error.retryAfter);
+    return Response.json({ error: backendCopy[code] ?? backendCopy.INTERNAL_ERROR, code }, { status, headers: responseHeaders });
   }
 }
 ```
@@ -15327,7 +15377,7 @@ export function cloudinaryEnvironment() {
 
 ### File: `modules/lib/cloudinary/request.ts`
 
-SHA-256: `22c53076c3b2df5987d1d3c20136a3776d917858f68c64d71764a0756f36bfbd`
+SHA-256: `d7fa9b6bdace36bd81a9d40bb36602a46657d6e24039d07cd0fae9b3a354e86b`
 
 ```typescript
 import "server-only";
@@ -15343,7 +15393,7 @@ export async function cloudinaryRequest(action: "upload" | "destroy", parameters
   for (const [key, value] of Object.entries(values)) body.set(key, value);
   body.set("signature", signature); body.set("api_key", apiKey);
   if (file) body.set("file", file, "image");
-  const response = await fetcher(`https://api.cloudinary.com/v1_1/${cloudName}/image/${action}`, { method: "POST", body, signal: AbortSignal.timeout(imageUploadPolicy.timeoutMs) }).catch(() => { throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE"); });
+  const response = await fetcher(`https://api.cloudinary.com/v1_1/${cloudName}/image/${action}`, { method: "POST", redirect: "error", body, signal: AbortSignal.timeout(imageUploadPolicy.timeoutMs) }).catch(() => { throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE"); });
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok || !data || typeof data !== "object") throw new ApiError(503, "IMAGE_STORAGE_UNAVAILABLE");
   return data as Record<string, unknown>;
@@ -15387,58 +15437,299 @@ export async function httpRequest<T>({ path, body, failureLabel, decode, fetcher
 
 ### File: `modules/lib/read-request-bytes.ts`
 
-SHA-256: `6fdcd5def0fe9506a2bd4826eeed5767462ebeb245ef391d175f63a93c976661`
+SHA-256: `aff37358d3026324b3bf00bf5f4456eb6c24f6cd0997346a3173c7e6f7a31fbb`
 
 ```typescript
-/** Read a bounded stream, including requests without a Content-Length header. */
-export async function readRequestBytes(request: Request, maxBytes: number): Promise<Uint8Array | null> {
-  if (!request.body || Number(request.headers.get("content-length")) > maxBytes) return null;
-  const reader = request.body.getReader(), chunks: Uint8Array[] = [];
-  let length = 0;
+import { securityPolicy } from "@platform/config/security";
+import { ApiError } from "@platform/lib/api/error";
+import { readStream } from "./security/read-stream";
+/** Size and time bounded even when Content-Length is absent or forged. */
+export async function readRequestBytes(request: Request, maxBytes: number, timeoutMs: number = securityPolicy.bodyTimeoutMs): Promise<Uint8Array | null> {
+  if (!request.body) return null;
+  const length = request.headers.get("content-length");
+  if (length && (!/^\d+$/.test(length) || Number(length) > maxBytes)) throw new ApiError(413, "REQUEST_TOO_LARGE");
+  const reader = request.body.getReader();
+  const signal = AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]);
   try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      length += value.byteLength;
-      if (length > maxBytes) { await reader.cancel(); return null; }
-      chunks.push(value);
-    }
-    const bytes = new Uint8Array(length);
+    const { chunks, length: size } = await readStream(reader, maxBytes, signal);
+    const bytes = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
     return bytes;
+  } catch (error) {
+    // Cancellation may itself stall; never await an untrusted source's cancel hook.
+    void reader.cancel().catch(() => undefined);
+    if (signal.aborted) throw new ApiError(408, "REQUEST_TIMEOUT");
+    throw error;
   } finally { reader.releaseLock(); }
+}
+```
+
+### File: `modules/lib/security/audit-event.ts`
+
+SHA-256: `dab42e5c1ad5cbb23059d837bdc6a300bc77e2b103fe9f25058891a1455f9aaf`
+
+```typescript
+/** Bounded, secret-free security records. Do not pass request bodies, identities, or exceptions. */
+export function auditEvent(code: string, status: number, requestId: string) {
+  // Sample repeated flood denials to keep logging from becoming a resource attack.
+  if ((status === 429 || status === 413 || status === 403) && !requestId.endsWith("0")) return;
+  console.warn(JSON.stringify({ event: "security", code, status, requestId }));
+}
+```
+
+### File: `modules/lib/security/client-address.ts`
+
+SHA-256: `45b5cc77f28b281d8d91f621c9b7e30ad571ab644cff31b457d157157b43d382`
+
+```typescript
+import { isIP } from "node:net";
+/** Only Vercel's overwritten edge header is trusted; arbitrary proxies cannot choose buckets. */
+export function clientAddress(headers: Headers, onVercel = process.env.VERCEL === "1") {
+  if (!onVercel) return "local-ingress";
+  const address = headers.get("x-vercel-forwarded-for")?.trim();
+  return address && isIP(address) ? address : "unknown-ingress";
+}
+```
+
+### File: `modules/lib/security/content-policy.ts`
+
+SHA-256: `1f407689d467f8eca8bb3ecfb169ad0126814d7a4ef5a221dbf87d9aa7f1f672`
+
+```typescript
+/** Nonce-authorized scripts; inline styles remain necessary for charts and motion. */
+export function contentPolicy(nonce: string) {
+  const development = process.env.NODE_ENV !== "production";
+  const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const backend = supabase ? new URL(supabase).origin : "";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://i.ytimg.com https://img.youtube.com",
+    "font-src 'self'",
+    `connect-src 'self' ${backend}${development ? " ws: http://localhost:* http://127.0.0.1:*" : ""}`,
+    "media-src 'self' blob: https://drive.google.com https://drive.usercontent.google.com https://*.googleusercontent.com",
+    "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    ...(development ? [] : ["upgrade-insecure-requests"]),
+  ].join("; ");
+}
+```
+
+### File: `modules/lib/security/drive-fetch.ts`
+
+SHA-256: `1ee1893fc160cbf8b92a266f5779ade3c37428e19c7037d3bf90dc43a7c0f3c8`
+
+```typescript
+import "server-only";
+import { securityPolicy } from "@platform/config/security";
+import { ApiError } from "@platform/lib/api/error";
+function allowedDriveUrl(url: URL) {
+  return url.protocol === "https:" && !url.username && !url.password && (!url.port || url.port === "443") &&
+    (url.hostname === "drive.usercontent.google.com" || url.hostname.endsWith(".googleusercontent.com"));
+}
+/** Validate every redirect before fetching; the header deadline does not truncate video playback. */
+export async function fetchDrive(url: URL, headers: HeadersInit, requestSignal: AbortSignal) {
+  const controller = new AbortController();
+  const signal = AbortSignal.any([requestSignal, controller.signal]);
+  const timer = setTimeout(() => controller.abort(), securityPolicy.upstreamHeadersTimeoutMs);
+  try {
+    for (let hop = 0; hop <= securityPolicy.maxRedirects; hop++) {
+      if (!allowedDriveUrl(url)) throw new ApiError(503, "MEDIA_UNAVAILABLE");
+      const response = await fetch(url, { headers, signal, cache: "no-store", redirect: "manual" });
+      if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+      const location = response.headers.get("location");
+      void response.body?.cancel().catch(() => undefined);
+      if (!location) break;
+      url = new URL(location, url);
+    }
+    throw new ApiError(503, "MEDIA_UNAVAILABLE");
+  } catch { throw new ApiError(503, "MEDIA_UNAVAILABLE"); }
+  finally { clearTimeout(timer); }
+}
+```
+
+### File: `modules/lib/security/headers.ts`
+
+SHA-256: `e621dfa05e6af081d5effc408dcbadd4a5de93c777b7e966c77953c9ab2ff880`
+
+```typescript
+export const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
+```
+
+### File: `modules/lib/security/ingress.ts`
+
+SHA-256: `d3d84735b4c28f3094fa13d922402fd5bc5cdb48b5c71d9c311d2ae3c07d1425`
+
+```typescript
+import { sameOrigin } from "@platform/lib/server-request";
+import { endpoints } from "@platform/config/navigation";
+import { imageUploadPolicy } from "@platform/config/image-upload";
+import { NextResponse, type NextRequest } from "next/server";
+import { securityPolicy } from "@platform/config/security";
+import { requestPolicy } from "@platform/config/request";
+import { backendCopy } from "@platform/data/backend-copy";
+import { requestBudget } from "./request-budget";
+import { auditEvent } from "./audit-event";
+import { ApiError } from "@platform/lib/api/error";
+function denial(code: string, status: number, requestId: string, retryAfter?: number) {
+  auditEvent(code, status, requestId);
+  const response = NextResponse.json({ error: backendCopy[code], code }, { status });
+  response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("X-Request-Id", requestId);
+  if (retryAfter) response.headers.set("Retry-After", String(retryAfter));
+  return response;
+}
+export async function checkIngress(request: NextRequest, requestId: string) {
+  const webhook = request.nextUrl.pathname === "/api/payments/fawaterak/webhook_json";
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !webhook && !sameOrigin(request)) {
+    return denial("FORBIDDEN", 403, requestId);
+  }
+  if (request.url.length > securityPolicy.maxUrlLength) return denial("INVALID_INPUT", 414, requestId);
+  const length = request.headers.get("content-length");
+  const max = request.nextUrl.pathname === endpoints.imageUpload ? imageUploadPolicy.maxRequestBytes : requestPolicy.maxJsonBytes;
+  if (length && (!/^\d+$/.test(length) || Number(length) > max)) return denial("REQUEST_TOO_LARGE", 413, requestId);
+  try {
+    const budget = await requestBudget(request);
+    return budget.allowed ? null : denial("RATE_LIMITED", 429, requestId, budget.retryAfter);
+  } catch (error) {
+    return denial(error instanceof ApiError ? error.code : "SECURITY_UNAVAILABLE", 503, requestId);
+  }
+}
+```
+
+### File: `modules/lib/security/media-range.ts`
+
+SHA-256: `1a54fefb0c274b441289f1c75ce3c877f2cadf0bab53c218e7a6ecce42f0f847`
+
+```typescript
+import { securityPolicy } from "@platform/config/security";
+/** One valid byte range only: rejects empty ranges, reversed bounds, and unsafe integers. */
+export function validMediaRange(range: string) {
+  if (range.length > securityPolicy.maxRangeLength) return false;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  if (!match || (!match[1] && !match[2])) return false;
+  const start = match[1] ? Number(match[1]) : null;
+  const end = match[2] ? Number(match[2]) : null;
+  if ((start !== null && !Number.isSafeInteger(start)) || (end !== null && !Number.isSafeInteger(end))) return false;
+  if (start === null) return end !== null && end > 0;
+  return end === null || end >= start;
+}
+```
+
+### File: `modules/lib/security/rate-policy.ts`
+
+SHA-256: `8508bbae2568f2b28a6c123c07f10f528c8ee5a4a7b050315b6fecd6df00cb02`
+
+```typescript
+import { endpoints } from "@platform/config/navigation";
+import { securityPolicy as policy } from "@platform/config/security";
+export function ratePolicy(path: string, method: string) {
+  if (!path.startsWith("/api/")) return { name: "page", ...policy.page };
+  if (path === "/api/payments/fawaterak/webhook_json") return { name: "webhook", ...policy.webhook };
+  if (method === "GET" || method === "HEAD") return { name: "api", ...policy.api };
+  if (/\/auth\/(?:login|signup)$/.test(path)) return { name: "auth", ...policy.auth };
+  if (/\/(?:auth\/forgot-password|account\/verification)/.test(path)) return { name: "email", ...policy.email };
+  if (path === endpoints.imageUpload) return { name: "upload", ...policy.upload };
+  return { name: "mutation", ...policy.mutation };
+}
+```
+
+### File: `modules/lib/security/read-stream.ts`
+
+SHA-256: `5c57ac3c5d42c2a11e153c6fe106cecebf45c8a467a53a15748d54960181c8dd`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+/** A deadline covers the entire body, including stalled/chunked clients. */
+export async function readStream(reader: ReadableStreamDefaultReader<Uint8Array>, maxBytes: number, signal: AbortSignal) {
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  while (true) {
+    signal.throwIfAborted();
+    const result = await abortableRead(reader, signal);
+    if (result.done) return { chunks, length };
+    length += result.value.byteLength;
+    if (length > maxBytes) throw new ApiError(413, "REQUEST_TOO_LARGE");
+    chunks.push(result.value);
+  }
+}
+function abortableRead(reader: ReadableStreamDefaultReader<Uint8Array>, signal: AbortSignal) {
+  return new Promise<ReadableStreamReadResult<Uint8Array>>((resolve, reject) => {
+    const abort = () => reject(new ApiError(408, "REQUEST_TIMEOUT"));
+    signal.addEventListener("abort", abort, { once: true });
+    reader.read().then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+    if (signal.aborted) abort();
+  });
+}
+```
+
+### File: `modules/lib/security/request-budget.ts`
+
+SHA-256: `d8f50f3fcc5cd8aa7fb98544bf256b285bb2653447d58c0ccdf8a5ed26e9d5b2`
+
+```typescript
+import "server-only";
+import { createHmac } from "node:crypto";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { securityPolicy } from "@platform/config/security";
+import { ApiError } from "@platform/lib/api/error";
+import { clientAddress } from "./client-address";
+import { ratePolicy } from "./rate-policy";
+/** Atomic database counters persist across serverless instances; raw IPs are never stored. */
+export async function requestBudget(request: Request, userId?: string) {
+  const policy = ratePolicy(new URL(request.url).pathname, request.method);
+  const secret = process.env.SUPABASE_SECRET_KEY;
+  if (!secret) throw new ApiError(503, "SUPABASE_NOT_CONFIGURED");
+  const bucket = createHmac("sha256", secret).update(`${policy.name}:${userId ? `user:${userId}` : `ip:${clientAddress(request.headers)}`}`).digest("hex");
+  const result = await createAuthAdministrator().rpc("consume_request_budget", {
+    p_bucket: bucket, p_limit: policy.limit, p_seconds: policy.seconds,
+  }).abortSignal(AbortSignal.timeout(securityPolicy.budgetTimeoutMs));
+  if (result.error || !result.data || typeof result.data !== "object" || Array.isArray(result.data)) {
+    throw new ApiError(503, "SECURITY_UNAVAILABLE");
+  }
+  return { allowed: result.data.allowed === true, retryAfter: Number(result.data.retryAfter) || policy.seconds };
 }
 ```
 
 ### File: `modules/lib/server-request.ts`
 
-SHA-256: `5dd4e764ab7a7a824c259937c8405d67720caa0cf6601c2669ad210a743b8e50`
+SHA-256: `1cf38e11aebd66a2ae8ed82a58e4d0b37df156b98df4fa497fc599a905b850f5`
 
 ```typescript
+import { ApiError } from "./api/error";
 import { readRequestBytes } from "./read-request-bytes";
 import { requestPolicy } from "@platform/config/request";
 export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   try {
+    if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "")) return null;
     const bytes = await readRequestBytes(request, requestPolicy.maxJsonBytes);
     if (!bytes) return null;
     const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
     return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-  } catch { return null; }
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    return null;
+  }
 }
 
 export function sameOrigin(request: Request) {
+  if (request.headers.get("sec-fetch-site") === "cross-site") return false;
   const origin = request.headers.get("origin");
-  if (!origin) return true;
+  if (!origin) return true; // Non-browser callers still require authentication/signatures.
   try {
-    const parsed = new URL(origin);
-    const host = request.headers.get("host") ?? new URL(request.url).host;
-    return (
-      ["http:", "https:"].includes(parsed.protocol) && parsed.host === host
-    );
-  } catch {
-    return false;
-  }
+    const expected = process.env.APP_ORIGIN ?? new URL(request.url).origin;
+    return new URL(origin).origin === new URL(expected).origin;
+  } catch { return false; }
 }
 ```
 
@@ -19772,7 +20063,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `d940a651a319bdade286fe59b9682774e85b4b4143c5cad2f3809d66a5825f08`
+SHA-256: `4255b5edd5551c350116fc71f6116bb353232415d652ecb85d530184681787cc`
 
 ```typescript
 
@@ -20044,6 +20335,9 @@ isOneToOne: false
                            },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
+                           },
+"consume_request_budget":
+{ Args: { "p_bucket": string,"p_limit": number,"p_seconds": number }; Returns: Json
                            },
 "contacts_verified":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -20365,9 +20659,10 @@ export type PortfolioAction = {
 
 ### File: `next.config.ts`
 
-SHA-256: `fd0208a608736271ca28e8c9a9392a26db188e12f07b264f4e433f745c0e3978`
+SHA-256: `ceb0d3fffb14360114be4b02ced7cf27675fb9ec3bb8c0460104c0cd3fd67056`
 
 ```typescript
+import { securityHeaders } from "./modules/lib/security/headers";
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
 import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
@@ -20375,6 +20670,8 @@ import { projectRoutes, legacyLearningNamespaces } from "./config/project-naviga
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
+  experimental: { proxyClientMaxBodySize: "4mb" },
+  async headers() { return [{ source: "/:path*", headers: securityHeaders }]; },
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
@@ -20396,7 +20693,7 @@ export default nextConfig;
 
 ### File: `package.json`
 
-SHA-256: `7e90cdce41dc2009ec028e089fb5605f76b7ea25f994bfb695b52c8feacef6ec`
+SHA-256: `171d503fa72512d62b32e09a1837493f2a4253e22ae476f0a7552f49ab2d6618`
 
 ```json
 {
@@ -20420,16 +20717,17 @@ SHA-256: `7e90cdce41dc2009ec028e089fb5605f76b7ea25f994bfb695b52c8feacef6ec`
     "backend:test": "node tests/backend/integration.cjs",
     "backend:migrate:hosted": "node scripts/backend/migrate-hosted.cjs",
     "email:generate": "tsx scripts/email/generate.ts",
-    "email:publish": "npm run email:generate && node scripts/email/publish.cjs"
+    "email:publish": "npm run email:generate && node scripts/email/publish.cjs",
+    "test:security": "node --conditions=react-server --import tsx --test tests/security/*.test.ts"
   },
   "dependencies": {
     "@khatab/design": "file:packages/design-system",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
     "libphonenumber-js": "1.13.15",
-    "next": "^16.3.8",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-is": "19.1.1",
     "recharts": "3.10.1",
     "server-only": "0.0.1"
@@ -31579,7 +31877,7 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
 
 ### File: `tests/backend/browser.cjs`
 
-SHA-256: `1c14aff27fd7eb1c5d81e98d779469e493ca875fc3cd2566f25f90d4dc049678`
+SHA-256: `2f65f1fcb747d484f56ed8964a9467a51fc796c2721391f74d16138df580cf72`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Browser checks against isolated local accounts. */
@@ -31590,6 +31888,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (/Content Security Policy|violates.*directive/.test(message.text())) errors.push(message.text()); });
   fs.mkdirSync('docs/evidence/backend', { recursive: true });
   try {
     await page.goto(url + '/login');
@@ -31634,7 +31933,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
       verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Auth layout fits ${width}px`);
       await page.screenshot({ path: `docs/evidence/backend/login-${width}.png`, fullPage: true });
     }
-    verify(errors.length === 0, 'Real authentication browser flows have no JavaScript errors');
+    verify(errors.length === 0, 'Real authentication browser flows have no JavaScript errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
   } finally { await browser.close(); }
 };
 ```
@@ -32136,7 +32435,7 @@ module.exports = async function controlsBrowser({ manager, student, verify, url 
 
 ### File: `tests/backend/image-upload-unit.test.ts`
 
-SHA-256: `4297f7179a8b9453eb9e2c328b443e71df64f76c5884448ba76cb24178b92be5`
+SHA-256: `314c88815e57db400cdf251469e0446a7d397250f4127437a0934ca14273e7f6`
 
 ```typescript
 import test from "node:test";
@@ -32155,7 +32454,7 @@ const request = (image: File, kind = "avatar", slug?: string) => {
 };
 test("Bounded readers reject a streamed body without relying on Content-Length",async()=>{
  const req = new Request("https://example.com",{method:"POST",body:new ReadableStream({start(controller){controller.enqueue(new Uint8Array(5));controller.enqueue(new Uint8Array(5));controller.close();}}),duplex:"half"} as RequestInit);
- assert.equal(await readRequestBytes(req,8),null);
+ await assert.rejects(readRequestBytes(req,8), { status: 413, code: "REQUEST_TOO_LARGE" });
 });
 test("Multipart reader accepts image data and rejects invalid scope, paths and size",async()=>{
  assert.equal((await readImageUpload(request(file()))).kind,"avatar");
@@ -32284,7 +32583,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `247e1f64173646152ed49a7ddd963f18f32b388d2b506ba02ab6b9268cea3088`
+SHA-256: `0ece84dd3271373d4ee1f7d7a80476d3c7238054d3d63e0777a6a854df0847a9`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -32294,6 +32593,7 @@ const { spawn } = require('node:child_process');
 const { createClient } = require('@supabase/supabase-js');
 const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'utf8'));
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
+if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) throw new Error('Tests require an isolated local database');
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
@@ -32341,6 +32641,12 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  // Local-only test isolation prevents a previous suite's budget from affecting another suite.
+  const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
+  await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'security') {
+    await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
   if (process.env.BACKEND_SUITE === 'payments') {
     await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
   }
@@ -32422,7 +32728,7 @@ async function run() {
   verify((await anonymous(playback(preview))).status === 200, 'Published preview playback is public');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' })).status === 401, 'Wrong password rejected');
   verify((await anonymous('/api/auth/signup', { name: 'x', email: 'invalid', password: 'short' })).status === 400, 'Invalid signup rejected');
-  verify((await anonymous('/api/auth/signup', { payload: 'x'.repeat(17000) })).status === 400, 'Oversized JSON payload rejected');
+  verify((await anonymous('/api/auth/signup', { payload: 'x'.repeat(17000) })).status === 413, 'Oversized JSON payload rejected');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' }, { headers: { Origin: 'https://attacker.example' } })).status === 403, 'Cross-origin login rejected');
   verify((await anonymous('/api/profile', undefined, { headers: { Cookie: 'ta3allam-state=forged' } })).status === 401, 'Forged demo cookie grants no authority');
   const a = await provision('Student A'), b = await provision('Student B');
@@ -32880,6 +33186,70 @@ module.exports=async function checks({admin,provision,anonymous,verify,url}) {
     }
     verify(errors.length===0,'Settings and phone queue have no runtime errors');
   } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/security.cjs`
+
+SHA-256: `2a2fe167868f1bc096ccb13f850238534f406d281c3c4e4c345ad2b59b02090f`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Adversarial tests against isolated services only. */
+const assert = require('node:assert/strict');
+const { randomUUID, createHash } = require('node:crypto');
+const { Client } = require('pg');
+module.exports = async function securityChecks({ admin, provision, anonymous, verify, url, config }) {
+  assert.match(config.DB_URL, /^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/);
+  const db = new Client({ connectionString: config.DB_URL });
+  await db.connect();
+  const learner = await provision('Security Learner'), manager = await provision('Security Manager');
+  await admin.from('admin_users').insert({ user_id: manager.id });
+  const slug = 'security-' + randomUUID(), intent = randomUUID(), order = randomUUID();
+  try {
+    const template = (await admin.from('courses').select('metadata').eq('published', true).limit(1).single()).data.metadata;
+    await db.query('insert into public.courses(slug,amount,metadata,published) values($1,1200,$2,true)', [slug, { ...template, slug, title: "Security's fixture" }]);
+    await db.query("insert into public.payment_orders(id,user_id,course_slug,course_title,amount_minor,provider_intent_key,status,expires_at,live) values($1,$2,$3,'Security fixture',120000,$4,'pending',now()-interval '1 minute',false)", [order, learner.id, slug, intent]);
+    await require('../security/payment-locks.cjs')({ connectionString: config.DB_URL, user: learner.id, slug, order, intent });
+    verify(true, 'Checkout expiration and settlement cannot deadlock');
+    const settled = await db.query("select status,(select count(*) from public.enrollments where user_id=$2 and course_slug=$3) as enrollments from public.payment_orders where id=$1", [order, learner.id, slug]);
+    verify(settled.rows[0].status === 'paid' && Number(settled.rows[0].enrollments) === 1, 'Raced payment remains paid with exactly one enrollment');
+    const bucket = createHash('sha256').update(randomUUID()).digest('hex');
+    const budgets = await Promise.all(Array.from({ length: 20 }, () => admin.rpc('consume_request_budget', { p_bucket: bucket, p_limit: 7, p_seconds: 60 })));
+    verify(budgets.every(r => !r.error) && budgets.filter(r => r.data.allowed).length === 7, 'Concurrent distributed limiter accepts exactly its budget');
+    verify(Boolean((await learner.direct.rpc('consume_request_budget', { p_bucket: bucket, p_limit: 10000, p_seconds: 1 })).error), 'Students cannot reset or enlarge request budgets');
+    verify((await db.query("select has_table_privilege('anon','private.request_buckets','SELECT') as readable")).rows[0].readable === false, 'Anonymous roles cannot inspect limiter identities');
+    await db.query("update private.request_buckets set expires_at=now()-interval '1 second' where bucket=$1", [bucket]);
+    verify((await admin.rpc('consume_request_budget', { p_bucket: bucket, p_limit: 7, p_seconds: 60 })).data.allowed, 'Expired windows recover automatically');
+    const attack = "' OR TRUE; DROP TABLE public.courses; --";
+    const searched = await manager.direct.rpc('search_admin_courses', { p_search: attack });
+    verify(!searched.error && searched.data.total === 0, 'SQL injection text is treated as literal search data');
+    verify(!(await manager.direct.rpc('search_admin_courses', { p_search: "Security's fixture" })).error, 'Legitimate apostrophes remain valid search input');
+    verify(Boolean((await manager.direct.rpc('search_admin_courses', { p_sort: attack })).error), 'SQL-like sort expressions fail the database allowlist');
+    verify(Boolean((await manager.direct.rpc('search_admin_courses', { p_page: 2147483647 })).error), 'Oversized pagination cannot overflow offsets');
+    verify((await db.query('select count(*) from public.courses where slug=$1', [slug])).rows[0].count === '1', 'Injection attempts cannot delete course data');
+    await learner.direct.auth.updateUser({ data: { role: 'admin', admin: true } });
+    verify((await learner.api('/api/admin/users')).status === 403, 'Forged user metadata cannot elevate administrator permissions');
+    verify((await anonymous('/api/admin/users')).status === 401, 'Anonymous admin data remains inaccessible');
+    verify(Boolean((await learner.direct.rpc('settle_course_payment', { p_order: order, p_intent: intent, p_transaction: 999001, p_amount: 120000, p_currency: 'EGP' })).error), 'Direct Data API calls cannot forge settlements');
+    const oversized = await fetch(url + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: url }, body: JSON.stringify({ payload: 'x'.repeat(17000) }) });
+    verify(oversized.status === 413, 'Oversized API bodies are denied before authentication');
+    const crossSite = await learner.api('/api/auth/logout', {}, { headers: { 'Sec-Fetch-Site': 'cross-site' } });
+    verify(crossSite.status === 403, 'Cross-site fetch metadata denies session mutations');
+    await require('../security/browser.cjs')({ url, verify });
+    // Invalid payloads exercise application throttling without hitting password authentication.
+    const responses = [];
+    for (let i = 0; i < 31; i++) responses.push(await anonymous('/api/auth/login', {}));
+    const limited = responses.find(r => r.status === 429);
+    verify(Boolean(limited) && Number(limited.headers.get('retry-after')) > 0, 'Repeated auth attempts receive 429 and Retry-After');
+    const spoofed = await anonymous('/api/auth/login', {}, { headers: { 'X-Forwarded-For': '198.51.100.77', 'X-Vercel-Forwarded-For': '198.51.100.77' } });
+    verify(spoofed.status === 429, 'Spoofed IP headers cannot bypass local throttling');
+    verify((await anonymous('/api/courses')).status === 200, 'Auth throttling does not block browsing courses');
+  } finally {
+    await db.query('delete from public.payment_orders where course_slug=$1', [slug]);
+    await db.query('delete from public.courses where slug=$1', [slug]);
+    await db.query('delete from private.request_buckets');
+    await db.end();
+  }
 };
 ```
 
@@ -37296,6 +37666,192 @@ test("reduced motion and JavaScript-free visits keep all content visible", async
   await staticPage.goto((baseURL ?? "http://localhost:3040") + "/7days-freelance");
   expect(await staticPage.locator(".clients-grid").evaluate(node => getComputedStyle(node).opacity)).toBe("1");
   await context.close();
+});
+```
+
+### File: `tests/security/browser.cjs`
+
+SHA-256: `588a197d77a78dc2e982ab7b5376d1372835920bfdb4fb0660945f3e0c2c74c0`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Browser CSP acceptance. */
+const { chromium, expect } = require('@playwright/test');
+module.exports = async function({ url, verify }) {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    const failures = [];
+    page.on('pageerror', error => failures.push(error.message));
+    page.on('console', message => { if (/Content Security Policy|violates.*directive/.test(message.text())) failures.push(message.text()); });
+    for (const path of ['/', '/founder', '/login']) {
+      const response = await page.goto(url + path);
+      const headers = await response.allHeaders();
+      const nonce = headers['content-security-policy'].match(/'nonce-([^']+)'/)[1];
+      verify(headers['x-content-type-options'] === 'nosniff' && headers['x-frame-options'] === 'DENY', 'Security headers protect ' + path);
+      verify(await page.locator('script[nonce]').first().evaluate((el, expected) => el.nonce === expected, nonce), 'Next.js hydration receives the response nonce on ' + path);
+      await expect(page.locator('body')).toBeVisible();
+    }
+    verify(failures.length === 0, 'Real browsers render and hydrate without CSP violations');
+    // Simulate a reflected HTML injection, not DevTools' privileged JS execution.
+    await page.route('**/login?csp-test=1', async route => {
+      const response = await route.fetch();
+      const body = (await response.text()).replace('</body>', '<script>window.__injected=true</script></body>');
+      await route.fulfill({ response, body });
+    });
+    await page.goto(url + '/login?csp-test=1');
+    verify(await page.evaluate(() => window.__injected !== true), 'Untrusted inline scripts are blocked by CSP');
+  } finally { await browser.close(); }
+};
+```
+
+### File: `tests/security/drive-fetch.test.ts`
+
+SHA-256: `a2c4c5e9520dc434487278e20f882e3ce85b7c01fc5511feebc2b62d818ecff2`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { fetchDrive } from "../../modules/lib/security/drive-fetch";
+test("Drive redirects cannot reach loopback, metadata, or arbitrary hosts", async () => {
+  const original = globalThis.fetch;
+  try {
+    for (const location of ["http://127.0.0.1/private", "http://169.254.169.254/latest/meta-data", "https://evil.example/video", "https://drive.usercontent.google.com@evil.example/video"]) {
+      let calls = 0;
+      globalThis.fetch = async () => { calls++; return new Response(null, { status: 302, headers: { location } }); };
+      await assert.rejects(fetchDrive(new URL("https://drive.usercontent.google.com/download"), {}, new AbortController().signal), { status: 503 });
+      assert.equal(calls, 1, "Unsafe redirect must be rejected before the second fetch");
+    }
+  } finally { globalThis.fetch = original; }
+});
+test("Drive CDN redirects retain ranges and stream cancellation", async () => {
+  const original = globalThis.fetch;
+  const controller = new AbortController();
+  const requests: RequestInit[] = [];
+  try {
+    globalThis.fetch = async (_url, options) => {
+      requests.push(options!);
+      return requests.length === 1 ? new Response(null, { status: 302, headers: { location: "https://doc-00.googleusercontent.com/video" } }) : new Response("video", { status: 206 });
+    };
+    const result = await fetchDrive(new URL("https://drive.usercontent.google.com/download"), { Range: "bytes=0-1023" }, controller.signal);
+    assert.equal(result.status, 206);
+    assert.equal(requests[1].redirect, "manual");
+    assert.deepEqual(requests[1].headers, { Range: "bytes=0-1023" });
+    controller.abort();
+    assert.equal(requests[1].signal?.aborted, true);
+  } finally { globalThis.fetch = original; }
+});
+test("redirect loops have a finite request budget", async () => {
+  const original = globalThis.fetch;
+  let calls = 0;
+  try {
+    globalThis.fetch = async () => { calls++; return new Response(null, { status: 302, headers: { location: "/again" } }); };
+    await assert.rejects(fetchDrive(new URL("https://drive.usercontent.google.com/download"), {}, new AbortController().signal), { status: 503 });
+    assert.equal(calls, 4);
+  } finally { globalThis.fetch = original; }
+});
+```
+
+### File: `tests/security/payment-locks.cjs`
+
+SHA-256: `b694bef38e2ad765fd75f43f14feb20b05946b36df13a7535e427f98d34f121d`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated database concurrency regression. */
+const assert = require('node:assert/strict');
+const { Client } = require('pg');
+async function waitForLock(observer, pid) {
+  for (let i = 0; i < 100; i++) {
+    const result = await observer.query('select wait_event_type from pg_stat_activity where pid=$1', [pid]);
+    if (result.rows[0]?.wait_event_type === 'Lock') return;
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  throw new Error('Settlement did not reach the concurrency barrier');
+}
+module.exports = async function paymentLocks({ connectionString, user, slug, order, intent }) {
+  const a = new Client({ connectionString }), b = new Client({ connectionString });
+  await a.connect(); await b.connect();
+  try {
+    await a.query('begin');
+    await a.query('select pg_advisory_xact_lock(hashtextextended($1,0))', [user + slug]);
+    await a.query('select 1 from public.account_contacts where user_id=$1 for update', [user]);
+    const settling = b.query('select public.settle_course_payment($1,$2,999001,120000,\'EGP\')', [order, intent]).then(() => null, e => e);
+    await waitForLock(a, b.processID);
+    let checkoutError;
+    try { await a.query('select public.begin_course_payment($1,$2,false)', [user, slug]); }
+    catch (error) { checkoutError = error; }
+    await a.query(checkoutError ? 'rollback' : 'commit');
+    const settlementError = await settling;
+    assert.equal(checkoutError?.code, undefined, 'Checkout must not deadlock against settlement');
+    assert.equal(settlementError?.code, undefined, 'Settlement must not deadlock against checkout');
+  } finally { await a.query('rollback'); await a.end(); await b.end(); }
+};
+```
+
+### File: `tests/security/request-guards.test.ts`
+
+SHA-256: `2edbe04c8363447eb70667c28d12a7b088b8b93efa3eba724c7b84d15bf03625`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { readRequestBytes } from "../../modules/lib/read-request-bytes";
+import { sameOrigin, readJson } from "../../modules/lib/server-request";
+import { clientAddress } from "../../modules/lib/security/client-address";
+import { validMediaRange } from "../../modules/lib/security/media-range";
+import { contentPolicy } from "../../modules/lib/security/content-policy";
+import { ratePolicy } from "../../modules/lib/security/rate-policy";
+function streaming(body: ReadableStream<Uint8Array>) {
+  return new Request("http://localhost/body", { method: "POST", body, duplex: "half" } as RequestInit);
+}
+test("chunked oversized requests cannot bypass the size cap", async () => {
+  const request = streaming(new ReadableStream({ start(c) { c.enqueue(new Uint8Array(9)); c.enqueue(new Uint8Array(9)); c.close(); } }));
+  await assert.rejects(readRequestBytes(request, 16), { status: 413, code: "REQUEST_TOO_LARGE" });
+});
+test("stalled bodies and cancellation hooks cannot hold readers indefinitely", async () => {
+  const request = streaming(new ReadableStream({ cancel: () => new Promise(() => undefined) }));
+  const keepAlive = setTimeout(() => undefined, 1000);
+  try { await assert.rejects(readRequestBytes(request, 16, 30), { status: 408, code: "REQUEST_TIMEOUT" }); }
+  finally { clearTimeout(keepAlive); }
+});
+test("malformed Content-Length is rejected", async () => {
+  const request = new Request("http://localhost/body", { method: "POST", body: "{}", headers: { "content-length": "NaN" } });
+  await assert.rejects(readRequestBytes(request, 16), { status: 413 });
+});
+test("JSON errors preserve resource denial and non-JSON forms are rejected", async () => {
+  assert.equal(await readJson(new Request("http://localhost/body", { method: "POST", body: "{}" })), null);
+  await assert.rejects(readJson(new Request("http://localhost/body", { method: "POST", body: "x".repeat(17000), headers: { "content-type": "application/json" } })), { status: 413 });
+});
+test("CSRF cannot trust a forged Host header or cross-site fetch metadata", () => {
+  const saved = process.env.APP_ORIGIN;
+  process.env.APP_ORIGIN = "https://ta3allam.vercel.app";
+  try {
+    assert.equal(sameOrigin(new Request("https://ta3allam.vercel.app/api", { headers: { host: "evil.example", origin: "https://evil.example" } })), false);
+    assert.equal(sameOrigin(new Request("https://ta3allam.vercel.app/api", { headers: { "sec-fetch-site": "cross-site" } })), false);
+    assert.equal(sameOrigin(new Request("https://ta3allam.vercel.app/api", { headers: { origin: "http://ta3allam.vercel.app" } })), false);
+    assert.equal(sameOrigin(new Request("https://ta3allam.vercel.app/api", { headers: { origin: "https://ta3allam.vercel.app" } })), true);
+  } finally { if (saved === undefined) delete process.env.APP_ORIGIN; else process.env.APP_ORIGIN = saved; }
+});
+test("untrusted forwarded headers cannot rotate the local limiter identity", () => {
+  assert.equal(clientAddress(new Headers({ "x-forwarded-for": "1.1.1.1", "x-vercel-forwarded-for": "2.2.2.2" }), false), "local-ingress");
+  assert.equal(clientAddress(new Headers({ "x-vercel-forwarded-for": "1.1.1.1, 2.2.2.2" }), true), "unknown-ingress");
+  assert.equal(clientAddress(new Headers({ "x-vercel-forwarded-for": "1.1.1.1" }), true), "1.1.1.1");
+});
+test("invalid and excessive byte ranges are rejected", () => {
+  for (const range of ["bytes=-", "bytes=-0", "bytes=5-1", "bytes=0-1,3-4", "bytes=9007199254740992-"]) assert.equal(validMediaRange(range), false, range);
+  for (const range of ["bytes=0-", "bytes=0-1023", "bytes=-1024"]) assert.equal(validMediaRange(range), true, range);
+});
+test("CSP restricts scripts, framing, objects, and form submissions", () => {
+  const policy = contentPolicy("test-nonce");
+  assert.match(policy, /script-src 'self' 'nonce-test-nonce' 'strict-dynamic'/);
+  assert.match(policy, /frame-ancestors 'none'/);
+  assert.match(policy, /object-src 'none'/);
+  assert.match(policy, /form-action 'self'/);
+});
+test("sensitive actions have independent budgets", () => {
+  assert.equal(ratePolicy("/api/auth/login", "POST").name, "auth");
+  assert.equal(ratePolicy("/api/account/verification", "POST").name, "email");
+  assert.equal(ratePolicy("/api/media/images", "POST").name, "upload");
+  assert.equal(ratePolicy("/api/payments/fawaterak/webhook_json", "POST").name, "webhook");
 });
 ```
 

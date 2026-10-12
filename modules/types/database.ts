@@ -268,6 +268,9 @@ isOneToOne: false
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
                            },
+"consume_request_budget":
+{ Args: { "p_bucket": string,"p_limit": number,"p_seconds": number }; Returns: Json
+                           },
 "contacts_verified":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },

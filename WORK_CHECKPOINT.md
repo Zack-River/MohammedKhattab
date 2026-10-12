@@ -2,6 +2,18 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — OWASP 2025 hardening
+
+- Reviewed all ten current OWASP categories and recorded controls, evidence and remaining operational work in `docs/security/OWASP_REVIEW.md`. No exploitable SQL injection was found in reviewed parameterized/static SQL paths; adversarial literal-search and sort-input tests pass.
+- Reproduced a PostgreSQL payment deadlock (`40P01`) with two coordinated connections. Fixed settlement's lock order to match checkout creation; preserved immutable payment validation and idempotent enrollment. Unpaid reconciliation now returns committed paid state when it loses a race.
+- Added distributed atomic request budgets for documents, reads, auth, emails, uploads, mutations and payment callbacks; uploads also use a per-account budget. Counters are private, identities are HMAC-hashed, untrusted forwarded IP headers are ignored, expired cleanup is capped, and outages fail closed with 503. Denials supply 429/Retry-After.
+- Added bounded body read deadlines, early oversized-request denial, strict JSON media types, configured-origin/Fetch Metadata checks, nonce CSP and security headers, secret-free security events, safe Drive redirect/header deadlines/ranges, Cloudinary redirect rejection, and a hydration guard for validated auth submission. Reused existing design and the shared hydration hook; no runtime dependency added.
+- Applied `20261012132220_security_budgets_and_payment_locks.sql` to hosted Supabase without seeds. Hosted timeout/privilege checks pass: anonymous 3s, authenticated/service 8s; only the server can call the rate-budget RPC. Local and hosted advisors found no issues.
+- **Verification:** 12 security unit tests, four upload unit tests, 29 isolated security/API/browser checks, 56 payment checks, all 190 backend regressions, 27 analytics checks, and 10 production-build browser checks passed (**328 total**). Lint, TypeScript, production build, architecture (703 files / no violations), secret scan and diff check passed. Source reproduction snapshot: 846 files. Local production app is serving port 3040.
+- Runtime dependency audit has zero findings. Five high dev-tooling findings share an unfixed braces advisory; the exception and 19 October review date are documented. Installed Next/React versions and CI action commits are pinned; CI uses npm ci and gates security/runtime audit/quality checks.
+- Vercel edge firewall/DDoS rules and operational alert/retention configuration still require hosting-account setup. App/database budgets mitigate resource abuse but cannot guarantee availability or cost protection under distributed volumetric attacks. Direct Supabase requests retain RLS/RPC/provider protections and are not wrapped by the Next.js limiter. No live flooding or real payment was performed.
+- Release commit/push and live smoke verification are in progress; do not treat deployment as verified until the receipt below is added.
+
 ## Latest checkpoint — Fawaterak hosted checkout
 
 - Implemented OAuth API v3 using the locally supplied server credentials. Read-only live OAuth and enabled-method checks succeeded; available methods are Fawry, electronic wallets, Aman and Basata. No real payment was charged.

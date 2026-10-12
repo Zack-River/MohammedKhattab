@@ -1,3 +1,4 @@
+import { securityHeaders } from "./modules/lib/security/headers";
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
 import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
@@ -5,6 +6,8 @@ import { projectRoutes, legacyLearningNamespaces } from "./config/project-naviga
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
+  experimental: { proxyClientMaxBodySize: "4mb" },
+  async headers() { return [{ source: "/:path*", headers: securityHeaders }]; },
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },

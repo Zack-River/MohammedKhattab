@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import HistoryBoundary from "@khatab/design/ui/history-boundary";
 import FontPreloads from "@khatab/design/ui/font-preloads";
 import { criticalFontAssets } from "@/config/fonts";
@@ -11,7 +12,8 @@ export const metadata: Metadata = {
   icons: { icon: "/assets/images/favicon.svg" },
 };
 export const viewport: Viewport = { themeColor: palette.background };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  await connection();
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <head><FontPreloads assets={criticalFontAssets} /></head>

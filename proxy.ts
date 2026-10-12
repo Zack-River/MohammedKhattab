@@ -1,4 +1,20 @@
+import { randomBytes, randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { updateSession } from "@platform/lib/supabase/middleware";
-export async function proxy(request: NextRequest) { return updateSession(request); }
-export const config = { matcher: ["/", "/forgot-password", "/confirm-email", "/reset-password", "/admin/:path*", "/dashboard/:path*", "/learn/:path*", "/courses/:path*", "/workshops/:path*", "/login", "/signup", "/api/:path*"] };
+import { checkIngress } from "@platform/lib/security/ingress";
+import { contentPolicy } from "@platform/lib/security/content-policy";
+export async function proxy(request: NextRequest) {
+  const requestId = randomUUID();
+  const denied = await checkIngress(request, requestId);
+  if (denied) return denied;
+  const policy = contentPolicy(randomBytes(18).toString("base64"));
+  request.headers.set("Content-Security-Policy", policy);
+  request.headers.set("X-Request-Id", requestId);
+  const response = await updateSession(request);
+  response.headers.set("Content-Security-Policy", policy);
+  response.headers.set("X-Request-Id", requestId);
+  return response;
+}
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|assets/|favicon.ico|robots.txt|sitemap.xml).*)"],
+};

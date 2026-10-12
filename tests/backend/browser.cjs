@@ -6,6 +6,7 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (/Content Security Policy|violates.*directive/.test(message.text())) errors.push(message.text()); });
   fs.mkdirSync('docs/evidence/backend', { recursive: true });
   try {
     await page.goto(url + '/login');
@@ -50,6 +51,6 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
       verify(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Auth layout fits ${width}px`);
       await page.screenshot({ path: `docs/evidence/backend/login-${width}.png`, fullPage: true });
     }
-    verify(errors.length === 0, 'Real authentication browser flows have no JavaScript errors');
+    verify(errors.length === 0, 'Real authentication browser flows have no JavaScript errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
   } finally { await browser.close(); }
 };

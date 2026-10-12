@@ -5,6 +5,7 @@ const { spawn } = require('node:child_process');
 const { createClient } = require('@supabase/supabase-js');
 const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'utf8'));
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
+if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) throw new Error('Tests require an isolated local database');
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
@@ -52,6 +53,12 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  // Local-only test isolation prevents a previous suite's budget from affecting another suite.
+  const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
+  await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'security') {
+    await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
   if (process.env.BACKEND_SUITE === 'payments') {
     await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
   }
@@ -133,7 +140,7 @@ async function run() {
   verify((await anonymous(playback(preview))).status === 200, 'Published preview playback is public');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' })).status === 401, 'Wrong password rejected');
   verify((await anonymous('/api/auth/signup', { name: 'x', email: 'invalid', password: 'short' })).status === 400, 'Invalid signup rejected');
-  verify((await anonymous('/api/auth/signup', { payload: 'x'.repeat(17000) })).status === 400, 'Oversized JSON payload rejected');
+  verify((await anonymous('/api/auth/signup', { payload: 'x'.repeat(17000) })).status === 413, 'Oversized JSON payload rejected');
   verify((await anonymous('/api/auth/login', { email: 'wrong@example.com', password: 'Incorrect-Password-19!' }, { headers: { Origin: 'https://attacker.example' } })).status === 403, 'Cross-origin login rejected');
   verify((await anonymous('/api/profile', undefined, { headers: { Cookie: 'ta3allam-state=forged' } })).status === 401, 'Forged demo cookie grants no authority');
   const a = await provision('Student A'), b = await provision('Student B');

@@ -1,4 +1,7 @@
 export const backendCopy: Record<string, string> = {
+  REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
+  REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",
+  SECURITY_UNAVAILABLE: "الخدمة مشغولة حاليًا. حاول بعد قليل.",
   PAYMENTS_UNAVAILABLE: "خدمة الدفع غير متاحة حاليًا. حاول لاحقًا.",
   PAYMENT_MISMATCH: "لم نتمكن من مطابقة بيانات الدفع. تواصل مع الدعم.",
   INVALID_PAYMENT_SIGNATURE: "توقيع الدفع غير صالح.",

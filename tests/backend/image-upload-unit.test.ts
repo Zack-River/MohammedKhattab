@@ -14,7 +14,7 @@ const request = (image: File, kind = "avatar", slug?: string) => {
 };
 test("Bounded readers reject a streamed body without relying on Content-Length",async()=>{
  const req = new Request("https://example.com",{method:"POST",body:new ReadableStream({start(controller){controller.enqueue(new Uint8Array(5));controller.enqueue(new Uint8Array(5));controller.close();}}),duplex:"half"} as RequestInit);
- assert.equal(await readRequestBytes(req,8),null);
+ await assert.rejects(readRequestBytes(req,8), { status: 413, code: "REQUEST_TOO_LARGE" });
 });
 test("Multipart reader accepts image data and rejects invalid scope, paths and size",async()=>{
  assert.equal((await readImageUpload(request(file()))).kind,"avatar");
