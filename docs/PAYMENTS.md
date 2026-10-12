@@ -33,7 +33,7 @@ Each transaction sends `${APP_ORIGIN}/api/payments/fawaterak/webhook_json` as it
 
 ## Hosted checkout URL compatibility
 
-Fawaterak currently returns shortened `/ts/<id>?lg=ar` URLs, in addition to documented `/transactions/<intent>` URLs. Both are accepted only on the configured gateway origin. Foreign origins, embedded credentials, unrelated paths, malformed URLs and invalid intent UUIDs are rejected. A failed creation without a saved checkout URL holds its order for five minutes before a retry can replace it; this avoids duplicate concurrent intents after uncertain upstream failures.
+Fawaterak currently returns shortened `/ts/<id>?lg=ar` URLs, in addition to documented `/transactions/<intent>` URLs. Both are accepted only on the configured gateway origin. Provider intent keys are opaque bounded text, not our order UUIDs. The database column and service-only settlement RPC preserve this distinction, including signed webhook validation. Foreign origins, embedded credentials, unrelated paths, malformed URLs and invalid or oversized intent keys are rejected. A failed creation without a saved checkout URL holds its order for five minutes before a retry can replace it; this avoids duplicate concurrent intents after uncertain upstream failures.
 
 ## Validation
 

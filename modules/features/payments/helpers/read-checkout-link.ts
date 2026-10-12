@@ -1,9 +1,9 @@
 import { ApiError } from "@platform/lib/api/error";
-import { isOrderId } from "./order-id";
+import { isPaymentIntentKey } from "./intent-key";
 
 /** Fawaterak serves hosted checkout using both full and shortened URLs. */
 export function readCheckoutLink(result: Record<string, unknown>, origin: string) {
-  if (!isOrderId(result.intent_key) || typeof result.url !== "string")
+  if (!isPaymentIntentKey(result.intent_key) || typeof result.url !== "string")
     throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
   let url: URL;
   try { url = new URL(result.url); }

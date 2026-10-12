@@ -2,6 +2,13 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — opaque Fawaterak intent keys
+
+- Confirmed `a6e4891` deployed successfully, then reproduced the remaining rejection with the real customer/order payload. Fawaterak returns an 18-character alphanumeric intent key, despite the documentation declaring UUID. Our validator, webhook validator, database column and settlement argument all assumed UUID; the previous URL-only fix was incomplete.
+- Added a bounded opaque-key helper, reused by checkout and HMAC verification. Converted the provider column to text with a format constraint and replaced the service-only settlement signature while preserving its advisory/contact/order lock sequence, amount/currency/reference checks, and enrollment idempotency. Order IDs remain UUIDs. Applied the generated migration to hosted Supabase; both local and hosted advisors found no issues.
+- Recovered the user's unfinished order using the corrected gateway code and stored the genuine checkout URL/intent on hosted Supabase. Its status is pending. No payment was charged, no enrollment was granted, and email/SMS remained disabled.
+- Mock provider now emits non-UUID keys; 56 isolated payment checks, 29 security integration checks and 16 security unit tests passed, covering hosted redirect, signed opaque-key callbacks, replay/idempotency, activation, deadlock prevention, privileged RPC denial and legacy UUID compatibility. Lint, architecture and the production build passed. A live read-only lookup of the recovered intent passed our transaction validation and confirmed unpaid status, transaction ID zero and the correct amount.
+
 ## Latest checkpoint — Fawaterak short checkout links
 
 - Traced the production 503 followed by 409: the hosted order had no saved provider link and remained in `creating`. Live OAuth succeeds; a single diagnostic unpaid link creation returned a valid `/ts/<id>` URL, which our `/transactions/`-only validation rejected. No payment or customer message was sent.

@@ -13899,6 +13899,16 @@ export function handlePaymentWebhook(request: Request) {
 }
 ```
 
+### File: `modules/features/payments/helpers/intent-key.ts`
+
+SHA-256: `313bcacd870d0de487155ef8e5bffea63cff1119ce93ac3143d8b7e341a106e0`
+
+```typescript
+/** Provider identifiers are opaque text, independent of our UUID order IDs. */
+export const isPaymentIntentKey = (value: unknown): value is string =>
+  typeof value === "string" && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
+```
+
 ### File: `modules/features/payments/helpers/order-id.ts`
 
 SHA-256: `d7202b3ef41a030e7950b0cbb2adb76f8707311ca293ae9002359f1c1ad3243b`
@@ -13910,15 +13920,15 @@ export const isOrderId = (id: unknown): id is string =>
 
 ### File: `modules/features/payments/helpers/read-checkout-link.ts`
 
-SHA-256: `7e03abb20c8079cd50b68f66b0bd99ea553edc07b1637089c34631df285e34a2`
+SHA-256: `c1c089a12cc23b04ce3b847c9db2d829814afd338af1c66f67850d92e5bce3b6`
 
 ```typescript
 import { ApiError } from "@platform/lib/api/error";
-import { isOrderId } from "./order-id";
+import { isPaymentIntentKey } from "./intent-key";
 
 /** Fawaterak serves hosted checkout using both full and shortened URLs. */
 export function readCheckoutLink(result: Record<string, unknown>, origin: string) {
-  if (!isOrderId(result.intent_key) || typeof result.url !== "string")
+  if (!isPaymentIntentKey(result.intent_key) || typeof result.url !== "string")
     throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
   let url: URL;
   try { url = new URL(result.url); }
@@ -13986,18 +13996,18 @@ export function validateTransaction(data: Record<string, unknown>, order: Paymen
 
 ### File: `modules/features/payments/helpers/verify-signature.ts`
 
-SHA-256: `273e850dfb2fe883966c6064d9da60d5bd76c4f9d1be4fab005298367391a9b0`
+SHA-256: `0ee29b839ce7053ea284fd14d4607b462d33b69661eb87a731fce50e9737ec5c`
 
 ```typescript
 import "server-only";
-import { isOrderId } from "./order-id";
+import { isPaymentIntentKey } from "./intent-key";
 import { createHmac, timingSafeEqual } from "node:crypto";
 export function verifyPaymentSignature(body: Record<string, unknown>, key: string) {
   const { transaction_id: id, transaction_key: intent, payment_method: method, transactionHashKey: hash } = body;
   if (
     !Number.isSafeInteger(Number(id)) ||
     Number(id) <= 0 ||
-    !isOrderId(intent) ||
+    !isPaymentIntentKey(intent) ||
     typeof method !== "string" ||
     typeof hash !== "string" ||
     !/^[a-f0-9]{64}$/i.test(hash)
@@ -32957,11 +32967,11 @@ module.exports=async function({url,user,slug,verify}){
 
 ### File: `tests/backend/payment-gateway.cjs`
 
-SHA-256: `3e698fbc99e65d6b585029743f8f58c62820c59036460368f9bb312ad5dccf94`
+SHA-256: `5dab018e31675bd9254de4a6123d4e8533e273471e7b0f38819b8f24da5b47ce`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated local payment provider, never charges money. */
-const http = require('node:http'), {randomUUID}=require('node:crypto');
+const http = require('node:http'), {randomBytes}=require('node:crypto');
 function paymentGateway() {
  const transactions = new Map(); let created = 0, lookups = 0;
  const server=http.createServer(async(req,res)=>{
@@ -32971,7 +32981,7 @@ function paymentGateway() {
   if(req.url==='/oauth/token'){res.end(JSON.stringify({access_token:'local-payment-token',expires_in:3600}));return;}
   if(req.headers.authorization!=='Bearer local-payment-token'){res.statusCode=401;res.end('{}');return;}
   if(req.url==='/api/v3/createTransaction'){
-   const intent=randomUUID();created++;transactions.set(intent,{intent_key:intent,transaction_id:created,paid:0,total:body.cartTotal,currency:body.currency,pay_load:body.pay_load,status_text:'unpaid',paid_at:null,request:body});
+   const intent=randomBytes(9).toString('hex');created++;transactions.set(intent,{intent_key:intent,transaction_id:created,paid:0,total:body.cartTotal,currency:body.currency,pay_load:body.pay_load,status_text:'unpaid',paid_at:null,request:body});
    res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/ts/${intent}?lg=ar`,expires_in:172800}}));return;
   }
   if(req.url==='/api/v3/getTransactionData'){lookups++;res.end(JSON.stringify({status:'success',data:transactions.get(body.intent_key)}));return;}
@@ -37717,14 +37727,16 @@ module.exports = async function({ url, verify }) {
 
 ### File: `tests/security/checkout-link.test.ts`
 
-SHA-256: `9d680cbb9a132ea45825614e14124f7c201c5e233492387132aff10a45c3ed48`
+SHA-256: `6c4751ea17cbf66d25d3fd613164c59b9090e68880240cb9adef1ba3a05d40cb`
 
 ```typescript
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readCheckoutLink } from "../../modules/features/payments/helpers/read-checkout-link";
+import { verifyPaymentSignature } from "../../modules/features/payments/helpers/verify-signature";
+import { createHmac } from "node:crypto";
 
-const intent_key = "550e8400-e29b-41d4-a716-446655440000";
+const intent_key = "LiveLikeIntent1234";
 const origin = "https://app.fawaterk.com";
 test("Accept Fawaterak short checkout links and retain Arabic language", () => {
   const url = `${origin}/ts/a1b2c?lg=ar`;
@@ -37734,10 +37746,20 @@ test("Accept full checkout links and staging URLs on their own origin", () => {
   for (const host of [origin, "https://staging.fawaterk.com"])
     assert.equal(readCheckoutLink({ intent_key, url: `${host}/transactions/${intent_key}` }, host).intentKey, intent_key);
 });
+test("Legacy UUID intents remain valid; opaque intents support authenticated webhooks", () => {
+  const legacy = "550e8400-e29b-41d4-a716-446655440000";
+  assert.equal(readCheckoutLink({ intent_key: legacy, url: `${origin}/ts/a` }, origin).intentKey, legacy);
+  const body = { transaction_id: 123, transaction_key: intent_key, payment_method: "Fawry", transactionHashKey: "" };
+  body.transactionHashKey = createHmac("sha256", "test-signing-key")
+    .update(`TransactionId=123&TransactionKey=${intent_key}&PaymentMethod=Fawry`).digest("hex");
+  assert.equal(verifyPaymentSignature(body, "test-signing-key"), true);
+  assert.equal(verifyPaymentSignature({ ...body, transaction_key: "differentIntent" }, "test-signing-key"), false);
+});
 test("Reject foreign origins, credentials, invalid intents, and unrelated paths", () => {
   for (const url of ["not a URL", "javascript:alert(1)", "https://evil.example/ts/a", "https://app.fawaterk.com.evil.example/ts/a", "https://user:password@app.fawaterk.com/ts/a", `${origin}/ts/`, `${origin}/transactions/a/extra`, `${origin}/unrelated/a`, "http://app.fawaterk.com/ts/a", "https://staging.fawaterk.com/ts/a"])
     assert.throws(() => readCheckoutLink({ intent_key, url }, origin), { code: "PAYMENTS_UNAVAILABLE" });
-  assert.throws(() => readCheckoutLink({ intent_key: "invalid", url: `${origin}/ts/a` }, origin), { code: "PAYMENTS_UNAVAILABLE" });
+  for (const invalid of ["", "bad intent", "../escape", "x".repeat(129), null])
+    assert.throws(() => readCheckoutLink({ intent_key: invalid, url: `${origin}/ts/a` }, origin), { code: "PAYMENTS_UNAVAILABLE" });
 });
 ```
 
