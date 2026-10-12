@@ -63,3 +63,11 @@ API limits do **not** protect requests sent directly to Supabase. RLS and RPC gr
 - `npm run lint`, `npm run typecheck`, `npm run test:architecture`, `npm run build`, `node scripts/backend/check-secrets.cjs`, `npm audit --omit=dev`.
 
 Backend tests require the pre-existing isolated local Supabase instance and `/tmp/khatab-supabase-status.json`; they explicitly refuse non-loopback test configuration. Browser binaries/libraries are prerequisites. Production receives only migrations and code, never fixture seeds. Live checks are low-volume read-only/denied-request smoke checks.
+
+## Verification receipt
+
+- Local unit/integration/production-build acceptance: **328 checks passed** (12 security unit, 4 image unit, 29 security integration, 56 payment, 190 backend, 27 analytics, 10 production-browser).
+- Lint, types, production build, architecture (703 files), secret scan and diff check passed; unrelated regenerated screenshots restored.
+- Local/hosted database advisors: no issues. Hosted RPC grants and role timeout values verified after migration; no hosted test fixtures or seeds.
+- Release code: `34a63edd9546f9d4719b6428f705858809624e68`; [GitHub CI run](https://github.com/Zack-River/MohammedKhattab/actions/runs/38257401591) passed every gate, including a fresh npm ci/build without local credentials.
+- **Deployment pending:** Vercel has not created a deployment for this release. A low-volume homepage check confirms the live site still has no new CSP/nosniff/request-ID headers. The database migration is live; application protections await deployment. No production load test, real charge or account mutation was performed.
