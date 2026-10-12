@@ -1,0 +1,62 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-sale and featured-bundle acceptance. No gateway requests. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Featured Manager'),student=await provision('Featured Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const suffix=randomUUID(),slugs=['featured-a-'+suffix,'featured-b-'+suffix],bundleSlug='featured-bundle-'+suffix;
+ const source=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata;
+ const base={key:bundleSlug,title:'Featured bundle test',description:'Two recorded courses in one product',amountMinor:80000,courseSlugs:slugs,courseSlug:null,bundleSlug:null,discountType:'percent',discountValue:20,startsAt:null,endsAt:null,enabled:true,featured:true,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0};
+ const parse=r=>JSON.parse(r.data),api='/api/admin/commerce/bundles/'+bundleSlug+'/template';
+ const offerKey='bundle-offer-'+suffix,courseOfferKey='course-offer-'+suffix;
+ try{
+  assert.ok(!(await admin.from('courses').insert(slugs.map(slug=>({slug,metadata:{...source,slug,featured:true},amount:500,published:true,position:110})))).error);
+  verify((await manager.api('/api/admin/commerce/bundles',base)).status===200,'Admin creates a featured bundle');
+  verify((await manager.api('/api/admin/commerce/bundles',{...base,featured:'true',revision:1})).status===400,'Bundle featured flag requires boolean');
+  const bundleRows=parse(await manager.api('/api/admin/commerce/bundles?q='+bundleSlug)).records;
+  verify(bundleRows[0].featured===true,'Bundle featured layout persists in admin listing');
+  verify((await anonymous(api)).status===401,'Guest cannot access bundle template API');
+  verify((await student.api(api)).status===403,'Student cannot access bundle template API');
+  const template=parse(await manager.api(api));verify(template.revision===0,'Bundle starts with reusable template defaults');
+  verify(template.document.content.hero.action.href==='/checkout/'+bundleSlug+'?kind=bundle','Bundle template targets bundle checkout');
+  template.document.content.hero.title=['Distinct bundle heading'];template.document.showCountdown=true;
+  verify((await manager.api(api,{document:template.document,revision:0},{headers:{Origin:'https://hostile.example'}})).status===403,'Cross-origin bundle template save rejected');
+  verify((await manager.api(api,{document:template.document,revision:0})).status===200,'Admin saves independent bundle template');
+  verify((await manager.api(api,{document:template.document,revision:0})).status===409,'Bundle template rejects concurrent stale saves');
+  verify((await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length===1,'RLS exposes published featured bundle template');
+  verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('bundle_slug',bundleSlug).select()).data?.length,'RLS blocks student bundle template mutation');
+  let page=await anonymous('/bundles/'+bundleSlug);
+  verify(page.status===200&&page.data.includes('Distinct bundle heading'),'Featured bundle renders at its bundle URL');
+  verify(!page.data.includes('lms-featured-offer-bar')&&!page.data.includes('54 بيشاهدوا'),'Featured product without active offer has no fictional urgency');
+  const sale={...base,key:offerKey,title:('Actual bundle sale '+ 'extended campaign '.repeat(7)).trim(),courseSlugs:[],bundleSlug,featured:false,endsAt:new Date(Date.now()+3600000).toISOString()};
+  verify((await manager.api('/api/admin/commerce/offers',sale)).status===200,'Admin creates real named bundle offer with fixed deadline');
+  page=await anonymous('/bundles/'+bundleSlug);
+  const quote=parse(await student.api('/api/payments/quote',{bundleSlug}));
+  verify(page.data.includes('Actual bundle sale')&&page.data.includes('lms-featured-offer-bar')&&page.data.includes(quote.endsAt),'Featured strip uses real bundle sale and end timestamp');
+  verify(quote.offerTitle===sale.title&&Date.parse(quote.endsAt)===Date.parse(sale.endsAt)&&quote.totalMinor===64000,'Strip campaign agrees with canonical checkout quote');
+  verify((await manager.api('/api/admin/commerce/offers',{...sale,key:courseOfferKey,title:'Actual course sale',courseSlug:slugs[0],bundleSlug:null})).status===200,'Course offer is independently configured');
+  const coursePage=await anonymous('/courses/'+slugs[0]);verify(coursePage.data.includes('Actual course sale')&&!coursePage.data.includes('Actual bundle sale'),'Course featured strip resolves its own sale');
+  verify((await anonymous('/api/bundles/'+bundleSlug+'/template-media?clip=../../private')).status===404,'Bundle media endpoint rejects arbitrary clips');
+  await require('./featured-products-browser.cjs')({manager,url,bundleSlug,api,verify});
+  let saved=parse(await manager.api(api));saved.document.showCountdown=false;
+  verify((await manager.api(api,{document:saved.document,revision:saved.revision})).status===200,'Admin can hide real sale strip');
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Template visibility hides the sale strip');
+  saved=parse(await manager.api(api));saved.document.showCountdown=true;
+  await manager.api(api,{document:saved.document,revision:saved.revision});
+  await admin.from('commerce_discounts').update({ends_at:new Date(Date.now()-1000).toISOString()}).eq('key',offerKey);
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Expired sale has no strip on a new page request');
+  await admin.from('commerce_discounts').update({ends_at:null}).eq('key',offerKey);
+  const noDeadline=await anonymous('/bundles/'+bundleSlug);verify(noDeadline.data.includes('Actual bundle sale')&&!noDeadline.data.includes('role="timer"'),'Active undated offer shows its name without manufactured deadline');
+  await admin.from('commerce_discounts').update({starts_at:new Date(Date.now()+3600000).toISOString()}).eq('key',offerKey);
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Future sale has no premature countdown');
+  await admin.from('commerce_bundles').update({featured:false}).eq('slug',bundleSlug);
+  const ordinary=await anonymous('/bundles/'+bundleSlug);verify(ordinary.data.includes('lms-bundle-details')&&!ordinary.data.includes('Distinct bundle heading'),'Unfeatured bundle restores standard details');
+  verify(!(await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length,'Unfeatured bundle template is hidden by RLS');
+  await admin.from('commerce_bundles').update({featured:true}).eq('slug',bundleSlug);
+  await admin.from('courses').update({published:false}).eq('slug',slugs[0]);
+  verify(!(await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length,'Unpublished member hides bundle template');
+ }finally{
+  await admin.from('commerce_discounts').delete().in('key',[offerKey,courseOfferKey]);
+  await admin.from('commerce_bundles').delete().eq('slug',bundleSlug);
+  await admin.from('courses').delete().in('slug',slugs);
+ }
+};

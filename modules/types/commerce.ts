@@ -7,7 +7,7 @@ export interface PriceQuote {
  offerTitle: string | null; couponCode: string | null; endsAt: string | null;
 }
 export interface CommerceRecord {
- key: string; title: string; description: string; amountMinor: number;
+ key: string; title: string; description: string; amountMinor: number; featured?: boolean;
  courseSlugs: string[]; courseSlug: string | null; bundleSlug: string | null;
  discountType: "percent" | "fixed"; discountValue: number;
  startsAt: string | null; endsAt: string | null; enabled: boolean;
@@ -16,8 +16,9 @@ export interface CommerceRecord {
 }
 export type CommerceInput = Omit<CommerceRecord,"createdAt" | "updatedAt">;
 export interface CommerceList { records: CommerceRecord[]; total: number; page: number; }
-export interface BundleProduct { slug: string; title: string; description: string; courseSlugs: string[]; quote: PriceQuote; }
+export interface BundleProduct { featured?: boolean; slug: string; title: string; description: string; courseSlugs: string[]; quote: PriceQuote; }
 export interface CommerceLabels {
+ featuredLayout:string;featuredLayoutHint:string;
  title: string; bundles: string; offers: string; coupons: string; create: string; edit: string; remove: string;
  name: string; key: string; description: string; amount: string; courses: string; course: string; bundle: string;
  discountType: string; percent: string; fixed: string; discountValue: string; startsAt: string; endsAt: string;

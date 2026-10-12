@@ -8,7 +8,7 @@ export function readCommerceForm(form:FormData,record:CommerceRecord): CommerceI
  return {...record,key:String(form.get('key') ?? record.key).trim(),title:String(form.get('title') ?? '').trim(),description:String(form.get('description') ?? ''),amountMinor:form.has('amount') ? minor(form.get('amount')) : record.amountMinor,
   courseSlugs:form.getAll('courseSlugs').map(String),courseSlug:target[0]==='course' ? target[1] : null,bundleSlug:target[0]==='bundle' ? target[1] : null,
   discountType:type,discountValue:form.has('discountValue') ? type==='fixed' ? minor(form.get('discountValue')) : Number(form.get('discountValue')) : record.discountValue,
-  startsAt:date(form.get('startsAt')),endsAt:date(form.get('endsAt')),enabled:form.has('enabled'),stackable:form.has('stackable'),minimumMinor:form.has('minimum') ? minor(form.get('minimum')) : 0,
+  startsAt:date(form.get('startsAt')),endsAt:date(form.get('endsAt')),enabled:form.has('enabled'),featured:form.getAll('featured').some(value=>value==='on' || value==='true'),stackable:form.has('stackable'),minimumMinor:form.has('minimum') ? minor(form.get('minimum')) : 0,
   maximumUses:nullable(form.get('maximumUses')) ? Number(form.get('maximumUses')) : null,perUserLimit:Number(form.get('perUserLimit') ?? 1)};
 }
 export function localDateInput(value:string | null) {

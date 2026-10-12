@@ -121,14 +121,14 @@ isOneToOne: false
                   ]
                 },"commerce_bundles": {
                   Row: {
-                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
+                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"featured": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
+                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"featured"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
+                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"featured"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
 
@@ -353,17 +353,23 @@ isOneToOne: false
                   ]
                 },"workshop_templates": {
                   Row: {
-                    "course_slug": string,"document": NonNullable<Json>,"revision": number,"updated_at": string
+                    "bundle_slug": string | null,"course_slug": string | null,"document": NonNullable<Json>,"id": string,"revision": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "course_slug": string,"document": NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"document": NonNullable<Json>,"id"?: string,"revision"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "course_slug"?: string,"document"?: NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"document"?: NonNullable<Json>,"id"?: string,"revision"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "workshop_templates_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: true
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
       foreignKeyName: "workshop_templates_course_slug_fkey"
       columns: ["course_slug"]
 isOneToOne: true
@@ -412,6 +418,9 @@ isOneToOne: true
                            },
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
+                           },
+"is_public_featured_bundle":
+{ Args: { "p_slug": string }; Returns: boolean
                            },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json

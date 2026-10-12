@@ -59,6 +59,9 @@ async function run() {
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
   }
+  if (process.env.BACKEND_SUITE === 'featured-products') {
+    await require('./featured-products.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'workshop-template') {
     await require('./workshop-template.cjs')({admin,provision,anonymous,verify,url});return;
   }

@@ -252,22 +252,6 @@ Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompress
 
 Current shared architecture snapshot. Materialize all paths together; run npm ci once at the root using the companion lockfile, then prebuild generation. The separate test fixture is not a shipped application route. Generated .next/node_modules and server font JSON are excluded. Source hashes verify reconstruction, not visual approval.
 
-### File: `app/(public)/bundles/[slug]/page.tsx`
-
-SHA-256: `1d9da729b0b9e6034d28e6bac046fc506022b5fd33dbeea41e7b3f0072af9957`
-
-```tsx
-import { notFound } from "next/navigation";
-import { findBundle } from "@platform/features/commerce/repositories/bundles";
-import { listCourses } from "@platform/features/catalog/service";
-import BundleCard from "@platform/components/commerce/bundle-card";
-import { commerceCopy } from "@platform/data/commerce";
-export default async function Page({params}:{params:Promise<{slug:string}>}) {
- const bundle=await findBundle((await params).slug);if(!bundle) notFound();
- const courses=await listCourses();return <main className="container lms-public-main lms-bundle-details"><h1>{commerceCopy.bundles}</h1><BundleCard bundle={bundle} labels={commerceCopy} courses={courses.map(({slug,title,delivery})=>({slug,title,delivery}))} detail /></main>;
-}
-```
-
 ### File: `app/(public)/bundles/page.tsx`
 
 SHA-256: `ff0cd832344bf401fc0c18f7e4c2442e833e0408913fa9288192be484f4ccf45`
@@ -505,6 +489,29 @@ import type { CommerceKind } from "@platform/types/commerce";
 export default async function Page({params,searchParams}:{params:Promise<{kind:string}>;searchParams:Promise<Record<string,string | string[] | undefined>>}) {
  const {kind}=await params;if(!commerceKinds.includes(kind as CommerceKind)) notFound();
  return <CommerceAdminPage kind={kind as CommerceKind} query={await searchParams} />;
+}
+```
+
+### File: `app/admin/dashboard/commerce/bundles/[slug]/template/page.tsx`
+
+SHA-256: `eb9f7401a6c79a41b3a3f3e18772926020226c838af8182a04099f674b93dd4f`
+
+```tsx
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readTemplateSubject } from "@platform/features/marketing/templates/template-subject";
+import { readWorkshopTemplate } from "@platform/features/marketing/templates/repository";
+import { defaultWorkshopTemplate } from "@platform/features/marketing/templates/default-template";
+import { templateCopy,templateFieldLabels } from "@platform/data/workshop-template";
+import { commerceCopy } from "@platform/data/commerce";
+import { routes,endpoints } from "@platform/config/navigation";
+import PageHeading from "@platform/components/ui/page-heading";
+import WorkshopTemplateEditor from "@platform/components/admin/template/template-editor";
+export default async function Page({params}:{params:Promise<{slug:string}>}) {
+ await requireAdminPage();const {slug}=await params,course=await readTemplateSubject("bundle",slug);if(!course) notFound();
+ const record=await readWorkshopTemplate(course,"bundle"),defaults=defaultWorkshopTemplate(course,"bundle");
+ return <><PageHeading title={course.title} /><Link className="lms-text-link" href={routes.adminCommerce()}>{commerceCopy.bundles}</Link><WorkshopTemplateEditor key={record.revision} slug={slug} endpoint={endpoints.adminBundleTemplate(slug)} record={record} defaults={defaults} sample={defaults} labels={{copy:templateCopy,fields:templateFieldLabels}} /></>;
 }
 ```
 
@@ -875,6 +882,17 @@ export async function POST(request:Request,context:Context) { return handleComme
 export async function DELETE(request:Request,context:Context) { return handleCommerceAdmin(request,(await context.params).kind); }
 ```
 
+### File: `app/api/admin/commerce/bundles/[slug]/template/route.ts`
+
+SHA-256: `a1a6ae9620c35d7077d8b9c125294bc0d54056f019e58e2ff5780da79e760c90`
+
+```typescript
+import { handleWorkshopTemplate } from "@platform/features/marketing/templates/handle-template";
+type Context={params:Promise<{slug:string}>};
+export async function GET(_request:Request,{params}:Context) {return handleWorkshopTemplate((await params).slug,undefined,"bundle");}
+export async function POST(request:Request,{params}:Context) {return handleWorkshopTemplate((await params).slug,request,"bundle");}
+```
+
 ### File: `app/api/admin/courses/[slug]/content/route.ts`
 
 SHA-256: `652791102a8946fd63ddd3a0bac2c8493b6a10c92832f973aadd991be467864f`
@@ -1104,6 +1122,17 @@ import { handleAuth } from "@platform/features/auth/handle-request";
 export async function POST(request: Request) { return handleAuth(request, "signup"); }
 ```
 
+### File: `app/api/bundles/[slug]/template-media/route.ts`
+
+SHA-256: `cb8306cc733ff1633c6775a04f0fd621e4f60e13d2b6ce0139c3bb03da6fa7a0`
+
+```typescript
+import { handleTemplateMedia } from "@platform/features/marketing/templates/handle-media";
+export async function GET(request:Request,{params}:{params:Promise<{slug:string}>}) {
+ return handleTemplateMedia("bundle",(await params).slug,request);
+}
+```
+
 ### File: `app/api/certificates/[slug]/route.ts`
 
 SHA-256: `4a8776bd9ea827e1d5ff65a8a89d1ce7d326b60820224b6667a958b9d9ced7c6`
@@ -1181,26 +1210,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
 ### File: `app/api/courses/[slug]/template-media/route.ts`
 
-SHA-256: `5e76f9c6d79f5bccf3fac1ceaf02010b62a707f6861f5fa49564fe500d6886ba`
+SHA-256: `d320acfe6f22ca44a7306ea0f2fdc4b45b022d2769709ee2e42f70637ddc4122`
 
 ```typescript
-import { findCourse } from "@platform/features/catalog/service";
-import { isFeaturedCourse } from "@platform/features/catalog/helpers/is-featured-course";
-import { readWorkshopTemplate } from "@platform/features/marketing/templates/repository";
-import { templateMediaUrl } from "@platform/features/marketing/templates/helpers/template-media";
-import { driveFileId } from "@platform/helpers/media/drive-file-id";
-import { streamDrive } from "@platform/features/catalog/stream-drive";
-import { apiResponse } from "@platform/lib/api/respond";
-import { ApiError } from "@platform/lib/api/error";
+import { handleTemplateMedia } from "@platform/features/marketing/templates/handle-media";
 export async function GET(request:Request,{params}:{params:Promise<{slug:string}>}) {
- return apiResponse(async()=>{
-  const course=await findCourse((await params).slug);
-  if(!course || !isFeaturedCourse(course)) throw new ApiError(404,'NOT_FOUND');
-  const {document}=await readWorkshopTemplate(course),clip=new URL(request.url).searchParams.get('clip') ?? '';
-  const url=templateMediaUrl(document,clip);
-  if(!url || !driveFileId(url) || !document.order.includes(clip==='hero' ? 'hero' : 'clients')) throw new ApiError(404,'NOT_FOUND');
-  return streamDrive(url,request);
- });
+ return handleTemplateMedia("course",(await params).slug,request);
 }
 ```
 
@@ -1331,6 +1346,27 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       "Content-Disposition": `attachment; filename="${resource.id}.txt"`,
     } });
   });
+}
+```
+
+### File: `app/bundles/[slug]/page.tsx`
+
+SHA-256: `af5fc94c1aaa28cf775603fc4e1b044e2b47f7f3d782cd7c4057be59eb92621e`
+
+```tsx
+import { notFound } from "next/navigation";
+import { findBundle } from "@platform/features/commerce/repositories/bundles";
+import { listCourses } from "@platform/features/catalog/service";
+import BundleCard from "@platform/components/commerce/bundle-card";
+import { commerceCopy } from "@platform/data/commerce";
+import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
+import PublicSiteShell from "@platform/features/marketing/public-site-shell";
+import { bundleTemplateCourse } from "@platform/features/marketing/templates/helpers/bundle-course";
+export default async function Page({params}:{params:Promise<{slug:string}>}) {
+ const bundle=await findBundle((await params).slug);if(!bundle) notFound();
+ const courses=await listCourses();
+ if(bundle.featured) return <FeaturedCourse kind="bundle" quote={bundle.quote} course={bundleTemplateCourse({...bundle,amountMinor:bundle.quote.baseMinor},bundle.courseSlugs.map(slug=>courses.find(course=>course.slug===slug)!).filter(Boolean))} />;
+ return <PublicSiteShell> <main className="container lms-public-main lms-bundle-details"><h1>{commerceCopy.bundles}</h1><BundleCard bundle={bundle} labels={commerceCopy} courses={courses.map(({slug,title,delivery})=>({slug,title,delivery}))} detail /></main></PublicSiteShell>;
 }
 ```
 
@@ -5976,10 +6012,12 @@ export default function TemplateSectionOrder({order,onChange}:{order:WorkshopSec
 
 ### File: `modules/components/admin/template/template-editor.tsx`
 
-SHA-256: `ef2243d378fc10e9457d2c182d5ed545021a177ef9c4ee3fb4f24bc7cad7670a`
+SHA-256: `51c84cec65ae1ab0b493946f3d81e0fb70817cb8973b66a10b62ff54ff06c28a`
 
 ```tsx
 "use client";
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
 import { Checkbox } from "@khatab/design/ui/choice-controls";
 import { templateContentKeys } from "@platform/config/workshop-template";
 import { TemplateLabelsContext,type TemplateLabels } from "@platform/hooks/use-template-labels";
@@ -5988,12 +6026,12 @@ import type { TemplateRecord,WorkshopTemplate,TemplateValue } from "@platform/ty
 import TemplateValueFields from "./value-fields";
 import TemplateSectionOrder from "./section-order";
 import SaveFeedback from "../save-feedback";
-export default function WorkshopTemplateEditor({slug,record,defaults,sample,labels}:{slug:string;record:TemplateRecord;defaults:WorkshopTemplate;sample:WorkshopTemplate;labels:TemplateLabels}) {
+export default function WorkshopTemplateEditor({slug,record,defaults,sample,labels,endpoint}:{slug:string;record:TemplateRecord;defaults:WorkshopTemplate;sample:WorkshopTemplate;labels:TemplateLabels;endpoint?:string}) {
  const {copy:templateCopy,fields:templateFieldLabels}=labels;
- const command=useWorkshopTemplateEditor(slug,record,templateCopy.error),{document,setDocument}=command;
+ const command=useWorkshopTemplateEditor(slug,record,templateCopy.error,endpoint),{document,setDocument}=command;
  return <TemplateLabelsContext value={labels}><form className="lms-profile-form lms-template-editor" onSubmit={e=>{e.preventDefault();void command.save();}}><p className="lms-field-hint">{templateCopy.hint}</p><fieldset disabled={command.pending}>
  <TemplateSectionOrder order={document.order} onChange={order=>setDocument(v=>({...v,order}))} />
- <section className="lms-profile-card"><Checkbox label={templateCopy.showCountdown} checked={document.showCountdown} onChange={e=>setDocument(v=>({...v,showCountdown:e.target.checked}))} /><Checkbox label={templateCopy.showSignup} checked={document.showSignup} onChange={e=>setDocument(v=>({...v,showSignup:e.target.checked}))} /></section>
+ <section className="lms-profile-card"><p className="lms-field-hint">{templateCopy.saleHint}</p><Link className="lms-text-link" href={routes.adminCommerce("offers")}>{templateCopy.manageOffers}</Link><Checkbox label={templateCopy.showCountdown} checked={document.showCountdown} onChange={e=>setDocument(v=>({...v,showCountdown:e.target.checked}))} /></section>
  {templateContentKeys.map(key=><details className="lms-profile-card" key={key}><summary>{templateFieldLabels[key]}</summary><TemplateValueFields name={key} value={document.content[key] as unknown as TemplateValue} sample={sample.content[key as keyof typeof sample.content] as unknown as TemplateValue} onChange={next=>setDocument(v=>({...v,content:{...v.content,[key]:next}}))} /></details>)}
  <button type="button" className="lms-text-link" onClick={()=>{if(window.confirm(templateCopy.confirmReset)) setDocument(structuredClone(defaults));}}>{templateCopy.reset}</button></fieldset><SaveFeedback {...command} labels={templateCopy} /></form></TemplateLabelsContext>;
 }
@@ -6271,14 +6309,15 @@ export default function CertificateCard({
 
 ### File: `modules/components/commerce/admin/bundle-fields.tsx`
 
-SHA-256: `6d1badb93e02fc4a479ef069e9f89eb506d085f0fadcf88f9024897f9bc74849`
+SHA-256: `77fefb6de5f6aef8c299ae209bf26dad3f281b21277a45d75f77047a1e23d3e0`
 
 ```tsx
+import FeaturedLayoutField from "@platform/components/admin/featured-layout-field";
 import FormField from "@platform/components/ui/form-field";
 import { Checkbox } from "@khatab/design/ui/choice-controls";
 import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
 export default function BundleFields({record,labels,courses}:{record:CommerceRecord;labels:CommerceLabels;courses:readonly {slug:string;title:string}[]}) {
- return <><FormField name="amount" label={labels.amount} defaultValue={record.amountMinor/100 || ''} inputMode="numeric" pattern="[0-9]+" required />
+ return <><FeaturedLayoutField featured={record.featured} labels={labels} /><FormField name="amount" label={labels.amount} defaultValue={record.amountMinor/100 || ''} inputMode="numeric" pattern="[0-9]+" required />
  <fieldset className="lms-commerce-course-picker"><legend>{labels.courses}</legend><p className="lms-field-hint">{labels.bundleHint}</p>{courses.map(course=><Checkbox key={course.slug} name="courseSlugs" value={course.slug} label={course.title} defaultChecked={record.courseSlugs.includes(course.slug)} />)}</fieldset></>;
 }
 ```
@@ -6400,13 +6439,15 @@ export default function CommerceRecordForm({kind,record,labels,courses,targets,p
 
 ### File: `modules/components/commerce/admin/records-table.tsx`
 
-SHA-256: `e8b04a6e328a14b942c242f0d4539440936bdbc4e6c2feb2acbd3d32db6d6d23`
+SHA-256: `139ec98064d8dec0087d09c751897033dad829770071444f127440c2c9f40d3c`
 
 ```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
 import type { CommerceKind,CommerceRecord,CommerceLabels } from "@platform/types/commerce";
 export default function CommerceRecordsTable({kind,records,labels,onEdit}:{kind:CommerceKind;records:CommerceRecord[];labels:CommerceLabels;onEdit:(record:CommerceRecord,remove?:boolean)=>void}) {
  return <div className="lms-admin-table-wrap" data-reveal="true"><table className="lms-admin-table lms-commerce-table"><caption className="lms-visually-hidden">{labels[kind]}</caption><thead><tr>{[labels.name,labels.key,kind==='bundles' ? labels.amount : labels.discountValue,labels.status,labels.edit].map((label,index)=><th key={index} scope="col">{label}</th>)}</tr></thead>
- <tbody>{records.map(record=><tr key={record.key}><th scope="row"><strong>{record.title}</strong></th><td data-label={labels.key}><bdi>{record.key}</bdi></td><td data-label={labels.discountValue}>{kind==='bundles' ? `${record.amountMinor/100} ${labels.currency}` : record.discountType==='percent' ? `${record.discountValue}%` : `${record.discountValue/100} ${labels.currency}`}</td><td data-label={labels.status}>{record.enabled ? labels.active : labels.inactive}</td><td data-label={labels.edit} className="lms-admin-row-actions"><div className="lms-admin-actions"><button className="lms-secondary-button" onClick={()=>onEdit(record)}>{labels.edit}</button><button className="lms-admin-danger" onClick={()=>onEdit(record,true)}>{labels.remove}</button></div></td></tr>)}</tbody></table>{!records.length && <p className="lms-commerce-empty">{labels.empty}</p>}</div>;
+ <tbody>{records.map(record=><tr key={record.key}><th scope="row"><strong>{record.title}</strong></th><td data-label={labels.key}><bdi>{record.key}</bdi></td><td data-label={labels.discountValue}>{kind==='bundles' ? `${record.amountMinor/100} ${labels.currency}` : record.discountType==='percent' ? `${record.discountValue}%` : `${record.discountValue/100} ${labels.currency}`}</td><td data-label={labels.status}>{record.enabled ? labels.active : labels.inactive}</td><td data-label={labels.edit} className="lms-admin-row-actions"><div className="lms-admin-actions">{kind==='bundles' && <Link className="lms-text-link" href={routes.adminBundleTemplate(record.key)}>{labels.featuredLayout}</Link>}<button className="lms-secondary-button" onClick={()=>onEdit(record)}>{labels.edit}</button><button className="lms-admin-danger" onClick={()=>onEdit(record,true)}>{labels.remove}</button></div></td></tr>)}</tbody></table>{!records.length && <p className="lms-commerce-empty">{labels.empty}</p>}</div>;
 }
 ```
 
@@ -6501,6 +6542,26 @@ export default function CheckoutControls({input,initial,labels,paymentLabels}:{i
  <button className="lms-secondary-button" disabled={state.pending || !state.coupon.trim()}>{labels.applyCoupon}</button>{state.quote.couponCode && <button type="button" className="lms-course-text-link" disabled={state.pending} onClick={()=>void state.apply(true)}>{labels.removeCoupon}: <bdi>{state.quote.couponCode}</bdi></button>}</form>
  {state.error && <p className="lms-error" role="alert">{state.error}</p>}<PriceSummary quote={state.quote} labels={labels} />
  <CheckoutButton key={`${state.quote.couponCode}:${state.quote.totalMinor}`} input={{...input,...(state.quote.couponCode ? {couponCode:state.quote.couponCode} : {})}} totalMinor={state.quote.totalMinor} disabled={state.pending} labels={{...paymentLabels,pay:state.quote.totalMinor===0 ? labels.checkout : paymentLabels.pay}} /><p className="lms-payment-caption">{state.quote.totalMinor===0 ? labels.freeCheckoutHint : paymentLabels.secure}</p></>;
+}
+```
+
+### File: `modules/components/commerce/featured-offer-bar.tsx`
+
+SHA-256: `571c05afdfaeb9e90f70c244f6c0c8fa5f8a9650e14e0aea1edddc0a1a70cc3b`
+
+```tsx
+"use client";
+import Container from "@khatab/design/ui/container";
+import { useDeadlineExpired } from "@platform/hooks/use-deadline-expired";
+import DiscountCountdown from "@/app/components/workshop/discount-countdown";
+import type { CountdownContent } from "@khatab/design/types/interactions";
+export default function FeaturedOfferBar({offer,countdown}:{offer:{title:string;endsAt:string|null;remaining:number};countdown:CountdownContent}) {
+ const options={endsAt:offer.endsAt,durationSeconds:offer.remaining,storageKey:"",tickMs:1000},expired=useDeadlineExpired(offer.endsAt,offer.remaining);
+ if(expired) return null;
+ return <aside className="top-scarcity-bar lms-featured-offer-bar" aria-label={offer.title}><Container className="top-bar-inner"><div className="top-scarcity-nav-capsule">
+ <span className="top-live-item lms-featured-offer-name" title={offer.title}>{offer.title}</span>
+ {offer.endsAt && <><span className="top-bar-sep" aria-hidden="true">•</span><DiscountCountdown content={countdown} options={options} /></>}
+ </div></Container></aside>;
 }
 ```
 
@@ -9810,7 +9871,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `3caa969e10f0ba9ac95fbf99511d1548da451b7389eb00d48bd1fc9cb41ff1bd`
+SHA-256: `acd37ac79348c010a1a93e32cdb4163c55e26b4b112faf27ce94115cded45eff`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9865,6 +9926,7 @@ export const routes = {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
   },
+  adminBundleTemplate: (slug:string) => `/admin/dashboard/commerce/bundles/${segment(slug)}/template`,
   adminCourseCreate: "/admin/dashboard/courses/new",
   adminCourseTemplate: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/template`,
   adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
@@ -9899,6 +9961,8 @@ export const endpoints = {
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminMediaStream: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/stream?url=${encodeURIComponent(url)}`,
+  bundleTemplateMedia: (slug:string,clip:string) => `/api/bundles/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
+  adminBundleTemplate: (slug:string) => `/api/admin/commerce/bundles/${segment(slug)}/template`,
   templateMedia: (slug: string, clip: string) => `/api/courses/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
   adminTemplate: (slug: string) => `/api/admin/courses/${segment(slug)}/template`,
   adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,
@@ -9992,7 +10056,7 @@ export const userSearchModes = ["contains", "prefix"] as const;
 
 ### File: `modules/config/workshop-template.ts`
 
-SHA-256: `657ce762bb75a5efc95e2bb27f9329d4b2935388633bc092b2ec52788d96ede6`
+SHA-256: `90118baa1a80d2b21ca6bf01cff24dc8a42f9971da52104958186392a12fe59b`
 
 ```typescript
 import { workshopSectionKeys as sharedSectionKeys } from "@khatab/design/types/marketing";
@@ -10000,9 +10064,9 @@ export const workshopSectionKeys=sharedSectionKeys;
 export const templatePolicy = { maxBytes: 96 * 1024, maxRequestBytes: 128 * 1024, maxItems: 40, maxDepth: 14, maxString: 6000 } as const;
 export const templateLockedFields = new Set(["section", "className", "icon", "kind", "controlsVariant", "returnToPosterOnEnd", "key", "platform"]);
 
-export const isTemplateEndpoint=(path:string)=>/^\/api\/admin\/courses\/[a-z0-9]+(?:-[a-z0-9]+)*\/template$/.test(path);
+export const isTemplateEndpoint=(path:string)=>/^\/api\/admin\/(?:courses|commerce\/bundles)\/[a-z0-9]+(?:-[a-z0-9]+)*\/template$/.test(path);
 
-export const templateContentKeys=[...workshopSectionKeys,"scarcity","offer","footer","signup"] as const;
+export const templateContentKeys=[...workshopSectionKeys,"footer"] as const;
 ```
 
 ### File: `modules/data/account.ts`
@@ -10255,11 +10319,13 @@ export const lessonResources: Record<string, readonly string[]> = {
 
 ### File: `modules/data/commerce.ts`
 
-SHA-256: `4da2d1fd7236eb24ff50ae1e47b4ad9970fa710b84e47d6787e2440396ea76b9`
+SHA-256: `29a12cd69160a04f65a11830e76da8f10371c9f14f8f5a6a9715842c79817b87`
 
 ```typescript
+import { adminCopy } from "./admin";
 import type { CommerceLabels } from "@platform/types/commerce";
 export const commerceCopy: CommerceLabels = {
+ featuredLayout:adminCopy.featuredLayout,featuredLayoutHint:adminCopy.featuredLayoutHint,
  title:"العروض والباقات",bundles:"باقات الدورات",offers:"التخفيضات والعروض",coupons:"كوبونات الخصم",create:"إضافة جديد",edit:"تعديل",remove:"حذف",
  name:"الاسم",key:"الرابط أو كود الكوبون",description:"الوصف",amount:"سعر الباقة (ج.م)",courses:"الدورات المشمولة",course:"الدورة",bundle:"الباقة",
  discountType:"نوع الخصم",percent:"نسبة مئوية",fixed:"مبلغ ثابت (ج.م)",discountValue:"قيمة الخصم",startsAt:"بداية العرض",endsAt:"نهاية العرض",
@@ -11146,7 +11212,7 @@ export const liveWorkshopCourse: Course = {
 
 ### File: `modules/data/workshop-template.ts`
 
-SHA-256: `e446acfd7e8f1797a06dd2d622a5d140265e72a618785d626c7471c42e2cb069`
+SHA-256: `a98fc5cb4c9d9d108a6cea9b9610b4c1e7b10c014b14c004c28ea6368d473fc4`
 
 ```typescript
 import { arabicPlayerLabels } from "@khatab/design/lib/player-labels";
@@ -11154,7 +11220,7 @@ export const templateCopy = {
  title: "تصميم الصفحة المميزة", hint: "خصّص النصوص والوسائط والروابط. افتح القسم لتعديله، وأضف العناصر أو رتّبها. قيم الألوان والخطوط والحركة مشتركة مع المنصة.",
  save: "حفظ التصميم", saving: "جارٍ الحفظ…", saved: "تم حفظ التصميم", error: "تعذّر الحفظ. راجع البيانات وحدّث الصفحة عند تعارض التعديلات.",
  add: "إضافة عنصر", remove: "حذف العنصر", up: "تحريك لأعلى", down: "تحريك لأسفل", reset: "استعادة التصميم الافتراضي", confirmReset: "استعادة القالب الافتراضي؟ لن تُحفظ الاستعادة قبل الضغط على حفظ التصميم.",
- showCountdown: "إظهار شريط العد التنازلي", showSignup: "إظهار إشعار التسجيل التجريبي", visibility: "الأقسام وترتيبها", show: "إظهار القسم", item: "عنصر", highlight: "إضافة نص مميز", text: "إضافة نص", nullableHint: "اتركه فارغًا بدون قيمة.",
+ manageOffers: "إدارة العروض", saleHint: "يرتبط الشريط تلقائيًا بالعرض النشط واسمه وموعد نهايته من العروض والباقات. لا يظهر بدون عرض نشط، ولا يعرض أعداد مشاهدين تجريبية.", showCountdown: "إظهار شريط العرض النشط", showSignup: "إظهار إشعار التسجيل التجريبي", visibility: "الأقسام وترتيبها", show: "إظهار القسم", item: "عنصر", highlight: "إضافة نص مميز", text: "إضافة نص", nullableHint: "اتركه فارغًا بدون قيمة.",
 } as const;
 export const templateFieldLabels: Record<string,string> = {
  ...arabicPlayerLabels,
@@ -13492,12 +13558,12 @@ export function commerceDatabaseError(error: {message:string;code?:string}): nev
 
 ### File: `modules/features/commerce/helpers/empty-record.ts`
 
-SHA-256: `1fdf65ddbdf8b3d2c45fd72f7686f6e30b8ebceb92f3dea04240e5a319ab7417`
+SHA-256: `53b3907bb006502ac528969abecc11cc99d9a8a9a118c8ff0fee6317d9ab7d9e`
 
 ```typescript
 import type { CommerceRecord } from "@platform/types/commerce";
 export function emptyCommerceRecord(): CommerceRecord {
- return {key:"",title:"",description:"",amountMinor:0,courseSlugs:[],courseSlug:null,bundleSlug:null,discountType:"percent",discountValue:10,startsAt:null,endsAt:null,enabled:false,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0,createdAt:"",updatedAt:""};
+ return {key:"",title:"",description:"",amountMinor:0,courseSlugs:[],courseSlug:null,bundleSlug:null,discountType:"percent",discountValue:10,startsAt:null,endsAt:null,enabled:false,featured:false,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0,createdAt:"",updatedAt:""};
 }
 ```
 
@@ -13513,7 +13579,7 @@ export function offerBaseAmount(offer:CourseOffer) { return offer.baseAmount ?? 
 
 ### File: `modules/features/commerce/helpers/read-form.ts`
 
-SHA-256: `2f2e2b4ba7b31c6a879818671f9e173e282af2ae4f9553d3060d97c985022f3e`
+SHA-256: `4e9add1c30539a93d7c3a25b717a2659fedd75d299449a7a3fb4db03f1b08f90`
 
 ```typescript
 import type { CommerceInput,CommerceRecord } from "@platform/types/commerce";
@@ -13526,7 +13592,7 @@ export function readCommerceForm(form:FormData,record:CommerceRecord): CommerceI
  return {...record,key:String(form.get('key') ?? record.key).trim(),title:String(form.get('title') ?? '').trim(),description:String(form.get('description') ?? ''),amountMinor:form.has('amount') ? minor(form.get('amount')) : record.amountMinor,
   courseSlugs:form.getAll('courseSlugs').map(String),courseSlug:target[0]==='course' ? target[1] : null,bundleSlug:target[0]==='bundle' ? target[1] : null,
   discountType:type,discountValue:form.has('discountValue') ? type==='fixed' ? minor(form.get('discountValue')) : Number(form.get('discountValue')) : record.discountValue,
-  startsAt:date(form.get('startsAt')),endsAt:date(form.get('endsAt')),enabled:form.has('enabled'),stackable:form.has('stackable'),minimumMinor:form.has('minimum') ? minor(form.get('minimum')) : 0,
+  startsAt:date(form.get('startsAt')),endsAt:date(form.get('endsAt')),enabled:form.has('enabled'),featured:form.getAll('featured').some(value=>value==='on' || value==='true'),stackable:form.has('stackable'),minimumMinor:form.has('minimum') ? minor(form.get('minimum')) : 0,
   maximumUses:nullable(form.get('maximumUses')) ? Number(form.get('maximumUses')) : null,perUserLimit:Number(form.get('perUserLimit') ?? 1)};
 }
 export function localDateInput(value:string | null) {
@@ -13537,14 +13603,14 @@ export function localDateInput(value:string | null) {
 
 ### File: `modules/features/commerce/helpers/read-record.ts`
 
-SHA-256: `5834506b919f518a48c118dd209d9ba4f709af4b2f1315cac729ba6c1ec2024d`
+SHA-256: `938b06dad85af93fbe67b486036749a3454149afd51b71e5f4d2afa3b3419114`
 
 ```typescript
 import type { Tables } from "@platform/types/database";
 import type { CommerceRecord } from "@platform/types/commerce";
 import { emptyCommerceRecord } from "./empty-record";
 export function readBundleRecord(row: Tables<"commerce_bundles">, courseSlugs: string[]): CommerceRecord {
- return {...emptyCommerceRecord(),key:row.slug,title:row.title,description:row.description,amountMinor:row.amount_minor,enabled:row.enabled,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,courseSlugs};
+ return {...emptyCommerceRecord(),key:row.slug,title:row.title,description:row.description,amountMinor:row.amount_minor,enabled:row.enabled,featured:row.featured,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,courseSlugs};
 }
 export function readDiscountRecord(row: Tables<"commerce_discounts">): CommerceRecord {
  return {...emptyCommerceRecord(),key:row.key,title:row.title,description:row.description,courseSlug:row.course_slug,bundleSlug:row.bundle_slug,discountType:row.discount_type as "percent" | "fixed",discountValue:row.discount_value,startsAt:row.starts_at,endsAt:row.ends_at,enabled:row.enabled,stackable:row.stackable,minimumMinor:row.minimum_minor,maximumUses:row.maximum_uses,perUserLimit:row.per_user_limit,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at};
@@ -13584,7 +13650,7 @@ export function validatePurchase(value: unknown): PurchaseInput | null {
 
 ### File: `modules/features/commerce/helpers/validate-record.ts`
 
-SHA-256: `09c7946f1abaf1ae9cfe1b55bc12bee44c03e210fff89c87f98d84688b65fa0e`
+SHA-256: `a5517b7259994eb317c9ad690a9721e41b5f6b70deb6244b2103dd6159976a63`
 
 ```typescript
 import { commercePolicy } from "@platform/config/commerce";
@@ -13597,6 +13663,7 @@ export function validateCommerceRecord(kind: CommerceKind, value: unknown): Comm
  const v = value as CommerceInput;
  if (typeof v.key !== "string" || !(kind === "coupons" ? /^[A-Z0-9_-]{1,40}$/.test(v.key) : slug(v.key))) return null;
  if (typeof v.title !== "string" || !v.title.trim() || v.title.length > commercePolicy.maxTitle || typeof v.description !== "string" || v.description.length > commercePolicy.maxDescription) return null;
+ if (v.featured !== undefined && typeof v.featured !== "boolean") return null;
  if (!integer(v.revision,0,2_000_000_000) || typeof v.enabled !== "boolean" || typeof v.stackable !== "boolean") return null;
  if (!date(v.startsAt) || !date(v.endsAt) || v.startsAt && v.endsAt && Date.parse(v.startsAt) >= Date.parse(v.endsAt)) return null;
  if (v.courseSlug !== null && !slug(v.courseSlug) || v.bundleSlug !== null && !slug(v.bundleSlug) || v.courseSlug && v.bundleSlug) return null;
@@ -13606,7 +13673,7 @@ export function validateCommerceRecord(kind: CommerceKind, value: unknown): Comm
  if (kind === "offers" && !v.courseSlug && !v.bundleSlug) return null;
  if (!["percent","fixed"].includes(v.discountType) || !integer(v.discountValue,1,v.discountType === "percent" ? 100 : commercePolicy.maximumMinor)) return null;
  if (v.maximumUses !== null && !integer(v.maximumUses,1,1_000_000) || !integer(v.perUserLimit,1,1_000_000)) return null;
- return {key:v.key,title:v.title.trim(),description:v.description.trim(),amountMinor:v.amountMinor,courseSlugs:v.courseSlugs,courseSlug:v.courseSlug,bundleSlug:v.bundleSlug,discountType:v.discountType,discountValue:v.discountValue,startsAt:v.startsAt,endsAt:v.endsAt,enabled:v.enabled,stackable:v.stackable,minimumMinor:v.minimumMinor,maximumUses:v.maximumUses,perUserLimit:v.perUserLimit,revision:v.revision};
+ return {...(v.featured!==undefined ? {featured:v.featured} : {}),key:v.key,title:v.title.trim(),description:v.description.trim(),amountMinor:v.amountMinor,courseSlugs:v.courseSlugs,courseSlug:v.courseSlug,bundleSlug:v.bundleSlug,discountType:v.discountType,discountValue:v.discountValue,startsAt:v.startsAt,endsAt:v.endsAt,enabled:v.enabled,stackable:v.stackable,minimumMinor:v.minimumMinor,maximumUses:v.maximumUses,perUserLimit:v.perUserLimit,revision:v.revision};
 }
 ```
 
@@ -14589,17 +14656,21 @@ export default async function PublicSiteShell({
 
 ### File: `modules/features/marketing/templates/default-template.ts`
 
-SHA-256: `dbd8ae26498ef3132e4bdf82c55b084c45bbec86864f567ac4ba05cd4f9eee50`
+SHA-256: `90990bc134780eba76b0c2db7d875c520236242e5bd0df761d92394d4ee7e348`
 
 ```typescript
 import { workshopPage } from "@/app/data/workshop";
 import { liveWorkshopCourse } from "@platform/data/workshop-course";
 import { workshopCourseContent } from "../models/workshop-course";
 import { workshopSectionKeys } from "@platform/config/workshop-template";
+import { routes } from "@platform/config/navigation";
+import { commerceCopy } from "@platform/data/commerce";
+import type { ProductKind } from "@platform/types/commerce";
 import type { Course } from "@platform/types/lms";
 import type { WorkshopTemplate, TemplateContent } from "@platform/types/workshop-template";
-export function defaultWorkshopTemplate(course: Course): WorkshopTemplate {
+export function defaultWorkshopTemplate(course: Course,kind:ProductKind="course"): WorkshopTemplate {
  const page = workshopCourseContent(workshopPage,course,liveWorkshopCourse);
+ if(kind==='bundle') {const action={href:routes.bundleCheckout(course.slug),label:commerceCopy.buyBundle};page.hero={...page.hero,action};page.roadmap={...page.roadmap,action};page.finalCta={...page.finalCta,action};}
  const content = Object.fromEntries(workshopSectionKeys.map(key=>[key,page[key]])) as Pick<TemplateContent,typeof workshopSectionKeys[number]>;
  const original = course.introVideoUrl || workshopPage.hero.video.source.url;
  const video = {controls:page.hero.video.controls,controlsVariant:page.hero.video.controlsVariant,returnToPosterOnEnd:page.hero.video.returnToPosterOnEnd,title:page.hero.video.title,playLabel:page.hero.video.playLabel,caption:page.hero.video.caption,hint:page.hero.video.hint,poster:page.hero.video.poster};
@@ -14610,27 +14681,57 @@ export function defaultWorkshopTemplate(course: Course): WorkshopTemplate {
 
 ### File: `modules/features/marketing/templates/featured-course.tsx`
 
-SHA-256: `b41ed568a4ad31a1f5d718102ff2b12502081b4eb7210579bdce709f21c3095e`
+SHA-256: `2748d5d1bea59f48ee34bb6833e3b086f61c4cc9b9661eb44a9fd2a4e34bfdb7`
 
 ```tsx
 import { WorkshopPage } from "@/app/components/workshop";
 import { workshopPage } from "@/app/data/workshop";
-import ScarcityBar from "@/app/components/workshop/scarcity-bar";
+import FeaturedOfferBar from "@platform/components/commerce/featured-offer-bar";
+import { quotePurchase } from "@platform/features/commerce/repositories/quote";
+import { activeFeaturedOffer } from "./helpers/active-offer";
+import type { ProductKind,PriceQuote } from "@platform/types/commerce";
 import MainSiteHeader from "../main-site-header";
 import { readWorkshopTemplate } from "./repository";
 import { resolveTemplateMedia } from "./helpers/template-media";
 import type { Course } from "@platform/types/lms";
-export default async function FeaturedCourse({course}:{course:Course}) {
- const {document:stored}=await readWorkshopTemplate(course),document=resolveTemplateMedia(stored,course.slug);
+export default async function FeaturedCourse({course,kind="course",quote:providedQuote}:{course:Course;kind?:ProductKind;quote?:PriceQuote}) {
+ const {document:stored}=await readWorkshopTemplate(course,kind),document=resolveTemplateMedia(stored,course.slug,kind);
+ const quote=providedQuote ?? await quotePurchase(kind==='bundle' ? {bundleSlug:course.slug} : {courseSlug:course.slug}),offer=activeFeaturedOffer(quote);
  const {scarcity,...editable}=document.content;
  const content={...workshopPage,...editable,header:{...workshopPage.header,...scarcity}};
- return <WorkshopPage content={content} order={document.order} showSignup={document.showSignup} header={<><MainSiteHeader />{document.showCountdown && <ScarcityBar content={scarcity} offer={editable.offer} />}</>} />;
+ return <WorkshopPage content={content} order={document.order} showSignup={false} header={<><MainSiteHeader />{document.showCountdown && offer && <FeaturedOfferBar key={`${offer.title}:${offer.endsAt}`} offer={offer} countdown={scarcity.countdown} />}</>} />;
+}
+```
+
+### File: `modules/features/marketing/templates/handle-media.ts`
+
+SHA-256: `38d0a6dfb3f24ff193f007ded1ff0f2b8383066e7c94d966e8ab265ec4a1423e`
+
+```typescript
+import { readPublicTemplateSubject } from "./public-subject";
+import { isFeaturedCourse } from "@platform/features/catalog/helpers/is-featured-course";
+import { readWorkshopTemplate } from "./repository";
+import { templateMediaUrl } from "./helpers/template-media";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import { streamDrive } from "@platform/features/catalog/stream-drive";
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import type { ProductKind } from "@platform/types/commerce";
+export function handleTemplateMedia(kind:ProductKind,slug:string,request:Request) {
+ return apiResponse(async()=>{
+  const course=await readPublicTemplateSubject(kind,slug);
+  if(!course || !isFeaturedCourse(course)) throw new ApiError(404,'NOT_FOUND');
+  const {document}=await readWorkshopTemplate(course,kind),clip=new URL(request.url).searchParams.get('clip') ?? '';
+  const url=templateMediaUrl(document,clip);
+  if(!url || !driveFileId(url) || !document.order.includes(clip==='hero' ? 'hero' : 'clients')) throw new ApiError(404,'NOT_FOUND');
+  return streamDrive(url,request);
+ });
 }
 ```
 
 ### File: `modules/features/marketing/templates/handle-template.ts`
 
-SHA-256: `1e77cc1f65e01fd01f44353c5008e9e0866dac70cd7d7715aecea10d4016d36b`
+SHA-256: `570fa77f3571f549eddbb9eea2bda13d7102b013f13b489b82b55820fa71215f`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
@@ -14638,23 +14739,36 @@ import { ApiError } from "@platform/lib/api/error";
 import { sameOrigin } from "@platform/lib/server-request";
 import { readRequestBytes } from "@platform/lib/read-request-bytes";
 import { requireAdmin } from "@platform/features/admin/identity";
-import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { readTemplateSubject } from "./template-subject";
+import type { ProductKind } from "@platform/types/commerce";
 import { templatePolicy } from "@platform/config/workshop-template";
 import { defaultWorkshopTemplate } from "./default-template";
 import { validateWorkshopTemplate } from "./helpers/validate-document";
 import { readWorkshopTemplate,saveWorkshopTemplate } from "./repository";
-export function handleWorkshopTemplate(slug:string,request?:Request) {
+export function handleWorkshopTemplate(slug:string,request?:Request,kind:ProductKind="course") {
  return apiResponse(async()=>{
-  await requireAdmin();const record=(await readAdminCourses(slug))[0];
-  if(!record) throw new ApiError(404,'NOT_FOUND');
-  if(!request) return Response.json(await readWorkshopTemplate(record.course));
+  await requireAdmin();const course=await readTemplateSubject(kind,slug);
+  if(!course) throw new ApiError(404,'NOT_FOUND');
+  if(!request) return Response.json(await readWorkshopTemplate(course,kind));
   if(!sameOrigin(request)) throw new ApiError(403,'FORBIDDEN');
   if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '')) throw new ApiError(400,'INVALID_INPUT');
   const bytes=await readRequestBytes(request,templatePolicy.maxRequestBytes);let body;
   try {body=JSON.parse(new TextDecoder().decode(bytes ?? new Uint8Array()));}catch{throw new ApiError(400,'INVALID_INPUT');}
-  if(!body || !Number.isInteger(body.revision) || body.revision<0 || body.revision>2_000_000_000 || !validateWorkshopTemplate(body.document,defaultWorkshopTemplate(record.course))) throw new ApiError(400,'INVALID_INPUT');
-  return Response.json(await saveWorkshopTemplate(slug,body.document,body.revision));
+  if(!body || !Number.isInteger(body.revision) || body.revision<0 || body.revision>2_000_000_000 || !validateWorkshopTemplate(body.document,defaultWorkshopTemplate(course,kind))) throw new ApiError(400,'INVALID_INPUT');
+  return Response.json(await saveWorkshopTemplate(slug,body.document,body.revision,kind));
  });
+}
+```
+
+### File: `modules/features/marketing/templates/helpers/active-offer.ts`
+
+SHA-256: `233246e6395e0b84ff1c8a427eec7626e6490c8302eea5a3b2afcb19a29e9c68`
+
+```typescript
+import type { PriceQuote } from "@platform/types/commerce";
+export function activeFeaturedOffer(quote:PriceQuote,now:number=Date.now()) {
+ if(quote.offerMinor<=0 || !quote.offerTitle || quote.endsAt && (!Number.isFinite(Date.parse(quote.endsAt)) || Date.parse(quote.endsAt)<=now)) return null;
+ return {title:quote.offerTitle,endsAt:quote.endsAt,remaining:quote.endsAt ? Math.max(0,Math.ceil((Date.parse(quote.endsAt)-now)/1000)) : 0};
 }
 ```
 
@@ -14674,6 +14788,25 @@ export function templateArrayPrototypes(key:string):unknown[] {
 }
 ```
 
+### File: `modules/features/marketing/templates/helpers/bundle-course.ts`
+
+SHA-256: `6a5fe58b2d54f4a59d78df4ca3ca2a97d0b3ac78c8dd3972b81de281aed84da9`
+
+```typescript
+import type { Course } from "@platform/types/lms";
+import { formatCourseDuration } from "@platform/features/catalog/helpers/format-course-duration";
+import { courseSeconds } from "@platform/features/catalog/helpers/course-seconds";
+import { commerceCopy } from "@platform/data/commerce";
+export function bundleTemplateCourse(bundle:{slug:string;title:string;description:string;featured?:boolean;amountMinor:number},courses:Course[]):Course {
+ const seconds=courses.reduce((sum,course)=>sum+courseSeconds(course),0);
+ return {slug:bundle.slug,title:bundle.title,description:bundle.description,featured:bundle.featured,
+ category:"business",categoryLabel:commerceCopy.bundles,deliveryLabel:commerceCopy.bundles,artwork:"business",tool:"",level:"",subtitle:"",outcomes:[],
+ duration:seconds ? formatCourseDuration(seconds) : "",
+ modules:courses.map(course=>({title:course.title,lessons:course.modules.flatMap(chapter=>chapter.lessons)})),
+ offer:{amount:bundle.amountMinor/100,currencyLabel:commerceCopy.currency,caption:"",actionLabel:commerceCopy.buyBundle}};
+}
+```
+
 ### File: `modules/features/marketing/templates/helpers/move-items.ts`
 
 SHA-256: `c24744da1795d20610b10162a949a2ebb6abf6e4a4e5188d8a44abcdd6858871`
@@ -14687,20 +14820,21 @@ export function moveTemplateItem<T>(items:readonly T[],from:number,to:number):T[
 
 ### File: `modules/features/marketing/templates/helpers/template-media.ts`
 
-SHA-256: `6844de57e87579966a1e055aac4ffe5b6dabd9aad4720594648e5b4571b59b98`
+SHA-256: `7da3b621f8db101633e1415837f9accd2f48ec3a73aaa67ba97757a11c3011dd`
 
 ```typescript
 import type { VideoContent } from "@khatab/design/types/ui";
 import { driveFileId } from "@platform/helpers/media/drive-file-id";
 import { endpoints } from "@platform/config/navigation";
+import type { ProductKind } from "@platform/types/commerce";
 import type { WorkshopTemplate } from "@platform/types/workshop-template";
 export function templateMediaUrl(document:WorkshopTemplate,clip:string):string | undefined {
  if(clip==='hero') return document.content.hero.video.source?.url ?? document.content.hero.video.url;
  if(!/^reel-\d{1,2}$/.test(clip)) return;
  return document.content.clients.reels[Number(clip.slice(5))]?.video?.source.url;
 }
-export function resolveTemplateMedia(document:WorkshopTemplate,slug:string):WorkshopTemplate {
- const resolve=(url:string,clip:string)=>driveFileId(url) ? endpoints.templateMedia(slug,clip) : url;
+export function resolveTemplateMedia(document:WorkshopTemplate,slug:string,kind:ProductKind="course"):WorkshopTemplate {
+ const resolve=(url:string,clip:string)=>driveFileId(url) ? (kind==='bundle' ? endpoints.bundleTemplateMedia(slug,clip) : endpoints.templateMedia(slug,clip)) : url;
  const hero=document.content.hero,video=hero.video;
  const resolvedVideo:VideoContent=video.source ? {...video,source:{...video.source,url:resolve(video.source.url,'hero')}} : {...video,url:resolve(video.url,'hero')};
  return {...document,content:{...document.content,hero:{...hero,video:resolvedVideo},clients:{...document.content.clients,reels:document.content.clients.reels.map((reel,index)=>({...reel,...(reel.video ? {video:{...reel.video,source:{...reel.video.source,url:resolve(reel.video.source.url,`reel-${index}`)}}} : {})}))}}};
@@ -14792,9 +14926,27 @@ export function validTemplateValue(value:unknown,sample:unknown,key='',depth=0):
 }
 ```
 
+### File: `modules/features/marketing/templates/public-subject.ts`
+
+SHA-256: `10a5eec5265460441ddae638f1809940bc938c7d70ec262e5ebbe065aa4b0184`
+
+```typescript
+import "server-only";
+import { findCourse,listCourses } from "@platform/features/catalog/service";
+import { findBundle } from "@platform/features/commerce/repositories/bundles";
+import type { ProductKind } from "@platform/types/commerce";
+import { bundleTemplateCourse } from "./helpers/bundle-course";
+export async function readPublicTemplateSubject(kind:ProductKind,slug:string) {
+ if(kind==='course') return findCourse(slug);
+ const bundle=await findBundle(slug);if(!bundle) return;
+ const courses=await listCourses();
+ return bundleTemplateCourse({...bundle,amountMinor:bundle.quote.baseMinor},bundle.courseSlugs.map(slug=>courses.find(course=>course.slug===slug)!).filter(Boolean));
+}
+```
+
 ### File: `modules/features/marketing/templates/repository.ts`
 
-SHA-256: `98e4c3d941120ed08604eb6ec91e6c2797fd7a075f7bb8e95319af0dcb573659`
+SHA-256: `2c66902ea3add3fe84e6696847108772e47273f1953eb0a4095e586b9ff09cb8`
 
 ```typescript
 import "server-only";
@@ -14805,21 +14957,47 @@ import { defaultWorkshopTemplate } from "./default-template";
 import { validateWorkshopTemplate } from "./helpers/validate-document";
 import type { Course } from "@platform/types/lms";
 import type { TemplateRecord, WorkshopTemplate } from "@platform/types/workshop-template";
+import type { ProductKind } from "@platform/types/commerce";
 import type { Json } from "@platform/types/database";
-export async function readWorkshopTemplate(course:Course):Promise<TemplateRecord> {
+export async function readWorkshopTemplate(course:Course,kind:ProductKind="course"):Promise<TemplateRecord> {
  const client=await createDatabaseClient();
- const {data,error}=await client.from('workshop_templates').select('document,revision').eq('course_slug',course.slug).maybeSingle();
+ const {data,error}=await client.from('workshop_templates').select('document,revision').eq(kind==='bundle' ? 'bundle_slug' : 'course_slug',course.slug).maybeSingle();
  if(error) throw new ApiError(503,'INTERNAL_ERROR');
- const fallback=defaultWorkshopTemplate(course);
+ const fallback=defaultWorkshopTemplate(course,kind);
  return {document:data && validateWorkshopTemplate(data.document,fallback) ? data.document : fallback, revision:data?.revision ?? 0};
 }
-export async function saveWorkshopTemplate(slug:string,document:WorkshopTemplate,revision:number) {
+export async function saveWorkshopTemplate(slug:string,document:WorkshopTemplate,revision:number,kind:ProductKind="course") {
  const {client}=await requireAdmin();
  const values={document:JSON.parse(JSON.stringify(document)) as NonNullable<Json>,revision:revision+1,updated_at:new Date().toISOString()};
- const result=revision===0 ? await client.from('workshop_templates').insert({...values,course_slug:slug}).select('revision').single() : await client.from('workshop_templates').update(values).eq('course_slug',slug).eq('revision',revision).select('revision').maybeSingle();
+ const result=revision===0 ? await client.from('workshop_templates').insert({...values,course_slug:kind==='course' ? slug : null,bundle_slug:kind==='bundle' ? slug : null}).select('revision').single() : await client.from('workshop_templates').update(values).eq(kind==='bundle' ? 'bundle_slug' : 'course_slug',slug).eq('revision',revision).select('revision').maybeSingle();
  if(result.error?.code==='23505' || !result.error && !result.data) throw new ApiError(409,'COURSE_CONFLICT');
  if(result.error) throw new ApiError(503,'INTERNAL_ERROR');
  return {saved:true,revision:result.data!.revision};
+}
+```
+
+### File: `modules/features/marketing/templates/template-subject.ts`
+
+SHA-256: `b011eea3221773cc4aa2ee6f2224ce546b531c71651ad4d11e502824f7cf8bcd`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { readAdminCourses } from "@platform/features/admin/repositories/courses";
+import { ApiError } from "@platform/lib/api/error";
+import type { ProductKind } from "@platform/types/commerce";
+import { bundleTemplateCourse } from "./helpers/bundle-course";
+export async function readTemplateSubject(kind:ProductKind,slug:string) {
+ if(kind==='course') return (await readAdminCourses(slug))[0]?.course;
+ await requireAdmin();
+ const client=createAuthAdministrator();
+ const {data:bundle,error}=await client.from('commerce_bundles').select('*').eq('slug',slug).maybeSingle();
+ if(error) throw new ApiError(503,'INTERNAL_ERROR');if(!bundle) return;
+ const members=await client.from('commerce_bundle_courses').select('course_slug').eq('bundle_slug',slug).order('position');
+ if(members.error) throw new ApiError(503,'INTERNAL_ERROR');
+ const records=await readAdminCourses(),courses=members.data.map(member=>records.find(record=>record.course.slug===member.course_slug)?.course).filter(course=>!!course);
+ return bundleTemplateCourse({slug,title:bundle.title,description:bundle.description,featured:bundle.featured,amountMinor:bundle.amount_minor},courses);
 }
 ```
 
@@ -16456,6 +16634,26 @@ export function useCurrentTime(interval: number) {
 }
 ```
 
+### File: `modules/hooks/use-deadline-expired.ts`
+
+SHA-256: `03e5f46036182a852a9f5bada73608059ce9490bf7f94a00d9f206a15896bf78`
+
+```typescript
+"use client";
+import { useEffect,useState } from "react";
+/** Fixed campaign deadline; long delays are rescheduled within the browser timer limit. */
+export function useDeadlineExpired(endsAt:string|null,initialSeconds:number) {
+ const [expired,setExpired]=useState(Boolean(endsAt && initialSeconds<=0));
+ useEffect(()=>{
+  if(!endsAt) return;
+  const deadline=Date.parse(endsAt);let timer:ReturnType<typeof setTimeout>;
+  const schedule=()=>{const remaining=deadline-Date.now();if(remaining<=0){setExpired(true);return;}timer=setTimeout(schedule,Math.min(remaining,2_147_483_647));};
+  schedule();return ()=>clearTimeout(timer);
+ },[endsAt]);
+ return expired;
+}
+```
+
 ### File: `modules/hooks/use-hydration-state.ts`
 
 SHA-256: `a628ef6c07853d388d531a3199ae5b6ebc1de985492c92d1ec9eb53c9b0e75fa`
@@ -16760,7 +16958,7 @@ export function useUserModeration(id: string, errorLabel: string) {
 
 ### File: `modules/hooks/use-workshop-template-editor.ts`
 
-SHA-256: `ec689d394955dcbff13edbb88922e71449aaacf2c74fe5077211e345c695ebf0`
+SHA-256: `c67b67c9cd3ad5a35a3e13d9e74ca68aa4f20463cc3118c68719db4c9b8ce14f`
 
 ```typescript
 "use client";
@@ -16768,9 +16966,9 @@ import { useState } from "react";
 import { endpoints } from "@platform/config/navigation";
 import { useAdminSave } from "./use-admin-save";
 import type { TemplateRecord } from "@platform/types/workshop-template";
-export function useWorkshopTemplateEditor(slug:string,record:TemplateRecord,errorLabel:string) {
+export function useWorkshopTemplateEditor(slug:string,record:TemplateRecord,errorLabel:string,endpoint=endpoints.adminTemplate(slug)) {
  const [document,setDocument]=useState(record.document),[revision,setRevision]=useState(record.revision);
- const command=useAdminSave(endpoints.adminTemplate(slug),errorLabel,{refresh:false});
+ const command=useAdminSave(endpoint,errorLabel,{refresh:false});
  async function save(){if(await command.save({document,revision})) setRevision(v=>v+1);}
  return {...command,document,setDocument,save};
 }
@@ -17672,7 +17870,7 @@ SHA-256: `ca3bc5d0b22173c825cd9a54e41d242cfb6fc209011df77ea0a6d77d81181dca`
 
 ### File: `modules/styles/commerce.css`
 
-SHA-256: `d0640bf1bebd41a3d8b50619b89956fcd51b3dbc145360000f83d3be569707ef`
+SHA-256: `7a7d4dc51f7c52097cc87a422cc101e17dcdfc09b2eb7d9f7cf59b1704d74c68`
 
 ```css
 .lms-price-original { display: block; font-size: var(--font-size-caption); color: var(--text-muted); font-weight: var(--weight-regular); }
@@ -17710,6 +17908,10 @@ SHA-256: `d0640bf1bebd41a3d8b50619b89956fcd51b3dbc145360000f83d3be569707ef`
 
 .lms-commerce-filters > .ds-select { margin-block: var(--space-md); }
 @media(max-width:480px) { .lms-commerce-coupon .lms-form-field { flex-basis: 100%; } }
+
+.lms-featured-offer-bar .top-scarcity-nav-capsule { gap:var(--space-sm); }
+.lms-featured-offer-bar .lms-featured-offer-name { display:block; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lms-featured-offer-bar .top-timer-item { flex-shrink:0; }
 ```
 
 ### File: `modules/styles/course-details.css`
@@ -21467,7 +21669,7 @@ export interface AuthPageModel {
 
 ### File: `modules/types/commerce.ts`
 
-SHA-256: `1709905d35168f4bd64fc332363456deb1b4d4fb646d4cbba851065abf8d979d`
+SHA-256: `b3355ea0dcd44d5f9bed132e93b9a70b788db1094cba1d338c16af35494a8afa`
 
 ```typescript
 export type CommerceKind = "bundles" | "offers" | "coupons";
@@ -21479,7 +21681,7 @@ export interface PriceQuote {
  offerTitle: string | null; couponCode: string | null; endsAt: string | null;
 }
 export interface CommerceRecord {
- key: string; title: string; description: string; amountMinor: number;
+ key: string; title: string; description: string; amountMinor: number; featured?: boolean;
  courseSlugs: string[]; courseSlug: string | null; bundleSlug: string | null;
  discountType: "percent" | "fixed"; discountValue: number;
  startsAt: string | null; endsAt: string | null; enabled: boolean;
@@ -21488,8 +21690,9 @@ export interface CommerceRecord {
 }
 export type CommerceInput = Omit<CommerceRecord,"createdAt" | "updatedAt">;
 export interface CommerceList { records: CommerceRecord[]; total: number; page: number; }
-export interface BundleProduct { slug: string; title: string; description: string; courseSlugs: string[]; quote: PriceQuote; }
+export interface BundleProduct { featured?: boolean; slug: string; title: string; description: string; courseSlugs: string[]; quote: PriceQuote; }
 export interface CommerceLabels {
+ featuredLayout:string;featuredLayoutHint:string;
  title: string; bundles: string; offers: string; coupons: string; create: string; edit: string; remove: string;
  name: string; key: string; description: string; amount: string; courses: string; course: string; bundle: string;
  discountType: string; percent: string; fixed: string; discountValue: string; startsAt: string; endsAt: string;
@@ -21620,7 +21823,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `94623b6d7297bb35fce0197680ef609b0882c3b3e52cf1935070317dd9bc4ceb`
+SHA-256: `42de81ca075220265b4675c356a44cba9789b8a1f02f3eaf0bc17ee1765d4143`
 
 ```typescript
 
@@ -21746,14 +21949,14 @@ isOneToOne: false
                   ]
                 },"commerce_bundles": {
                   Row: {
-                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
+                    "amount_minor": number,"created_at": string,"description": string,"enabled": boolean,"featured": boolean,"revision": number,"slug": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
+                    "amount_minor": number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"featured"?: boolean,"revision"?: number,"slug": string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
+                    "amount_minor"?: number,"created_at"?: string,"description"?: string,"enabled"?: boolean,"featured"?: boolean,"revision"?: number,"slug"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
 
@@ -21978,17 +22181,23 @@ isOneToOne: false
                   ]
                 },"workshop_templates": {
                   Row: {
-                    "course_slug": string,"document": NonNullable<Json>,"revision": number,"updated_at": string
+                    "bundle_slug": string | null,"course_slug": string | null,"document": NonNullable<Json>,"id": string,"revision": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "course_slug": string,"document": NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"document": NonNullable<Json>,"id"?: string,"revision"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "course_slug"?: string,"document"?: NonNullable<Json>,"revision"?: number,"updated_at"?: string
+                    "bundle_slug"?: string | null,"course_slug"?: string | null,"document"?: NonNullable<Json>,"id"?: string,"revision"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "workshop_templates_bundle_slug_fkey"
+      columns: ["bundle_slug"]
+isOneToOne: true
+      referencedRelation: "commerce_bundles"
+      referencedColumns: ["slug"]
+    },{
       foreignKeyName: "workshop_templates_course_slug_fkey"
       columns: ["course_slug"]
 isOneToOne: true
@@ -22037,6 +22246,9 @@ isOneToOne: true
                            },
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
+                           },
+"is_public_featured_bundle":
+{ Args: { "p_slug": string }; Returns: boolean
                            },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -34397,6 +34609,108 @@ assert.deepEqual(validateEmailVariables("Plain Arabic text — تعلّم"), [])
 console.log("Email placeholder contract passed: seven allowed variables, whitespace variants, scoped/unknown/malformed rejection.");
 ```
 
+### File: `tests/backend/featured-products-browser.cjs`
+
+SHA-256: `3d367cf1c2f431af76780b9a8dae72f02de42f38cc0e8fd3d2811d6f861e2304`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Bundle template editing and responsive public urgency. */
+const {chromium,expect}=require('@playwright/test');
+module.exports=async({manager,url,bundleSlug,api,verify})=>{
+ const browser=await chromium.launch(),page=await browser.newPage({reducedMotion:'reduce'}),errors=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ try{
+  await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:manager.email,password:manager.password}});
+  await page.clock.install();
+  await page.goto(url+'/admin/dashboard/commerce/bundles/'+bundleSlug+'/template');
+  await page.locator('.lms-template-editor > fieldset > details').first().locator('summary').first().click();
+  await page.getByLabel('الوصف',{exact:true}).first().fill('Bundle content saved from browser');
+  const response=page.waitForResponse(r=>r.url().endsWith(api)&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'حفظ التصميم',exact:true}).click();verify((await response).status()===200,'Shared browser editor saves bundle template');
+  for(const width of [390,1440]){
+   await page.setViewportSize({width,height:900});await page.goto(url+'/bundles/'+bundleSlug);
+   await expect(page.getByRole('heading',{name:'Distinct bundle heading',exact:true})).toBeVisible();
+   verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('footer').count()===1,'Bundle has one navbar/footer at '+width);
+   await expect(page.locator('.top-scarcity-bar')).toContainText('Actual bundle sale');
+   await expect(page.locator('.top-scarcity-bar')).not.toContainText('بيشاهدوا');
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Bundle featured layout fits '+width);
+   await expect(page.locator('.hero-section a[href="/checkout/'+bundleSlug+'?kind=bundle"]').first()).toHaveAttribute('href','/checkout/'+bundleSlug+'?kind=bundle');
+  }
+  await page.clock.fastForward(3_700_000);await expect(page.locator('.top-scarcity-bar')).toHaveCount(0);verify(true,'Offer strip disappears at the real deadline without reloading');
+  verify(errors.length===0,'Bundle editor and public page have no runtime errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/featured-products.cjs`
+
+SHA-256: `f2d46bde80c082658af3566e7209e635c48f3956cb1684349a8f5903e91d7ad0`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-sale and featured-bundle acceptance. No gateway requests. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Featured Manager'),student=await provision('Featured Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const suffix=randomUUID(),slugs=['featured-a-'+suffix,'featured-b-'+suffix],bundleSlug='featured-bundle-'+suffix;
+ const source=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata;
+ const base={key:bundleSlug,title:'Featured bundle test',description:'Two recorded courses in one product',amountMinor:80000,courseSlugs:slugs,courseSlug:null,bundleSlug:null,discountType:'percent',discountValue:20,startsAt:null,endsAt:null,enabled:true,featured:true,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0};
+ const parse=r=>JSON.parse(r.data),api='/api/admin/commerce/bundles/'+bundleSlug+'/template';
+ const offerKey='bundle-offer-'+suffix,courseOfferKey='course-offer-'+suffix;
+ try{
+  assert.ok(!(await admin.from('courses').insert(slugs.map(slug=>({slug,metadata:{...source,slug,featured:true},amount:500,published:true,position:110})))).error);
+  verify((await manager.api('/api/admin/commerce/bundles',base)).status===200,'Admin creates a featured bundle');
+  verify((await manager.api('/api/admin/commerce/bundles',{...base,featured:'true',revision:1})).status===400,'Bundle featured flag requires boolean');
+  const bundleRows=parse(await manager.api('/api/admin/commerce/bundles?q='+bundleSlug)).records;
+  verify(bundleRows[0].featured===true,'Bundle featured layout persists in admin listing');
+  verify((await anonymous(api)).status===401,'Guest cannot access bundle template API');
+  verify((await student.api(api)).status===403,'Student cannot access bundle template API');
+  const template=parse(await manager.api(api));verify(template.revision===0,'Bundle starts with reusable template defaults');
+  verify(template.document.content.hero.action.href==='/checkout/'+bundleSlug+'?kind=bundle','Bundle template targets bundle checkout');
+  template.document.content.hero.title=['Distinct bundle heading'];template.document.showCountdown=true;
+  verify((await manager.api(api,{document:template.document,revision:0},{headers:{Origin:'https://hostile.example'}})).status===403,'Cross-origin bundle template save rejected');
+  verify((await manager.api(api,{document:template.document,revision:0})).status===200,'Admin saves independent bundle template');
+  verify((await manager.api(api,{document:template.document,revision:0})).status===409,'Bundle template rejects concurrent stale saves');
+  verify((await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length===1,'RLS exposes published featured bundle template');
+  verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('bundle_slug',bundleSlug).select()).data?.length,'RLS blocks student bundle template mutation');
+  let page=await anonymous('/bundles/'+bundleSlug);
+  verify(page.status===200&&page.data.includes('Distinct bundle heading'),'Featured bundle renders at its bundle URL');
+  verify(!page.data.includes('lms-featured-offer-bar')&&!page.data.includes('54 بيشاهدوا'),'Featured product without active offer has no fictional urgency');
+  const sale={...base,key:offerKey,title:('Actual bundle sale '+ 'extended campaign '.repeat(7)).trim(),courseSlugs:[],bundleSlug,featured:false,endsAt:new Date(Date.now()+3600000).toISOString()};
+  verify((await manager.api('/api/admin/commerce/offers',sale)).status===200,'Admin creates real named bundle offer with fixed deadline');
+  page=await anonymous('/bundles/'+bundleSlug);
+  const quote=parse(await student.api('/api/payments/quote',{bundleSlug}));
+  verify(page.data.includes('Actual bundle sale')&&page.data.includes('lms-featured-offer-bar')&&page.data.includes(quote.endsAt),'Featured strip uses real bundle sale and end timestamp');
+  verify(quote.offerTitle===sale.title&&Date.parse(quote.endsAt)===Date.parse(sale.endsAt)&&quote.totalMinor===64000,'Strip campaign agrees with canonical checkout quote');
+  verify((await manager.api('/api/admin/commerce/offers',{...sale,key:courseOfferKey,title:'Actual course sale',courseSlug:slugs[0],bundleSlug:null})).status===200,'Course offer is independently configured');
+  const coursePage=await anonymous('/courses/'+slugs[0]);verify(coursePage.data.includes('Actual course sale')&&!coursePage.data.includes('Actual bundle sale'),'Course featured strip resolves its own sale');
+  verify((await anonymous('/api/bundles/'+bundleSlug+'/template-media?clip=../../private')).status===404,'Bundle media endpoint rejects arbitrary clips');
+  await require('./featured-products-browser.cjs')({manager,url,bundleSlug,api,verify});
+  let saved=parse(await manager.api(api));saved.document.showCountdown=false;
+  verify((await manager.api(api,{document:saved.document,revision:saved.revision})).status===200,'Admin can hide real sale strip');
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Template visibility hides the sale strip');
+  saved=parse(await manager.api(api));saved.document.showCountdown=true;
+  await manager.api(api,{document:saved.document,revision:saved.revision});
+  await admin.from('commerce_discounts').update({ends_at:new Date(Date.now()-1000).toISOString()}).eq('key',offerKey);
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Expired sale has no strip on a new page request');
+  await admin.from('commerce_discounts').update({ends_at:null}).eq('key',offerKey);
+  const noDeadline=await anonymous('/bundles/'+bundleSlug);verify(noDeadline.data.includes('Actual bundle sale')&&!noDeadline.data.includes('role="timer"'),'Active undated offer shows its name without manufactured deadline');
+  await admin.from('commerce_discounts').update({starts_at:new Date(Date.now()+3600000).toISOString()}).eq('key',offerKey);
+  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Future sale has no premature countdown');
+  await admin.from('commerce_bundles').update({featured:false}).eq('slug',bundleSlug);
+  const ordinary=await anonymous('/bundles/'+bundleSlug);verify(ordinary.data.includes('lms-bundle-details')&&!ordinary.data.includes('Distinct bundle heading'),'Unfeatured bundle restores standard details');
+  verify(!(await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length,'Unfeatured bundle template is hidden by RLS');
+  await admin.from('commerce_bundles').update({featured:true}).eq('slug',bundleSlug);
+  await admin.from('courses').update({published:false}).eq('slug',slugs[0]);
+  verify(!(await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length,'Unpublished member hides bundle template');
+ }finally{
+  await admin.from('commerce_discounts').delete().in('key',[offerKey,courseOfferKey]);
+  await admin.from('commerce_bundles').delete().eq('slug',bundleSlug);
+  await admin.from('courses').delete().in('slug',slugs);
+ }
+};
+```
+
 ### File: `tests/backend/featured-workshop-browser.cjs`
 
 SHA-256: `0a95904861f753f423f90bb8d545c539156e1b4e252ddecd8542b1126b8af3e4`
@@ -34635,7 +34949,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `6c496875d42c270f22be68b802cac1d1a812f76ba0e1fa33f3b126b850105c48`
+SHA-256: `556213c22124a4bbc08d2a867ea8a320727e5b2ec9abf36e1ed3bb0e23abf50c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -34698,6 +35012,9 @@ async function run() {
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
+  }
+  if (process.env.BACKEND_SUITE === 'featured-products') {
+    await require('./featured-products.cjs')({admin,provision,anonymous,verify,url});return;
   }
   if (process.env.BACKEND_SUITE === 'workshop-template') {
     await require('./workshop-template.cjs')({admin,provision,anonymous,verify,url});return;
@@ -40072,6 +40389,49 @@ test("redirect loops have a finite request budget", async () => {
     await assert.rejects(fetchDrive(new URL("https://drive.usercontent.google.com/download"), {}, new AbortController().signal), { status: 503 });
     assert.equal(calls, 4);
   } finally { globalThis.fetch = original; }
+});
+```
+
+### File: `tests/security/featured-offer.test.ts`
+
+SHA-256: `6eb9edf2b119bbeeab369eff0206bf401ce9707aa28a43f3c5d3a390045b5996`
+
+```typescript
+import { readCommerceForm } from "../../modules/features/commerce/helpers/read-form";
+import { emptyCommerceRecord } from "../../modules/features/commerce/helpers/empty-record";
+import test from "node:test";
+import assert from "node:assert/strict";
+import { activeFeaturedOffer } from "../../modules/features/marketing/templates/helpers/active-offer";
+import { defaultWorkshopTemplate } from "../../modules/features/marketing/templates/default-template";
+import { bundleTemplateCourse } from "../../modules/features/marketing/templates/helpers/bundle-course";
+import { liveWorkshopCourse } from "../../modules/data/workshop-course";
+import { isTemplateEndpoint } from "../../modules/config/workshop-template";
+import type { PriceQuote } from "../../modules/types/commerce";
+const now=Date.parse('2026-10-13T12:00:00Z');
+const quote:PriceQuote={kind:'course',slug:'test',title:'Course',courseSlugs:['test'],baseMinor:100000,offerMinor:10000,couponMinor:0,totalMinor:90000,offerTitle:'Real sale',couponCode:null,endsAt:new Date(now+60000).toISOString()};
+test('featured urgency uses the active sale name and fixed database deadline',()=>assert.deepEqual(activeFeaturedOffer(quote,now),{title:'Real sale',endsAt:quote.endsAt,remaining:60}));
+test('missing, expired, malformed and coupon-only offers cannot produce a sale strip',()=>{
+ for(const patch of [{offerMinor:0},{offerTitle:null},{endsAt:new Date(now).toISOString()},{endsAt:'invalid'},{offerMinor:0,couponMinor:10000}]) assert.equal(activeFeaturedOffer({...quote,...patch},now),null);
+ assert.deepEqual(activeFeaturedOffer({...quote,endsAt:null},now),{title:'Real sale',endsAt:null,remaining:0});
+});
+test('bundle defaults aggregate included curriculum and link bundle checkout',()=>{
+ const course=bundleTemplateCourse({slug:'bundle-test',title:'Bundle',description:'Two courses',featured:true,amountMinor:50000},[liveWorkshopCourse,liveWorkshopCourse]);
+ const document=defaultWorkshopTemplate(course,'bundle');
+ assert.equal(course.modules.length,2);assert.equal(course.title,'Bundle');
+ for(const action of [document.content.hero.action,document.content.roadmap.action,document.content.finalCta.action]) assert.equal(action.href,'/checkout/bundle-test?kind=bundle');
+ assert.equal(document.content.hero.showVideo,false);
+ assert.equal(bundleTemplateCourse({slug:'empty-bundle',title:'Empty',description:'',amountMinor:100},[]).duration,'');
+});
+test('only registered course/bundle template endpoints get the expanded body limit',()=>{
+ assert.equal(isTemplateEndpoint('/api/admin/commerce/bundles/bundle-test/template'),true);
+ assert.equal(isTemplateEndpoint('/api/admin/courses/course-test/template'),true);
+ for(const path of ['/api/admin/commerce/offers/offer/template','/api/admin/commerce/bundles/bundle-test','/api/payments/checkout','/api/admin/commerce/bundles/../template']) assert.equal(isTemplateEndpoint(path),false);
+});
+
+test('bundle featured checkbox decodes unchecked hidden value and checked state correctly',()=>{
+ const form=new FormData();form.append('featured','false');
+ assert.equal(readCommerceForm(form,emptyCommerceRecord()).featured,false);
+ form.append('featured','on');assert.equal(readCommerceForm(form,emptyCommerceRecord()).featured,true);
 });
 ```
 

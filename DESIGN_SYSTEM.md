@@ -359,3 +359,7 @@ Sales, bundles, offers and coupons reuse the administrator table/card reflow, fi
 ## Featured workshop customization (2026-10-13)
 
 Featured recorded courses and live workshops use the shared Ta3llam navbar. Their per-workshop editor changes section text/rich highlights, media, links, records, visibility/order, footer and countdown/signup content. Theme values, stable section IDs, icon geometry and the reveal policy stay shared. Persisted marketing documents do not overwrite course prices or private lesson access. See `docs/WORKSHOP_TEMPLATES.md` for editor, snapshot and security contracts.
+
+## Featured bundle layouts and real offer strip (2026-10-13)
+
+Bundles can select the same approved featured page as courses and live workshops. Reuse the template editor, content schema, theme, section components, main navbar, players and footer. Keep `/bundles/[slug]` and bundle checkout semantics. Show the active saved offer name and its actual end date in the existing dark urgency strip; omit the strip when no offer applies, omit the timer for undated offers, and remove it after expiry. Never display demo viewer counts or restarting five-day deadlines as live commercial data. Offer management owns campaign identity and dates; template editing owns visibility and composition.

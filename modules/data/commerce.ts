@@ -1,5 +1,7 @@
+import { adminCopy } from "./admin";
 import type { CommerceLabels } from "@platform/types/commerce";
 export const commerceCopy: CommerceLabels = {
+ featuredLayout:adminCopy.featuredLayout,featuredLayoutHint:adminCopy.featuredLayoutHint,
  title:"العروض والباقات",bundles:"باقات الدورات",offers:"التخفيضات والعروض",coupons:"كوبونات الخصم",create:"إضافة جديد",edit:"تعديل",remove:"حذف",
  name:"الاسم",key:"الرابط أو كود الكوبون",description:"الوصف",amount:"سعر الباقة (ج.م)",courses:"الدورات المشمولة",course:"الدورة",bundle:"الباقة",
  discountType:"نوع الخصم",percent:"نسبة مئوية",fixed:"مبلغ ثابت (ج.م)",discountValue:"قيمة الخصم",startsAt:"بداية العرض",endsAt:"نهاية العرض",

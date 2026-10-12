@@ -50,6 +50,7 @@ export const routes = {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
     return `/admin/dashboard/users/${normalizeUsername(username)}`;
   },
+  adminBundleTemplate: (slug:string) => `/admin/dashboard/commerce/bundles/${segment(slug)}/template`,
   adminCourseCreate: "/admin/dashboard/courses/new",
   adminCourseTemplate: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/template`,
   adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
@@ -84,6 +85,8 @@ export const endpoints = {
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminMediaStream: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/stream?url=${encodeURIComponent(url)}`,
+  bundleTemplateMedia: (slug:string,clip:string) => `/api/bundles/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
+  adminBundleTemplate: (slug:string) => `/api/admin/commerce/bundles/${segment(slug)}/template`,
   templateMedia: (slug: string, clip: string) => `/api/courses/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
   adminTemplate: (slug: string) => `/api/admin/courses/${segment(slug)}/template`,
   adminCurriculum: (slug: string) => `/api/admin/courses/${segment(slug)}/content`,

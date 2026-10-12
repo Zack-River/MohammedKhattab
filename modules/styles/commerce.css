@@ -33,3 +33,7 @@
 
 .lms-commerce-filters > .ds-select { margin-block: var(--space-md); }
 @media(max-width:480px) { .lms-commerce-coupon .lms-form-field { flex-basis: 100%; } }
+
+.lms-featured-offer-bar .top-scarcity-nav-capsule { gap:var(--space-sm); }
+.lms-featured-offer-bar .lms-featured-offer-name { display:block; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lms-featured-offer-bar .top-timer-item { flex-shrink:0; }

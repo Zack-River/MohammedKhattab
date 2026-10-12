@@ -1,3 +1,10 @@
+# Current checkpoint — Featured bundles and real sales (2026-10-13)
+
+- Extended featured layouts to bundles via the same reusable editor, section components, document repository and media handler. Bundle creation/editing exposes the layout switch and the bundle table exposes its editor link. Defaults aggregate included curricula and route purchase actions to bundle checkout.
+- Replaced demo viewer/rolling countdown urgency with the canonical active offer name and fixed database deadline. Expired/future/disabled offers do not display; undated offers have no timer; expiration hides the strip without a reload. Prototype viewer/signup UI is excluded from featured pages.
+- Retained one template table with exclusive course/bundle foreign keys, per-target uniqueness, optimistic revisions and current-admin write policies. Public bundle visibility checks enabled/featured status and all member publication without exposing server-only commerce configuration.
+- Verified 37 real-offer/bundle API/browser checks, 52 existing template checks, 92 commerce/payment/browser regressions and 40 security unit tests (221 total). Lint and architecture (813 files, zero violations) passed. Local/hosted migrations are applied; local/hosted advisors found no issues and shadow replay produced no schema diff. Final production build/TypeScript passed. Long campaign names are bounded beside the timer without overflowing the mobile layout. No production products/offers were seeded; payment testing used the isolated mock gateway.
+
 # Current checkpoint — Featured layout for recorded and live courses (2026-10-13)
 
 - Removed the delivery restriction from admin creation/editing, the template editor/API, public media gating and template RLS. Page layout is independent of course delivery.
