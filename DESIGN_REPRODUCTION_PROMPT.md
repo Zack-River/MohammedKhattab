@@ -252,6 +252,83 @@ Copy the original files to the same paths. PNG/JPEG/WebP interchange, recompress
 
 Current shared architecture snapshot. Materialize all paths together; run npm ci once at the root using the companion lockfile, then prebuild generation. The separate test fixture is not a shipped application route. Generated .next/node_modules and server font JSON are excluded. Source hashes verify reconstruction, not visual approval.
 
+### File: `app/(public)/checkout/[slug]/page.tsx`
+
+SHA-256: `62c9212466b6b04e3ccf26323cc845f60f5dfcf6454475cf7d2fe35ce826a00f`
+
+```tsx
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { currentIdentity } from "@platform/features/auth/server/identity";
+import { findCourse } from "@platform/features/catalog/service";
+import { readAccount } from "@platform/features/account/repositories/read-account";
+import CheckoutButton from "@platform/components/payments/checkout-button";
+import { paymentCopy as labels } from "@platform/data/payment-copy";
+import { routes } from "@platform/config/navigation";
+export const metadata = {
+  title: labels.title,
+  robots: { index: false, follow: false },
+};
+export default async function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params,
+    identity = await currentIdentity();
+  if (!identity) redirect(routes.login);
+  const course = await findCourse(slug);
+  if (!course) notFound();
+  const enrolled = await identity.client
+    .from("enrollments")
+    .select("course_slug")
+    .eq("user_id", identity.user.id)
+    .eq("course_slug", slug)
+    .maybeSingle();
+  if (enrolled.error) throw new Error("Enrollment lookup failed");
+  if (enrolled.data) redirect(routes.library);
+  const paid = await identity.client
+    .from("payment_orders")
+    .select("id")
+    .eq("user_id", identity.user.id)
+    .eq("course_slug", slug)
+    .eq("status", "paid")
+    .limit(1)
+    .maybeSingle();
+  if (paid.error) throw new Error("Payment lookup failed");
+  if (paid.data) redirect(routes.payment(paid.data.id));
+  if (course.offer.amount <= 0) redirect(routes.course(slug, course.delivery));
+  const account = await readAccount(),
+    verified = account.emailVerified && account.phoneVerified;
+  return (
+    <main className="container lms-public-main">
+      <div className="lms-payment-layout">
+        <h1>{labels.title}</h1>
+        <p>{labels.summary}</p>
+        <section className="lms-profile-card lms-payment-card" data-reveal="true">
+          <h2>{course.title}</h2>
+          <p>{course.description}</p>
+          <dl className="lms-payment-total">
+            <dt>{labels.amount}</dt>
+            <dd className="numeral">
+              {course.offer.amount} {labels.currency}
+            </dd>
+          </dl>
+          {verified ? (
+            <CheckoutButton slug={slug} labels={labels} />
+          ) : (
+            <>
+              <p>{labels.verification}</p>
+              <Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>
+                {labels.settings}
+              </Link>
+            </>
+          )}
+          <p className="lms-payment-caption">{labels.secure}</p>
+          <Link className="lms-payment-back" href={routes.course(slug, course.delivery)}>{labels.back}</Link>
+        </section>
+      </div>
+    </main>
+  );
+}
+```
+
 ### File: `app/(public)/confirm-email/page.tsx`
 
 SHA-256: `c235dcb0a6376a09d16c347336eaddca3918b28acbb1a5864ba3e57707951b4d`
@@ -505,6 +582,46 @@ import AuthPage from "@platform/components/account/auth/page";
 import { authPages } from "@platform/data/auth";
 export const metadata = { title: authPages.login.title };
 export default function LoginPage() { return <AuthPage model={authPages.login} />; }
+```
+
+### File: `app/(public)/payments/[orderId]/page.tsx`
+
+SHA-256: `5bf273a33dfdf09033f5ecb51539401ed13e70c9b0cf9c747db4884447e91396`
+
+```tsx
+import { redirect, notFound } from "next/navigation";
+import { currentIdentity } from "@platform/features/auth/server/identity";
+import { readPaymentOrder, readPaymentReceipt } from "@platform/features/payments/repositories/read-order";
+import { ApiError } from "@platform/lib/api/error";
+import OrderResult from "@platform/components/payments/order-result";
+import { paymentCopy as labels } from "@platform/data/payment-copy";
+import { routes } from "@platform/config/navigation";
+export const metadata = {
+  title: labels.resultTitle,
+  robots: { index: false, follow: false },
+};
+export default async function PaymentPage({ params }: { params: Promise<{ orderId: string }> }) {
+  if (!(await currentIdentity())) redirect(routes.login);
+  const { orderId } = await params;
+  const order = await readPaymentOrder(orderId).catch((error) => {
+    if (error instanceof ApiError && error.status === 404) notFound();
+    throw error;
+  });
+  return (
+    <main className="container lms-public-main">
+      <div className="lms-payment-layout">
+        <h1>{labels.resultTitle}</h1>
+        <OrderResult
+          initial={await readPaymentReceipt(order)}
+          labels={labels}
+          libraryHref={routes.library}
+          retryHref={routes.checkout(order.course_slug)}
+          settingsHref={routes.settings}
+        />
+      </div>
+    </main>
+  );
+}
 ```
 
 ### File: `app/(public)/reset-password/page.tsx`
@@ -1163,6 +1280,53 @@ SHA-256: `873ae056e5cbcfa6421668725e5cfa4e5411ad5f968acf67a237096b42ca7c17`
 import { handleImageUpload } from "@platform/features/media/handle-image-upload";
 export const runtime = "nodejs";
 export const POST = handleImageUpload;
+```
+
+### File: `app/api/payments/[orderId]/reconcile/route.ts`
+
+SHA-256: `c2a994f27718bfaf7d3e8c60e49b5c32dad213faac9c5a0603cc8f74601e07f2`
+
+```typescript
+import { handlePaymentStatus } from "@platform/features/payments/handle-status";
+export const runtime = "nodejs";
+export async function POST(request: Request, { params }: { params: Promise<{ orderId: string }> }) {
+  return handlePaymentStatus((await params).orderId, request);
+}
+```
+
+### File: `app/api/payments/[orderId]/route.ts`
+
+SHA-256: `d5adc908fac5d97c6c10660ba30622d7c5d1678617498e1e926bd351cc95c221`
+
+```typescript
+import { handlePaymentStatus } from "@platform/features/payments/handle-status";
+export async function GET(_request: Request, { params }: { params: Promise<{ orderId: string }> }) {
+  return handlePaymentStatus((await params).orderId);
+}
+```
+
+### File: `app/api/payments/checkout/route.ts`
+
+SHA-256: `d72644448ec7fdce35d858761659a2dfc3e537fc6fc8eb9b95dae9235d4dbfe8`
+
+```typescript
+import { handleCheckout } from "@platform/features/payments/handle-checkout";
+export const runtime = "nodejs";
+export async function POST(request: Request) {
+  return handleCheckout(request);
+}
+```
+
+### File: `app/api/payments/fawaterak/webhook_json/route.ts`
+
+SHA-256: `fd1e7adc9670f46919a30bfec609172392a54f195dedec91e3bf7e24a2ff5745`
+
+```typescript
+import { handlePaymentWebhook } from "@platform/features/payments/handle-webhook";
+export const runtime = "nodejs";
+export async function POST(request: Request) {
+  return handlePaymentWebhook(request);
+}
 ```
 
 ### File: `app/api/profile/route.ts`
@@ -2926,7 +3090,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `4d55547f3b66560b3e56b99b81a963be4377bdba77a13e74b5bd4691965357d3`
+SHA-256: `82018d4c91a190ab02adacc836816ed9f378fa8475cd0bf419637b6804c7fd43`
 
 ```css
 @import "./styles/theme.css";
@@ -2950,6 +3114,8 @@ SHA-256: `4d55547f3b66560b3e56b99b81a963be4377bdba77a13e74b5bd4691965357d3`
 
 @import "../packages/design-system/styles/analytics.css";
 @import "../modules/styles/analytics.css";
+
+@import "../modules/styles/payments.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -4999,17 +5165,17 @@ export default function LearningSummary({ metrics, labels }: { metrics: Analytic
 
 ### File: `modules/components/admin/analytics/metric-card.tsx`
 
-SHA-256: `e584f7d587b9843fd9c35604ee034ad726756073fe4d715cdcd51956080ebf72`
+SHA-256: `b2ef9cf644f1d2673531db5dfd853fe0b574a16d96ecdfd9a585096b0d6eda15`
 
 ```tsx
 import { formatAnalyticsNumber } from "@platform/features/admin/analytics/helpers/format";
 import type { AnalyticsLabels } from "@platform/types/admin-analytics";
 import MetricChange from "./metric-change";
-export default function MetricCard({ title, value, previous, note, labels }: {
-  labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note?: string;
+export default function MetricCard({ title, value, previous, note, labels, suffix }: {
+  labels: AnalyticsLabels; title: string; value: number | null; previous?: number; note?: string; suffix?: string;
 }) {
   return <article className="analytics-metric" aria-label={title} data-reveal>
-    <h2>{title}</h2><strong className="analytics-value numeral">{value === null ? "—" : formatAnalyticsNumber(value)}</strong>
+    <h2>{title}</h2><strong className="analytics-value numeral">{value === null ? "—" : formatAnalyticsNumber(value)}{value !== null && suffix && ` ${suffix}`}</strong>
     {value !== null && previous !== undefined && <MetricChange labels={labels} current={value} previous={previous} />}
     {value === null && <span className="analytics-unavailable">{labels.unavailable}</span>}
     {note && <p>{note}</p>}
@@ -5038,7 +5204,7 @@ export default function MetricChange({ current, previous, labels }: { current: n
 
 ### File: `modules/components/admin/analytics/overview.tsx`
 
-SHA-256: `74df0d77907e16e24464248827faba1c7bc862fcdd39af5cc72e421ca10cace1`
+SHA-256: `51c161f2651c3ff4db823042e06d424e18c6f250d53100f998e4f945d86a19ca`
 
 ```tsx
 import RefreshButton from "@khatab/design/ui/refresh-button";
@@ -5066,8 +5232,8 @@ export default function AnalyticsOverview({ data, period, labels }: { data: Admi
     <div className="analytics-primary-grid"><SignupChart labels={labels} daily={data.daily} metrics={m} /><TrendingCourses labels={labels} courses={data.courses[period]} period={period} /></div>
     <div className="analytics-secondary-grid"><AcquisitionSources labels={labels} sources={data.sources} /><LearningSummary labels={labels} metrics={m} /></div>
     <div className="analytics-revenue-grid">
-      <MetricCard labels={labels} title={labels.revenueWeek} value={null} note={labels.revenueNote} />
-      <MetricCard labels={labels} title={labels.revenueMonth} value={null} note={labels.revenueNote} />
+      <MetricCard labels={labels} title={labels.revenueWeek} value={data.revenue ? data.revenue.week/100 : null} previous={data.revenue ? data.revenue.previousWeek/100 : undefined} suffix={labels.currency} />
+      <MetricCard labels={labels} title={labels.revenueMonth} value={data.revenue ? data.revenue.month/100 : null} previous={data.revenue ? data.revenue.previousMonth/100 : undefined} suffix={labels.currency} />
     </div>
     <details className="analytics-definitions"><summary>{labels.definitions}</summary><p>{labels.periodNote}</p><p>{labels.definitionsText}</p></details>
   </div>;
@@ -6632,7 +6798,7 @@ export default function Curriculum({
 
 ### File: `modules/components/courses/enroll-button.tsx`
 
-SHA-256: `9b67ee882f16d3819b965f73235cd9635a756bd4d6698529642b2c18709c50d6`
+SHA-256: `1c5092b24d67f95ac689a3996020dbb4ed51838b65bc6899f931f01de25d69b5`
 
 ```tsx
 "use client";
@@ -6646,25 +6812,27 @@ export default function EnrollButton({
   slug,
   firstLesson,
   enrolled,
+  paid = false,
   copy,
 }: {
   slug: string;
   firstLesson?: string;
   enrolled: boolean;
+  paid?: boolean;
 } & {
   copy: Pick<
     ContentBindings["copy"],
     "error" | "saving" | "continue" | "enrollLabel"
   >;
 }) {
-  const { start, pending, error } = useCourseEnrollment({ slug, firstLesson, enrolled, errorLabel: copy.error });
+  const { start, pending, error } = useCourseEnrollment({ slug, firstLesson, enrolled, paid, errorLabel: copy.error });
   return (
     <div>
       <Action
         kind="button"
         type="button"
         className="btn-primary lms-full-button"
-        disabled={pending || !firstLesson}
+        disabled={pending || (!firstLesson && !paid)}
         onClick={start}
       >
         {pending ? copy.saving : enrolled ? copy.continue : copy.enrollLabel}
@@ -6682,7 +6850,7 @@ export default function EnrollButton({
 
 ### File: `modules/components/courses/enrollment-panel.tsx`
 
-SHA-256: `c782c8419bca9c839d2ce02017c5bfd74e7c89c2373d6611d06494a179f889b3`
+SHA-256: `38f62a4d18017024be9626de15718b5ef4fe827860f03553dffdc1b93b9fa5ca`
 
 ```tsx
 import { sectionIds } from "@platform/config/navigation";
@@ -6745,6 +6913,7 @@ export default function EnrollmentPanel({
           slug={slug}
           firstLesson={progress.next?.id ?? courseLessons(course)[0]?.id}
           enrolled={enrolled}
+          paid={course.offer.amount > 0}
         />
         <ul>
           {[
@@ -8054,6 +8223,107 @@ export default function SkillStrip({
 }
 ```
 
+### File: `modules/components/payments/checkout-button.tsx`
+
+SHA-256: `cf7e4f2774317a72d5ef1f40c7e9bf33f41143db47265a3a84b1e7d4ee42ae9d`
+
+```tsx
+"use client";
+import { useAsyncCommand } from "@platform/hooks/use-async-command";
+import { paymentRequest } from "@platform/features/payments/client/request";
+import { endpoints } from "@platform/config/navigation";
+import Action from "@khatab/design/ui/action";
+export default function CheckoutButton({
+  slug,
+  labels,
+}: {
+  slug: string;
+  labels: { pay: string; pending: string; error: string };
+}) {
+  const command = useAsyncCommand(labels.error);
+  const checkout = () =>
+    command.run(async () => {
+      const result = await paymentRequest<{ checkoutUrl: string }>(endpoints.paymentCheckout, { courseSlug: slug });
+      window.location.assign(result.checkoutUrl);
+    });
+  return (
+    <div>
+      <Action
+        kind="button"
+        type="button"
+        className="btn-primary lms-full-button"
+        disabled={command.pending}
+        onClick={checkout}
+      >
+        {command.pending ? labels.pending : labels.pay}
+      </Action>
+      {command.error && (
+        <p role="alert" className="lms-error">
+          {command.error}
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### File: `modules/components/payments/order-result.tsx`
+
+SHA-256: `1648d5d9335c3c00200ab0f7e682d1dda8d30619be350d9c132e32abc1fa8da3`
+
+```tsx
+"use client";
+import Link from "next/link";
+import Action from "@khatab/design/ui/action";
+import { usePaymentStatus } from "@platform/hooks/use-payment-status";
+import type { readPaymentReceipt } from "@platform/features/payments/repositories/read-order";
+import type { paymentCopy } from "@platform/data/payment-copy";
+export default function OrderResult({
+  initial,
+  labels,
+  libraryHref,
+  retryHref,
+  settingsHref,
+}: {
+  initial: Awaited<ReturnType<typeof readPaymentReceipt>>;
+  labels: typeof paymentCopy;
+  libraryHref: string;
+  retryHref: string;
+  settingsHref: string;
+}) {
+  const { order, refresh, pending, error } = usePaymentStatus(initial, labels.error);
+  return (
+    <section className="lms-profile-card lms-payment-card" aria-live="polite" data-reveal="true">
+      <h2>{labels.states[order.status]}</h2>
+      <p>{order.title}</p>
+      <strong className="lms-payment-amount numeral">
+        {order.amount} {labels.currency}
+      </strong>
+      <p>{order.status === "paid" ? (order.enrolled ? labels.paidHint : labels.activationHint) : labels.pendingHint}</p>
+      {order.status === "paid" && order.enrolled ? (
+        <Link className="btn-primary" href={libraryHref}>
+          {labels.course}
+        </Link>
+      ) : (
+        <>
+          <Action kind="button" type="button" className="btn-primary" disabled={pending} onClick={refresh}>
+            {pending ? labels.checking : labels.refresh}
+          </Action>
+          <Link className="lms-payment-back" href={order.status === "paid" ? settingsHref : retryHref}>
+            {order.status === "paid" ? labels.settings : labels.retry}
+          </Link>
+        </>
+      )}
+      {error && (
+        <p className="lms-error" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+```
+
 ### File: `modules/components/portfolio/about.tsx`
 
 SHA-256: `6d43b2e39523c109d21aa0cccfddb7ffd8ac53787c8569eac619b43780105680`
@@ -9118,7 +9388,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `a450859de3244ac9854a1106fa9cc2bd31089f13f253d7057492035e2031c45c`
+SHA-256: `4ad3f5cb53129defa4df0b6ac22d4fe28ddfb169db4100230b2dfdb6945ce198`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9140,6 +9410,8 @@ export const sectionIds = {
   enrollment: "course-enrollment",
 } as const;
 export const routes = {
+  payment: (id: string) => `/payments/${segment(id)}`,
+  checkout: (slug: string) => `/checkout/${segment(slug)}`,
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
@@ -9183,6 +9455,9 @@ export const routes = {
   },
 };
 export const endpoints = {
+  paymentCheckout: "/api/payments/checkout",
+  paymentStatus: (id: string) => `/api/payments/${segment(id)}`,
+  paymentReconcile: (id: string) => `${endpoints.paymentStatus(id)}/reconcile`,
   adminCourses: "/api/admin/courses",
   adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",
@@ -9288,7 +9563,7 @@ export const accountCopy = {
 
 ### File: `modules/data/admin-analytics.ts`
 
-SHA-256: `e144164fec12e751953ef1ed6c157616de07408fa5009a33975c1e9d012efd83`
+SHA-256: `4ae8036227fa9fb12a1aae1a8d73f498b7ba371054c1d2e514f92869bdea384e`
 
 ```typescript
 export const analyticsCopy = {
@@ -9302,6 +9577,7 @@ export const analyticsCopy = {
   dailyTable: "عرض الأرقام اليومية", day: "اليوم", chartEmpty: "لم يُسجّل نشاط خلال هذا الشهر بعد.",
   trendTitle: "الدورات الأكثر إقبالاً", trendDescription: "الترتيب حسب عدد الاشتراكات الفعلية في الفترة المختارة.",
   trendEmpty: "لا توجد اشتراكات في هذه الفترة حتى الآن.", periodLabel: "فترة ترتيب الدورات", subscriptions: "اشتراك", draft: "غير منشورة", course: "الدورة",
+  currency: "ج.م",
   revenueWeek: "إيرادات الأسبوع", revenueMonth: "إيرادات الشهر", unavailable: "غير متاح",
   revenueNote: "تتوفر بعد تفعيل المدفوعات.",
   sourcesTitle: "من أين انضم الطلاب؟", sourcesDescription: "مصادر الانضمام المسجلة لحسابات الطلاب الجدد هذا الشهر، وليست زيارات الموقع.",
@@ -9311,7 +9587,7 @@ export const analyticsCopy = {
   totalSubscriptions: "إجمالي الاشتراكات", enrolledStudents: "طلاب مشتركون", completedLessons: "دروس مكتملة", learningTitle: "نشاط التعلّم",
   error: "تعذّر تحميل الأرقام الآن.", retry: "حاول مرة أخرى", loading: "جارٍ تحميل إحصاءات المنصة…",
   periodNote: "الأسبوع يبدأ يوم الإثنين. المقارنة تستخدم نفس المدة المنقضية من الأسبوع أو الشهر السابق.",
-  definitions: "كيف تُحسب الأرقام؟", definitionsText: "تعكس الإحصاءات الحسابات والاشتراكات الحالية؛ الحسابات المحذوفة والمديرون مستبعدون. مصادر الانضمام لا تقيس زيارات الموقع. بيانات الإيرادات غير متاحة حتى تسجيل مدفوعات فعلية.",
+  definitions: "كيف تُحسب الأرقام؟", definitionsText: "تعكس الإحصاءات الحسابات والاشتراكات الحالية؛ الحسابات المحذوفة والمديرون مستبعدون. مصادر الانضمام لا تقيس زيارات الموقع. الإيرادات هي المدفوعات المؤكدة عبر فواتيرك قبل خصم رسوم البوابة؛ مدفوعات الاختبار مستبعدة.",
 };
 ```
 
@@ -9418,10 +9694,18 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `d7f39c9cabf6e01bbc4538d970d7cd40a1e8e7caf4ec1864f961f4ce5459f7b4`
+SHA-256: `c13e88d41707936fcdd09b4a7b13b9ad9324f6ba176dccaa5cb21b2f9d9b78a6`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  PAYMENTS_UNAVAILABLE: "خدمة الدفع غير متاحة حاليًا. حاول لاحقًا.",
+  PAYMENT_MISMATCH: "لم نتمكن من مطابقة بيانات الدفع. تواصل مع الدعم.",
+  INVALID_PAYMENT_SIGNATURE: "توقيع الدفع غير صالح.",
+  PAYMENT_ALREADY_PAID: "سبق تأكيد الدفع لهذه الدورة. أكّد بيانات التواصل ثم افتح حالة الدفع لتفعيل الاشتراك.",
+  PAYMENT_CREATING: "جارٍ تجهيز طلب الدفع. انتظر قليلًا ثم أعد المحاولة.",
+  INVALID_PAYMENT_COURSE: "هذه الدورة غير متاحة للدفع الإلكتروني.",
+  ALREADY_ENROLLED: "أنت مشترك بالفعل في هذه الدورة. افتح دوراتك.",
+  COURSE_HAS_PAYMENTS: "لا يمكن حذف دورة مرتبطة بطلبات دفع. يمكنك إلغاء نشرها.",
   SECTION_ID_CONFLICT: "يوجد قسم بنفس المعرّف في الفصل المختار. انقل دروسه إلى قسم آخر بدلاً من ذلك.",
   COURSE_CONFLICT: "تغيّر محتوى الدورة منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
   CURRICULUM_NOT_EMPTY: "انقل الدروس أو احذف المحتوى قبل حذف الفصل أو القسم.",
@@ -9444,7 +9728,7 @@ export const backendCopy: Record<string, string> = {
   MEDIA_UNAVAILABLE: "تعذّر تشغيل الملف. تأكد أن رابط Google Drive متاح للمشاهدة.",
   UNAUTHENTICATED: "سجّل الدخول للمتابعة.", FORBIDDEN: "غير مسموح بهذا الطلب.",
   NOT_FOUND: "المحتوى غير موجود أو غير متاح لك.", INVALID_INPUT: "راجع البيانات وحاول مرة أخرى.",
-  PAYMENT_REQUIRED: "هذا الكورس يحتاج إلى تفعيل اشتراكك. الدفع الإلكتروني سيتاح لاحقًا.",
+  PAYMENT_REQUIRED: "يلزم إتمام الدفع لتفعيل اشتراكك في الدورة.",
   INVALID_CREDENTIALS: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
   AUTH_FAILED: "تعذّر إكمال الطلب. حاول مرة أخرى.", RATE_LIMITED: "محاولات كثيرة. انتظر قليلًا ثم حاول مرة أخرى.",
   SUPABASE_NOT_CONFIGURED: "خدمة الحسابات غير مهيّأة بعد.", INTERNAL_ERROR: "تعذّر إكمال الطلب. حاول مرة أخرى.",
@@ -10010,6 +10294,43 @@ export const offerCopy = {
 };
 ```
 
+### File: `modules/data/payment-copy.ts`
+
+SHA-256: `f60fa3a10fdcb2224207c4379928851f2d4d75184b367f9c8e62ba4ac4115fb8`
+
+```typescript
+export const paymentCopy = {
+  subscribe: "اشترك الآن",
+  checking: "جارٍ التحقق…",
+  title: "إتمام الاشتراك",
+  summary: "راجع الدورة والسعر قبل الانتقال للدفع الآمن.",
+  amount: "الإجمالي",
+  currency: "ج.م",
+  pay: "الانتقال للدفع الآمن",
+  pending: "جارٍ تجهيز الدفع…",
+  secure: "ستنتقل إلى فواتيرك لاختيار وسيلة الدفع وإتمام الاشتراك بأمان.",
+  verification: "أكّد بريدك الإلكتروني ورقم هاتفك قبل الاشتراك. دوراتك الحالية تظل متاحة.",
+  settings: "إعدادات الحساب",
+  resultTitle: "حالة الدفع",
+  refresh: "التحقق من الدفع",
+  error: "تعذّر إتمام الطلب. حاول مرة أخرى.",
+  course: "الانتقال إلى دوراتي",
+  back: "العودة إلى الدورة",
+  retry: "محاولة دفع جديدة",
+  states: {
+    creating: "جارٍ تجهيز رابط الدفع",
+    pending: "بانتظار تأكيد الدفع",
+    paid: "تم تأكيد الدفع",
+    failed: "لم يكتمل الدفع",
+    expired: "انتهت صلاحية طلب الدفع",
+  } as Record<string, string>,
+  activationHint: "تم استلام الدفع. أكّد بيانات التواصل ثم اضغط التحقق لتفعيل الدورة بدون دفع مرة أخرى.",
+  pendingHint:
+    "قد يستغرق تأكيد الدفع بعض الوقت، خاصة عند الدفع بفوري أو المحافظ. سيُفعّل الاشتراك بعد تأكيد فواتيرك، حتى لو أغلقت هذه الصفحة.",
+  paidHint: "دورتك أصبحت متاحة في حسابك.",
+};
+```
+
 ### File: `modules/data/phone-confirmations.ts`
 
 SHA-256: `9b76372662a9f6c29dbb73f2a34adbeb367bc3157a8799131499aaf147ea9ea4`
@@ -10059,7 +10380,7 @@ export const resources: Resource[] = [
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `2b87608ff9c3524526bff547dbd4f67f38059edd9cd6ab82452d0c1bd2bd3e83`
+SHA-256: `298ddc419d3a7c46fd1efdf02a75b070af05250e1dd4dd2403b6afcdfbf85f9e`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -10214,7 +10535,7 @@ export const copy = {
   email: "البريد الإلكتروني",
   back: "ارجع للدورة",
   browse: "استكشف الدورات",
-  enrollLabel: "جرّب التسجيل في الدورة",
+  enrollLabel: "اشترك الآن",
   enrolledLabel: "الدورة في مكتبتك",
   outcome: "بعد الدورة هتقدر",
   free: "تجربة مجانية",
@@ -10771,24 +11092,27 @@ export function isSource(value: unknown): value is AnalyticsSource {
 
 ### File: `modules/features/admin/analytics/repositories/read-analytics.ts`
 
-SHA-256: `37ae9b1c9bdd9bff2b597e55e3dd50fa81bab8de3c11dff2d08f15d537f43122`
+SHA-256: `c93d48ebf955b9f0ce6c4b4e83f2a8e4c5d76b69ec2a5d009e3a2c5c8093adc8`
 
 ```typescript
 import "server-only";
 import { requireAdmin } from "../../identity";
 import { ApiError } from "@platform/lib/api/error";
+import type { PaymentRevenue } from "@platform/types/admin-analytics";
 import { readAnalyticsSnapshot } from "../helpers/read-snapshot";
 export async function readAdminAnalytics() {
   const { client } = await requireAdmin();
-  const { data, error } = await client.rpc("admin_dashboard_snapshot");
-  if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return readAnalyticsSnapshot(data);
+  const [snapshot,revenue] = await Promise.all([client.rpc("admin_dashboard_snapshot"),client.rpc("payment_revenue_snapshot")]);
+  if (snapshot.error || revenue.error) throw new ApiError(503,"INTERNAL_ERROR");
+  const totals = revenue.data as unknown as PaymentRevenue;
+  if (!totals || ![totals.week,totals.month,totals.previousWeek,totals.previousMonth].every(value => Number.isSafeInteger(value) && value >= 0)) throw new ApiError(503,"INTERNAL_ERROR");
+  return {...readAnalyticsSnapshot(snapshot.data),revenue:totals};
 }
 ```
 
 ### File: `modules/features/admin/handle-course-delete.ts`
 
-SHA-256: `303ff78a00768b668544b79505e3c0bf9b0df1698ec2aa9b01181dffb42630b8`
+SHA-256: `ccc3acbcb9c8806ab330d3c293ca2f2b0d8412a1893cfc59053ddfcd5b1bc823`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
@@ -10801,6 +11125,7 @@ export function handleCourseDelete(slug: string, request: Request) {
   const { client } = await requireAdmin(), input = await readJson(request);
   if (input?.confirmSlug !== slug) throw new ApiError(400,"INVALID_INPUT");
   const { error } = await client.rpc("delete_admin_course", { p_slug: slug });
+  if (error?.message.includes("COURSE_HAS_PAYMENTS")) throw new ApiError(409,"COURSE_HAS_PAYMENTS");
   if (error) throw new ApiError(error.message.includes("COURSE_HAS_STUDENTS") ? 409 : error.code === "P0002" ? 404 : 503, error.message.includes("COURSE_HAS_STUDENTS") ? "COURSE_HAS_STUDENTS" : error.code === "P0002" ? "NOT_FOUND" : "INTERNAL_ERROR");
   return Response.json({ deleted: true });
  });
@@ -12950,6 +13275,34 @@ export function createCoachingModel(): LandingModel["coaching"] {
 }
 ```
 
+### File: `modules/features/marketing/models/course-intro-video.ts`
+
+SHA-256: `115514e7be8edb83d1b909aada163ab863f7f8db9c1cdbaa5ccbb9ac48e0ac40`
+
+```typescript
+import type { VideoContent } from "@khatab/design/types/ui";
+import type { Course } from "@platform/types/lms";
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
+import { playableUrl } from "@platform/helpers/media/playable-url";
+import { thumbnailUrl } from "@platform/helpers/media/thumbnail-url";
+export function courseIntroVideo(video: VideoContent, course: Course, defaults: Course): VideoContent {
+  const source = course.introVideoUrl || defaults.introVideoUrl!;
+  return {
+    controls: video.controls,
+    controlsVariant: video.controlsVariant,
+    returnToPosterOnEnd: video.returnToPosterOnEnd,
+    title: video.title,
+    playLabel: video.playLabel,
+    caption: video.caption,
+    hint: video.hint,
+    poster: { ...video.poster!, src: thumbnailUrl(course.thumbnailUrl || defaults.thumbnailUrl!) },
+    ...(getYouTubeEmbedUrl(source)
+      ? { url: source }
+      : { source: { kind: "file" as const, url: playableUrl(source, course.slug) } }),
+  };
+}
+```
+
 ### File: `modules/features/marketing/models/courses.ts`
 
 SHA-256: `9bfb5e24519eb2116dc4ef2d1814f711bf4918e0cfd13bc476392d71a0e50da1`
@@ -13075,27 +13428,34 @@ export function createHeroModel(courses: Course[]): LandingModel["hero"] {
 
 ### File: `modules/features/marketing/models/workshop-course.ts`
 
-SHA-256: `f26be1741d2c329cb0b77613cdd612f5b52165f8cc7cdd1f5bd5878fd5d02ad1`
+SHA-256: `269a66ed23ee5e9e3f11fc874bb126aa6b40aefd4888ad40a267544b86afd63a`
 
 ```typescript
+import { routes } from "@platform/config/navigation";
 import type { MarketingPageContent } from "@khatab/design/types/marketing";
-import type { VideoContent } from "@khatab/design/types/ui";
 import type { Course } from "@platform/types/lms";
-import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
-import { playableUrl } from "@platform/helpers/media/playable-url";
-import { thumbnailUrl } from "@platform/helpers/media/thumbnail-url";
-export function workshopCourseContent(content: MarketingPageContent, course: Course, defaults: Course): MarketingPageContent {
-  const source = course.introVideoUrl || defaults.introVideoUrl!;
-  const video: VideoContent = { controls: content.hero.video.controls, controlsVariant: content.hero.video.controlsVariant,
-    returnToPosterOnEnd: content.hero.video.returnToPosterOnEnd, title: content.hero.video.title,
-    playLabel: content.hero.video.playLabel, caption: content.hero.video.caption, hint: content.hero.video.hint,
-    poster: { ...content.hero.video.poster!, src: thumbnailUrl(course.thumbnailUrl || defaults.thumbnailUrl!) },
-    ...(getYouTubeEmbedUrl(source) ? { url: source } : { source: { kind: "file" as const, url: playableUrl(source,course.slug) } }),
+import { courseIntroVideo } from "./course-intro-video";
+import { paymentCopy } from "@platform/data/payment-copy";
+export function workshopCourseContent(
+  content: MarketingPageContent,
+  course: Course,
+  defaults: Course,
+): MarketingPageContent {
+  const action =
+    course.offer.amount > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
+  return {
+    ...content,
+    header: { ...content.header, action: action ?? content.header.action },
+    roadmap: { ...content.roadmap, action: action ?? content.roadmap.action },
+    finalCta: { ...content.finalCta, action: action ?? content.finalCta.action },
+    hero: {
+      ...content.hero,
+      video: courseIntroVideo(content.hero.video, course, defaults),
+      action: action ?? content.hero.action,
+      title: course.title === defaults.title ? content.hero.title : [course.title],
+      description: course.description === defaults.description ? content.hero.description : course.description,
+    },
   };
-  return { ...content, hero: { ...content.hero, video,
-    title: course.title === defaults.title ? content.hero.title : [course.title],
-    description: course.description === defaults.description ? content.hero.description : course.description,
-  } };
 }
 ```
 
@@ -13219,6 +13579,632 @@ export async function uploadImage(file: File, folder: string, avatar: boolean) {
   const image = readUploadedImage({ url: value.secure_url, publicId: value.public_id, width: value.width, height: value.height });
   if (image.publicId !== publicId) throw new Error("Unexpected image identifier");
   return { ...image, url: image.url.replace("/image/upload/", "/image/upload/f_auto,q_auto/") };
+}
+```
+
+### File: `modules/features/payments/client/request.ts`
+
+SHA-256: `9f46027f9c8d6b51bb8bcaad5205320e1435d954701a87d86ddff2bc57332b68`
+
+```typescript
+export async function paymentRequest<T>(url: string, body?: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+    signal: AbortSignal.timeout(30000),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error);
+  return result as T;
+}
+```
+
+### File: `modules/features/payments/gateway/checkout-payload.ts`
+
+SHA-256: `d736baca2aea74b3f362ec1083e119a20eeae4b0c1e97349a2299187e9e2ae16`
+
+```typescript
+import { routes } from "@platform/config/navigation";
+import { applicationOrigin } from "@platform/lib/application-origin";
+import type { AccountProfile } from "@platform/types/account";
+import type { PaymentOrder } from "../types";
+export function checkoutPayload(order: PaymentOrder, account: AccountProfile) {
+  const resultUrl = `${applicationOrigin()}${routes.payment(order.id)}`;
+  return {
+    due_date: order.expires_at,
+    currency: order.currency,
+    cartTotal: order.amount_minor / 100,
+    cartItems: [{ name: order.course_title, price: order.amount_minor / 100, quantity: 1 }],
+    customer: {
+      first_name: account.firstName || account.name,
+      last_name: account.lastName || "Ta3allam",
+      email: account.email,
+      phone: account.phone.replaceAll("-", ""),
+      customer_unique_id: account.id,
+    },
+    pay_load: { merchant_reference: order.id },
+    tr_number: order.id,
+    lang: "ar",
+    redirectOption: true,
+    sendEmail: false,
+    sendSMS: false,
+    redirectionUrls: {
+      successUrl: resultUrl,
+      failUrl: resultUrl,
+      pendingUrl: resultUrl,
+      backUrl: resultUrl,
+      webhookUrl: `${applicationOrigin()}/api/payments/fawaterak/webhook_json`,
+    },
+  };
+}
+```
+
+### File: `modules/features/payments/gateway/create-checkout.ts`
+
+SHA-256: `b545d52348f1b8c2130fc5c2f36556ac2ff2bdfa601ef2e0a4266a030ad58788`
+
+```typescript
+import "server-only";
+import { isOrderId } from "../helpers/order-id";
+import { checkoutPayload } from "./checkout-payload";
+import { paymentEnvironment } from "./environment";
+import { gatewayRequest } from "./request";
+import { ApiError } from "@platform/lib/api/error";
+import type { AccountProfile } from "@platform/types/account";
+import type { PaymentOrder } from "../types";
+export async function createGatewayCheckout(order: PaymentOrder, account: AccountProfile) {
+  const result = await gatewayRequest("createTransaction", checkoutPayload(order, account));
+  if (!isOrderId(result.intent_key) || typeof result.url !== "string") throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  const url = new URL(result.url);
+  if (
+    url.origin !== paymentEnvironment().origin ||
+    !url.pathname.startsWith("/transactions/") ||
+    url.username ||
+    url.password
+  )
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  return { intentKey: result.intent_key, url: url.href };
+}
+```
+
+### File: `modules/features/payments/gateway/environment.ts`
+
+SHA-256: `98e759bb058af39b2c2dbd04a86bd667b84d437bf589c589ae2699214ffb7d0e`
+
+```typescript
+import "server-only";
+import { ApiError } from "@platform/lib/api/error";
+function approvedTokenUrl(url: URL) {
+  const localTest =
+    process.env.NODE_ENV !== "production" &&
+    process.env.FAWATERAK_TEST_ORIGIN === url.origin &&
+    /^http:\/\/127\.0\.0\.1:/.test(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+  const hosted = url.protocol === "https:" && ["app.fawaterk.com", "staging.fawaterk.com"].includes(url.hostname);
+  return (
+    (localTest || hosted) &&
+    url.pathname === "/oauth/token" &&
+    !url.username &&
+    !url.password &&
+    !url.search &&
+    !url.hash
+  );
+}
+export function paymentEnvironment() {
+  const {
+    FAWATERAK_TOKEN_URL: tokenUrl,
+    FAWATERAK_CLIENT_ID: clientId,
+    FAWATERAK_CLIENT_SECRET: clientSecret,
+    HASH_API_KEY: hashKey,
+  } = process.env;
+  if (!tokenUrl || !clientId || !clientSecret || !hashKey) throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  let url: URL;
+  try {
+    url = new URL(tokenUrl);
+  } catch {
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  }
+  if (!approvedTokenUrl(url)) throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  return { tokenUrl, origin: url.origin, clientId, clientSecret, hashKey, live: url.hostname === "app.fawaterk.com" };
+}
+```
+
+### File: `modules/features/payments/gateway/request.ts`
+
+SHA-256: `25c4ab1f26f911fd22c5206b644905fea011fce7856a374644a024d04fd14bd3`
+
+```typescript
+import "server-only";
+import { paymentEnvironment } from "./environment";
+import { readGatewayEnvelope } from "../helpers/read-gateway-envelope";
+import { paymentToken } from "./token";
+import { ApiError } from "@platform/lib/api/error";
+export async function gatewayRequest(path: "createTransaction" | "getTransactionData", body: unknown) {
+  try {
+    const origin = paymentEnvironment().origin;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const token = await paymentToken(attempt === 1);
+      const response = await fetch(`${origin}/api/v3/${path}`, {
+        method: "POST",
+        cache: "no-store",
+        redirect: "error",
+        signal: AbortSignal.timeout(15000),
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (response.status === 401 && attempt === 0) continue;
+      if (!response.ok) throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+      return readGatewayEnvelope(await response.json());
+    }
+  } catch {
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  }
+  throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+}
+```
+
+### File: `modules/features/payments/gateway/token.ts`
+
+SHA-256: `4c955b6a0f22885474836f92fd046a520bfcbb5325f42a7013db0a05893f4335`
+
+```typescript
+import "server-only";
+import { paymentEnvironment } from "./environment";
+import { ApiError } from "@platform/lib/api/error";
+let cached: { token: string; until: number } | undefined;
+let pending: Promise<string> | undefined;
+async function authenticate() {
+  const env = paymentEnvironment();
+  const response = await fetch(env.tokenUrl, {
+    method: "POST",
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(10000),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grant_type: "client_credentials",
+      client_id: env.clientId,
+      client_secret: env.clientSecret,
+    }),
+  });
+  if (!response.ok) throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  const data: unknown = await response.json();
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !("access_token" in data) ||
+    typeof data.access_token !== "string" ||
+    !("expires_in" in data) ||
+    typeof data.expires_in !== "number"
+  )
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  cached = {
+    token: data.access_token,
+    until: Date.now() + Math.max(0, data.expires_in - 60) * 1000,
+  };
+  return cached.token;
+}
+export async function paymentToken(force = false) {
+  if (force) cached = undefined;
+  if (cached && cached.until > Date.now()) return cached.token;
+  pending ??= authenticate().finally(() => {
+    pending = undefined;
+  });
+  return pending;
+}
+```
+
+### File: `modules/features/payments/handle-checkout.ts`
+
+SHA-256: `edec9a9de7006c932eb9764ea8d9a6464b6131c66f526d07ee45377789b32873`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson, sameOrigin } from "@platform/lib/server-request";
+import { createCheckout } from "./repositories/create-checkout";
+export function handleCheckout(request: Request) {
+  return apiResponse(async () => {
+    if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const body = await readJson(request);
+    if (
+      !body ||
+      typeof body.courseSlug !== "string" ||
+      body.courseSlug.length > 100 ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(body.courseSlug) ||
+      Object.keys(body).some((key) => key !== "courseSlug")
+    )
+      throw new ApiError(400, "INVALID_INPUT");
+    return Response.json(await createCheckout(body.courseSlug));
+  });
+}
+```
+
+### File: `modules/features/payments/handle-status.ts`
+
+SHA-256: `d4491fe9a7ed941979e2cda91ac2f0a4b56a0772c2903f9d2511f9aeed9c527a`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { sameOrigin } from "@platform/lib/server-request";
+import { readPaymentOrder, readPaymentReceipt } from "./repositories/read-order";
+import { reconcilePayment } from "./repositories/reconcile";
+export function handlePaymentStatus(id: string, request?: Request) {
+  return apiResponse(async () => {
+    if (request && !sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
+    const order = await readPaymentOrder(id);
+    return Response.json(await readPaymentReceipt(request ? await reconcilePayment(order) : order));
+  });
+}
+```
+
+### File: `modules/features/payments/handle-webhook.ts`
+
+SHA-256: `0d696606800a64174064314a4e9eb89fd188cd1940e5623c54fbfc8735b071f0`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { readJson } from "@platform/lib/server-request";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { paymentEnvironment } from "./gateway/environment";
+import { verifyPaymentSignature } from "./helpers/verify-signature";
+import { reconcilePayment } from "./repositories/reconcile";
+export function handlePaymentWebhook(request: Request) {
+  return apiResponse(async () => {
+    const body = await readJson(request);
+    if (!body || !verifyPaymentSignature(body, paymentEnvironment().hashKey))
+      throw new ApiError(401, "INVALID_PAYMENT_SIGNATURE");
+    const result = await createAuthAdministrator()
+      .from("payment_orders")
+      .select("*")
+      .eq("provider_intent_key", String(body.transaction_key))
+      .maybeSingle();
+    if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+    if (!result.data) throw new ApiError(404, "NOT_FOUND");
+    await reconcilePayment(result.data, Number(body.transaction_id));
+    return Response.json({ received: true });
+  });
+}
+```
+
+### File: `modules/features/payments/helpers/order-id.ts`
+
+SHA-256: `d7202b3ef41a030e7950b0cbb2adb76f8707311ca293ae9002359f1c1ad3243b`
+
+```typescript
+export const isOrderId = (id: unknown): id is string =>
+  typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+```
+
+### File: `modules/features/payments/helpers/read-gateway-envelope.ts`
+
+SHA-256: `c28d70445b5b106cb9f33e59d09e360dc548a6c1879cdd4573331c19eb919401`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+export function readGatewayEnvelope(result: unknown): Record<string, unknown> {
+  if (
+    !result ||
+    typeof result !== "object" ||
+    !("status" in result) ||
+    result.status !== "success" ||
+    !("data" in result) ||
+    !result.data ||
+    typeof result.data !== "object"
+  )
+    throw new ApiError(503, "PAYMENTS_UNAVAILABLE");
+  return result.data as Record<string, unknown>;
+}
+```
+
+### File: `modules/features/payments/helpers/validate-transaction.ts`
+
+SHA-256: `6c482c904906f6ef77a6d1467408a9f50cd3f80b3b0cea6362f9f16b81c85cca`
+
+```typescript
+import { ApiError } from "@platform/lib/api/error";
+import type { PaymentOrder, GatewayTransaction } from "../types";
+export function validateTransaction(data: Record<string, unknown>, order: PaymentOrder): GatewayTransaction {
+  let payload: unknown = data.pay_load;
+  try {
+    if (typeof payload === "string") payload = JSON.parse(payload);
+  } catch {
+    throw new ApiError(409, "PAYMENT_MISMATCH");
+  }
+  const reference =
+    payload && typeof payload === "object" && "merchant_reference" in payload ? payload.merchant_reference : null;
+  if (
+    data.intent_key !== order.provider_intent_key ||
+    reference !== order.id ||
+    data.currency !== order.currency ||
+    typeof data.total !== "number" ||
+    !Number.isFinite(data.total) ||
+    Math.round(data.total * 100) !== order.amount_minor ||
+    typeof data.paid !== "number" ||
+    ![0, 1].includes(data.paid) ||
+    !Number.isSafeInteger(data.transaction_id) ||
+    Number(data.transaction_id) < 0
+  )
+    throw new ApiError(409, "PAYMENT_MISMATCH");
+  if (Number(data.paid) === 1 && Number(data.transaction_id) <= 0) throw new ApiError(409, "PAYMENT_MISMATCH");
+  return data as unknown as GatewayTransaction;
+}
+```
+
+### File: `modules/features/payments/helpers/verify-signature.ts`
+
+SHA-256: `273e850dfb2fe883966c6064d9da60d5bd76c4f9d1be4fab005298367391a9b0`
+
+```typescript
+import "server-only";
+import { isOrderId } from "./order-id";
+import { createHmac, timingSafeEqual } from "node:crypto";
+export function verifyPaymentSignature(body: Record<string, unknown>, key: string) {
+  const { transaction_id: id, transaction_key: intent, payment_method: method, transactionHashKey: hash } = body;
+  if (
+    !Number.isSafeInteger(Number(id)) ||
+    Number(id) <= 0 ||
+    !isOrderId(intent) ||
+    typeof method !== "string" ||
+    typeof hash !== "string" ||
+    !/^[a-f0-9]{64}$/i.test(hash)
+  )
+    return false;
+  const digest = createHmac("sha256", key)
+    .update(`TransactionId=${id}&TransactionKey=${intent}&PaymentMethod=${method}`)
+    .digest();
+  return timingSafeEqual(digest, Buffer.from(hash, "hex"));
+}
+```
+
+### File: `modules/features/payments/repositories/begin-order.ts`
+
+SHA-256: `7ceaf32782c524079f93d0bd6bad0f27cc28d6c3658f81b15d505aac1e206852`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { paymentEnvironment } from "../gateway/environment";
+import { ApiError } from "@platform/lib/api/error";
+import type { PaymentOrder } from "../types";
+const orderErrors: Record<string, number> = {
+  PAYMENT_ALREADY_PAID: 409,
+  CONTACT_VERIFICATION_REQUIRED: 403,
+  ALREADY_ENROLLED: 409,
+  INVALID_PAYMENT_COURSE: 400,
+};
+export async function beginPaymentOrder(userId: string, slug: string) {
+  const result = await createAuthAdministrator().rpc("begin_course_payment", {
+    p_user: userId,
+    p_slug: slug,
+    p_live: paymentEnvironment().live,
+  });
+  if (result.error) {
+    const code = Object.keys(orderErrors).find((key) => result.error!.message.includes(key));
+    throw new ApiError(code ? orderErrors[code] : 503, code ?? "INTERNAL_ERROR");
+  }
+  return result.data as unknown as { order: PaymentOrder; created: boolean };
+}
+```
+
+### File: `modules/features/payments/repositories/create-checkout.ts`
+
+SHA-256: `6d7718bd4b2b01091e36772f38c2dd078e79efa32b9ec95bfdbda05f82d01146`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { readAccount } from "@platform/features/account/repositories/read-account";
+import { createGatewayCheckout } from "../gateway/create-checkout";
+import { beginPaymentOrder } from "./begin-order";
+import { saveCheckout } from "./save-checkout";
+import { ApiError } from "@platform/lib/api/error";
+export async function createCheckout(slug: string) {
+  const { client, user } = await requireIdentity();
+  const verification = await client.rpc("contacts_verified");
+  if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
+  const account = await readAccount(),
+    record = await beginPaymentOrder(user.id, slug);
+  if (!record.created) {
+    if (!record.order.checkout_url) throw new ApiError(409, "PAYMENT_CREATING");
+    return { orderId: record.order.id, checkoutUrl: record.order.checkout_url };
+  }
+  const checkout = await createGatewayCheckout(record.order, account);
+  await saveCheckout(record.order.id, checkout);
+  return { orderId: record.order.id, checkoutUrl: checkout.url };
+}
+```
+
+### File: `modules/features/payments/repositories/mark-unpaid.ts`
+
+SHA-256: `29c199fa849366d9611463ea58e24441ffc7215ca7d2e454857333e97f30574d`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import type { PaymentOrder } from "../types";
+export async function markUnpaid(order: PaymentOrder, statusText: unknown) {
+  const terminal =
+    typeof statusText === "string" && ["failed", "cancelled", "canceled", "expired"].includes(statusText.toLowerCase());
+  if (!terminal && Date.parse(order.expires_at) > Date.now()) return order;
+  const result = await createAuthAdministrator()
+    .from("payment_orders")
+    .update({ status: terminal ? "failed" : "expired" })
+    .eq("id", order.id)
+    .neq("status", "paid")
+    .select("*")
+    .maybeSingle();
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return result.data ?? order;
+}
+```
+
+### File: `modules/features/payments/repositories/read-order.ts`
+
+SHA-256: `c97dace75868dca4625e00de2a9be2e6ef992497b108dadb08d38b5abffb3d02`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { isOrderId } from "../helpers/order-id";
+import type { PaymentOrder } from "../types";
+export async function readPaymentOrder(id: string): Promise<PaymentOrder> {
+  const { client, user } = await requireIdentity();
+  if (!isOrderId(id)) throw new ApiError(404, "NOT_FOUND");
+  const { data, error } = await client
+    .from("payment_orders")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!data) throw new ApiError(404, "NOT_FOUND");
+  return data;
+}
+export function publicPaymentOrder(order: PaymentOrder) {
+  return {
+    id: order.id,
+    courseSlug: order.course_slug,
+    title: order.course_title,
+    amount: order.amount_minor / 100,
+    currency: order.currency,
+    status: order.status,
+    paidAt: order.paid_at,
+  };
+}
+export async function readPaymentReceipt(order: PaymentOrder) {
+  const { client, user } = await requireIdentity();
+  const result = await client
+    .from("enrollments")
+    .select("course_slug")
+    .eq("user_id", user.id)
+    .eq("course_slug", order.course_slug)
+    .maybeSingle();
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return { ...publicPaymentOrder(order), enrolled: Boolean(result.data) };
+}
+```
+
+### File: `modules/features/payments/repositories/reconcile.ts`
+
+SHA-256: `6044887585ee6918794d8bde5bf46a39d1c867d1ad17bbe13faec5e95b4f202c`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { markUnpaid } from "./mark-unpaid";
+import { settleOrder } from "./settle-order";
+import { gatewayRequest } from "../gateway/request";
+import { validateTransaction } from "../helpers/validate-transaction";
+import { ApiError } from "@platform/lib/api/error";
+import type { PaymentOrder } from "../types";
+export async function reconcilePayment(order: PaymentOrder, expectedTransaction?: number) {
+  if (!order.provider_intent_key) return order;
+  const client = createAuthAdministrator();
+  if (!expectedTransaction && order.status !== "paid") {
+    const claim = await client.rpc("claim_payment_check", {
+      p_order: order.id,
+    });
+    if (claim.error) throw new ApiError(503, "INTERNAL_ERROR");
+    if (!claim.data) return order;
+  }
+  const data =
+    order.status === "paid"
+      ? { paid: 1, transaction_id: order.transaction_id! }
+      : validateTransaction(
+          await gatewayRequest("getTransactionData", {
+            intent_key: order.provider_intent_key,
+          }),
+          order,
+        );
+  if (expectedTransaction && data.transaction_id !== expectedTransaction) throw new ApiError(409, "PAYMENT_MISMATCH");
+  if (data.paid !== 1) return markUnpaid(order, "status_text" in data ? data.status_text : null);
+  return settleOrder(order, data.transaction_id);
+}
+```
+
+### File: `modules/features/payments/repositories/save-checkout.ts`
+
+SHA-256: `7b4727e1b5c043773c2cf1081b9cf6c14aeaf0feabc8cee39a8af9949311304c`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+export async function saveCheckout(orderId: string, checkout: { intentKey: string; url: string }) {
+  const result = await createAuthAdministrator()
+    .from("payment_orders")
+    .update({ provider_intent_key: checkout.intentKey, checkout_url: checkout.url, status: "pending" })
+    .eq("id", orderId)
+    .eq("status", "creating")
+    .select("id")
+    .single();
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+}
+```
+
+### File: `modules/features/payments/repositories/settle-order.ts`
+
+SHA-256: `e24375eb46954bf31299efa30134f3956b226b7e927781ef84df1105cc9c7845`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import type { PaymentOrder } from "../types";
+export async function settleOrder(order: PaymentOrder, transactionId: number) {
+  const client = createAuthAdministrator();
+  const result = await client.rpc("settle_course_payment", {
+    p_order: order.id,
+    p_intent: order.provider_intent_key!,
+    p_transaction: transactionId,
+    p_amount: order.amount_minor,
+    p_currency: order.currency,
+  });
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const updated = await client.from("payment_orders").select("*").eq("id", order.id).single();
+  if (updated.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return updated.data;
+}
+```
+
+### File: `modules/features/payments/types.ts`
+
+SHA-256: `a24718bc05da2f0ea44a5153f6f0f62c446af04dadfc959a530a504c850248c3`
+
+```typescript
+export interface PaymentOrder {
+  id: string;
+  user_id: string | null;
+  course_slug: string;
+  course_title: string;
+  amount_minor: number;
+  currency: string;
+  status: string;
+  provider_intent_key: string | null;
+  checkout_url: string | null;
+  created_at: string;
+  expires_at: string;
+  paid_at: string | null;
+  transaction_id: number | null;
+}
+export interface GatewayTransaction {
+  intent_key: string;
+  transaction_id: number;
+  paid: number;
+  total: number;
+  currency: string;
+  pay_load: unknown;
+  status_text: string;
+  paid_at: string | null;
 }
 ```
 
@@ -13918,7 +14904,7 @@ export function useAuthForm({ mode, endpoint, redirectTo, copy }: Pick<AuthPageM
 
 ### File: `modules/hooks/use-course-enrollment.ts`
 
-SHA-256: `a4736abaab2b005345bb6520225e0e4c69f5a7d4a3b3675797dce974d6fe5e5e`
+SHA-256: `9e4658cdbdd21243a01d2ed6b0da594d591762a8bca27f631ea64d6c84dc9063`
 
 ```typescript
 "use client";
@@ -13928,13 +14914,14 @@ import { routes } from "@platform/config/navigation";
 import { useAsyncCommand } from "./use-async-command";
 import { startCourse } from "@platform/features/learning/client/start-course";
 import { learningRequests } from "@platform/features/learning/client/requests";
-export function useCourseEnrollment({ slug, firstLesson, enrolled, errorLabel }: {
-  slug: string; firstLesson?: string; enrolled: boolean; errorLabel: string;
+export function useCourseEnrollment({ slug, firstLesson, enrolled, paid = false, errorLabel }: {
+  slug: string; firstLesson?: string; enrolled: boolean; paid?: boolean; errorLabel: string;
 }) {
   const navigation = useRouter();
   const command = useAsyncCommand(errorLabel);
   const { enroll } = learningRequests(errorLabel);
   const start = () => command.run(async () => {
+    if (paid && !enrolled) { navigation.push(routes.checkout(slug)); return; }
     try { await startCourse({ slug, firstLesson, enrolled, enroll, lessonHref: routes.lesson, navigation }); }
     catch (error) {
       if (error instanceof HttpError && error.status === 401) navigation.push(routes.login);
@@ -14113,6 +15100,55 @@ export function useLogout(errorLabel: string) {
     window.location.replace(routes.login);
   });
   return { logout, pending: command.pending, error: command.error };
+}
+```
+
+### File: `modules/hooks/use-payment-status.ts`
+
+SHA-256: `7476579dfab13132beae23a2cc9080b0af8e28502698a9ced39ea795540db3df`
+
+```typescript
+"use client";
+import { useEffect, useState } from "react";
+import { endpoints } from "@platform/config/navigation";
+import { paymentRequest } from "@platform/features/payments/client/request";
+import { useAsyncCommand } from "./use-async-command";
+import type { readPaymentReceipt } from "@platform/features/payments/repositories/read-order";
+type Receipt = Awaited<ReturnType<typeof readPaymentReceipt>>;
+export function usePaymentStatus(initial: Receipt, errorLabel: string) {
+  const [order, setOrder] = useState(initial),
+    command = useAsyncCommand(errorLabel);
+  const refresh = () =>
+    command.run(async () => setOrder(await paymentRequest<Receipt>(endpoints.paymentReconcile(order.id))));
+  useEffect(() => {
+    if (initial.status === "paid" && initial.enrolled) return;
+    let stopped = false,
+      attempts = 0,
+      timer: ReturnType<typeof setTimeout>;
+    const controller = new AbortController();
+    const poll = async () => {
+      try {
+        const response = await fetch(endpoints.paymentReconcile(initial.id), {
+          method: "POST",
+          signal: controller.signal,
+        });
+        if (!response.ok) return;
+        const next = (await response.json()) as Receipt;
+        if (!stopped) setOrder(next);
+        if (next.status === "paid" || next.status === "expired" || next.status === "failed") return;
+      } catch {
+        if (stopped) return;
+      }
+      if (!stopped && ++attempts < 6) timer = setTimeout(poll, 16000);
+    };
+    void poll();
+    return () => {
+      stopped = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [initial.id, initial.status, initial.enrolled]);
+  return { order, refresh, pending: command.pending, error: command.error };
 }
 ```
 
@@ -16967,6 +18003,23 @@ button:disabled {
 .lms-admin-form .lms-form-field { margin: 0; }
 ```
 
+### File: `modules/styles/payments.css`
+
+SHA-256: `60306fbfadbcfe1c281e9fe8dd28eb127c1ef771bdae8b66c31a5132850940ba`
+
+```css
+.lms-payment-layout { max-width: var(--lms-size-640px); margin-inline: auto; }
+.lms-payment-layout > p { margin-top: var(--space-unit); color: var(--text-secondary); }
+.lms-payment-card { display: grid; gap: var(--space-lg); margin-top: var(--space-xl); width: 100%; }
+.lms-payment-card h2 { font-size: var(--lms-size-1_5rem); line-height: var(--leading-title); overflow-wrap: anywhere; }
+.lms-payment-card > p { color: var(--text-secondary); }
+.lms-payment-total { display: flex; align-items: center; justify-content: space-between; gap: var(--space-lg); padding-block: var(--space-md); border-block: var(--size-1px) solid var(--border-hairline); }
+.lms-payment-total dd, .lms-payment-amount { font-size: var(--size-2rem); font-weight: var(--weight-bold); white-space: nowrap; }
+.lms-payment-card .lms-payment-caption { color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-payment-back { display: inline-block; color: var(--text-primary); }
+.lms-payment-back:hover { color: var(--primary-red); text-decoration: underline; }
+```
+
 ### File: `modules/styles/portfolio.css`
 
 SHA-256: `0ea57d4bf48a818c10e76d6cfc1eefacd22f364770a27f468317f8c0fd8dcee9`
@@ -18523,7 +19576,7 @@ export type ContactField = "email" | "phone";
 
 ### File: `modules/types/admin-analytics.ts`
 
-SHA-256: `0fca7b6b1494a983e3a5df230f689086e1f67ecd9d54cb7e5249e089bec74f08`
+SHA-256: `c419379e8cf2b6df8bfb3702d457749830042f5d569e996fcca37765133d5872`
 
 ```typescript
 export type AnalyticsPeriod = "week" | "month" | "all";
@@ -18543,7 +19596,9 @@ export interface TrendingCourse {
   published: boolean; count: number; previous: number;
 }
 export interface AnalyticsSource { source: "youtube" | "facebook" | "instagram" | "tiktok" | "google" | "direct" | "unknown"; count: number }
+export interface PaymentRevenue { week:number; month:number; previousWeek:number; previousMonth:number; }
 export interface AdminAnalytics {
+  revenue?:PaymentRevenue;
   generatedAt: string; timezone: string; weekStart: string; monthStart: string;
   metrics: AnalyticsMetrics; daily: AnalyticsDay[];
   courses: Record<AnalyticsPeriod, TrendingCourse[]>; sources: AnalyticsSource[];
@@ -18717,7 +19772,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `6bab1ffe6bd1bd8816725d2166f66fc8a94ace487c4fcad6ae2cf9166e8e9395`
+SHA-256: `d940a651a319bdade286fe59b9682774e85b4b4143c5cad2f3809d66a5825f08`
 
 ```typescript
 
@@ -18725,7 +19780,25 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
 
-  "public": {
+  "graphql_public": {
+          Tables: {
+            [_ in never]: never
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "account_contacts": {
                   Row: {
@@ -18903,6 +19976,26 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"payment_orders": {
+                  Row: {
+                    "amount_minor": number,"checkout_url": string | null,"course_slug": string,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"checkout_url"?: string | null,"course_slug": string,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "amount_minor"?: number,"checkout_url"?: string | null,"course_slug"?: string,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_orders_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "avatar_url": string | null,"first_name": string,"id": string,"last_name": string,"name": string,"username": string
@@ -18943,6 +20036,12 @@ isOneToOne: false
 "admin_dashboard_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"begin_course_payment":
+{ Args: { "p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
+                           },
+"claim_payment_check":
+{ Args: { "p_order": string }; Returns: boolean
+                           },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
                            },
@@ -18951,6 +20050,9 @@ isOneToOne: false
                            },
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
+                           },
+"payment_revenue_snapshot":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
@@ -18966,6 +20068,9 @@ isOneToOne: false
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
+                           },
+"settle_course_payment":
+{ Args: { "p_amount": number,"p_currency": string,"p_intent": string,"p_order": string,"p_transaction": number }; Returns: undefined
                            }
           }
           Enums: {
@@ -19083,7 +20188,11 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "graphql_public": {
+          Enums: {
+
+          }
+        },"public": {
           Enums: {
 
           }
@@ -28521,14 +29630,14 @@ module.exports = { inspectFunctionSizes };
 
 ### File: `scripts/backend/check-secrets.cjs`
 
-SHA-256: `6743a141dcfbc575ba23f131f88178e8a8d45b1bcd68a1ccf259dbd24a8b83cb`
+SHA-256: `1fcedf0d09f0b16723ab971fa5219fee0032161291dc8938eb5d80cb9eeb9134`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Checks commit candidates without exposing secrets. */
 const fs = require('node:fs');
 const { execFileSync } = require('node:child_process');
 if (fs.existsSync('.env.local')) process.loadEnvFile('.env.local');
-const secrets = Object.entries(process.env).filter(([name,value]) => /(?:DB_URL|SERVICE_ROLE_KEY|SECRET_KEY|PASSWORD|ACCESS_TOKEN)$/.test(name) && value?.length >= 8).map(([,value]) => value);
+const secrets = Object.entries(process.env).filter(([name,value]) => /(?:DB_URL|SERVICE_ROLE_KEY|SECRET_KEY|API_SECRET|CLIENT_SECRET|HASH_API_KEY|PROVIDER_KEY|PASSWORD|ACCESS_TOKEN)$/.test(name) && value?.length >= 8).map(([,value]) => value);
 if (process.env.SUPABASE_DB_URL) secrets.push(decodeURIComponent(new URL(process.env.SUPABASE_DB_URL).password));
 const paths = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z']).toString().split('\0').filter(Boolean);
 const violations = [];
@@ -29814,7 +30923,7 @@ verify(Boolean((await student.direct.from('account_contacts').update({phone_veri
 
 ### File: `tests/backend/admin-analytics.cjs`
 
-SHA-256: `8706860e47318926be3b052aa71ee979497949238ebe94e0999ae970454021f9`
+SHA-256: `0c8c8afeff4cfd9af6b83d113f0d8fca5686b8eb1b69b89df141fe1c8844ced6`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated analytics database and responsive browser acceptance. */
@@ -29869,7 +30978,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
       await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
       await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);
       await page.getByRole('button',{name:'تحديث الأرقام',exact:true}).click();await expect(page.getByRole('button',{name:'تحديث الأرقام',exact:true})).toBeEnabled();
-      verify(await page.getByText('غير متاح',{exact:true}).count()===2,'Week and month revenue marked unavailable');
+      verify(await page.getByText('غير متاح',{exact:true}).count()===0,'Week and month revenue show actual verified-payment totals');
       await page.getByRole('link',{name:'المستخدمون',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/users');
       await expect(page.getByRole('heading',{name:'إدارة المستخدمين',exact:true})).toBeVisible();
       verify(errors.length===0,'Chart and navigation have no browser errors');
@@ -31175,7 +32284,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `a68f4f0cbd9394cdfe7a5ba34aa6fb6c1621bc3f8c5a353db353ad400bdf2a57`
+SHA-256: `247e1f64173646152ed49a7ddd963f18f32b388d2b506ba02ab6b9268cea3088`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -31187,6 +32296,11 @@ const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'u
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
+let paymentMock;
+if(process.env.BACKEND_SUITE === 'payments') {
+ paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
+ Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
+}
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
 const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -31227,6 +32341,9 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'payments') {
+    await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
+  }
   if (process.env.BACKEND_SUITE === 'course-price') {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
@@ -31365,7 +32482,7 @@ async function run() {
       await admin.auth.admin.deleteUser(id);
     }
     await admin.from('courses').delete().eq('slug','backend-test-free');
-    server.kill('SIGTERM'); fs.closeSync(log);
+    paymentMock?.server.close();server.kill('SIGTERM'); fs.closeSync(log);
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
 ```
@@ -31487,6 +32604,164 @@ module.exports=async function navigation({url,manager,student,verify}) {
    verify(errors.length===0,role+': no navigation runtime or hydration errors');await context.close();
   }
  } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/payment-browser.cjs`
+
+SHA-256: `865966b1d3de3b2af4b0ef4564d2ce74632e094317354db2389e495b32d2caf4`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Checkout browser acceptance using the local test gateway. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async function({url,user,slug,verify}){
+ const browser=await chromium.launch(),context=await browser.newContext(),page=await context.newPage();
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  const login=await context.request.post(url+'/api/auth/login',{data:{email:user.email,password:user.password},headers:{Origin:url}});
+  verify(login.ok(),'Browser authenticates checkout customer');
+  for(const viewport of [{width:320,height:568},{width:390,height:844},{width:1440,height:900}]){
+   await page.setViewportSize(viewport);await page.goto(url+'/checkout/'+slug);
+   await expect(page.getByRole('heading',{name:'إتمام الاشتراك',exact:true})).toBeVisible();
+   const button=page.getByRole('button',{name:'الانتقال للدفع الآمن',exact:true});await expect(button).toBeVisible();
+   const total=page.locator('.lms-payment-total');verify(await total.evaluate(el=>getComputedStyle(el).display==='flex'),'Price summary uses an actual responsive row');
+   const box=await button.boundingBox();verify(box.width>=44&&box.height>=44&&box.x>=0&&box.x+box.width<=viewport.width,'Checkout action fits '+viewport.width+'px viewport');
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Checkout has no horizontal overflow at '+viewport.width+'px');
+   await expect.poll(()=>page.locator('.lms-profile-card').evaluate(el=>getComputedStyle(el).opacity)).toBe('1');
+   if(viewport.width!==320){fs.mkdirSync('docs/evidence/payments',{recursive:true});await page.screenshot({path:`docs/evidence/payments/checkout-${viewport.width}.png`,fullPage:true});}
+  }
+  await page.getByRole('button',{name:'الانتقال للدفع الآمن',exact:true}).click();
+  await expect(page).toHaveURL(/http:\/\/127\.0\.0\.1:3046\/transactions\//);
+  verify(true,'Checkout button redirects to the hosted provider instead of handling card data');
+  verify(errors.length===0,'Checkout has no hydration or runtime errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/payment-gateway.cjs`
+
+SHA-256: `9c97724e5dcddf9428c16101e3aac7780479e96ffad32a4012e4429307d0f202`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated local payment provider, never charges money. */
+const http = require('node:http'), {randomUUID}=require('node:crypto');
+function paymentGateway() {
+ const transactions = new Map(); let created = 0, lookups = 0;
+ const server=http.createServer(async(req,res)=>{
+  let raw='';for await(const chunk of req) raw+=chunk;
+  const body=raw?JSON.parse(raw):{};
+  res.setHeader('Content-Type','application/json');
+  if(req.url==='/oauth/token'){res.end(JSON.stringify({access_token:'local-payment-token',expires_in:3600}));return;}
+  if(req.headers.authorization!=='Bearer local-payment-token'){res.statusCode=401;res.end('{}');return;}
+  if(req.url==='/api/v3/createTransaction'){
+   const intent=randomUUID();created++;transactions.set(intent,{intent_key:intent,transaction_id:created,paid:0,total:body.cartTotal,currency:body.currency,pay_load:body.pay_load,status_text:'unpaid',paid_at:null,request:body});
+   res.end(JSON.stringify({status:'success',data:{intent_key:intent,url:`http://127.0.0.1:3046/transactions/${intent}`,expires_in:172800}}));return;
+  }
+  if(req.url==='/api/v3/getTransactionData'){lookups++;res.end(JSON.stringify({status:'success',data:transactions.get(body.intent_key)}));return;}
+  res.statusCode=404;res.end('{}');
+ });
+ return {server,transactions,counts:()=>({created,lookups})};
+}
+module.exports={paymentGateway};
+```
+
+### File: `tests/backend/payments.cjs`
+
+SHA-256: `5bd7d884aec1aeab7f76bd9c05a07c43ba621766dc83f95ff85333da0c390ca7`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local payment security integration tests. */
+const assert=require('node:assert/strict'),{createHmac,randomUUID}=require('node:crypto');
+module.exports=async function({admin,provision,anonymous,verify,url,gateway}){
+ const learner=await provision('Payment Learner'),other=await provision('Payment Other');
+ const template=(await admin.from('courses').select('*').eq('published',true).limit(1).single()).data;
+ const slug=`payment-${randomUUID()}`, metadata={...template.metadata,title:'Local Payment Course',slug};
+ assert.ok(!(await admin.from('courses').insert({slug,amount:1200,metadata,published:true})).error);
+ const parse=r=>JSON.parse(r.data);
+ const checkout=()=>learner.api('/api/payments/checkout',{courseSlug:slug});
+ const enrolled=async()=>Boolean((await admin.from('enrollments').select('*').eq('user_id',learner.id).eq('course_slug',slug).maybeSingle()).data);
+ const webhook=async(intent,id,patch={})=>{
+  const body={transaction_key:intent,transaction_id:id,payment_method:'Fawry',status:'paid',paidAmount:'1200',paidCurrency:'EGP',...patch};
+  body.transactionHashKey=createHmac('sha256','local-payment-hmac').update(`TransactionId=${body.transaction_id}&TransactionKey=${body.transaction_key}&PaymentMethod=${body.payment_method}`).digest('hex');
+  return fetch(url+'/api/payments/fawaterak/webhook_json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ };
+ try{
+  verify((await anonymous('/api/payments/checkout',{courseSlug:slug})).status===401,'Anonymous checkout rejected');
+  verify((await learner.api('/api/payments/checkout',{courseSlug:slug,amount:1})).status===400,'Client-supplied price rejected');
+  verify((await learner.api('/api/payments/checkout',{courseSlug:slug},{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin checkout rejected');
+  await admin.from('account_contacts').update({phone_verified_at:null}).eq('user_id',learner.id);
+  verify((await checkout()).status===403,'Unverified contact cannot initiate payment');
+  await admin.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',learner.id);
+  const responses=await Promise.all([checkout(),checkout()]);
+  const success=responses.find(r=>r.status===200);verify(Boolean(success),'Verified account creates checkout');
+  const initial=parse(success),again=await checkout();verify(again.status===200&&parse(again).orderId===initial.orderId&&gateway.counts().created===1,'Concurrent and repeated checkout reuse one provider intent');
+  let order=(await admin.from('payment_orders').select('*').eq('id',initial.orderId).single()).data;
+  const intent=order.provider_intent_key,tr=gateway.transactions.get(intent);
+  verify(tr.request.cartTotal===1200&&tr.request.cartItems[0].price===1200&&tr.request.currency==='EGP','Provider amount comes from persisted course price');
+  verify(tr.request.sendEmail===false&&tr.request.sendSMS===false&&tr.request.redirectionUrls.webhookUrl.endsWith('webhook_json'),'Checkout uses JSON webhook and disables duplicate provider messages');
+  verify((await other.api(`/api/payments/${order.id}`)).status===404,'Other account cannot read payment order');
+  verify((await other.api(`/api/payments/${order.id}/reconcile`,{})).status===404,'Other account cannot reconcile payment');
+  verify(!(await enrolled()),'Creating checkout never grants course access');
+  const fake=await fetch(url+'/api/payments/fawaterak/webhook_json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({transaction_id:tr.transaction_id,transaction_key:intent,payment_method:'Fawry',transactionHashKey:'0'.repeat(64)})});
+  verify(fake.status===401&&!(await enrolled()),'Forged signature cannot grant enrollment');
+  verify((await webhook(intent,tr.transaction_id)).status===200&&!(await enrolled()),'Signed paid claim does not override unpaid provider status');
+  const owner=await learner.api(`/api/payments/${order.id}`);verify(owner.status===200&&!owner.data.includes(intent)&&!owner.data.includes('checkout_url'),'Owner status excludes provider keys and redirect URL');
+  verify((await learner.direct.rpc('settle_course_payment',{p_order:order.id,p_intent:intent,p_transaction:tr.transaction_id,p_amount:120000,p_currency:'EGP'})).error,'Student cannot execute privileged settlement RPC');
+  verify((await learner.direct.from('payment_orders').update({status:'paid'}).eq('id',order.id)).error,'RLS prevents student from marking payment paid');
+  tr.paid=1;tr.total=1;
+  verify((await webhook(intent,tr.transaction_id)).status===409&&!(await enrolled()),'Mismatched provider amount rejected');tr.total=1200;
+  tr.currency='USD';verify((await webhook(intent,tr.transaction_id)).status===409&&!(await enrolled()),'Mismatched currency rejected');tr.currency='EGP';
+  tr.pay_load={merchant_reference:randomUUID()};verify((await webhook(intent,tr.transaction_id)).status===409&&!(await enrolled()),'Mismatched merchant reference rejected');tr.pay_load={merchant_reference:order.id};
+  verify((await webhook(intent,tr.transaction_id+100)).status===409&&!(await enrolled()),'Signed callback transaction ID must match provider record');
+  await admin.from('courses').update({amount:1500}).eq('slug',slug);
+  verify((await webhook(intent,tr.transaction_id)).status===200&&await enrolled(),'Verified payment activates course using immutable original price');
+  const replay=await Promise.all([webhook(intent,tr.transaction_id),webhook(intent,tr.transaction_id)]);
+  verify(replay.every(r=>r.status===200),'Concurrent webhook replay is idempotent');
+  const count=await admin.from('enrollments').select('*',{count:'exact'}).eq('user_id',learner.id).eq('course_slug',slug);
+  verify(count.count===1,'Exactly one enrollment exists after callback replay');
+  verify((await checkout()).status===409,'Already enrolled student cannot create another charge');
+  verify((await learner.api(`/payments/${order.id}`)).status===200,'Owned payment result page renders');
+  const denied=await other.api(`/payments/${order.id}`);verify(!denied.data.includes('Local Payment Course')&&(denied.status===404||denied.data.includes('NEXT_HTTP_ERROR_FALLBACK')),'Payment result page protects ownership even during Next.js streaming');
+  const loggedOut=await anonymous(`/payments/${order.id}`);verify(loggedOut.status===307||(!loggedOut.data.includes('Local Payment Course')&&loggedOut.data.includes('NEXT_REDIRECT')),'Payment result page requires login including streamed redirects');
+
+
+  const stateUser=await provision('Payment State Checks');
+  const firstState=parse(await stateUser.api('/api/payments/checkout',{courseSlug:slug}));
+  const stateOrder=(await admin.from('payment_orders').select('*').eq('id',firstState.orderId).single()).data;
+  const stateTransaction=gateway.transactions.get(stateOrder.provider_intent_key);stateTransaction.status_text='failed';
+  const failed=parse(await stateUser.api(`/api/payments/${stateOrder.id}/reconcile`,{}));
+  verify(failed.status==='failed'&&!failed.enrolled,'Independently verified failed transaction never grants enrollment');
+  const nextState=parse(await stateUser.api('/api/payments/checkout',{courseSlug:slug}));verify(nextState.orderId!==stateOrder.id,'Failed checkout can be retried with a new provider intent');
+  await admin.from('payment_orders').update({expires_at:new Date(Date.now()-1000).toISOString()}).eq('id',nextState.orderId);
+  const expired=parse(await stateUser.api(`/api/payments/${nextState.orderId}/reconcile`,{}));verify(expired.status==='expired','Expired unpaid order stops holding the active checkout slot');
+  const retained=parse(await stateUser.api('/api/payments/checkout',{courseSlug:slug}));
+  await admin.auth.admin.deleteUser(stateUser.id);
+  const preserved=(await admin.from('payment_orders').select('id,user_id').eq('id',retained.orderId).single()).data;
+  verify(preserved&&preserved.user_id===null,'Account deletion preserves payment audit records without retaining account identity');
+  await require('./payment-browser.cjs')({url,user:other,slug,verify});
+  const second=(await admin.from('payment_orders').select('*').eq('course_slug',slug).eq('user_id',other.id).single()).data;
+  const secondTransaction=gateway.transactions.get(second.provider_intent_key);
+  const before=gateway.counts().lookups;
+  await other.api(`/api/payments/${second.id}/reconcile`,{});await other.api(`/api/payments/${second.id}/reconcile`,{});
+  verify(gateway.counts().lookups===before+1,'Persisted reconciliation cooldown limits provider polling');
+  await admin.from('account_contacts').update({phone_verified_at:null}).eq('user_id',other.id);
+  secondTransaction.paid=1;
+  verify((await webhook(second.provider_intent_key,secondTransaction.transaction_id)).status===200,'Payment is durably recorded if contacts change while checkout is pending');
+  const receipt=parse(await other.api(`/api/payments/${second.id}`));
+  verify(receipt.status==='paid'&&!receipt.enrolled,'Unverified contacts defer activation without losing payment');
+  const paidCheckout=await other.api('/checkout/'+slug);verify(!paidCheckout.data.includes('الانتقال للدفع الآمن')&&paidCheckout.data.includes(second.id),'Checkout redirects paid but unactivated customer back to the existing receipt');
+  await admin.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',other.id);
+  verify((await other.api('/api/payments/checkout',{courseSlug:slug})).status===409,'Previously paid customer cannot be charged again before activation');
+  const activated=parse(await other.api(`/api/payments/${second.id}/reconcile`,{}));
+  verify(activated.status==='paid'&&activated.enrolled,'Reverification activates the paid course without another provider charge');
+  verify((await other.direct.rpc('payment_revenue_snapshot')).error,'Students cannot read admin payment totals');
+  await admin.from('admin_users').insert({user_id:other.id});
+  const baseline=await other.direct.rpc('payment_revenue_snapshot');verify(!baseline.error,'Administrator can read payment revenue');
+  await admin.from('payment_orders').update({live:true}).eq('id',second.id);
+  const revenue=await other.direct.rpc('payment_revenue_snapshot');
+  verify(revenue.data.week===baseline.data.week+150000&&revenue.data.month===baseline.data.month+150000,'Revenue counts verified live payment amounts and excludes test payments');
+  const analytics=await other.api('/api/admin/analytics');verify(analytics.status===200&&parse(analytics).revenue.week===revenue.data.week,'Admin analytics includes verified payment revenue');
+ }finally{await admin.from('payment_orders').delete().eq('course_slug',slug);await admin.from('enrollments').delete().eq('course_slug',slug);await admin.from('courses').delete().eq('slug',slug);}
 };
 ```
 

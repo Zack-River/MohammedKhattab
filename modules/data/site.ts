@@ -150,7 +150,7 @@ export const copy = {
   email: "البريد الإلكتروني",
   back: "ارجع للدورة",
   browse: "استكشف الدورات",
-  enrollLabel: "جرّب التسجيل في الدورة",
+  enrollLabel: "اشترك الآن",
   enrolledLabel: "الدورة في مكتبتك",
   outcome: "بعد الدورة هتقدر",
   free: "تجربة مجانية",

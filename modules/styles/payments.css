@@ -1,0 +1,10 @@
+.lms-payment-layout { max-width: var(--lms-size-640px); margin-inline: auto; }
+.lms-payment-layout > p { margin-top: var(--space-unit); color: var(--text-secondary); }
+.lms-payment-card { display: grid; gap: var(--space-lg); margin-top: var(--space-xl); width: 100%; }
+.lms-payment-card h2 { font-size: var(--lms-size-1_5rem); line-height: var(--leading-title); overflow-wrap: anywhere; }
+.lms-payment-card > p { color: var(--text-secondary); }
+.lms-payment-total { display: flex; align-items: center; justify-content: space-between; gap: var(--space-lg); padding-block: var(--space-md); border-block: var(--size-1px) solid var(--border-hairline); }
+.lms-payment-total dd, .lms-payment-amount { font-size: var(--size-2rem); font-weight: var(--weight-bold); white-space: nowrap; }
+.lms-payment-card .lms-payment-caption { color: var(--text-muted); font-size: var(--font-size-caption); }
+.lms-payment-back { display: inline-block; color: var(--text-primary); }
+.lms-payment-back:hover { color: var(--primary-red); text-decoration: underline; }

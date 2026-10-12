@@ -50,7 +50,7 @@ module.exports=async function analyticsChecks({admin,provision,anonymous,verify,
       await page.getByRole('link',{name:'هذا الشهر',exact:true}).click();await expect(page).toHaveURL(/period=month/);
       await page.getByRole('link',{name:'كل الوقت',exact:true}).click();await expect(page).toHaveURL(/period=all/);
       await page.getByRole('button',{name:'تحديث الأرقام',exact:true}).click();await expect(page.getByRole('button',{name:'تحديث الأرقام',exact:true})).toBeEnabled();
-      verify(await page.getByText('غير متاح',{exact:true}).count()===2,'Week and month revenue marked unavailable');
+      verify(await page.getByText('غير متاح',{exact:true}).count()===0,'Week and month revenue show actual verified-payment totals');
       await page.getByRole('link',{name:'المستخدمون',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard/users');
       await expect(page.getByRole('heading',{name:'إدارة المستخدمين',exact:true})).toBeVisible();
       verify(errors.length===0,'Chart and navigation have no browser errors');

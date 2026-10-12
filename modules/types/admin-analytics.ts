@@ -15,7 +15,9 @@ export interface TrendingCourse {
   published: boolean; count: number; previous: number;
 }
 export interface AnalyticsSource { source: "youtube" | "facebook" | "instagram" | "tiktok" | "google" | "direct" | "unknown"; count: number }
+export interface PaymentRevenue { week:number; month:number; previousWeek:number; previousMonth:number; }
 export interface AdminAnalytics {
+  revenue?:PaymentRevenue;
   generatedAt: string; timezone: string; weekStart: string; monthStart: string;
   metrics: AnalyticsMetrics; daily: AnalyticsDay[];
   courses: Record<AnalyticsPeriod, TrendingCourse[]>; sources: AnalyticsSource[];

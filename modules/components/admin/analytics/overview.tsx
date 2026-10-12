@@ -23,8 +23,8 @@ export default function AnalyticsOverview({ data, period, labels }: { data: Admi
     <div className="analytics-primary-grid"><SignupChart labels={labels} daily={data.daily} metrics={m} /><TrendingCourses labels={labels} courses={data.courses[period]} period={period} /></div>
     <div className="analytics-secondary-grid"><AcquisitionSources labels={labels} sources={data.sources} /><LearningSummary labels={labels} metrics={m} /></div>
     <div className="analytics-revenue-grid">
-      <MetricCard labels={labels} title={labels.revenueWeek} value={null} note={labels.revenueNote} />
-      <MetricCard labels={labels} title={labels.revenueMonth} value={null} note={labels.revenueNote} />
+      <MetricCard labels={labels} title={labels.revenueWeek} value={data.revenue ? data.revenue.week/100 : null} previous={data.revenue ? data.revenue.previousWeek/100 : undefined} suffix={labels.currency} />
+      <MetricCard labels={labels} title={labels.revenueMonth} value={data.revenue ? data.revenue.month/100 : null} previous={data.revenue ? data.revenue.previousMonth/100 : undefined} suffix={labels.currency} />
     </div>
     <details className="analytics-definitions"><summary>{labels.definitions}</summary><p>{labels.periodNote}</p><p>{labels.definitionsText}</p></details>
   </div>;

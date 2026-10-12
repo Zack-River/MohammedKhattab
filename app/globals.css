@@ -19,3 +19,5 @@
 
 @import "../packages/design-system/styles/analytics.css";
 @import "../modules/styles/analytics.css";
+
+@import "../modules/styles/payments.css";

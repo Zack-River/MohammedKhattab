@@ -58,6 +58,7 @@ export default function EnrollmentPanel({
           slug={slug}
           firstLesson={progress.next?.id ?? courseLessons(course)[0]?.id}
           enrolled={enrolled}
+          paid={course.offer.amount > 0}
         />
         <ul>
           {[

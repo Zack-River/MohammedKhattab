@@ -5,13 +5,14 @@ import { routes } from "@platform/config/navigation";
 import { useAsyncCommand } from "./use-async-command";
 import { startCourse } from "@platform/features/learning/client/start-course";
 import { learningRequests } from "@platform/features/learning/client/requests";
-export function useCourseEnrollment({ slug, firstLesson, enrolled, errorLabel }: {
-  slug: string; firstLesson?: string; enrolled: boolean; errorLabel: string;
+export function useCourseEnrollment({ slug, firstLesson, enrolled, paid = false, errorLabel }: {
+  slug: string; firstLesson?: string; enrolled: boolean; paid?: boolean; errorLabel: string;
 }) {
   const navigation = useRouter();
   const command = useAsyncCommand(errorLabel);
   const { enroll } = learningRequests(errorLabel);
   const start = () => command.run(async () => {
+    if (paid && !enrolled) { navigation.push(routes.checkout(slug)); return; }
     try { await startCourse({ slug, firstLesson, enrolled, enroll, lessonHref: routes.lesson, navigation }); }
     catch (error) {
       if (error instanceof HttpError && error.status === 401) navigation.push(routes.login);

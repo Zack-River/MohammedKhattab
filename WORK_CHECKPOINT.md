@@ -2,6 +2,15 @@
 
 Last updated: **2026-10-12**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.
 
+## Latest checkpoint — Fawaterak hosted checkout
+
+- Implemented OAuth API v3 using the locally supplied server credentials. Read-only live OAuth and enabled-method checks succeeded; available methods are Fawry, electronic wallets, Aman and Basata. No real payment was charged.
+- Added responsive RTL checkout and owner-only payment-result pages, with purchase actions wired to recorded courses and the live workshop. Reused the existing theme/card/button styles; introduced no runtime package. Server adapters, payload/signature/transaction helpers, order repositories, UI components and polling state are separated into small files.
+- Added durable price snapshots, active-order uniqueness and row locking, verified-contact gating, safe hosted redirects, bounded provider requests, private token caching, a persisted reconciliation cooldown, failed/expired retry states, and signed webhooks verified against an independent provider transaction lookup. Privileged settlement atomically records payment and grants one enrollment; replay is idempotent. Changed contact verification defers activation while retaining payment and prevents a second charge.
+- Payment records survive user deletion; courses containing payment records must be unpublished rather than deleted. Weekly/monthly admin revenue now uses confirmed live payments, with test payments excluded and comparisons retained. Refund accounting/access revocation are outside this implementation.
+- All six generated migrations were applied to hosted Supabase without seeds. Local and hosted database advisors found no issues. The 56 isolated payment/API/browser checks, 190 full backend regression checks and 27 analytics regression checks passed. Checkout fits 320px, 390px and 1440px with no overflow or browser runtime errors. Architecture passed for 692 source files. The production build and five read-only checks against the built local app passed; deployment verification is in progress.
+- Production activation still requires the supplied Fawaterak server variables in Vercel and a redeployment; the user is adding them. A live paid transaction/webhook remains untested. Setup and behavior: `docs/PAYMENTS.md`; screenshots: `docs/evidence/payments/checkout-390.png` and `checkout-1440.png`.
+
 ## Latest checkpoint — automatic lesson duration
 
 - Replaced the manual/default lesson-seconds input with a read-only calculated field. A shared lesson-media component, focused hook, safe-source helper and cancellable native metadata probe read the actual duration after an administrator supplies a video URL. Direct videos and Google Drive file links are supported; Drive folders and inaccessible/unsupported files show a clear error.

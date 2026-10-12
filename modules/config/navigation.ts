@@ -17,6 +17,8 @@ export const sectionIds = {
   enrollment: "course-enrollment",
 } as const;
 export const routes = {
+  payment: (id: string) => `/payments/${segment(id)}`,
+  checkout: (slug: string) => `/checkout/${segment(slug)}`,
   home: projectRoutes.learning,
   portfolio: projectRoutes.portfolio,
   workshop: projectRoutes.workshop,
@@ -60,6 +62,9 @@ export const routes = {
   },
 };
 export const endpoints = {
+  paymentCheckout: "/api/payments/checkout",
+  paymentStatus: (id: string) => `/api/payments/${segment(id)}`,
+  paymentReconcile: (id: string) => `${endpoints.paymentStatus(id)}/reconcile`,
   adminCourses: "/api/admin/courses",
   adminCourseDelete: (slug: string) => `${endpoints.adminCourse(slug)}/delete`,
   imageUpload: "/api/media/images",

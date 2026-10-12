@@ -1,0 +1,40 @@
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { isOrderId } from "../helpers/order-id";
+import type { PaymentOrder } from "../types";
+export async function readPaymentOrder(id: string): Promise<PaymentOrder> {
+  const { client, user } = await requireIdentity();
+  if (!isOrderId(id)) throw new ApiError(404, "NOT_FOUND");
+  const { data, error } = await client
+    .from("payment_orders")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!data) throw new ApiError(404, "NOT_FOUND");
+  return data;
+}
+export function publicPaymentOrder(order: PaymentOrder) {
+  return {
+    id: order.id,
+    courseSlug: order.course_slug,
+    title: order.course_title,
+    amount: order.amount_minor / 100,
+    currency: order.currency,
+    status: order.status,
+    paidAt: order.paid_at,
+  };
+}
+export async function readPaymentReceipt(order: PaymentOrder) {
+  const { client, user } = await requireIdentity();
+  const result = await client
+    .from("enrollments")
+    .select("course_slug")
+    .eq("user_id", user.id)
+    .eq("course_slug", order.course_slug)
+    .maybeSingle();
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return { ...publicPaymentOrder(order), enrolled: Boolean(result.data) };
+}

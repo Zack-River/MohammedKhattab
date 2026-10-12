@@ -3,7 +3,25 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
 
-  "public": {
+  "graphql_public": {
+          Tables: {
+            [_ in never]: never
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "account_contacts": {
                   Row: {
@@ -181,6 +199,26 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"payment_orders": {
+                  Row: {
+                    "amount_minor": number,"checkout_url": string | null,"course_slug": string,"course_title": string,"created_at": string,"currency": string,"expires_at": string,"id": string,"last_checked_at": string | null,"live": boolean,"paid_at": string | null,"provider_intent_key": string | null,"status": string,"transaction_id": number | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"checkout_url"?: string | null,"course_slug": string,"course_title": string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live": boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "amount_minor"?: number,"checkout_url"?: string | null,"course_slug"?: string,"course_title"?: string,"created_at"?: string,"currency"?: string,"expires_at"?: string,"id"?: string,"last_checked_at"?: string | null,"live"?: boolean,"paid_at"?: string | null,"provider_intent_key"?: string | null,"status"?: string,"transaction_id"?: number | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_orders_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "avatar_url": string | null,"first_name": string,"id": string,"last_name": string,"name": string,"username": string
@@ -221,6 +259,12 @@ isOneToOne: false
 "admin_dashboard_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"begin_course_payment":
+{ Args: { "p_live": boolean,"p_slug": string,"p_user": string }; Returns: Json
+                           },
+"claim_payment_check":
+{ Args: { "p_order": string }; Returns: boolean
+                           },
 "confirm_account_contact":
 { Args: { "p_field": string,"p_user_id": string,"p_value": string }; Returns: undefined
                            },
@@ -229,6 +273,9 @@ isOneToOne: false
                            },
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
+                           },
+"payment_revenue_snapshot":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "promote_admin_user":
 { Args: { "target_id": string }; Returns: undefined
@@ -244,6 +291,9 @@ isOneToOne: false
                            },
 "search_admin_users":
 { Args: { "p_admins_only": boolean,"p_limit": number,"p_new_since"?: string,"p_page": number,"p_search": string,"p_search_mode"?: string,"p_statuses": (string)[] }; Returns: Json
+                           },
+"settle_course_payment":
+{ Args: { "p_amount": number,"p_currency": string,"p_intent": string,"p_order": string,"p_transaction": number }; Returns: undefined
                            }
           }
           Enums: {
@@ -361,7 +411,11 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "graphql_public": {
+          Enums: {
+
+          }
+        },"public": {
           Enums: {
 
           }

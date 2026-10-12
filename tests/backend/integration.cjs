@@ -7,6 +7,11 @@ const config = JSON.parse(fs.readFileSync('/tmp/khatab-supabase-status.json', 'u
 assert.match(config.API_URL, /^http:\/\/127\.0\.0\.1:/, 'Tests require isolated local Supabase');
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
+let paymentMock;
+if(process.env.BACKEND_SUITE === 'payments') {
+ paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
+ Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
+}
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
 const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -47,6 +52,9 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   const anonymous = account();
+  if (process.env.BACKEND_SUITE === 'payments') {
+    await require('./payments.cjs')({admin,provision,anonymous,verify,url,gateway:paymentMock});return;
+  }
   if (process.env.BACKEND_SUITE === 'course-price') {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
@@ -185,6 +193,6 @@ async function run() {
       await admin.auth.admin.deleteUser(id);
     }
     await admin.from('courses').delete().eq('slug','backend-test-free');
-    server.kill('SIGTERM'); fs.closeSync(log);
+    paymentMock?.server.close();server.kill('SIGTERM'); fs.closeSync(log);
   }
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
