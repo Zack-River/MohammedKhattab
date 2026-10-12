@@ -4,7 +4,7 @@ import type { validateCourseEdit } from "./validate-course-edit";
 export function editCourseMetadata(current: Course, values: NonNullable<ReturnType<typeof validateCourseEdit>>): Course {
   return {
     ...current,
-    ...(current.delivery === "live" && values.featured !== undefined ? { featured: values.featured } : {}),
+    ...(values.featured !== undefined ? { featured: values.featured } : {}),
     title: values.title,
     description: values.description,
     duration: current.delivery === "live" ? values.duration ?? current.duration : "",

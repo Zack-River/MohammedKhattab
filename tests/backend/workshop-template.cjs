@@ -37,6 +37,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   const reordered=await anonymous('/workshops/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
   verify((await manager.api(path,{document:v,revision:1})).status===409,'Stale template edit cannot overwrite newer document');
   verify((await anonymous('/api/courses/'+slug+'/template-media?clip=../../secret')).status===404,'Public media endpoint rejects arbitrary clip lookup');
+  await require('./recorded-featured.cjs')({admin,manager,student,anonymous,verify,url});
   await require('./workshop-template-browser.cjs')({manager,slug,url,verify});
   course=parse(await manager.api('/api/admin/courses/'+slug));
   verify((await manager.api('/api/admin/courses/'+slug,{...body,revision:course.revision,published:false,thumbnailUrl:'',introVideoUrl:''})).status===200,'Workshop can return to draft');

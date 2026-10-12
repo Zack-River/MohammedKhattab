@@ -11,7 +11,7 @@ import PageHeading from "@platform/components/ui/page-heading";
 import WorkshopTemplateEditor from "@platform/components/admin/template/template-editor";
 export default async function TemplatePage({params}:{params:Promise<{slug:string}>}) {
  await requireAdminPage();const {slug}=await params,record=(await readAdminCourses(slug))[0];
- if(!record || record.course.delivery!=='live') notFound();
+ if(!record) notFound();
  const template=await readWorkshopTemplate(record.course);
  return <><PageHeading title={templateCopy.title} /><CourseEditorTabs slug={slug} active="template" labels={adminCoursesCopy} templateLabel={templateCopy.title} /><WorkshopTemplateEditor key={template.revision} slug={slug} record={template} defaults={defaultWorkshopTemplate(record.course)} labels={{copy:templateCopy,fields:templateFieldLabels}} sample={defaultWorkshopTemplate(liveWorkshopCourse)} /></>;
 }

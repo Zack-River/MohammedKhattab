@@ -11,7 +11,7 @@ import { readWorkshopTemplate,saveWorkshopTemplate } from "./repository";
 export function handleWorkshopTemplate(slug:string,request?:Request) {
  return apiResponse(async()=>{
   await requireAdmin();const record=(await readAdminCourses(slug))[0];
-  if(!record || record.course.delivery!=='live') throw new ApiError(404,'NOT_FOUND');
+  if(!record) throw new ApiError(404,'NOT_FOUND');
   if(!request) return Response.json(await readWorkshopTemplate(record.course));
   if(!sameOrigin(request)) throw new ApiError(403,'FORBIDDEN');
   if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '')) throw new ApiError(400,'INVALID_INPUT');

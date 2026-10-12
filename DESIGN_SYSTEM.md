@@ -350,7 +350,7 @@ The Courses dashboard uses the same semantic table, narrow-screen record cards, 
 
 Recorded courses and ordinary workshops share the structure documented in `docs/COURSE_DETAILS.md`: title/category, course preview, description, optional outcomes, chapter/section disclosures and an enrollment/instructor sidebar. Preserve the approved dark surfaces, red purchase action, IBM Plex Sans Arabic and shared player/reveal behavior. At 1024px and below, place enrollment after the preview and before the detailed content. The course description retains saved paragraph breaks, and no new animation or player package is introduced.
 
-The existing workshop marketing design is reserved for live workshops whose saved `featured` flag is true. Admin forms expose “ورشة مميزة”; the seven-day workshop starts featured and retains its approved presentation. Other featured workshops use their own intro and curriculum data. Missing media never supplies the seven-day intro on a different workshop. Ordinary workshops stay under `/workshops/[slug]` with the shared details design; recorded courses stay under `/courses/[slug]`.
+The existing workshop marketing design is selectable for recorded courses and live workshops whose saved `featured` flag is true. Admin creation/editing forms expose the Featured Page Layout control; the seven-day workshop starts featured and retains its approved presentation. Other featured workshops use their own intro and curriculum data. Missing media never supplies the seven-day intro on a different workshop. Ordinary workshops stay under `/workshops/[slug]` with the shared details design; recorded courses stay under `/courses/[slug]`.
 
 ## Commercial pages (2026-10-12)
 
@@ -358,4 +358,4 @@ Sales, bundles, offers and coupons reuse the administrator table/card reflow, fi
 
 ## Featured workshop customization (2026-10-13)
 
-Featured live workshops use the shared Ta3llam navbar. Their per-workshop editor changes section text/rich highlights, media, links, records, visibility/order, footer and countdown/signup content. Theme values, stable section IDs, icon geometry and the reveal policy stay shared. Persisted marketing documents do not overwrite course prices or private lesson access. See `docs/WORKSHOP_TEMPLATES.md` for editor, snapshot and security contracts.
+Featured recorded courses and live workshops use the shared Ta3llam navbar. Their per-workshop editor changes section text/rich highlights, media, links, records, visibility/order, footer and countdown/signup content. Theme values, stable section IDs, icon geometry and the reveal policy stay shared. Persisted marketing documents do not overwrite course prices or private lesson access. See `docs/WORKSHOP_TEMPLATES.md` for editor, snapshot and security contracts.

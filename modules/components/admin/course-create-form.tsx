@@ -10,7 +10,7 @@ import CourseFormLayout from "./course-form-layout";
 import CourseFields from "./course-fields";
 import CourseMediaFields from "./course-media-fields";
 import SaveFeedback from "./save-feedback";
-import WorkshopFeaturedField from "./workshop-featured-field";
+import FeaturedLayoutField from "./featured-layout-field";
 type Props = Pick<CourseEditorProps,"categories" | "uploadLabels"> & { labels: AdminCoursesLabels; editorLabels: CourseEditorProps["labels"] };
 export default function CourseCreateForm({ labels, editorLabels, categories, uploadLabels }: Props) {
   const command = useCreateCourse(labels.error);
@@ -21,5 +21,5 @@ export default function CourseCreateForm({ labels, editorLabels, categories, upl
       <FormField label={labels.slug} name="slug" dir="ltr" required maxLength={courseAdministration.slugMaxLength} pattern="[a-z0-9]+(-[a-z0-9]+)*" hint={labels.slugHint} />
       <Select name="delivery" label={labels.delivery} value={delivery} onValueChange={value => setDelivery(value as "recorded" | "live")} options={[{value:"recorded",label:labels.recorded},{value:"live",label:labels.live}]} /></>}
     media={<CourseMediaFields labels={editorLabels} uploadLabels={uploadLabels} uploadHint={labels.uploadAfterCreate} />}
-    actions={<>{delivery === "live" && <WorkshopFeaturedField labels={editorLabels} />}<p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
+    actions={<><FeaturedLayoutField labels={editorLabels} /><p className="lms-field-hint">{labels.createHint}</p><SaveFeedback {...command} saved={false} labels={{save:labels.create,saving:labels.creating,saved:editorLabels.saved}} /></>} />;
 }

@@ -4,18 +4,18 @@ import type { MarketingPageContent } from "@khatab/design/types/marketing";
 import type { Course } from "@platform/types/lms";
 import { courseIntroVideo } from "./course-intro-video";
 import { paymentCopy } from "@platform/data/payment-copy";
-import { featuredWorkshopRoadmap } from "./featured-workshop-roadmap";
+import { featuredLayoutRoadmap } from "./featured-layout-roadmap";
 export function workshopCourseContent(
   content: MarketingPageContent,
   course: Course,
   defaults: Course,
 ): MarketingPageContent {
   const action =
-    offerBaseAmount(course.offer) > 0 ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
+    offerBaseAmount(course.offer) > 0 || course.delivery === "recorded" ? { href: routes.checkout(course.slug), label: paymentCopy.subscribe } : undefined;
   return {
     ...content,
     header: { ...content.header, action: action ?? content.header.action },
-    roadmap: { ...featuredWorkshopRoadmap(content.roadmap,course,defaults.slug), action: action ?? content.roadmap.action },
+    roadmap: { ...featuredLayoutRoadmap(content.roadmap,course,defaults.slug), action: action ?? content.roadmap.action },
     finalCta: { ...content.finalCta, action: action ?? content.finalCta.action },
     hero: {
       ...content.hero,

@@ -11,5 +11,5 @@ export default async function CourseContentPage({ params }: { params: Promise<{ 
  await requireAdminPage();const {slug}=await params;
  const [records,lessons]=await Promise.all([readAdminCourses(slug),readAdminLessons(slug)]),record=records[0];
  if (!record) notFound();
- return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} templateLabel={record.course.delivery === "live" ? templateCopy.title : undefined} /><CourseContent course={record.course} revision={record.revision} published={record.published} lessons={lessons} labels={curriculumCopy} /></>;
+ return <><PageHeading title={record.course.title} /><CourseEditorTabs slug={slug} active="content" labels={adminCoursesCopy} templateLabel={templateCopy.title} /><CourseContent course={record.course} revision={record.revision} published={record.published} lessons={lessons} labels={curriculumCopy} /></>;
 }

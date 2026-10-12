@@ -1,3 +1,9 @@
+# Current checkpoint — Featured layout for recorded and live courses (2026-10-13)
+
+- Removed the delivery restriction from admin creation/editing, the template editor/API, public media gating and template RLS. Page layout is independent of course delivery.
+- Recorded featured pages keep `/courses/[slug]`; live workshops keep `/workshops/[slug]`. Standard and featured pages each render one shared navbar and one footer. Curriculum and automatic duration remain unchanged by layout selection.
+- Added recorded template API/RLS/browser regression checks, including disabling the featured layout and checking 390/1440px views. Validation: 52 featured-template API/RLS/browser checks, 44 course-details/enrollment/player regressions and 35 security unit tests passed. Lint and architecture (803 files, zero violations) passed. Local and hosted database advisors found no issues; shadow migration replay produced no schema diff. Production build/TypeScript passed. No credentials were added to tracked files.
+
 # Work checkpoint — Khatab / Ta3llam
 
 Last updated: **2026-10-13**. This file records the actual implementation and verification state. Update it after meaningful changes or check runs; never turn an unfinished gate into a completed checkbox without evidence.

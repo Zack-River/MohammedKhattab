@@ -5,7 +5,7 @@ import MainSiteHeader from "../main-site-header";
 import { readWorkshopTemplate } from "./repository";
 import { resolveTemplateMedia } from "./helpers/template-media";
 import type { Course } from "@platform/types/lms";
-export default async function FeaturedWorkshop({course}:{course:Course}) {
+export default async function FeaturedCourse({course}:{course:Course}) {
  const {document:stored}=await readWorkshopTemplate(course),document=resolveTemplateMedia(stored,course.slug);
  const {scarcity,...editable}=document.content;
  const content={...workshopPage,...editable,header:{...workshopPage.header,...scarcity}};

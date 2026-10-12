@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isFeaturedWorkshop } from "../../modules/features/catalog/helpers/is-featured-workshop";
+import { isFeaturedCourse } from "../../modules/features/catalog/helpers/is-featured-course";
 import { validateCourseCreate } from "../../modules/features/admin/helpers/validate-course-create";
 import { validateCourseEdit } from "../../modules/features/admin/helpers/validate-course-edit";
 import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
@@ -9,9 +9,12 @@ import { readCourseCreate } from "../../modules/features/admin/helpers/read-cour
 import { readCourseEdit } from "../../modules/features/admin/helpers/read-course-edit";
 const input = { slug: "featured-test", title: "Workshop test", description: "Workshop description", amount: 500, category: "editing", delivery: "live", featured: true };
 const defaults = { currency: "EGP", action: "Subscribe", liveLabel: "Live" };
-test("Only explicitly featured live workshops use the campaign template", () => {
-  assert.equal(isFeaturedWorkshop({delivery:"live",featured:true}),true);
-  for (const course of [{delivery:"live" as const},{delivery:"live" as const,featured:false},{delivery:"recorded" as const,featured:true}]) assert.equal(isFeaturedWorkshop(course),false);
+test("Recorded and live courses can independently choose the featured template", () => {
+  for (const delivery of ["live", "recorded"] as const) {
+    const course = {delivery,featured:true};
+    assert.equal(isFeaturedCourse(course),true);
+  }
+  for (const course of [{delivery:"live" as const},{delivery:"live" as const,featured:false}]) assert.equal(isFeaturedCourse(course),false);
 });
 test("Feature creation and editing validate booleans and retain omitted legacy values", () => {
   const validated = validateCourseCreate(input)!;
@@ -24,7 +27,9 @@ test("Feature creation and editing validate booleans and retain omitted legacy v
     assert.equal(validateCourseCreate({...input,featured}),null);
     assert.equal(validateCourseEdit({...edit,featured}),null);
   }
-  assert.equal(createCourseMetadata({...validated,delivery:"recorded"},defaults).featured,undefined);
+  assert.equal(createCourseMetadata({...validated,delivery:"recorded"},defaults).featured,true);
+  const recorded = createCourseMetadata({...validated,delivery:"recorded"},defaults);
+  assert.equal(editCourseMetadata(recorded,validateCourseEdit({...edit,featured:false})!).featured,false);
 });
 test("Checked and unchecked native forms encode real booleans", () => {
   const form = new FormData();form.append("featured","false");
