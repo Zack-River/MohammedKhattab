@@ -1,4 +1,5 @@
 import { creatorIdentity, learningIdentity } from "../../config/identity";
+import { liveSessionCopy } from "./live-sessions";
 import { routes, sectionIds } from "@platform/config/navigation";
 import type {
   InstructorContent,
@@ -21,6 +22,7 @@ export const marketingNavigation = [
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
+  { href: routes.liveSessions, label: liveSessionCopy.tab, symbol: "clock" },
   { href: routes.dashboard, label: "نظرة عامة", symbol: "grid" },
   { href: routes.library, label: "دوراتي", symbol: "book" },
   { href: routes.purchases, label: "طلباتي ومدفوعاتي", symbol: "book" },

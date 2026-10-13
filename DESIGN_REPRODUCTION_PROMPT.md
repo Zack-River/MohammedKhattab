@@ -651,9 +651,10 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `e640275f0b8adde20b917d67fccf81884fdfa2edec98c50d8b26f1866c607bac`
+SHA-256: `443da72a1d8bd90a16b8cdbe95fe0508f362827c94b0c7618658621879101002`
 
 ```tsx
+import { liveSessionCopy } from "@platform/data/live-sessions";
 import { adminAccountMenuContent } from "@platform/config/account-menu";
 import { readAccount } from "@platform/features/account/repositories/read-account";
 import type { Metadata } from "next";
@@ -676,9 +677,37 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
+}
+```
+
+### File: `app/admin/dashboard/live-sessions/page.tsx`
+
+SHA-256: `34fba4a5feb42c74bc4465016d9e57fd868ce236716f6c241f2205f03a4b0cef`
+
+```tsx
+import Form from "next/form";
+import Select from "@khatab/design/ui/select";
+import { requireAdminPage } from "@platform/features/admin/page-identity";
+import { readAdminLiveSessions } from "@platform/features/live-sessions/repositories/admin";
+import { liveSessionCourses } from "@platform/features/live-sessions/repositories/choices";
+import { readLiveQuery } from "@platform/features/live-sessions/helpers/read-query";
+import AdminSessionManager from "@platform/components/live-sessions/admin-manager";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import PageHeading from "@platform/components/ui/page-heading";
+import { liveSessionCopy as labels } from "@platform/data/live-sessions";
+import { liveSessionPolicy } from "@platform/config/live-sessions";
+import { routes } from "@platform/config/navigation";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requireAdminPage();const query=readLiveQuery(await searchParams),[result,courses]=await Promise.all([readAdminLiveSessions(query),liveSessionCourses()]);
+ const href=(page:number)=>routes.adminLiveSessions+"?"+new URLSearchParams({q:query.search,status:query.status,page:String(page)});
+ return <><PageHeading title={labels.title} description={labels.scheduleHint} />
+  <Form action={routes.adminLiveSessions} className="lms-admin-filters lms-live-filters" role="search"><div className="lms-admin-search"><label htmlFor="session-search">{labels.search}</label><input id="session-search" name="q" type="search" defaultValue={query.search} maxLength={120} /></div><Select name="status" label={labels.filter} defaultValue={query.status} options={["all","upcoming","active","ended"].map(value=>({value,label:labels[value as "all"]}))} /><button type="submit" className="btn-primary">{labels.apply}</button></Form>
+  <AdminSessionManager {...result} courses={courses} labels={labels} />
+  <AdminPagination page={query.page} previousHref={query.page>1 ? href(query.page-1) : undefined} nextHref={query.page*liveSessionPolicy.pageSize<result.total ? href(query.page+1) : undefined} labels={{heading:labels.title,page:"",previous:labels.previous,next:labels.next}} />
+ </>;
 }
 ```
 
@@ -970,6 +999,16 @@ export function GET(request: Request) { return handleCourseList(request); }
 export function POST(request: Request) { return handleCourseList(request, true); }
 ```
 
+### File: `app/api/admin/live-sessions/route.ts`
+
+SHA-256: `9aa3824364dd1a55e37d0e22911fb98dafb0a36c7cc58090c88319e0ebd8c4f2`
+
+```typescript
+import { handleAdminLiveSessions } from "@platform/features/live-sessions/handle-admin";
+export const GET=handleAdminLiveSessions;
+export const POST=handleAdminLiveSessions;
+```
+
 ### File: `app/api/admin/sales/route.ts`
 
 SHA-256: `c1dca8c4ce0b4e12c5ed5ffaac8f5a9b9009b59dfbc1b645d53da2dc78ef1d94`
@@ -1193,6 +1232,28 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 }
 ```
 
+### File: `app/api/courses/[slug]/live-sessions/[id]/join/route.ts`
+
+SHA-256: `87627723a1745f5867b6b2f210bbfac8618ad8e5088bdcb7af0f79c3ee7de80d`
+
+```typescript
+import { handleLiveJoin } from "@platform/features/live-sessions/handle-join";
+export async function GET(_request:Request,{params}:{params:Promise<{slug:string;id:string}>}) {
+ const {slug,id}=await params;return handleLiveJoin(slug,id);
+}
+```
+
+### File: `app/api/courses/[slug]/live-sessions/route.ts`
+
+SHA-256: `781a7baecf6dc4a5c781d3afa2666495f26f03da2a1092e2fdf47cbe1b0edeef`
+
+```typescript
+import { handleLiveSchedule } from "@platform/features/live-sessions/handle-public";
+export async function GET(_request:Request,{params}:{params:Promise<{slug:string}>}) {
+ return handleLiveSchedule((await params).slug);
+}
+```
+
 ### File: `app/api/courses/[slug]/route.ts`
 
 SHA-256: `ba03165782b8cf09e75d89adc8f39783fd3613de8a114f2108258e2e1672298a`
@@ -1244,6 +1305,15 @@ SHA-256: `5f3b550830a93816babfb0bbf118e5524b14ed2fe12125fa3ca4df4868fba9ed`
 import { handleEnrollment } from "@platform/features/learning/handle-enrollment";
 export async function GET() { return handleEnrollment(); }
 export async function POST(request: Request) { return handleEnrollment(request); }
+```
+
+### File: `app/api/live-sessions/route.ts`
+
+SHA-256: `fef120ee23e6fcbdb0d067f012d8317f00637a080404cf3416a2900581cce6d4`
+
+```typescript
+import { handleMyLiveSchedule } from "@platform/features/live-sessions/handle-public";
+export const GET = handleMyLiveSchedule;
 ```
 
 ### File: `app/api/media/images/route.ts`
@@ -2444,6 +2514,21 @@ export default async function StudentLayout({ children }: { children: React.Reac
 }
 ```
 
+### File: `app/dashboard/live-sessions/page.tsx`
+
+SHA-256: `8967acc7f8331b6b333d9d432bf3c6106ff84e7cb9de778617f83f187c884ba1`
+
+```tsx
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { readMyLiveSchedule } from "@platform/features/live-sessions/repositories/my-schedule";
+import LiveSchedule from "@platform/components/live-sessions/schedule";
+import { liveSessionCopy } from "@platform/data/live-sessions";
+export default async function Page() {
+ await requirePageIdentity();const schedule=await readMyLiveSchedule();
+ return <LiveSchedule initial={schedule} joinAllowed labels={liveSessionCopy} />;
+}
+```
+
 ### File: `app/dashboard/page.tsx`
 
 SHA-256: `952bd3296f36d61283ac5b27533cbb832183ab761f66fc195124f24f63f20e08`
@@ -3164,7 +3249,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `c7f580e025fa32a489523058a3dc137420e45b519e56da3f40b97fd090cf2dc3`
+SHA-256: `8cf444e018887d44ac32d63fe9b715f6d979a6527ab87d037b847a71f1fc7b47`
 
 ```css
 @import "./styles/theme.css";
@@ -3184,6 +3269,7 @@ SHA-256: `c7f580e025fa32a489523058a3dc137420e45b519e56da3f40b97fd090cf2dc3`
 
 @import "../packages/design-system/styles/action-menu.css";
 @import "../modules/styles/account.css";
+@import "../modules/styles/live-sessions.css";
 @import "../packages/design-system/styles/interactions.css";
 
 @import "../packages/design-system/styles/analytics.css";
@@ -3479,10 +3565,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 ### File: `app/learn/[slug]/[lessonId]/page.tsx`
 
-SHA-256: `875b04b6080e24f129a0b67cbeecbbb5cfb85dc6461d5aa2987f16b9f5f20d0e`
+SHA-256: `65bdc32d19abca1ffba7725cbef96396a92a1f4026d07cdbec75551575a4a924`
 
 ```tsx
 import Link from "next/link";
+import CourseLiveSchedule from "@platform/features/live-sessions/course-schedule";
 import { readLessonContext } from "@platform/features/learning/read-lesson-context";
 import { lessonPlaybackModel } from "@platform/features/learning/models/lesson-playback";
 import { lessonInformationModel } from "@platform/features/learning/models/lesson-information";
@@ -3511,6 +3598,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           <LessonPlayer {...playback.player} />
           <LessonActions {...playback.actions} />
           <LessonInformation {...lessonInformationModel(context)} />
+          <CourseLiveSchedule slug={slug} joinAllowed={context.enrolled} />
         </main>
       </div>
     </div>
@@ -8362,6 +8450,148 @@ export default function LessonTitle({
 }
 ```
 
+### File: `modules/components/live-sessions/admin-manager.tsx`
+
+SHA-256: `ad9ec499bce5f29ba6d149461d82bdac497814e315dc3dea8b85ac963a98e37a`
+
+```tsx
+"use client";
+import { useState } from "react";
+import SessionForm from "./session-form";
+import AdminSessionRow from "./admin-session-row";
+import type { SessionCourseChoice } from "./session-assignment";
+import type { AdminLiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+export default function AdminSessionManager({sessions,serverNow,courses,labels}:{sessions:AdminLiveSession[];serverNow:string;courses:SessionCourseChoice[];labels:LiveSessionLabels}) {
+ const [editing,setEditing]=useState<AdminLiveSession|null|undefined>(undefined);
+ return <div className="lms-account-stack">
+  <div className="lms-admin-actions"><button type="button" className="btn-primary" onClick={()=>setEditing(null)} disabled={!courses.length}>{labels.create}</button></div>
+  {editing!==undefined && <SessionForm key={editing?.id ?? "new"} initial={editing ?? undefined} {...{courses,labels}} onClose={()=>setEditing(undefined)} />}
+  <div className="lms-admin-table-wrap" data-reveal data-reveal-motion="fade"><table className="lms-admin-table"><caption className="lms-visually-hidden">{labels.title}</caption>
+   <thead><tr>{[labels.name,labels.starts,labels.ends,labels.filter,labels.edit].map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead>
+   <tbody>{sessions.map(session=><AdminSessionRow key={`${session.id}:${session.revision}`} session={session} now={Date.parse(serverNow)} courseName={courses.find(course=>course.slug===session.courseSlug)?.title ?? session.courseSlug} labels={labels} onEdit={()=>setEditing(session)} />)}</tbody>
+  </table>{!sessions.length&&<p className="lms-admin-empty">{labels.empty}</p>}</div>
+ </div>;
+}
+```
+
+### File: `modules/components/live-sessions/admin-session-row.tsx`
+
+SHA-256: `952a899cca793af8cd5ad6df07f0153b1e53a12bbc996df32d578af3ff7647a9`
+
+```tsx
+"use client";
+import { useState } from "react";
+import AdminDialog from "@platform/components/admin/admin-dialog";
+import { useAdminSave } from "@platform/hooks/use-admin-save";
+import { endpoints } from "@platform/config/navigation";
+import { liveSessionState,liveSessionTime } from "@platform/features/live-sessions/helpers/state";
+import type { AdminLiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+export default function AdminSessionRow({session,now,courseName,labels,onEdit}:{session:AdminLiveSession;now:number;courseName:string;labels:LiveSessionLabels;onEdit:()=>void}) {
+ const [removing,setRemoving]=useState(false);
+ const command=useAdminSave(endpoints.adminLiveSessions,labels.error);
+ return <tr><th scope="row">{session.title}<small>{courseName}</small></th>
+  <td data-label={labels.starts}>{liveSessionTime(session.startsAt,session.timezone)}</td><td data-label={labels.ends}>{liveSessionTime(session.endsAt,session.timezone)}</td>
+  <td data-label={labels.filter}>{session.enabled ? labels[liveSessionState(session,now)] : labels.hidden}</td>
+  <td><div className="lms-admin-actions"><button type="button" className="lms-text-link" onClick={onEdit}>{labels.edit}</button><button type="button" className="lms-text-link" disabled={command.pending} onClick={()=>setRemoving(true)}>{labels.remove}</button></div>{command.error&&<p className="lms-error" role="alert">{command.error}</p>}{removing && <AdminDialog title={labels.confirmRemove} closeLabel={labels.cancel} pending={command.pending} onClose={()=>setRemoving(false)}><div className="lms-admin-actions"><button type="button" className="btn-primary" disabled={command.pending} onClick={async()=>{if(await command.save({operation:"delete",id:session.id,revision:session.revision})) setRemoving(false);}}>{labels.remove}</button><button type="button" className="lms-text-link" disabled={command.pending} onClick={()=>setRemoving(false)}>{labels.cancel}</button></div>{command.error&&<p className="lms-error" role="alert">{command.error}</p>}</AdminDialog>}</td>
+ </tr>;
+}
+```
+
+### File: `modules/components/live-sessions/schedule.tsx`
+
+SHA-256: `1174b348a7314a451f2c2f456a614d783ec289edf88671a51823b54ee513a19c`
+
+```tsx
+"use client";
+import { useScheduleClock } from "@platform/hooks/live-sessions/use-schedule-clock";
+import LiveSessionCard from "./session-card";
+import type { LiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+export default function LiveSchedule({initial,slug,joinAllowed,labels}:{initial:{sessions:LiveSession[];serverNow:string};slug?:string;joinAllowed:boolean;labels:LiveSessionLabels}) {
+ const {sessions,now}=useScheduleClock(initial,slug);
+ return <section className="lms-live-schedule" aria-label={labels.title}><h2>{labels.title}</h2><p className="lms-field-hint">{labels.scheduleHint}</p>
+  <div className="lms-live-grid">{sessions.map(session=><LiveSessionCard key={session.id} {...{session,now,joinAllowed,labels}} />)}</div>
+  {!sessions.length && <p className="lms-field-hint">{labels.empty}</p>}
+ </section>;
+}
+```
+
+### File: `modules/components/live-sessions/session-assignment.tsx`
+
+SHA-256: `1aeb58aeec984d3b4f2a671f65c846b2d91ce4713309fd648c7957751f105244`
+
+```tsx
+"use client";
+import { useState } from "react";
+import Select from "@khatab/design/ui/select";
+import type { AdminLiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+export interface SessionCourseChoice {slug:string;title:string;chapters:{id:string;title:string;sections:{id:string;title:string}[]}[];}
+export default function SessionAssignment({initial,courses,labels}:{initial?:AdminLiveSession;courses:SessionCourseChoice[];labels:LiveSessionLabels}) {
+ const [slug,setSlug]=useState(initial?.courseSlug ?? courses[0]?.slug ?? ""),[chapter,setChapter]=useState(initial?.chapterId ?? ""),[section,setSection]=useState(initial?.sectionId ?? "");
+ const chapters=courses.find(course=>course.slug===slug)?.chapters ?? [],sections=chapters.find(item=>item.id===chapter)?.sections ?? [];
+ return <div className="lms-live-assignment">
+  <Select label={labels.course} name="courseSlug" value={slug} onValueChange={value=>{setSlug(value);setChapter("");setSection("");}} options={courses.map(course=>({value:course.slug,label:course.title}))} />
+  <Select label={labels.chapter} name="chapterId" value={chapter} onValueChange={value=>{setChapter(value);setSection("");}} options={[{value:"",label:labels.wholeCourse},...chapters.map(item=>({value:item.id,label:item.title}))]} />
+  <Select label={labels.section} name="sectionId" value={section} onValueChange={setSection} options={[{value:"",label:labels.noSection},...sections.map(item=>({value:item.id,label:item.title}))]} />
+ </div>;
+}
+```
+
+### File: `modules/components/live-sessions/session-card.tsx`
+
+SHA-256: `ea4178cff12be0eadf4fb4e0836511bf25ba03045f7e7654f1121f8141686a8d`
+
+```tsx
+import Link from "next/link";
+import { endpoints,routes } from "@platform/config/navigation";
+import { liveSessionState,liveSessionTime } from "@platform/features/live-sessions/helpers/state";
+import type { LiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+export default function LiveSessionCard({session,now,joinAllowed,labels}:{session:LiveSession;now:number;joinAllowed:boolean;labels:LiveSessionLabels}) {
+ const state=liveSessionState(session,now);
+ return <article className="lms-profile-card lms-live-card" data-reveal>
+  <Link className="lms-text-link" href={routes.course(session.courseSlug)}>{session.courseTitle}</Link><h3>{session.title}</h3>{session.assignmentTitle && <p className="lms-field-hint">{session.assignmentTitle}</p>}<p>{session.description}</p><strong className={`lms-live-status lms-live-status-${state}`}>{labels[state]}</strong>
+  <p><span>{state==="ended" ? labels.endedAt : labels.starts}: </span><time dateTime={state==="ended" ? session.endsAt : session.startsAt}>{liveSessionTime(state==="ended" ? session.endsAt : session.startsAt,session.timezone)}</time></p>
+  {state!=="ended" && <p>{labels.ends}: <time dateTime={session.endsAt}>{liveSessionTime(session.endsAt,session.timezone)}</time></p>}
+  <small className="lms-field-hint">{session.timezone}</small>
+  {state==="active" && (joinAllowed ? <Link href={endpoints.liveJoin(session.courseSlug,session.id)} target="_blank" rel="noopener noreferrer" prefetch={false} className="btn-primary">{labels.join}</Link> : <p className="lms-field-hint">{labels.locked}</p>)}
+ </article>;
+}
+```
+
+### File: `modules/components/live-sessions/session-form.tsx`
+
+SHA-256: `989beaba3a3970db63d5cd5670fc5e67ae7164eef9d9649f512909144ab65674`
+
+```tsx
+"use client";
+import { useState } from "react";
+import FormField from "@platform/components/ui/form-field";
+import Select from "@khatab/design/ui/select";
+import { Checkbox } from "@khatab/design/ui/choice-controls";
+import SaveFeedback from "@platform/components/admin/save-feedback";
+import { useAdminSave } from "@platform/hooks/use-admin-save";
+import { endpoints } from "@platform/config/navigation";
+import { liveSessionPolicy as policy } from "@platform/config/live-sessions";
+import { liveSessionDateInput } from "@platform/features/live-sessions/helpers/state";
+import { readLiveSessionForm } from "@platform/features/live-sessions/helpers/validate-input";
+import type { AdminLiveSession,LiveSessionLabels } from "@platform/types/live-sessions";
+import SessionAssignment,{type SessionCourseChoice} from "./session-assignment";
+export default function SessionForm({initial,courses,labels,onClose}:{initial?:AdminLiveSession;courses:SessionCourseChoice[];labels:LiveSessionLabels;onClose:()=>void}) {
+ const command=useAdminSave(endpoints.adminLiveSessions,labels.error),[timezone,setTimezone]=useState(initial?.timezone ?? policy.defaultTimezone);
+ return <form className="lms-profile-form lms-profile-card lms-live-form" onSubmit={event=>{event.preventDefault();void command.save(readLiveSessionForm(new FormData(event.currentTarget))).then(saved=>{if(saved) onClose();});}}>
+  {initial && <input type="hidden" name="id" value={initial.id} />}<input type="hidden" name="revision" value={initial?.revision ?? 0} />
+  <fieldset disabled={command.pending}><SessionAssignment {...{initial,courses,labels}} />
+   <FormField label={labels.name} name="title" defaultValue={initial?.title} maxLength={policy.titleMax} required />
+   <FormField label={labels.description} name="description" defaultValue={initial?.description ?? ""} maxLength={policy.descriptionMax} />
+   <Select label={labels.timezone} name="timezone" value={timezone} onValueChange={setTimezone} options={policy.timezones.map(value=>({value,label:value}))} />
+   <div className="lms-settings-name-grid"><FormField label={labels.starts} name="startsLocal" type="datetime-local" defaultValue={initial ? liveSessionDateInput(initial.startsAt,initial.timezone) : ""} required /><FormField label={labels.ends} name="endsLocal" type="datetime-local" defaultValue={initial ? liveSessionDateInput(initial.endsAt,initial.timezone) : ""} required /></div>
+   <p className="lms-field-hint">{labels.timezoneHint}</p><FormField label={labels.joinUrl} name="joinUrl" type="url" dir="ltr" defaultValue={initial?.joinUrl} maxLength={policy.urlMax} required />
+   <Checkbox name="enabled" label={labels.enabled} defaultChecked={initial?.enabled ?? true} />
+  </fieldset>
+  <SaveFeedback {...command} labels={{save:labels.save,saving:labels.saving,saved:labels.saved}} /><button type="button" className="lms-text-link" disabled={command.pending} onClick={onClose}>{labels.cancel}</button>
+ </form>;
+}
+```
+
 ### File: `modules/components/marketing/closing-section.tsx`
 
 SHA-256: `2c94654c91f7a9d55387bb4095216163d10f1f7116908626b6d9d96a8f8c2d75`
@@ -9985,9 +10215,21 @@ export const imageUploadPolicy = {
 } as const;
 ```
 
+### File: `modules/config/live-sessions.ts`
+
+SHA-256: `2924c14ad8f2b70b258df49fa11d237a226106482d278310f41124dad0ee044b`
+
+```typescript
+export const liveSessionPolicy = {
+ pageSize: 5, titleMax: 160, descriptionMax: 4000, urlMax: 2048, maxHours: 24,
+ pollMs: 30000, tickMs: 1000, defaultTimezone: "Africa/Cairo",
+ timezones: ["Africa/Cairo", "Asia/Riyadh", "UTC"],
+} as const;
+```
+
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `a916c643531c1a9487783d4839f5cb36d838650413984e5992ee33b6884f99ba`
+SHA-256: `3d0f61c0253cddcbdcc7213371a7e273d9e5dcf8ab447046cc8056fecf1b7f49`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -10038,6 +10280,8 @@ export const routes = {
   adminProfile: "/admin/dashboard/profile",
   adminSettings: "/admin/dashboard/settings",
   adminUsers: "/admin/dashboard/users",
+  liveSessions: "/dashboard/live-sessions",
+  adminLiveSessions: "/admin/dashboard/live-sessions",
   adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
@@ -10063,6 +10307,10 @@ export const routes = {
   },
 };
 export const endpoints = {
+  adminLiveSessions: "/api/admin/live-sessions",
+  myLiveSessions: "/api/live-sessions",
+  liveSessions: (slug:string) => `/api/courses/${segment(slug)}/live-sessions`,
+  liveJoin: (slug:string,id:string) => `/api/courses/${segment(slug)}/live-sessions/${segment(id)}/join`,
   paymentQuote: "/api/payments/quote",
   adminCommerce: (kind: string) => `/api/admin/commerce/${segment(kind)}`,
   paymentCheckout: "/api/payments/checkout",
@@ -10977,6 +11225,18 @@ export const interfaceCopy = {
 } as const;
 ```
 
+### File: `modules/data/live-sessions.ts`
+
+SHA-256: `4a6e6bc5dac435cd7f04045fad63c93927a2b42ab3d982df46f4626e4c35fed7`
+
+```typescript
+export const liveSessionCopy = {
+ title: "الجلسات والدروس المباشرة", tab: "الجلسات المباشرة", create: "إضافة جلسة مباشرة", edit: "تعديل", remove: "حذف", cancel: "إلغاء", save: "حفظ الجلسة", saving: "جارٍ الحفظ…", saved: "تم حفظ الجلسة", error: "تعذّر حفظ الجلسة. راجع البيانات وحاول مرة أخرى.",
+ name: "اسم الجلسة", description: "الوصف", course: "الدورة أو الورشة", chapter: "الفصل (اختياري)", section: "القسم (اختياري)", wholeCourse: "الدورة بالكامل", noSection: "بدون قسم", joinUrl: "رابط الانضمام", starts: "تبدأ في", ends: "تنتهي في", timezone: "المنطقة الزمنية", enabled: "ظاهرة للطلاب", timezoneHint: "أدخل اليوم وساعة البداية والنهاية حسب المنطقة الزمنية المحددة. أقصى مدة للجلسة ٢٤ ساعة.",
+ upcoming: "لم تبدأ بعد", active: "مباشر الآن", ended: "انتهت", endedAt: "انتهت في", join: "انضم للجلسة", locked: "متاحة للمشتركين في الدورة أثناء موعد الجلسة", empty: "لا توجد جلسات مباشرة.", search: "البحث باسم الجلسة", filter: "حالة الجلسة", all: "الكل", apply: "تطبيق", previous: "السابق", next: "التالي", confirmRemove: "حذف هذه الجلسة نهائيًا؟", hidden: "غير ظاهرة", scheduleHint: "يظهر رابط الانضمام للمشتركين فقط من وقت البداية وحتى وقت النهاية.",
+};
+```
+
 ### File: `modules/data/media-preview.ts`
 
 SHA-256: `b879cce6d5d9a9728f4c4384138c17881a1e774b5d3e43def5b01bd5e5f1f7db`
@@ -11125,10 +11385,11 @@ export const salesCopy:SalesLabels={heading:"المبيعات",search:"بحث ب
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `a79aac2598cb93b8135d1c8443c31a6d3b1474f9389e283772fb9fdc6b738776`
+SHA-256: `6bc2abd159ec4f761cc0b33a3eaefbb137dedcb94a22753f1afc590a0e0c882f`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
+import { liveSessionCopy } from "./live-sessions";
 import { routes, sectionIds } from "@platform/config/navigation";
 import type {
   InstructorContent,
@@ -11151,6 +11412,7 @@ export const marketingNavigation = [
   { href: routes.section("faq"), label: "الأسئلة الشائعة" },
 ];
 export const dashboardNavigation = [
+  { href: routes.liveSessions, label: liveSessionCopy.tab, symbol: "clock" },
   { href: routes.dashboard, label: "نظرة عامة", symbol: "grid" },
   { href: routes.library, label: "دوراتي", symbol: "book" },
   { href: routes.purchases, label: "طلباتي ومدفوعاتي", symbol: "book" },
@@ -13085,9 +13347,12 @@ export async function requirePageIdentity() {
 
 ### File: `modules/features/catalog/course-details-page.tsx`
 
-SHA-256: `487d0128a78a9e3799b514d612464e2820eb7397a4d8a5fd302e074583b342e8`
+SHA-256: `3dda8b37a181f53313915e09529ec5962072c58a7897f29d62729bc978407a38`
 
 ```tsx
+import { readLiveSchedule } from "@platform/features/live-sessions/repositories/schedule";
+import LiveSchedule from "@platform/components/live-sessions/schedule";
+import { liveSessionCopy } from "@platform/data/live-sessions";
 import { courseLessons } from "@platform/features/catalog/helpers/course-lessons";
 import { readLearningState, courseProgress } from "@platform/features/learning";
 import { courseDetailsCopy } from "@platform/data/course-details";
@@ -13099,11 +13364,12 @@ import type { Course } from "@platform/types/lms";
 import CourseDetails from "@platform/components/courses/course-details";
 import { creatorContacts } from "@/config/creator-contacts";
 export default async function CourseDetailsPage({ course }: { course: Course }) {
-  const state = await readLearningState();
+  const [state,schedule] = await Promise.all([readLearningState(),readLiveSchedule([course.slug])]);
   const nextLesson = courseProgress(course,state).next?.id ?? courseLessons(course)[0]?.id;
-  return <CourseDetails course={course} enrolled={state.enrolled.includes(course.slug)} nextLesson={nextLesson}
+  return <><CourseDetails course={course} enrolled={state.enrolled.includes(course.slug)} nextLesson={nextLesson}
     labels={courseDetailsCopy} copy={{error:copy.error,saving:copy.saving,continue:copy.continue,enrollLabel:copy.enrollLabel,outcome:copy.outcome}} site={{englishName:site.englishName}} priceLabel={offerCopy.price} breadcrumbLabel={interfaceCopy.courseBreadcrumb}
-    instructor={{ name: instructor.name, tagline: instructor.tagline, image: instructor.image, href: routes.portfolio }} supportHref={creatorContacts.whatsapp} />;
+    instructor={{ name: instructor.name, tagline: instructor.tagline, image: instructor.image, href: routes.portfolio }} supportHref={creatorContacts.whatsapp} />
+    {schedule.sessions.length>0 && <div className="container"><LiveSchedule initial={schedule} slug={course.slug} joinAllowed={state.enrolled.includes(course.slug)} labels={liveSessionCopy} /></div>}</>;
 }
 ```
 
@@ -14491,6 +14757,284 @@ import type { LearningState } from "@platform/types/lms";
 export async function readLearningState(): Promise<LearningState> {
   const identity = await currentIdentity();
   return identity ? readState(identity.client, identity.user) : { enrolled: [], completed: [], profile: { name: "", email: "" } };
+}
+```
+
+### File: `modules/features/live-sessions/course-schedule.tsx`
+
+SHA-256: `f1255c9fe21576f4908f9c48936ab38f88fd5576536404e61aff7a02340670ad`
+
+```tsx
+import { readLiveSchedule } from "./repositories/schedule";
+import LiveSchedule from "@platform/components/live-sessions/schedule";
+import { liveSessionCopy } from "@platform/data/live-sessions";
+export default async function CourseLiveSchedule({slug,joinAllowed}:{slug:string;joinAllowed:boolean}) {
+ const initial=await readLiveSchedule([slug]);
+ if(!initial.sessions.length) return null;
+ return <LiveSchedule initial={initial} slug={slug} joinAllowed={joinAllowed} labels={liveSessionCopy} />;
+}
+```
+
+### File: `modules/features/live-sessions/handle-admin.ts`
+
+SHA-256: `8869aafeab560cca1f57bba11b7c2b80876ce48726240b42d964ddd2a165c310`
+
+```typescript
+import { readLiveQuery } from "./helpers/read-query";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { readAdminLiveSessions,mutateLiveSession } from "./repositories/admin";
+import { validateLiveSession,validSessionId } from "./helpers/validate-input";
+import { apiResponse } from "@platform/lib/api/respond";
+import { sameOrigin,readJson } from "@platform/lib/server-request";
+import { ApiError } from "@platform/lib/api/error";
+export function handleAdminLiveSessions(request:Request) {
+ return apiResponse(async()=>{
+  await requireAdmin();
+  if(request.method==="GET") return Response.json(await readAdminLiveSessions(readLiveQuery(Object.fromEntries(new URL(request.url).searchParams))),{headers:{"Cache-Control":"private, no-store"}});
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const body=await readJson(request);
+  if(body?.operation==="delete") {
+   if(!validSessionId(body.id)||!Number.isSafeInteger(body.revision)||Number(body.revision)<1) throw new ApiError(400,"INVALID_INPUT");
+   return Response.json(await mutateLiveSession({id:body.id,revision:Number(body.revision)},true));
+  }
+  const input=validateLiveSession(body);if(!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await mutateLiveSession(input));
+ });
+}
+```
+
+### File: `modules/features/live-sessions/handle-join.ts`
+
+SHA-256: `a7623280ba2e2e2c72c9165281e63b23c80ff1c23e5ea033998a062d41b73e94`
+
+```typescript
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { apiResponse } from "@platform/lib/api/respond";
+import { ApiError } from "@platform/lib/api/error";
+import { validSessionId } from "./helpers/validate-input";
+import { liveSessionState } from "./helpers/state";
+export function handleLiveJoin(slug:string,id:string) {
+ return apiResponse(async()=>{
+  const {client}=await requireIdentity();if(!validSessionId(id)) throw new ApiError(404,"NOT_FOUND");
+  const result=await client.from("live_sessions").select("starts_at,ends_at").eq("id",id).eq("course_slug",slug).eq("enabled",true).maybeSingle();
+  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+  if(!result.data) throw new ApiError(404,"NOT_FOUND");
+  if(liveSessionState({startsAt:result.data.starts_at,endsAt:result.data.ends_at},Date.now())!=="active") throw new ApiError(403,"FORBIDDEN");
+  const link=await client.from("live_session_links").select("join_url").eq("session_id",id).maybeSingle();
+  if(link.error) throw new ApiError(503,"INTERNAL_ERROR");
+  if(!link.data || Date.now()>=Date.parse(result.data.ends_at)) throw new ApiError(403,"FORBIDDEN");
+  return new Response(null,{status:302,headers:{Location:link.data.join_url,"Cache-Control":"private, no-store","Referrer-Policy":"no-referrer"}});
+ });
+}
+```
+
+### File: `modules/features/live-sessions/handle-public.ts`
+
+SHA-256: `7a01a02485bcf8e1da358cfd76e7cf4a96e9ea54e0e8d859fbdec2a6fc7c85c6`
+
+```typescript
+import { apiResponse } from "@platform/lib/api/respond";
+import { readMyLiveSchedule } from "./repositories/my-schedule";
+import { readLiveSchedule } from "./repositories/schedule";
+export function handleLiveSchedule(slug:string) {
+ return apiResponse(async()=>Response.json(await readLiveSchedule([slug]),{headers:{"Cache-Control":"private, no-store"}}));
+}
+
+export function handleMyLiveSchedule() {
+ return apiResponse(async()=>Response.json(await readMyLiveSchedule()));
+}
+```
+
+### File: `modules/features/live-sessions/helpers/map-session.ts`
+
+SHA-256: `fb7e5c64f51f475477186da58cad9a190cf1c7963d909972d5090be0d2aef8cc`
+
+```typescript
+import type { Database } from "@platform/types/database";
+import type { LiveSession } from "@platform/types/live-sessions";
+type Row=Database["public"]["Tables"]["live_sessions"]["Row"];
+export const liveSessionColumns="id,course_slug,title,description,starts_at,ends_at,timezone,chapter_id,section_id";
+export function mapLiveSession(row: Pick<Row,"id"|"course_slug"|"title"|"description"|"starts_at"|"ends_at"|"timezone"|"chapter_id"|"section_id">):LiveSession {
+ return {id:row.id,courseSlug:row.course_slug,title:row.title,description:row.description,startsAt:row.starts_at,endsAt:row.ends_at,timezone:row.timezone,chapterId:row.chapter_id,sectionId:row.section_id};
+}
+```
+
+### File: `modules/features/live-sessions/helpers/read-query.ts`
+
+SHA-256: `ac57003b789dc89e23b8362b8f14001269e7b9c294501c4e3b754b64c48d6c55`
+
+```typescript
+export function readLiveQuery(params:Record<string,string|string[]|undefined>) {
+ const first=(key:string)=>Array.isArray(params[key]) ? params[key][0] : params[key];
+ const status=first("status") ?? "all",page=Number(first("page"));
+ return {search:(first("q") ?? "").trim().slice(0,120),status:["upcoming","active","ended"].includes(status) ? status : "all",page:Number.isSafeInteger(page)&&page>0&&page<=10000 ? page : 1};
+}
+```
+
+### File: `modules/features/live-sessions/helpers/state.ts`
+
+SHA-256: `b27ec60ccf460866ab302e3220d964855e8e43a8b249c655d22bf566b42cdbdd`
+
+```typescript
+import type { LiveSession, LiveSessionState } from "@platform/types/live-sessions";
+export function liveSessionState(session: Pick<LiveSession,"startsAt"|"endsAt">, now: number): LiveSessionState {
+ if (now >= Date.parse(session.endsAt)) return "ended";
+ return now >= Date.parse(session.startsAt) ? "active" : "upcoming";
+}
+export function liveSessionTime(value: string, timezone: string) {
+ return new Intl.DateTimeFormat("ar-EG", {timeZone:timezone,dateStyle:"medium",timeStyle:"short"}).format(new Date(value));
+}
+export function liveSessionDateInput(value: string, timezone: string) {
+ const parts = new Intl.DateTimeFormat("en-CA",{timeZone:timezone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(value));
+ const part=(key:string)=>parts.find(item=>item.type===key)?.value;
+ return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
+```
+
+### File: `modules/features/live-sessions/helpers/validate-fields.ts`
+
+SHA-256: `c991b94f3c5feea64c92e796f8368d5dd340938788508fbf90969b704a1b7b9a`
+
+```typescript
+import { liveSessionPolicy as policy } from "@platform/config/live-sessions";
+function validLocalDate(value:unknown):value is string {
+ return typeof value==="string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)
+  && Number.isFinite(Date.parse(value+"Z")) && new Date(value+"Z").toISOString().slice(0,16)===value;
+}
+export function validLiveTiming(value:Record<string,unknown>) {
+ if(!validLocalDate(value.startsLocal)||!validLocalDate(value.endsLocal)) return false;
+ const duration=Date.parse(value.endsLocal+"Z")-Date.parse(value.startsLocal+"Z");
+ return duration>0 && duration<=policy.maxHours*3600000;
+}
+export function validLiveContent(value:Record<string,unknown>) {
+ if(typeof value.title!=="string"||!value.title.trim()||value.title.length>policy.titleMax) return false;
+ if(typeof value.description!=="string"||value.description.length>policy.descriptionMax) return false;
+ if(typeof value.joinUrl!=="string"||value.joinUrl.length>policy.urlMax) return false;
+ try {
+  const url=new URL(value.joinUrl);
+  return url.protocol==="https:" && !url.username && !url.password;
+ }catch{return false;}
+}
+export function validLiveAssignment(value:Record<string,unknown>) {
+ return typeof value.chapterId==="string" && value.chapterId.length<=120
+  && typeof value.sectionId==="string" && value.sectionId.length<=120 && Boolean(value.chapterId||!value.sectionId);
+}
+```
+
+### File: `modules/features/live-sessions/helpers/validate-input.ts`
+
+SHA-256: `4d75d12b893d708229f4078fe62e3fa6717a5314480ac0e67318a3e63ca19d54`
+
+```typescript
+import { liveSessionPolicy as policy } from "@platform/config/live-sessions";
+import { validLiveTiming,validLiveContent,validLiveAssignment } from "./validate-fields";
+import type { LiveSessionInput } from "@platform/types/live-sessions";
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const validSessionId=(value:unknown):value is string=>typeof value==="string"&&uuid.test(value);
+export function validateLiveSession(value: Record<string,unknown> | null): LiveSessionInput | null {
+ if(!value || (value.id!==undefined&&!validSessionId(value.id))) return null;
+ if(!Number.isSafeInteger(value.revision)||Number(value.revision)<0) return null;
+ if(typeof value.courseSlug!=="string"||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.courseSlug)||value.courseSlug.length>120) return null;
+ if(!validLiveContent(value)||!validLiveTiming(value)||!validLiveAssignment(value)) return null;
+ if(typeof value.timezone!=="string"||!policy.timezones.some(zone=>zone===value.timezone)||typeof value.enabled!=="boolean") return null;
+ return {...value,title:(value.title as string).trim()} as unknown as LiveSessionInput;
+}
+export function readLiveSessionForm(form: FormData): Record<string,unknown> {
+ return {...Object.fromEntries(form),revision:Number(form.get("revision")),enabled:form.get("enabled")==="on"};
+}
+```
+
+### File: `modules/features/live-sessions/repositories/admin.ts`
+
+SHA-256: `08366d1a562bed09a3490dd7464d6e402720eddc05cbe08774c46be87923a4a7`
+
+```typescript
+import "server-only";
+import { liveSessionPolicy } from "@platform/config/live-sessions";
+import { readLiveQuery } from "../helpers/read-query";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { mapLiveSession } from "../helpers/map-session";
+import type { AdminLiveSession,LiveSessionInput } from "@platform/types/live-sessions";
+import type { Json } from "@platform/types/database";
+export async function readAdminLiveSessions(query:ReturnType<typeof readLiveQuery>) {
+ const {client}=await requireAdmin();
+ const now=new Date().toISOString(),start=(query.page-1)*liveSessionPolicy.pageSize;
+ let request=client.from("live_sessions").select("*,live_session_links(join_url)",{count:"exact"}).order("starts_at",{ascending:false}).order("id").range(start,start+liveSessionPolicy.pageSize-1);
+ if(query.search) request=request.ilike("title",`%${query.search.replace(/[%_\\]/g,"")}%`);
+ if(query.status==="upcoming") request=request.gt("starts_at",now);
+ if(query.status==="active") request=request.lte("starts_at",now).gt("ends_at",now);
+ if(query.status==="ended") request=request.lte("ends_at",now);
+ const result=await request;
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const sessions:AdminLiveSession[]=result.data.map(row=>({...mapLiveSession(row),enabled:row.enabled,revision:row.revision,joinUrl:row.live_session_links?.join_url ?? ""}));
+ return {sessions,total:result.count ?? 0,serverNow:now};
+}
+export async function mutateLiveSession(input:LiveSessionInput | {id:string;revision:number},remove=false) {
+ const {client}=await requireAdmin();
+ const result=remove ? await client.rpc("delete_live_session",{p_id:input.id!,p_revision:input.revision}) : await client.rpc("save_live_session",{p_input:input as unknown as Json});
+ if(result.error) {
+  const code=["COURSE_CONFLICT","INVALID_INPUT","NOT_FOUND","FORBIDDEN"].find(code=>result.error!.message.includes(code));
+  throw new ApiError(code==="COURSE_CONFLICT" ? 409 : code==="NOT_FOUND" ? 404 : code==="FORBIDDEN" ? 403 : code ? 400 : 503,code ?? "INTERNAL_ERROR");
+ }
+ return {saved:true};
+}
+```
+
+### File: `modules/features/live-sessions/repositories/choices.ts`
+
+SHA-256: `0cd93802f2275fc3631aa675e7fd286248633537d53fa86b2c60009ff7788e15`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
+import { ApiError } from "@platform/lib/api/error";
+import type { CourseModule } from "@platform/types/lms";
+export async function liveSessionCourses() {
+ const {client}=await requireAdmin();
+ const result=await client.from("courses").select("slug,title:metadata->>title,modules:metadata->modules").order("position");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return result.data.map(row=>({slug:row.slug,title:String(row.title),chapters:(row.modules as unknown as CourseModule[]).filter(chapter=>chapter.id).map(chapter=>({id:chapter.id!,title:chapter.title,sections:(chapter.sections ?? []).map(({id,title})=>({id,title}))}))}));
+}
+```
+
+### File: `modules/features/live-sessions/repositories/my-schedule.ts`
+
+SHA-256: `7389127a278a7bd6960d5e7924e2a2092d38196e2ac13e71e95ec2bed7aa8ebd`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { readLiveSchedule } from "./schedule";
+export async function readMyLiveSchedule() {
+ const {client}=await requireIdentity();
+ const result=await client.from("enrollments").select("course_slug");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return readLiveSchedule(result.data.map(row=>row.course_slug));
+}
+```
+
+### File: `modules/features/live-sessions/repositories/schedule.ts`
+
+SHA-256: `cb7725f2e9cf71d7499f679ef017530df9b599df11a7644b1b0534ab5e051745`
+
+```typescript
+import "server-only";
+import { createDatabaseClient } from "@platform/lib/supabase/server";
+import type { CourseModule } from "@platform/types/lms";
+import { ApiError } from "@platform/lib/api/error";
+import { liveSessionColumns, mapLiveSession } from "../helpers/map-session";
+export async function readLiveSchedule(slugs: string[]) {
+ if(!slugs.length) return {sessions:[],serverNow:new Date().toISOString()};
+ const client=await createDatabaseClient();
+ const result=await client.from("live_sessions").select(`${liveSessionColumns},courses(title:metadata->>title,modules:metadata->modules)`).in("course_slug",slugs).eq("enabled",true).order("starts_at");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return {sessions:result.data.map(row=>{
+  const chapter=(row.courses?.modules as unknown as CourseModule[] | undefined)?.find(item=>item.id===row.chapter_id);
+  const section=chapter?.sections?.find(item=>item.id===row.section_id);
+  return {...mapLiveSession(row),courseTitle:String(row.courses?.title ?? ""),assignmentTitle:[chapter?.title,section?.title].filter(Boolean).join(" / ")};
+ }),serverNow:new Date().toISOString()};
 }
 ```
 
@@ -16584,6 +17128,47 @@ export function isValidUsername(value: unknown): value is string {
 }
 ```
 
+### File: `modules/hooks/live-sessions/use-schedule-clock.ts`
+
+SHA-256: `d41a29c96112e7f5854fbffeabc3ea7089da62d824472d39bef442ffaca8c535`
+
+```typescript
+"use client";
+import { useEffect,useState } from "react";
+import { liveSessionPolicy } from "@platform/config/live-sessions";
+import { endpoints } from "@platform/config/navigation";
+import type { LiveSession } from "@platform/types/live-sessions";
+export function useScheduleClock(initial:{sessions:LiveSession[];serverNow:string},slug?:string) {
+ const [sessions,setSessions]=useState(initial.sessions),[now,setNow]=useState(Date.parse(initial.serverNow));
+ useEffect(()=>{
+  let serverTime=Date.parse(initial.serverNow),base=performance.now(),running=true;
+  let controller:AbortController|undefined;
+  const tick=setInterval(()=>setNow(serverTime+performance.now()-base),liveSessionPolicy.tickMs);
+  const refresh=async()=>{
+   controller?.abort();controller=new AbortController();
+   try{
+    const response=await fetch(slug ? endpoints.liveSessions(slug) : endpoints.myLiveSessions,{cache:"no-store",signal:controller.signal});
+    if(!response.ok) return;
+    const data=await response.json();
+    if(running&&Array.isArray(data.sessions)&&Number.isFinite(Date.parse(data.serverNow))){
+     serverTime=Date.parse(data.serverNow);base=performance.now();
+     setNow(serverTime);setSessions(data.sessions);
+    }
+   }catch{/* Keep the last schedule on temporary failure; the server still checks joining access. */}
+  };
+  void refresh();
+  const poll=setInterval(()=>void refresh(),liveSessionPolicy.pollMs);
+  const visible=()=>{if(document.visibilityState==="visible") void refresh();};
+  document.addEventListener("visibilitychange",visible);
+  return()=>{
+   running=false;clearInterval(tick);clearInterval(poll);controller?.abort();
+   document.removeEventListener("visibilitychange",visible);
+  };
+ },[initial.serverNow,slug]);
+ return {sessions,now};
+}
+```
+
 ### File: `modules/hooks/portfolio/use-active-section.ts`
 
 SHA-256: `491149d3e3bda05eb78361c5175adb5e6dbb1acc2e077a282bd114f3fbcb1880`
@@ -18304,6 +18889,29 @@ SHA-256: `f7f10a5bc74f59c95e0b9fb2ce2c288f639ed51593cd603024366bccd748567f`
   .lms-course-curriculum summary small { width: 100%; order: 1; padding-inline-start: var(--space-lg); }
   .lms-course-curriculum li { padding: var(--space-md); gap: var(--space-sm); }
 }
+```
+
+### File: `modules/styles/live-sessions.css`
+
+SHA-256: `15e266cb9fe68ef0677395fb7e3fd70f4db6d26c168106e4ff7648f2e2e495ef`
+
+```css
+.lms-live-schedule { display: grid; gap: var(--space-lg); margin-block: var(--space-xl); min-width: 0; }
+.lms-live-schedule > h2 { margin: 0; font-size: var(--lms-size-1_5rem); }
+.lms-live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); }
+.lms-live-card { display: grid; align-content: start; gap: var(--space-sm); min-width: 0; max-width: none; overflow-wrap: anywhere; }
+.lms-live-card h3, .lms-live-card p { margin: 0; }
+.lms-live-card p { color: var(--text-secondary); }
+.lms-live-card .btn-primary { justify-self: start; margin-top: var(--space-md); }
+.lms-live-status { justify-self: start; color: var(--text-secondary); font-size: var(--font-size-caption); }
+.lms-live-status-active { color: var(--text-accent-readable); }
+.lms-live-form { max-width: none; }
+@media (max-width: 768px) { .lms-live-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.lms-live-filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto; align-items: end; gap: var(--space-md); }
+.lms-live-filters .btn-primary { min-height: var(--size-44px); font-size: var(--font-size-body); padding: var(--space-sm) var(--space-md); }
+.lms-live-assignment { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-md); }
+@media (max-width: 768px) { .lms-live-filters, .lms-live-assignment { grid-template-columns: minmax(0,1fr); } }
 ```
 
 ### File: `modules/styles/lms.css`
@@ -22156,7 +22764,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `42de81ca075220265b4675c356a44cba9789b8a1f02f3eaf0bc17ee1765d4143`
+SHA-256: `46b16f67994fd023c7beafd4e2261962935dca173f089553a070494f0a26bc34`
 
 ```typescript
 
@@ -22426,6 +23034,46 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"live_session_links": {
+                  Row: {
+                    "join_url": string,"session_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "join_url": string,"session_id": string
+                  }
+                  Update: {
+                    "join_url"?: string,"session_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_session_links_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: true
+      referencedRelation: "live_sessions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"live_sessions": {
+                  Row: {
+                    "chapter_id": string | null,"course_slug": string,"created_at": string,"description": string,"enabled": boolean,"ends_at": string,"id": string,"revision": number,"section_id": string | null,"starts_at": string,"timezone": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "chapter_id"?: string | null,"course_slug": string,"created_at"?: string,"description"?: string,"enabled"?: boolean,"ends_at": string,"id"?: string,"revision"?: number,"section_id"?: string | null,"starts_at": string,"timezone"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "chapter_id"?: string | null,"course_slug"?: string,"created_at"?: string,"description"?: string,"enabled"?: boolean,"ends_at"?: string,"id"?: string,"revision"?: number,"section_id"?: string | null,"starts_at"?: string,"timezone"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_sessions_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"payment_order_items": {
                   Row: {
                     "course_slug": string,"order_id": string
@@ -22580,6 +23228,9 @@ isOneToOne: true
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
                            },
+"delete_live_session":
+{ Args: { "p_id": string,"p_revision": number }; Returns: boolean
+                           },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
                            },
@@ -22603,6 +23254,9 @@ isOneToOne: true
                            },
 "save_commerce_discount":
 { Args: { "p_input": Json,"p_kind": string }; Returns: undefined
+                           },
+"save_live_session":
+{ Args: { "p_input": Json }; Returns: string
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json
@@ -22784,6 +23438,25 @@ export type LandingHeroProps = {
   };
   site: Pick<ContentBindings["site"], "englishName">;
 };
+```
+
+### File: `modules/types/live-sessions.ts`
+
+SHA-256: `bc99a72293fa002ee4e994618b9c5532fcd48d82ba19c21edbb46c686230cdef`
+
+```typescript
+export interface LiveSession {
+ id: string; courseSlug: string; title: string; description: string; startsAt: string; endsAt: string;
+ courseTitle?: string; assignmentTitle?: string;
+ timezone: string; chapterId: string | null; sectionId: string | null;
+}
+export interface AdminLiveSession extends LiveSession { joinUrl: string; enabled: boolean; revision: number; }
+export interface LiveSessionInput {
+ id?: string; revision: number; courseSlug: string; title: string; description: string; joinUrl: string;
+ startsLocal: string; endsLocal: string; timezone: string; enabled: boolean; chapterId: string; sectionId: string;
+}
+export type LiveSessionState = "upcoming" | "active" | "ended";
+export type LiveSessionLabels = { [K in keyof typeof import("@platform/data/live-sessions").liveSessionCopy]: string };
 ```
 
 ### File: `modules/types/lms.ts`
@@ -35331,7 +36004,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `d6fb081c0e253c049c63858fabcff86069fdb0af5594272ebf2b66ff96dcea93`
+SHA-256: `5bb6732dcd4c886d5b5fa21539cb4ab69b39f64ba6d719467019e964b817190d`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -35394,6 +36067,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'live-sessions') {
+    await require('./live-sessions.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'live-content-gate') {
     await require('./live-content-gate.cjs')({admin,provision,verify});return;
   }
@@ -35665,6 +36341,152 @@ module.exports=async({admin,provision,verify})=>{
   verify(orders.count===0,'Rejected readiness creates no pending orders, provider intents or charges');
   verify((await student.api('/learn/editing-foundations/editor-mindset')).status===200,'Readiness guard preserves free preview');
  } finally {await admin.from('commerce_bundles').delete().eq('slug',slug);await admin.from('courses').delete().eq('slug',emptySlug);}
+};
+```
+
+### File: `tests/backend/live-sessions-browser.cjs`
+
+SHA-256: `287de32f642d05a80cd1f7877ce8b2fd2ea01e16afdb29d661a7c9c4603d64ba`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Browser checks use disposable local accounts. */
+const {chromium,expect}=require('@playwright/test');
+async function login(page,url,account){
+ await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(account.email);
+ await page.getByLabel('كلمة المرور',{exact:true}).fill(account.password);
+ await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL(/\/dashboard/);
+}
+module.exports=async({manager,student,verify,url,admin,session,slug,lessonId})=>{
+ const browser=await chromium.launch({headless:true});const page=await browser.newPage();const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await login(page,url,manager);await page.goto(url+'/admin/dashboard/live-sessions');
+  for(const width of [320,390,1440]){
+   await page.setViewportSize({width,height:900});
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),`Admin schedule fits ${width}px`);
+  }
+  await page.screenshot({path:'/tmp/khatab-live-admin.png',fullPage:true});
+  await page.getByRole('button',{name:'إضافة جلسة مباشرة',exact:true}).click();
+  await expect(page.locator('input[name="startsLocal"]')).toBeVisible();
+  await expect(page.locator('input[name="endsLocal"]')).toBeVisible();
+  verify(true,'Admin has reusable date/time scheduling form');
+  await page.getByRole('button',{name:'إلغاء',exact:true}).click();
+  await page.getByRole('button',{name:'حذف',exact:true}).first().click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('dialog').getByRole('button',{name:'إلغاء',exact:true}).last().click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);verify(true,'Deletion uses dismissible themed centered dialog');
+  await page.context().clearCookies();await login(page,url,student);
+  // Short real-time boundaries test server clock, polling and rendered link removal together.
+  await admin.from('live_sessions').update({starts_at:new Date(Date.now()+5000).toISOString(),ends_at:new Date(Date.now()+12000).toISOString()}).eq('id',session.id);
+  await page.goto(url+'/dashboard/live-sessions');
+  await expect(page.getByText('لم تبدأ بعد',{exact:true})).toBeVisible();
+  await expect(page.getByRole('link',{name:'انضم للجلسة',exact:true})).toHaveCount(0);
+  verify(true,'Upcoming schedule has start time and no join link');
+  await expect(page.getByRole('link',{name:'انضم للجلسة',exact:true})).toBeVisible({timeout:12000});
+  verify(true,'Join action appears automatically at start without reload');
+  await expect(page.getByRole('link',{name:'انضم للجلسة',exact:true})).toHaveCount(0,{timeout:15000});
+  await expect(page.getByText('انتهت',{exact:true})).toBeVisible();
+  await expect(page.getByText('انتهت في:',{exact:false})).toBeVisible();
+  verify(true,'At end the link disappears and actual end time remains');
+  await page.screenshot({path:'/tmp/khatab-live-student.png',fullPage:true});
+  for(const width of [320,390,1440]){
+   await page.setViewportSize({width,height:900});
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),`Student schedule fits ${width}px`);
+  }
+  await page.goto(url+`/courses/${slug}`);await expect(page.getByRole('heading',{name:'الجلسات والدروس المباشرة',exact:true})).toBeVisible();
+  verify(true,'Recorded course details show live sessions');
+  await page.goto(url+`/learn/${slug}/${lessonId}`);
+  await expect(page.getByRole('heading',{name:'الجلسات والدروس المباشرة',exact:true})).toBeVisible();
+  await expect(page.getByText('Critique section',{exact:false}).first()).toBeVisible();
+  verify(true,'Recorded lesson page includes assigned live session and section title');
+  verify(errors.length===0,'Live-session pages have no browser errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/live-sessions.cjs`
+
+SHA-256: `0b8d3c7b2bd973ce60aa57745a6464c7199e78c9b6c6327bf5905de77ddf00d7`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local-only integration suite. */
+const assert=require('node:assert/strict');
+const json=r=>JSON.parse(r.data);
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Live Manager'),student=await provision('Live Student'),outsider=await provision('Live Outsider');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='backend-live-sessions',liveSlug=slug+'-workshop',endpoint='/api/admin/live-sessions';
+ const source=(await admin.from('courses').select('*').eq('slug','editing-foundations').single()).data;
+ assert.ok(source);
+ const metadata={...source.metadata,slug,title:'Scheduled recorded course',modules:source.metadata.modules.map((chapter,index)=>index===0 ? {...chapter,id:'session-chapter',sections:[{id:'session-section',title:'Critique section',lessonIds:[]}]} : chapter)};
+ assert.ok(!(await admin.from('courses').insert({...source,slug,metadata})).error);
+ try{
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:slug});
+  const lessonId=metadata.modules[0].lessons[0].id;
+  const lesson=(await admin.from('lessons').select('*').eq('course_slug',source.slug).eq('id',lessonId).single()).data;assert.ok(lesson);
+  assert.ok(!(await admin.from('lessons').insert({...lesson,course_slug:slug})).error);
+  verify((await anonymous(endpoint)).status===401,'Guest cannot manage sessions');
+  verify((await student.api(endpoint)).status===403,'Student cannot manage sessions');
+  const input={revision:0,courseSlug:slug,title:'Live critique',description:'Feedback on recorded course',joinUrl:'https://meet.example.com/private-live',startsLocal:'2026-10-20T12:00',endsLocal:'2026-10-20T13:00',timezone:'Africa/Cairo',enabled:true,chapterId:'session-chapter',sectionId:'session-section'};
+  verify((await manager.api(endpoint,input,{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin schedule mutation denied');
+  for(const patch of [{endsLocal:input.startsLocal},{chapterId:'unknown'},{sectionId:'unknown'},{startsLocal:'2026-04-24T00:30',endsLocal:'2026-04-24T01:30'},{joinUrl:'javascript:alert(1)'}]) verify((await manager.api(endpoint,{...input,...patch})).status===400,'Invalid schedule rejected');
+  verify((await manager.api(endpoint,input)).status===200,'Admin creates live session on recorded course');
+  let session=json(await manager.api(endpoint+'?q=Live%20critique')).sessions[0];assert.ok(session);
+  verify(session.chapterId==='session-chapter'&&session.sectionId==='session-section','Live lesson preserves recorded chapter and section assignment');
+  const join=`/api/courses/${slug}/live-sessions/${session.id}/join`;
+  const scheduleResponse=await anonymous(`/api/courses/${slug}/live-sessions`);assert.equal(scheduleResponse.status,200,scheduleResponse.data);let schedule=json(scheduleResponse);
+  verify(schedule.sessions.length===1&&!JSON.stringify(schedule).includes('private-live')&&!('joinUrl' in schedule.sessions[0]),'Public schedule excludes the private meeting URL');
+  verify((await student.api(join)).status===403,'Upcoming session URL denied');
+  verify((await student.direct.from('live_session_links').select('*')).data.length===0,'Upcoming meeting URL denied by RLS');
+  verify(Boolean((await student.direct.rpc('save_live_session',{p_input:input})).error),'Direct student RPC mutation denied');
+  verify(Boolean((await student.direct.from('live_sessions').update({title:'Forged'}).eq('id',session.id)).error),'Student direct table mutation denied');
+  const editing={...input,id:session.id,revision:session.revision,title:'Live revision'};
+  const races=await Promise.all([manager.api(endpoint,editing),manager.api(endpoint,editing)]);
+  verify(races.map(r=>r.status).sort().join(',')==='200,409','Concurrent edits preserve one winning revision');
+  verify(Boolean((await manager.direct.rpc('delete_live_session',{p_id:session.id,p_revision:null})).error),'Null revision cannot bypass concurrency guard');
+  session=json(await manager.api(endpoint+'?q=Live%20revision')).sessions[0];
+  await admin.from('live_sessions').update({starts_at:new Date(Date.now()-60000).toISOString(),ends_at:new Date(Date.now()+60000).toISOString()}).eq('id',session.id);
+  verify((await student.api(join)).status===302,'Enrolled student joins during active window');
+  verify((await student.api(join)).headers.get('location')===input.joinUrl,'Join redirects to saved private meeting URL');
+  verify((await outsider.api(join)).status===403,'Unenrolled student denied active URL');
+  verify((await anonymous(join)).status===401,'Guest denied active URL');
+  verify((await outsider.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Active meeting URL denied to unenrolled JWT');
+  verify((await student.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===1,'Enrolled JWT may read active URL');
+  for(const account of [student]){
+   assert.ok(!(await admin.auth.admin.updateUserById(account.id,{ban_duration:'24h'})).error);
+   verify((await account.api(join)).status===401,'Suspended account cannot join with old cookies');
+   verify((await account.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Suspended account cannot retrieve private links using old JWT');
+   assert.ok(!(await admin.auth.admin.updateUserById(account.id,{ban_duration:'none'})).error);
+  }
+  await admin.from('admin_users').delete().eq('user_id',manager.id);
+  verify((await manager.api(endpoint)).status===403,'Revoked admin role loses schedule management with old session');
+  verify((await manager.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Revoked admin role loses private meeting URLs');
+  await admin.from('admin_users').insert({user_id:manager.id});
+  await admin.from('courses').update({published:false}).eq('slug',slug);
+  verify((await student.api(join)).status===404,'Unpublished course denies joining');
+  verify((await student.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Unpublished course URL hidden by RLS');
+  await admin.from('courses').update({published:true}).eq('slug',slug);
+  const own=json(await student.api('/api/live-sessions'));verify(own.sessions.some(s=>s.id===session.id),'Student aggregate schedule contains enrolled courses');
+  verify(json(await outsider.api('/api/live-sessions')).sessions.length===0,'Aggregate schedule excludes unowned courses');
+  await admin.from('live_sessions').update({enabled:false}).eq('id',session.id);
+  verify((await student.api(join)).status===404,'Disabled session removed from joining');
+  verify((await student.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Disabled meeting URL denied by RLS');
+  await admin.from('live_sessions').update({enabled:true,ends_at:new Date(Date.now()-1000).toISOString()}).eq('id',session.id);
+  verify((await student.api(join)).status===403,'Ended session denies join');
+  verify((await student.direct.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Ended meeting URL denied by RLS');
+  await admin.from('live_sessions').update({starts_at:new Date(Date.now()+20000).toISOString(),ends_at:new Date(Date.now()+28000).toISOString()}).eq('id',session.id);
+  await require('./live-sessions-browser.cjs')({manager,student,verify,url,admin,session,slug,lessonId});
+  assert.ok(!(await admin.from('courses').insert({...source,slug:liveSlug,metadata:{...metadata,slug:liveSlug,delivery:'live',deliveryLabel:'Live workshop',title:'Live workshop'}})).error);
+  verify((await manager.api(endpoint,{...input,courseSlug:liveSlug,title:'Workshop session'})).status===200,'Same scheduler supports live workshops');
+  const liveRows=json(await manager.api(endpoint+'?q=Workshop%20session&status=upcoming'));
+  verify(liveRows.sessions.length===1&&liveRows.sessions[0].courseSlug===liveSlug,'Search combines with upcoming status');
+  for(let index=0;index<5;index++) assert.equal((await manager.api(endpoint,{...input,courseSlug:liveSlug,title:'Pagination session '+index})).status,200);
+  const first=json(await manager.api(endpoint+'?q=session&status=upcoming&page=1')),second=json(await manager.api(endpoint+'?q=session&status=upcoming&page=2'));
+  verify(first.sessions.length===5&&second.sessions.length===1,'Admin schedule pagination limits records to five');
+  verify((await manager.api(endpoint,{operation:'delete',id:session.id,revision:session.revision-1})).status===409,'Stale deletion denied');
+  verify((await manager.api(endpoint,{operation:'delete',id:session.id,revision:session.revision})).status===200,'Admin deletes current session');
+  verify((await admin.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Deletion cascades to private URL');
+ }finally{await admin.from('courses').delete().in('slug',[slug,liveSlug]);}
 };
 ```
 
@@ -41158,6 +41980,35 @@ test("Live lesson preview actions return to the normal course details route", ()
     state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], enrolled: false,
     previous: undefined, next: lessons[1], complete: false });
   assert.equal(model.actions.courseHref, "/courses/ordered-course");
+});
+```
+
+### File: `tests/security/live-sessions.test.ts`
+
+SHA-256: `40be74e5a85a853ae7220f091ed4b7657f5da7528bde4f42d0ee7b192b965062`
+
+```typescript
+import test from "node:test";
+import assert from "node:assert/strict";
+import { liveSessionState,liveSessionDateInput } from "../../modules/features/live-sessions/helpers/state";
+import { validateLiveSession } from "../../modules/features/live-sessions/helpers/validate-input";
+import { readLiveQuery } from "../../modules/features/live-sessions/helpers/read-query";
+const input={revision:0,courseSlug:'editing',title:'Workshop',description:'',joinUrl:'https://meet.example/session',startsLocal:'2026-10-14T12:00',endsLocal:'2026-10-14T13:00',timezone:'Africa/Cairo',enabled:true,chapterId:'',sectionId:''};
+test('live joining window is start-inclusive and end-exclusive',()=>{
+ const session={startsAt:'2026-10-14T09:00:00Z',endsAt:'2026-10-14T10:00:00Z'};
+ for(const [time,state] of [['08:59:59','upcoming'],['09:00:00','active'],['09:59:59','active'],['10:00:00','ended']] as const) assert.equal(liveSessionState(session,Date.parse(`2026-10-14T${time}Z`)),state);
+});
+test('date editing retains local wall time in the session timezone',()=>{
+ assert.equal(liveSessionDateInput('2026-10-14T09:00:00Z','Africa/Cairo'),'2026-10-14T12:00');
+ assert.equal(liveSessionDateInput('2026-10-14T09:00:00Z','UTC'),'2026-10-14T09:00');
+});
+test('schedule validation rejects invalid calendars, unsafe links, bounds and hierarchy',()=>{
+ assert.ok(validateLiveSession(input));
+ for(const patch of [{startsLocal:'2026-02-30T12:00'},{endsLocal:input.startsLocal},{endsLocal:'2026-10-16T13:00'},{joinUrl:'javascript:alert(1)'},{joinUrl:'https://user:password@example.com'},{title:''},{title:'x'.repeat(161)},{timezone:'invalid'},{revision:-1},{revision:1.2},{sectionId:'section'},{id:'invalid'},{enabled:'true'}]) assert.equal(validateLiveSession({...input,...patch}),null);
+});
+test('combined schedule filters are bounded and deterministic',()=>{
+ assert.deepEqual(readLiveQuery({q:'  demo  ',status:'active',page:'2'}),{search:'demo',status:'active',page:2});
+ assert.equal(readLiveQuery({page:'-1',status:'invalid'}).page,1);
 });
 ```
 

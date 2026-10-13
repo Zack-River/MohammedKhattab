@@ -265,6 +265,46 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"live_session_links": {
+                  Row: {
+                    "join_url": string,"session_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "join_url": string,"session_id": string
+                  }
+                  Update: {
+                    "join_url"?: string,"session_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_session_links_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: true
+      referencedRelation: "live_sessions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"live_sessions": {
+                  Row: {
+                    "chapter_id": string | null,"course_slug": string,"created_at": string,"description": string,"enabled": boolean,"ends_at": string,"id": string,"revision": number,"section_id": string | null,"starts_at": string,"timezone": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "chapter_id"?: string | null,"course_slug": string,"created_at"?: string,"description"?: string,"enabled"?: boolean,"ends_at": string,"id"?: string,"revision"?: number,"section_id"?: string | null,"starts_at": string,"timezone"?: string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "chapter_id"?: string | null,"course_slug"?: string,"created_at"?: string,"description"?: string,"enabled"?: boolean,"ends_at"?: string,"id"?: string,"revision"?: number,"section_id"?: string | null,"starts_at"?: string,"timezone"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "live_sessions_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"payment_order_items": {
                   Row: {
                     "course_slug": string,"order_id": string
@@ -419,6 +459,9 @@ isOneToOne: true
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
                            },
+"delete_live_session":
+{ Args: { "p_id": string,"p_revision": number }; Returns: boolean
+                           },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
                            },
@@ -442,6 +485,9 @@ isOneToOne: true
                            },
 "save_commerce_discount":
 { Args: { "p_input": Json,"p_kind": string }; Returns: undefined
+                           },
+"save_live_session":
+{ Args: { "p_input": Json }; Returns: string
                            },
 "search_admin_courses":
 { Args: { "p_category"?: string,"p_delivery"?: string,"p_direction"?: string,"p_limit"?: number,"p_page"?: number,"p_search"?: string,"p_sort"?: string,"p_statuses"?: (string)[] }; Returns: Json

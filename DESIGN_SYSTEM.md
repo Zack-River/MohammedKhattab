@@ -13,6 +13,12 @@ Student lesson navigation follows saved chapter/section order, then unassigned l
 
 `/dashboard/purchases` reuses the sales filters/table/row components with customer information omitted and receipt links enabled. Search and status combine; five records per page become the existing mobile card layout. Test/live payments are explicitly distinguished. Failed/expired receipt copy does not imply payment is awaiting confirmation. Admin user subscription cards reuse the shared progress component with actual current lesson totals. Transaction tables use `data-reveal-motion="fade"` so entrance opacity changes without moving a link between pointer press and release. Default reveals retain their configured translation. No new dependency or visual theme is introduced.
 
+## Scheduled live sessions (2026-10-13)
+
+The admin Live Sessions tab reuses the dashboard shell, searchable five-record table with mobile cards, custom select/checkbox controls, form fields, save feedback, pagination and centered accessible deletion dialog. Date/time controls are paired on wide screens and stacked on phones; course/chapter/section selectors share a responsive grid. Search, status and Apply align in one row on desktop. No new library or theme values are introduced.
+
+One shared session card and schedule component serve normal course details, recorded lesson pages and the student live-session dashboard. Course and optional chapter/section labels remain distinct from the session title. Upcoming, active and ended states use existing typography, muted text and readable primary accents. Only an active enrolled session has a red joining action; upcoming and ended cards retain timing information. Entrance effects use existing reveal attributes and the table's stationary fade variant. Server-time snapshots avoid hydration differences. Policies, timing, labels, API paths and formatting helpers are centralized; presentation receives labels through props.
+
 ## Shared foundation
 
 `packages/design-system/styles/theme.css` owns the canonical colors, typography, spacing, radii, layout widths and motion roles. `app/styles/theme.css` remains the workshop entry point and imports that source; `modules/styles/theme.css` imports it before explicit LMS deltas. Both references share `#101317` backgrounds, `#FC3522` accents, IBM Plex Sans Arabic, Arabic RTL typography, dark cards, restrained borders, and red primary actions. Fonts and assets are local.

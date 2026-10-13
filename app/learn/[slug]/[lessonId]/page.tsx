@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CourseLiveSchedule from "@platform/features/live-sessions/course-schedule";
 import { readLessonContext } from "@platform/features/learning/read-lesson-context";
 import { lessonPlaybackModel } from "@platform/features/learning/models/lesson-playback";
 import { lessonInformationModel } from "@platform/features/learning/models/lesson-information";
@@ -27,6 +28,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
           <LessonPlayer {...playback.player} />
           <LessonActions {...playback.actions} />
           <LessonInformation {...lessonInformationModel(context)} />
+          <CourseLiveSchedule slug={slug} joinAllowed={context.enrolled} />
         </main>
       </div>
     </div>
