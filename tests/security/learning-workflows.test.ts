@@ -67,7 +67,7 @@ test("Live lesson preview actions return to the normal course details route", ()
   const course = fixture(); course.delivery = "live";
   const lessons = courseLessons(course), lesson = lessons[0];
   const model = lessonPlaybackModel({ course, lesson, slug: course.slug, lessons, index: 0, lessonId: lesson.id,
-    state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], enrolled: false,
+    state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], note: undefined, enrolled: false,
     previous: undefined, next: lessons[1], complete: false });
   assert.equal(model.actions.courseHref, "/courses/ordered-course");
 });

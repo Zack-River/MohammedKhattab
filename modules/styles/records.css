@@ -1,0 +1,8 @@
+.lms-record-filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto; align-items: end; gap: var(--space-md); }
+.lms-record-filters .btn-primary { min-height: var(--size-44px); font-size: var(--font-size-body); padding: var(--space-sm) var(--space-md); }
+.lms-material-form { max-width: none; }
+.lms-material-form textarea { width: 100%; min-width: 0; resize: vertical; padding: var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-main); color: var(--text-primary); font: inherit; }
+.lms-activity-table td { overflow-wrap: anywhere; }
+.lms-notes .btn-primary { justify-self: start; font-size: var(--font-size-body); }
+@media (max-width: 768px) { .lms-record-filters { grid-template-columns: minmax(0,1fr); } }
+.lms-record-filters > .lms-admin-search { display: grid; gap: var(--space-sm); font-weight: var(--font-weight-action); }

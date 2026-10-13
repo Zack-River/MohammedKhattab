@@ -9,7 +9,7 @@ export default function ResourceCard({
   resource: Pick<import("@platform/types/lms").Resource,"id"|"title"|"description"|"type">;
 }) {
   return (
-    <article className="lms-resource-card" key={resource.id}>
+    <article data-reveal data-reveal-motion="fade" className="lms-resource-card" key={resource.id}>
       <div className="lms-resource-symbol">
         <Symbol name="folder" />
       </div>

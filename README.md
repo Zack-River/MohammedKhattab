@@ -17,10 +17,16 @@ Open **http://localhost:3040**. For production, run `npm run build` followed by 
 | --- | --- |
 | `/` | Ta3allam landing |
 | `/founder` | Mohammed Khattab portfolio |
-| `/workshops/7days-freelance` | Seven-day live freelance workshop |
-| `/admin/dashboard` | Administrator users table and moderation |
-| `/admin/dashboard/users/[id]` | Private user details and subscriptions |
-| `/admin/dashboard/courses` | Administrator course editor |
+| `/featured/[slug]` | Direct promotional landing; normal course links use `/courses/[slug]` |
+| `/workshops/[slug]` | Legacy workshop alias redirecting to normal course details |
+| `/admin/dashboard` | Administrator analytics home |
+| `/admin/dashboard/users` | Searchable user management and moderation |
+| `/admin/dashboard/users/[username]` | Private user details and subscriptions |
+| `/admin/dashboard/courses` | Course table, create/edit and curriculum management |
+| `/admin/dashboard/live-sessions` | Scheduled live lessons/workshops |
+| `/admin/dashboard/resources` | Lesson materials and multi-course assignments |
+| `/admin/dashboard/activity` | Private content/role change history |
+| `/admin/dashboard/sales`, `/admin/dashboard/commerce/*` | Transactions, bundles, offers and coupons |
 | `/courses`, `/courses/[slug]` | Catalog and course details |
 | `/dashboard/*` | Student account |
 | `/learn/[slug]/[lessonId]` | Learning player |
@@ -48,7 +54,7 @@ Existing `/portfolio`, `/workshop`, `/ta3allam/*` and `/ta3llam/*` URLs redirect
 
 Imports use `@/*` for root source, `@platform/*` for `modules/` and `@khatab/design/*` for the internal shared library. Canonical tokens live in `packages/design-system/styles/theme.css`; shared styles are imported directly by `app/globals.css`; app and platform theme files are the theme entry point and explicit product variants. Forwarding-only component/hook/type copies are prohibited by the architecture gate. `predev` and `prebuild` generate server palette exports and the server-only certificate font.
 
-The player uses native media and shared custom controls. No animation or player dependencies are required. The LMS uses Supabase Auth and Postgres with per-user RLS. Accounts, published courses, enrollments, progress and protected resources are database-backed. Course content and prices remain seeded examples. Verified admins can edit course names, descriptions, prices, categories, publication, thumbnails, intro videos and lesson video links. Payments and private object-storage streaming are not included in this stage.
+The player uses native/YouTube media and shared custom controls without a new animation/player dependency. Supabase Auth/Postgres back accounts, courses, enrollment, progress, materials, private learner notes and content history with RLS. The catalog includes editable seed examples alongside authored content; live paid checkout guards incomplete/sample recorded material. Admins manage curriculum/media, scheduled sessions, materials, commerce and users. Cloudinary stores user/course images; videos remain on Drive/YouTube. Fawaterak checkout, signed settlement, reconciliation and receipts are implemented; provider refunds and private object-storage hosting remain separate work. See [payments](docs/PAYMENTS.md), [commerce](docs/COMMERCE.md), [sessions](docs/LIVE_SESSIONS.md), and [materials/notes/history](docs/LESSON_MATERIALS_NOTES_HISTORY.md).
 
 ## Validation
 
@@ -76,14 +82,14 @@ The dedicated project schema is already applied. Migrations in `supabase/migrati
 
 `npm run backend:migrate:hosted` applies migrations without seeding. For an intentional initial seed, use `npm run backend:migrate:hosted -- --seed`; resource seeds can update existing resource content. Administrator account search/filtering is database-backed and returns five records per page. See `docs/ADMIN_DASHBOARD.md` for filter semantics and isolated verification commands.
 
-For isolated backend tests, start local Supabase using `npx supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`, then `npx supabase status -o json > /tmp/khatab-supabase-status.json`. Run `npm run backend:test` with Chromium installed. The runner requires a loopback Supabase URL, starts a temporary Next dev server on 3045, creates two test accounts, checks API and direct RLS isolation, exercises browser login/logout/email confirmation, and removes fixtures. It never runs destructive tests against the hosted project. `npx supabase db reset --local` verifies migration/seed reproducibility.
+For isolated backend tests, start local Supabase using `npx supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`, then `npx supabase status -o json > /tmp/khatab-supabase-status.json`. Run `npm run backend:test` with Chromium installed. The runner requires a loopback Supabase URL, starts a temporary Next dev server on 3045, creates disposable test accounts, checks API and direct RLS isolation, exercises browser login/logout/email confirmation, and removes fixtures. It never runs destructive tests against the hosted project. `npx supabase db reset --local` verifies migration/seed reproducibility.
 
 See [backend plan and acceptance](docs/architecture/BACKEND_PLAN.md) and [backend verification](docs/evidence/backend/VERIFICATION.md). Legacy LMS browser cases written for anonymous demo-cookie access require authenticated fixtures; they are not evidence that the new authorization rules failed, and are not reported as a passing full regression gate.
 
-Admin membership is server-controlled through the private email allowlist and verified account identity. Supabase Auth stores bcrypt password hashes. `scripts/backend/provision-admins.cjs` is a one-time operational tool using `SUPABASE_SECRET_KEY` and password environment variables named in `config/admin-accounts.json`; keep these in ignored `.env.local`. Password environment variables remain operational only. `SUPABASE_SECRET_KEY` is also required by the deployed administrator users dashboard and must never use a public prefix. The workshop starts at 499 ج.م and retains WhatsApp booking; a catalog entry does not grant enrollment. Public Google Drive video links can be streamed through the shared player; private Drive permissions remain the file owner’s responsibility.
+Admin membership is server-controlled through the private email allowlist and verified account identity. Supabase Auth stores bcrypt password hashes. `scripts/backend/provision-admins.cjs` is a one-time operational tool using `SUPABASE_SECRET_KEY` and password environment variables named in `config/admin-accounts.json`; keep these in ignored `.env.local`. Password environment variables remain operational only. `SUPABASE_SECRET_KEY` is also required by the deployed administrator users dashboard and must never use a public prefix. Workshop/course prices are editable database values; a catalog entry does not grant enrollment. Public Google Drive video links can be streamed through the shared player; private Drive permissions remain the file owner’s responsibility.
 
 Dashboard access is enforced before rendering in the session proxy and authenticated student data reader. The client dashboard also verifies the server session on navigation and browser restoration so cached UI cannot survive logout. Login/logout use document navigation to discard route caches. Public course previews remain accessible; admin membership remains server-controlled.
 
-Public `/users/[username]` pages are deferred. Account details remain private under `/dashboard/profile`. Live courses link to `/workshops/[slug]`; recorded courses link to `/courses/[slug]`.
+Public `/users/[username]` pages are deferred. Account details remain private under `/dashboard/profile`. Recorded and live courses link to `/courses/[slug]`. Featured advertising pages are available by direct `/featured/[slug]` links.
 
 Administrator user-management routes, moderation and authorization details are documented in [ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).

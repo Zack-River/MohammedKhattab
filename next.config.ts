@@ -1,4 +1,4 @@
-import { securityHeaders } from "./modules/lib/security/headers";
+import { securityHeaders, privateRedirectHeaders } from "./modules/lib/security/headers";
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
 import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   experimental: { proxyClientMaxBodySize: "4mb" },
-  async headers() { return [{ source: "/:path*", headers: securityHeaders }]; },
+  async headers() { return [{ source: "/:path*", headers: securityHeaders }, { source: "/api/resources/:id", headers: privateRedirectHeaders }]; },
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },

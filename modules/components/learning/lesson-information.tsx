@@ -1,3 +1,5 @@
+import CloudLessonNotes from "./cloud-lesson-notes";
+import type {SavedLessonNote,NoteLabels} from "@platform/types/materials";
 import type { ContentBindings } from "@platform/types/content";
 import { endpoints } from "@platform/config/navigation";
 import LessonNotes from "@platform/components/learning/lesson-notes";
@@ -6,7 +8,7 @@ export default function LessonInformation({
   copy,
   resources,
   lesson,
-  storageKey,
+  storageKey, remoteNotes,
 }: {
   copy: Pick<
     ContentBindings["copy"],
@@ -20,6 +22,7 @@ export default function LessonInformation({
   resources: Omit<import("@platform/types/lms").Resource, "content">[];
   lesson: import("@platform/types/lms").Lesson;
   storageKey: string;
+  remoteNotes?:{path:string;initial:SavedLessonNote;labels:NoteLabels};
 }) {
   return (
     <div className="lms-lesson-information">
@@ -50,7 +53,7 @@ export default function LessonInformation({
           </a>
         ))}
       </section>
-      <LessonNotes
+      {remoteNotes ? <CloudLessonNotes key={remoteNotes.path} {...remoteNotes} storageKey={storageKey}/> : <LessonNotes
         copy={{
           notes: copy.notes,
           notesHint: copy.notesHint,
@@ -58,7 +61,7 @@ export default function LessonInformation({
           notesSaved: copy.notesSaved,
         }}
         storageKey={storageKey}
-      />
+      />}
     </div>
   );
 }

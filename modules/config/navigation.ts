@@ -48,6 +48,8 @@ export const routes = {
   adminUsers: "/admin/dashboard/users",
   liveSessions: "/dashboard/live-sessions",
   adminLiveSessions: "/admin/dashboard/live-sessions",
+  adminResources: "/admin/dashboard/resources",
+  adminActivity: "/admin/dashboard/activity",
   adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
@@ -74,6 +76,8 @@ export const routes = {
 };
 export const endpoints = {
   adminLiveSessions: "/api/admin/live-sessions",
+  adminResources: "/api/admin/resources",
+  lessonNotes: (slug:string,id:string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/notes`,
   myLiveSessions: "/api/live-sessions",
   liveSessions: (slug:string) => `/api/courses/${segment(slug)}/live-sessions`,
   liveJoin: (slug:string,id:string) => `/api/courses/${segment(slug)}/live-sessions/${segment(id)}/join`,

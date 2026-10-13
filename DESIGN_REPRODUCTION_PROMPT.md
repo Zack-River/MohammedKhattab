@@ -477,6 +477,28 @@ export const metadata = { title: authPages.signup.title };
 export default function SignupPage() { return <AuthPage model={authPages.signup} />; }
 ```
 
+### File: `app/admin/dashboard/activity/page.tsx`
+
+SHA-256: `e38d922ad9f4f2a273937841a94109cd7ce898ec17847cad2653c9949fde51ed`
+
+```tsx
+import {requireAdminPage} from "@platform/features/admin/page-identity";
+import {readAdminActivity} from "@platform/features/admin/repositories/activity";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import ActivityTable from "@platform/components/admin/activity-table";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
+import PageHeading from "@platform/components/ui/page-heading";
+import {activityCopy as labels} from "@platform/data/materials";
+import {activityEntities} from "@platform/config/materials";
+import {recordPolicy} from "@platform/config/records";
+import {routes} from "@platform/config/navigation";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requireAdminPage();const query=readRecordQuery(await searchParams,activityEntities),result=await readAdminActivity(query);
+ return <><PageHeading title={labels.title}/><RecordFilters action={routes.adminActivity} query={query} options={[{value:"all",label:labels.all},...activityEntities.map(value=>({value,label:labels[value]}))]} labels={labels}/><ActivityTable records={result.records} labels={labels}/><RecordPagination path={routes.adminActivity} query={query} total={result.total} pageSize={recordPolicy.pageSize} labels={labels}/></>;
+}
+```
+
 ### File: `app/admin/dashboard/commerce/[kind]/page.tsx`
 
 SHA-256: `b66248c766b3292c637fa108d6ace6c330d86bea215bfae8a7923cdfd27a1728`
@@ -651,9 +673,10 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `443da72a1d8bd90a16b8cdbe95fe0508f362827c94b0c7618658621879101002`
+SHA-256: `78003f05bddb787984aa8daccc540f5a4d88cd2d0e543673c933169898518192`
 
 ```tsx
+import {materialCopy,activityCopy} from "@platform/data/materials";
 import { liveSessionCopy } from "@platform/data/live-sessions";
 import { adminAccountMenuContent } from "@platform/config/account-menu";
 import { readAccount } from "@platform/features/account/repositories/read-account";
@@ -677,7 +700,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminResources, label: materialCopy.title, symbol: "folder" }, { href: routes.adminActivity, label: activityCopy.title, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }
@@ -685,14 +708,14 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
 
 ### File: `app/admin/dashboard/live-sessions/page.tsx`
 
-SHA-256: `34fba4a5feb42c74bc4465016d9e57fd868ce236716f6c241f2205f03a4b0cef`
+SHA-256: `1fe4f8ef5b347ff49cc7b2fedbde551c14d130c5fce4fc18bba9857dc3eb043c`
 
 ```tsx
 import Form from "next/form";
 import Select from "@khatab/design/ui/select";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readAdminLiveSessions } from "@platform/features/live-sessions/repositories/admin";
-import { liveSessionCourses } from "@platform/features/live-sessions/repositories/choices";
+import { adminCourseChoices } from "@platform/features/admin/repositories/course-choices";
 import { readLiveQuery } from "@platform/features/live-sessions/helpers/read-query";
 import AdminSessionManager from "@platform/components/live-sessions/admin-manager";
 import AdminPagination from "@platform/components/admin/admin-pagination";
@@ -701,11 +724,11 @@ import { liveSessionCopy as labels } from "@platform/data/live-sessions";
 import { liveSessionPolicy } from "@platform/config/live-sessions";
 import { routes } from "@platform/config/navigation";
 export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
- await requireAdminPage();const query=readLiveQuery(await searchParams),[result,courses]=await Promise.all([readAdminLiveSessions(query),liveSessionCourses()]);
+ await requireAdminPage();const query=readLiveQuery(await searchParams),[result,courses]=await Promise.all([readAdminLiveSessions(query),adminCourseChoices()]);
  const href=(page:number)=>routes.adminLiveSessions+"?"+new URLSearchParams({q:query.search,status:query.status,page:String(page)});
  return <><PageHeading title={labels.title} description={labels.scheduleHint} />
   <Form action={routes.adminLiveSessions} className="lms-admin-filters lms-live-filters" role="search"><div className="lms-admin-search"><label htmlFor="session-search">{labels.search}</label><input id="session-search" name="q" type="search" defaultValue={query.search} maxLength={120} /></div><Select name="status" label={labels.filter} defaultValue={query.status} options={["all","upcoming","active","ended"].map(value=>({value,label:labels[value as "all"]}))} /><button type="submit" className="btn-primary">{labels.apply}</button></Form>
-  <AdminSessionManager {...result} courses={courses} labels={labels} />
+  <AdminSessionManager {...result} courses={courses.map(({slug,title,chapters})=>({slug,title,chapters}))} labels={labels} />
   <AdminPagination page={query.page} previousHref={query.page>1 ? href(query.page-1) : undefined} nextHref={query.page*liveSessionPolicy.pageSize<result.total ? href(query.page+1) : undefined} labels={{heading:labels.title,page:"",previous:labels.previous,next:labels.next}} />
  </>;
 }
@@ -769,6 +792,30 @@ SHA-256: `544fe52c42be04844cbda14c5307c783446ecf32cb772f3406f8439b2132657b`
 import AccountProfilePage from "@platform/features/account/profile-page";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 export default async function ProfilePage() { await requireAdminPage(); return <AccountProfilePage />; }
+```
+
+### File: `app/admin/dashboard/resources/page.tsx`
+
+SHA-256: `228a2057c4ff9b17a80d919a9cf0dcefe5b03d4c5e219908bf7cd4a748d7404e`
+
+```tsx
+import {requireAdminPage} from "@platform/features/admin/page-identity";
+import {adminCourseChoices} from "@platform/features/admin/repositories/course-choices";
+import {readAdminMaterials} from "@platform/features/resources/admin-repository";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import MaterialManager from "@platform/components/resources/material-manager";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
+import PageHeading from "@platform/components/ui/page-heading";
+import {materialCopy as labels} from "@platform/data/materials";
+import {materialPolicy as p} from "@platform/config/materials";
+import {routes} from "@platform/config/navigation";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requireAdminPage();const query=readRecordQuery(await searchParams,p.kinds),[result,courses]=await Promise.all([readAdminMaterials(query),adminCourseChoices()]);
+ return <><PageHeading title={labels.title}/><RecordFilters action={routes.adminResources} query={query} options={[{value:"all",label:labels.all},...p.kinds.map(value=>({value,label:labels[value]}))]} labels={{...labels,filter:labels.kind}}/>
+  <MaterialManager materials={result.materials} courses={courses} labels={labels}/><RecordPagination path={routes.adminResources} query={query} total={result.total} pageSize={p.pageSize} labels={labels}/>
+ </>;
+}
 ```
 
 ### File: `app/admin/dashboard/sales/page.tsx`
@@ -889,6 +936,20 @@ import { handleEmailConfirmation } from "@platform/features/account/handle-email
 export function POST(request: Request) { return handleEmailConfirmation(request); }
 ```
 
+### File: `app/api/admin/activity/route.ts`
+
+SHA-256: `56c9f02864f927bf2e0df2017788a87772e26d12528349c3a45242e55b518d02`
+
+```typescript
+import {readAdminActivity} from "@platform/features/admin/repositories/activity";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {activityEntities} from "@platform/config/materials";
+import {apiResponse} from "@platform/lib/api/respond";
+export function GET(request:Request) {
+ return apiResponse(async()=>Response.json(await readAdminActivity(readRecordQuery(Object.fromEntries(new URL(request.url).searchParams),activityEntities))));
+}
+```
+
 ### File: `app/api/admin/analytics/route.ts`
 
 SHA-256: `307ac6c133bb2042ab384f9fed15a666469fa9e6456a8d898446509589d93eee`
@@ -1007,6 +1068,14 @@ SHA-256: `9aa3824364dd1a55e37d0e22911fb98dafb0a36c7cc58090c88319e0ebd8c4f2`
 import { handleAdminLiveSessions } from "@platform/features/live-sessions/handle-admin";
 export const GET=handleAdminLiveSessions;
 export const POST=handleAdminLiveSessions;
+```
+
+### File: `app/api/admin/resources/route.ts`
+
+SHA-256: `26b54d164061ef3a5f0351a31b7650a27355438bdfdafb4f3b94af660c0eb20d`
+
+```typescript
+export {handleAdminMaterial as POST,handleAdminMaterial as GET} from "@platform/features/resources/handle-admin";
 ```
 
 ### File: `app/api/admin/sales/route.ts`
@@ -1202,6 +1271,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     return streamDrive(course.introVideoUrl,request);
   });
 }
+```
+
+### File: `app/api/courses/[slug]/lessons/[lessonId]/notes/route.ts`
+
+SHA-256: `a2985332fe33099974263d54c95620e19b2bbd6397a709e7f54a08ff88cf5d2e`
+
+```typescript
+export {handleLessonNotes as GET,handleLessonNotes as POST} from "@platform/features/learning/handle-notes";
 ```
 
 ### File: `app/api/courses/[slug]/lessons/[lessonId]/playback/route.ts`
@@ -1405,19 +1482,22 @@ export async function POST(request: Request) { return handleProgress(request); }
 
 ### File: `app/api/resources/[id]/route.ts`
 
-SHA-256: `5f27a98d801c5cfee644b38a695de267b83fab10b0ccea537bdae4e678a0b219`
+SHA-256: `bcdbcfeba65763e19d878fc3ce0828df5c04c0333b0049d4dbac4db80d253c5a`
 
 ```typescript
-import { readResource } from "@platform/features/resources/service";
-import { apiResponse } from "@platform/lib/api/respond";
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  return apiResponse(async () => {
-    const resource = await readResource((await params).id);
-    return new Response(resource.content, { headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${resource.id}.txt"`,
-    } });
-  });
+import {readResource} from "@platform/features/resources/service";
+import {validMaterialLink} from "@platform/features/resources/validate-material";
+import {ApiError} from "@platform/lib/api/error";
+import {apiResponse} from "@platform/lib/api/respond";
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}) {
+ return apiResponse(async()=>{
+  const resource=await readResource((await params).id);
+  if(resource.kind==="link") {
+   if(!validMaterialLink(resource.content)) throw new ApiError(400,"INVALID_INPUT");
+   return new Response(null,{status:302,headers:{Location:resource.content,"Referrer-Policy":"no-referrer"}});
+  }
+  return new Response(resource.content,{headers:{"Content-Type":"text/plain; charset=utf-8","Content-Disposition":`attachment; filename="${encodeURIComponent(resource.id)}.txt"`}});
+ });
 }
 ```
 
@@ -2686,36 +2766,26 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
 
 ### File: `app/dashboard/resources/page.tsx`
 
-SHA-256: `69d538a5f42d755d7231b9d7a529a1277563c3d2618c8e5c19145e9f62c2c167`
+SHA-256: `f86ac706dbe0a7d941bd090a174ebe9244b244fe3d950d3e89f5b6a2113bb822`
 
 ```tsx
-import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import {requirePageIdentity} from "@platform/features/auth/server/page-identity";
 import ResourceCard from "@platform/components/resources/resource-card";
-import { interfaceCopy } from "@platform/data/interface-copy";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
 import PageHeading from "@platform/components/ui/page-heading";
-import { listResources } from "@platform/features/resources/service";
-import { copy } from "@platform/data/site";
-export const metadata = { title: interfaceCopy.resourcesPageTitle };
-export default async function ResourcePage() {
-  await requirePageIdentity();
-  const resources = await listResources();
-  return (
-    <>
-      <PageHeading
-        title={copy.resources}
-        description={interfaceCopy.resourcesDescription}
-      />
-      <div className="lms-resource-grid">
-        {resources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            copy={{ download: copy.download }}
-            resource={resource}
-          />
-        ))}
-      </div>
-    </>
-  );
+import {listResources} from "@platform/features/resources/service";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {materialPolicy as p} from "@platform/config/materials";
+import {materialCopy as labels} from "@platform/data/materials";
+import {copy} from "@platform/data/site";
+import {routes} from "@platform/config/navigation";
+export default async function ResourcePage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requirePageIdentity();const query=readRecordQuery(await searchParams,p.kinds),result=await listResources(query);
+ return <><PageHeading title={copy.resources}/><RecordFilters action={routes.resources} query={query} options={[{value:"all",label:labels.all},...p.kinds.map(value=>({value,label:labels[value]}))]} labels={{...labels,filter:labels.kind}}/>
+  <div className="lms-resource-grid">{result.resources.map(resource=><ResourceCard key={resource.id} copy={{download:copy.download}} resource={resource}/>)}</div>
+  {!result.resources.length&&<p className="lms-admin-empty">{labels.empty}</p>}<RecordPagination path={routes.resources} query={query} total={result.total} pageSize={p.pageSize} labels={labels}/>
+ </>;
 }
 ```
 
@@ -3249,7 +3319,7 @@ export default PortfolioPage;
 
 ### File: `app/globals.css`
 
-SHA-256: `8cf444e018887d44ac32d63fe9b715f6d979a6527ab87d037b847a71f1fc7b47`
+SHA-256: `75757c826dc5932ae07cbd86d3b068dc420b05540864206acbd9d91fffecfbf8`
 
 ```css
 @import "./styles/theme.css";
@@ -3281,6 +3351,8 @@ SHA-256: `8cf444e018887d44ac32d63fe9b715f6d979a6527ab87d037b847a71f1fc7b47`
 @import "../modules/styles/commerce.css";
 
 @import "../modules/styles/workshop-template.css";
+
+@import "../modules/styles/records.css";
 ```
 
 ### File: `app/helpers/navigation/align-inner-corridor.ts`
@@ -5236,6 +5308,23 @@ export default function VerificationStatus({ profile, labels, supportHref }: { p
 }
 ```
 
+### File: `modules/components/admin/activity-table.tsx`
+
+SHA-256: `36edf5ae80b5ed432fb8a0a1d7afcf7aa1e640e4dc6bb9920de95a8ea1fed739`
+
+```tsx
+import Link from "next/link";
+import {routes} from "@platform/config/navigation";
+import {formatActivityDate} from "@platform/helpers/format-activity-date";
+import type {ActivityLabels,ActivityRecord} from "@platform/types/admin-activity";
+export default function ActivityTable({records,labels}:{records:ActivityRecord[];labels:ActivityLabels}) {
+ const entity=(value:string)=>labels[value as keyof ActivityLabels] ?? value;
+ return <div className="lms-admin-table-wrap" data-reveal data-reveal-motion="fade"><table className="lms-admin-table lms-activity-table"><caption className="lms-visually-hidden">{labels.title}</caption><thead><tr>{[labels.date,labels.actor,labels.entity,labels.target,labels.action].map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>
+  {records.map(record=><tr key={record.id}><td data-label={labels.date}><time dateTime={record.created_at}>{formatActivityDate(record.created_at)}</time></td><td data-label={labels.actor}>{record.actor ? <Link className="lms-text-link" href={routes.adminUser(record.actor.username)}>{record.actor.name}</Link> : record.actor_id ? labels.unknown : labels.system}</td><td data-label={labels.entity}>{entity(record.entity)}</td><td data-label={labels.target}><bdi>{record.target}</bdi>{record.changed_fields.length>0&&<small>{labels.fields}: {record.changed_fields.join(", ")}</small>}</td><td data-label={labels.action}>{entity(record.action)}</td></tr>)}
+ </tbody></table>{!records.length&&<p className="lms-admin-empty">{labels.empty}</p>}</div>;
+}
+```
+
 ### File: `modules/components/admin/admin-dialog.tsx`
 
 SHA-256: `d10aa147f88d8dfec6f4870528190db3714260ebd2436395e1c7be462c88d83e`
@@ -6086,6 +6175,33 @@ export default function PhoneConfirmations({ requests, total, page, labels, acco
 }
 ```
 
+### File: `modules/components/admin/record-filters.tsx`
+
+SHA-256: `b478cba9cf18ece34532d5dccffe1bff5d1c894a14c2f3c09473f7d9fe822903`
+
+```tsx
+import {recordPolicy} from "@platform/config/records";
+import Form from "next/form";
+import Select from "@khatab/design/ui/select";
+import type {RecordQuery} from "@platform/types/materials";
+export default function RecordFilters({action,query,options,labels}:{action:string;query:RecordQuery;options:{value:string;label:string}[];labels:{search:string;filter:string;apply:string}}) {
+ return <Form action={action} className="lms-admin-filters lms-record-filters" role="search"><label className="lms-admin-search">{labels.search}<input name="q" type="search" defaultValue={query.search} maxLength={recordPolicy.searchMax} /></label><Select name="filter" label={labels.filter} defaultValue={query.filter} options={options} /><button type="submit" className="btn-primary">{labels.apply}</button></Form>;
+}
+```
+
+### File: `modules/components/admin/record-pagination.tsx`
+
+SHA-256: `ac2bde18f3d619ca7bb13f4b8795f94095d07a6d98717bc8dcc25d201267d6b1`
+
+```tsx
+import AdminPagination from "./admin-pagination";
+import {recordPageHref} from "@platform/helpers/read-record-query";
+import type {RecordQuery} from "@platform/types/materials";
+export default function RecordPagination({path,query,total,pageSize,labels}:{path:string;query:RecordQuery;total:number;pageSize:number;labels:{title:string;previous:string;next:string}}) {
+ return <AdminPagination page={query.page} previousHref={query.page>1 ? recordPageHref(path,query,query.page-1) : undefined} nextHref={query.page*pageSize<total ? recordPageHref(path,query,query.page+1) : undefined} labels={{heading:labels.title,previous:labels.previous,next:labels.next,page:""}}/>;
+}
+```
+
 ### File: `modules/components/admin/save-feedback.tsx`
 
 SHA-256: `f8bc2c5119c9e54e24fe2e6e9f9bfb9df160bcebabe3ae8d023d6d7bac0da09c`
@@ -6496,16 +6612,16 @@ export default function CouponFields({record,labels}:{record:CommerceRecord;labe
 
 ### File: `modules/components/commerce/admin/date-range-fields.tsx`
 
-SHA-256: `5bf872dc77126640f1d71b56ff7e355e3e03b685dbf6b006a347785367816c40`
+SHA-256: `65fdd674b3cf29b988f3041602346f5cdfdfa21a1322aaf55f1b9daf660a6a64`
 
 ```tsx
 "use client";
 import FormField from "@platform/components/ui/form-field";
-import { useHydrationState } from "@platform/hooks/use-hydration-state";
+import { useHydrated } from "@khatab/design/hooks/use-hydrated";
 import { localDateInput } from "@platform/features/commerce/helpers/read-form";
 import type { CommerceRecord,CommerceLabels } from "@platform/types/commerce";
 export default function DateRangeFields({record,labels}:{record:Pick<CommerceRecord,'startsAt' | 'endsAt'>;labels:Pick<CommerceLabels,'startsAt' | 'endsAt' | 'datesHint'>}) {
- const hydrated=useHydrationState(),value=(date:string | null)=>hydrated ? localDateInput(date) : date?.slice(0,16) ?? '';
+ const hydrated=useHydrated(),value=(date:string | null)=>hydrated ? localDateInput(date) : date?.slice(0,16) ?? '';
  return <><div key={String(hydrated)} className="lms-commerce-fields"><FormField name="startsAt" type="datetime-local" label={labels.startsAt} defaultValue={value(record.startsAt)} /><FormField name="endsAt" type="datetime-local" label={labels.endsAt} defaultValue={value(record.endsAt)} /></div><p className="lms-field-hint">{labels.datesHint}</p></>;
 }
 ```
@@ -7923,6 +8039,30 @@ export default function SiteHeader({
 }
 ```
 
+### File: `modules/components/learning/cloud-lesson-notes.tsx`
+
+SHA-256: `7ac0674a4d0ff5acfd663e656c7fa548fcf00c02c560810097800de985db7daf`
+
+```tsx
+"use client";
+import {useHydrated} from "@khatab/design/hooks/use-hydrated";
+import {useId} from "react";
+import {useRemoteLessonNote} from "@platform/hooks/use-remote-lesson-note";
+import {useLessonNotes} from "@platform/hooks/use-lesson-notes";
+import {notePolicy} from "@platform/config/materials";
+import type {SavedLessonNote,NoteLabels} from "@platform/types/materials";
+export default function CloudLessonNotes({path,initial,storageKey,labels}:{path:string;initial:SavedLessonNote;storageKey:string;labels:NoteLabels}) {
+ const ready=useHydrated(),id=useId(),note=useRemoteLessonNote(path,initial,labels.error),local=useLessonNotes(storageKey);
+ return <form className="lms-notes lms-account-stack" onSubmit={event=>{event.preventDefault();void note.save();}}><label htmlFor={id}>{labels.title}</label>
+  <textarea disabled={!ready} id={id} value={note.value} onChange={event=>note.setValue(event.target.value)} placeholder={labels.hint} rows={6} maxLength={notePolicy.textMax} aria-describedby={`${id}-hint`}/>
+  <small id={`${id}-hint`}>{labels.limit}</small><small role="status">{note.dirty ? labels.unsaved : labels.saved}</small>
+  {!initial.text&&!note.value&&local.value&&<button type="button" className="lms-text-link" onClick={()=>note.setValue(local.value.slice(0,notePolicy.textMax))}>{labels.importLocal}</button>}
+  <button type="submit" className="btn-primary" disabled={note.pending||!note.dirty}>{note.pending ? labels.saving : labels.save}</button>
+  {note.error&&<p className="lms-error" role="alert">{note.error}</p>}
+ </form>;
+}
+```
+
 ### File: `modules/components/learning/completion-button.tsx`
 
 SHA-256: `ccccf09603ac221a67d3ef7a7bbd1b10da37b2d6c1aada83759d7e2802fadcc8`
@@ -8162,9 +8302,11 @@ export default function LessonActions({
 
 ### File: `modules/components/learning/lesson-information.tsx`
 
-SHA-256: `1aee409df5a68b61f552e4f0269296135f0716d698703cf65e319e337f40b1c7`
+SHA-256: `c463f47316a6bd9fbd36f8425ca4f246c1e230945054b6058f68154d37242bed`
 
 ```tsx
+import CloudLessonNotes from "./cloud-lesson-notes";
+import type {SavedLessonNote,NoteLabels} from "@platform/types/materials";
 import type { ContentBindings } from "@platform/types/content";
 import { endpoints } from "@platform/config/navigation";
 import LessonNotes from "@platform/components/learning/lesson-notes";
@@ -8173,7 +8315,7 @@ export default function LessonInformation({
   copy,
   resources,
   lesson,
-  storageKey,
+  storageKey, remoteNotes,
 }: {
   copy: Pick<
     ContentBindings["copy"],
@@ -8187,6 +8329,7 @@ export default function LessonInformation({
   resources: Omit<import("@platform/types/lms").Resource, "content">[];
   lesson: import("@platform/types/lms").Lesson;
   storageKey: string;
+  remoteNotes?:{path:string;initial:SavedLessonNote;labels:NoteLabels};
 }) {
   return (
     <div className="lms-lesson-information">
@@ -8217,7 +8360,7 @@ export default function LessonInformation({
           </a>
         ))}
       </section>
-      <LessonNotes
+      {remoteNotes ? <CloudLessonNotes key={remoteNotes.path} {...remoteNotes} storageKey={storageKey}/> : <LessonNotes
         copy={{
           notes: copy.notes,
           notesHint: copy.notesHint,
@@ -8225,7 +8368,7 @@ export default function LessonInformation({
           notesSaved: copy.notesSaved,
         }}
         storageKey={storageKey}
-      />
+      />}
     </div>
   );
 }
@@ -9764,9 +9907,102 @@ export default function PortfolioWork({
 }
 ```
 
+### File: `modules/components/resources/material-assignments.tsx`
+
+SHA-256: `c3c46f922f48f6fdcb7db16cb71fee40cf4f2f22aed8c2695f4da1f621566bfe`
+
+```tsx
+"use client";
+import {materialPolicy} from "@platform/config/materials";
+import {useState} from "react";
+import Select from "@khatab/design/ui/select";
+import {Checkbox} from "@khatab/design/ui/choice-controls";
+import type {MaterialAssignment,CourseChoice,MaterialLabels} from "@platform/types/materials";
+export default function MaterialAssignments({courses,value,onChange,labels}:{courses:CourseChoice[];value:MaterialAssignment[];onChange:(value:MaterialAssignment[])=>void;labels:MaterialLabels}) {
+ const [slug,setSlug]=useState(value[0]?.courseSlug ?? courses[0]?.slug ?? ""),course=courses.find(course=>course.slug===slug);
+ return <div className="lms-account-stack"><Select label={labels.course} value={slug} onValueChange={setSlug} options={courses.map(course=>({value:course.slug,label:course.title}))} />
+  <fieldset className="lms-commerce-course-picker"><legend>{labels.assignments}</legend>{course?.lessons.map(lesson=>{
+   const selected=value.some(item=>item.courseSlug===slug&&item.lessonId===lesson.id);
+   return <Checkbox key={lesson.id} label={lesson.title} checked={selected} disabled={!selected&&value.length>=materialPolicy.assignmentsMax} onChange={()=>onChange(selected ? value.filter(item=>item.courseSlug!==slug||item.lessonId!==lesson.id) : [...value,{courseSlug:slug,lessonId:lesson.id}])} />;
+  })}</fieldset><small>{labels.selected}: {value.length} / {materialPolicy.assignmentsMax}</small><p className="lms-field-hint">{labels.hint}</p>
+ </div>;
+}
+```
+
+### File: `modules/components/resources/material-form.tsx`
+
+SHA-256: `18d190f82822a2dee3abc0c5468bfa076e5374f73d93af56388f3a81ef02102a`
+
+```tsx
+"use client";
+import {useState} from "react";
+import FormField from "@platform/components/ui/form-field";
+import TextareaField from "@platform/components/ui/textarea-field";
+import Select from "@khatab/design/ui/select";
+import SaveFeedback from "@platform/components/admin/save-feedback";
+import {useAdminSave} from "@platform/hooks/use-admin-save";
+import {endpoints} from "@platform/config/navigation";
+import {materialPolicy as p} from "@platform/config/materials";
+import {materialFormInput} from "@platform/features/resources/validate-material";
+import type {AdminMaterial,MaterialLabels,CourseChoice} from "@platform/types/materials";
+import MaterialAssignments from "./material-assignments";
+export default function MaterialForm({initial,courses,labels,onClose}:{initial?:AdminMaterial;courses:CourseChoice[];labels:MaterialLabels;onClose:()=>void}) {
+ const command=useAdminSave(endpoints.adminResources,labels.error),[assignments,setAssignments]=useState(initial?.assignments ?? []);
+ return <form className="lms-profile-form lms-profile-card lms-material-form" onSubmit={event=>{event.preventDefault();void command.save(materialFormInput(new FormData(event.currentTarget),assignments)).then(saved=>{if(saved) onClose();});}}>
+  {initial&&<input type="hidden" name="id" value={initial.id}/>}<input type="hidden" name="revision" value={initial?.revision ?? 0}/>
+  <fieldset disabled={command.pending}><div className="lms-settings-name-grid"><FormField label={labels.name} name="title" defaultValue={initial?.title} required maxLength={p.titleMax}/><FormField label={labels.type} name="type" defaultValue={initial?.type} required maxLength={p.typeMax}/></div>
+   <FormField label={labels.description} name="description" defaultValue={initial?.description} maxLength={p.descriptionMax}/>
+   <Select label={labels.kind} name="kind" defaultValue={initial?.kind ?? "text"} options={p.kinds.map(value=>({value,label:labels[value]}))}/>
+   <TextareaField label={labels.content} name="content" defaultValue={initial?.content} required maxLength={p.contentMax} rows={6}/>
+   <MaterialAssignments courses={courses} value={assignments} onChange={setAssignments} labels={labels}/>
+  </fieldset><SaveFeedback {...command} labels={labels}/><button type="button" className="lms-text-link" onClick={onClose} disabled={command.pending}>{labels.cancel}</button>
+ </form>;
+}
+```
+
+### File: `modules/components/resources/material-manager.tsx`
+
+SHA-256: `e739ce28df6234eb23e58b98c795028c9c0381b39e0b8ed4f0d36dcaa4500c20`
+
+```tsx
+"use client";
+import {useState} from "react";
+import type {AdminMaterial,MaterialLabels,CourseChoice} from "@platform/types/materials";
+import MaterialForm from "./material-form";
+import MaterialRow from "./material-row";
+export default function MaterialManager({materials,courses,labels}:{materials:AdminMaterial[];courses:CourseChoice[];labels:MaterialLabels}) {
+ const [editing,setEditing]=useState<AdminMaterial|null|undefined>();
+ return <div className="lms-account-stack"><div className="lms-admin-actions"><button type="button" className="btn-primary" disabled={!courses.some(course=>course.lessons.length)} onClick={()=>setEditing(null)}>{labels.create}</button></div>
+  {editing!==undefined&&<MaterialForm key={editing?.id ?? "new"} initial={editing ?? undefined} {...{courses,labels}} onClose={()=>setEditing(undefined)}/>}
+  <div className="lms-admin-table-wrap" data-reveal data-reveal-motion="fade"><table className="lms-admin-table"><caption className="lms-visually-hidden">{labels.title}</caption><thead><tr>{[labels.name,labels.kind,labels.assignments,labels.updated,labels.edit].map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>{materials.map(material=><MaterialRow key={`${material.id}:${material.revision}`} material={material} labels={labels} onEdit={()=>setEditing(material)}/>)}</tbody></table>{!materials.length&&<p className="lms-admin-empty">{labels.empty}</p>}</div>
+ </div>;
+}
+```
+
+### File: `modules/components/resources/material-row.tsx`
+
+SHA-256: `54ac6fbefb789fe4eff59280b0646c00149e7f4416c8c54d5f577bd12b406b4f`
+
+```tsx
+"use client";
+import {useState} from "react";
+import AdminDialog from "@platform/components/admin/admin-dialog";
+import SaveFeedback from "@platform/components/admin/save-feedback";
+import {useAdminSave} from "@platform/hooks/use-admin-save";
+import {endpoints} from "@platform/config/navigation";
+import {formatCourseDate} from "@platform/helpers/format-course-date";
+import type {AdminMaterial,MaterialLabels} from "@platform/types/materials";
+export default function MaterialRow({material,labels,onEdit}:{material:AdminMaterial;labels:MaterialLabels;onEdit:()=>void}) {
+ const [removing,setRemoving]=useState(false),command=useAdminSave(endpoints.adminResources,labels.error);
+ return <tr><td data-label={labels.name}>{material.title}</td><td data-label={labels.kind}>{labels[material.kind]}</td><td data-label={labels.assignments}>{material.assignments.length}</td><td data-label={labels.updated}>{formatCourseDate(material.updatedAt,"")}</td><td data-label={labels.edit}><div className="lms-admin-actions"><button type="button" className="lms-text-link" onClick={onEdit}>{labels.edit}</button><button type="button" className="lms-text-link" onClick={()=>setRemoving(true)}>{labels.remove}</button></div>
+  {removing&&<AdminDialog title={labels.confirmRemove} closeLabel={labels.cancel} pending={command.pending} onClose={()=>setRemoving(false)}><form onSubmit={event=>{event.preventDefault();void command.save({operation:"delete",id:material.id,revision:material.revision}).then(saved=>{if(saved) setRemoving(false);});}}><p>{material.title}</p><SaveFeedback {...command} labels={{save:labels.remove,saving:labels.saving,saved:labels.saved}}/></form></AdminDialog>}
+ </td></tr>;
+}
+```
+
 ### File: `modules/components/resources/resource-card.tsx`
 
-SHA-256: `5c10046565b2404939f075f2653c5572880f57de7a150ee95083751e8f854fd3`
+SHA-256: `90faffe5553c7e9dea6dfbf32602497dcc0cf14dbbaace226525dccb0284888b`
 
 ```tsx
 import type { ContentBindings } from "@platform/types/content";
@@ -9780,7 +10016,7 @@ export default function ResourceCard({
   resource: Pick<import("@platform/types/lms").Resource,"id"|"title"|"description"|"type">;
 }) {
   return (
-    <article className="lms-resource-card" key={resource.id}>
+    <article data-reveal data-reveal-motion="fade" className="lms-resource-card" key={resource.id}>
       <div className="lms-resource-symbol">
         <Symbol name="folder" />
       </div>
@@ -10227,9 +10463,20 @@ export const liveSessionPolicy = {
 } as const;
 ```
 
+### File: `modules/config/materials.ts`
+
+SHA-256: `09b22157fecfda2cdca8db2f2de286636bed6e1d2d076bbd5722eb7f4b8c92e2`
+
+```typescript
+import {recordPolicy} from "./records";
+export const materialPolicy = {pageSize:recordPolicy.pageSize,titleMax:160,descriptionMax:500,typeMax:40,contentMax:2000,assignmentsMax:50,kinds:["text","link"]} as const;
+export const notePolicy = {textMax:4000} as const;
+export const activityEntities = ["courses","lessons","resources","lesson_resources","live_sessions","workshop_templates","commerce_bundles","commerce_discounts","admin_users"] as const;
+```
+
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `3d0f61c0253cddcbdcc7213371a7e273d9e5dcf8ab447046cc8056fecf1b7f49`
+SHA-256: `8d3d72b4b45c80696a4fdaba216964653be18f6ffe53b0a637f73e645675c23b`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -10282,6 +10529,8 @@ export const routes = {
   adminUsers: "/admin/dashboard/users",
   liveSessions: "/dashboard/live-sessions",
   adminLiveSessions: "/admin/dashboard/live-sessions",
+  adminResources: "/admin/dashboard/resources",
+  adminActivity: "/admin/dashboard/activity",
   adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
     if (!isValidUsername(username)) throw new Error("Invalid username route");
@@ -10308,6 +10557,8 @@ export const routes = {
 };
 export const endpoints = {
   adminLiveSessions: "/api/admin/live-sessions",
+  adminResources: "/api/admin/resources",
+  lessonNotes: (slug:string,id:string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/notes`,
   myLiveSessions: "/api/live-sessions",
   liveSessions: (slug:string) => `/api/courses/${segment(slug)}/live-sessions`,
   liveJoin: (slug:string,id:string) => `/api/courses/${segment(slug)}/live-sessions/${segment(id)}/join`,
@@ -10369,6 +10620,15 @@ SHA-256: `0d2a72be0918f8e143cbb2400d2afac03d7e4bf9ef1ab2aeb0b2ad76506c9dae`
 
 ```typescript
 export const phoneConfirmationConfig = { pageSize: 5, maxPage: 100000 } as const;
+```
+
+### File: `modules/config/records.ts`
+
+SHA-256: `5e6dc428dab88e73b9c842494fc44f5debca77d4f00da9c28221641b7470dbc8`
+
+```typescript
+/** Shared dashboard listing and optimistic-lock limits. */
+export const recordPolicy={pageSize:5,searchMax:120,pageMax:10000,revisionMax:2147483646} as const;
 ```
 
 ### File: `modules/config/request.ts`
@@ -10602,7 +10862,7 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `4fcf24bfbf057c223cb51e274c74fbeec038462d10afa2e44a69893f316464ca`
+SHA-256: `e9c4566b8cfe80911befbb8dc9b47c239e9990c06d48c9a9c4072e18c77139af`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
@@ -10628,6 +10888,8 @@ export const backendCopy: Record<string, string> = {
   ALREADY_ENROLLED: "أنت مشترك بالفعل في هذه الدورة. افتح دوراتك.",
   COURSE_HAS_PAYMENTS: "لا يمكن حذف دورة مرتبطة بطلبات دفع. يمكنك إلغاء نشرها.",
   SECTION_ID_CONFLICT: "يوجد قسم بنفس المعرّف في الفصل المختار. انقل دروسه إلى قسم آخر بدلاً من ذلك.",
+  MATERIAL_CONFLICT: "تغيّرت المادة منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
+  NOTE_CONFLICT: "تغيّرت الملاحظات من جهاز آخر. احتفظ بنصك ثم حدّث الصفحة قبل الحفظ مجددًا.",
   COURSE_CONFLICT: "تغيّر محتوى الدورة منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
   CURRICULUM_NOT_EMPTY: "انقل الدروس أو احذف المحتوى قبل حذف الفصل أو القسم.",
   PUBLISHED_CURRICULUM_INCOMPLETE: "هذا التعديل يترك محتوى منشورًا غير مكتمل. ألغِ نشر الدورة أولاً من بياناتها.",
@@ -11235,6 +11497,18 @@ export const liveSessionCopy = {
  name: "اسم الجلسة", description: "الوصف", course: "الدورة أو الورشة", chapter: "الفصل (اختياري)", section: "القسم (اختياري)", wholeCourse: "الدورة بالكامل", noSection: "بدون قسم", joinUrl: "رابط الانضمام", starts: "تبدأ في", ends: "تنتهي في", timezone: "المنطقة الزمنية", enabled: "ظاهرة للطلاب", timezoneHint: "أدخل اليوم وساعة البداية والنهاية حسب المنطقة الزمنية المحددة. أقصى مدة للجلسة ٢٤ ساعة.",
  upcoming: "لم تبدأ بعد", active: "مباشر الآن", ended: "انتهت", endedAt: "انتهت في", join: "انضم للجلسة", locked: "متاحة للمشتركين في الدورة أثناء موعد الجلسة", empty: "لا توجد جلسات مباشرة.", search: "البحث باسم الجلسة", filter: "حالة الجلسة", all: "الكل", apply: "تطبيق", previous: "السابق", next: "التالي", confirmRemove: "حذف هذه الجلسة نهائيًا؟", hidden: "غير ظاهرة", scheduleHint: "يظهر رابط الانضمام للمشتركين فقط من وقت البداية وحتى وقت النهاية.",
 };
+```
+
+### File: `modules/data/materials.ts`
+
+SHA-256: `8dd41a0fa5d92f7bb8a2ef7afd7658e61761379738a77d54ba80326d576c3a68`
+
+```typescript
+export const materialCopy = {
+ title:"مواد الدروس", create:"إضافة مادة", edit:"تعديل", remove:"حذف", cancel:"إلغاء", name:"اسم المادة", description:"الوصف", type:"نوع الملف أو المادة", kind:"طريقة الإتاحة", text:"نص قابل للتنزيل", link:"رابط خارجي", content:"النص أو رابط HTTPS", course:"الدورة", assignments:"الدروس المرتبطة", selected:"دروس مختارة", save:"حفظ المادة", saving:"جارٍ الحفظ…", saved:"تم الحفظ", error:"تعذّر حفظ المادة. راجع البيانات وحاول مرة أخرى.", confirmRemove:"حذف هذه المادة من جميع الدروس المرتبطة بها؟", empty:"لا توجد مواد مطابقة.", search:"البحث باسم المادة", all:"الكل", apply:"تطبيق", previous:"السابق", next:"التالي", updated:"آخر تحديث", hint:"اختر درسًا واحدًا على الأقل. الرابط الخارجي متاح للمشتركين عبر مكتبة المواد؛ صلاحيات الملف نفسه تُضبط عند مزوّد التخزين.",
+};
+export const noteCopy = {title:"ملاحظاتي الخاصة",hint:"اكتب ملاحظاتك ثم احفظها في حسابك.",save:"حفظ الملاحظات",saving:"جارٍ الحفظ…",saved:"محفوظة في حسابك",unsaved:"توجد تغييرات لم تُحفظ",error:"تعذّر حفظ الملاحظات. النص ما زال هنا؛ حاول مرة أخرى.",importLocal:"استيراد ملاحظات هذا المتصفح",limit:"٤٠٠٠ حرف كحد أقصى"};
+export const activityCopy = {title:"سجل تغييرات المحتوى",search:"البحث بمعرّف المحتوى",filter:"نوع المحتوى",all:"الكل",apply:"تطبيق",previous:"السابق",next:"التالي",empty:"لا توجد تغييرات مطابقة.",date:"التاريخ",actor:"المنفّذ",entity:"المحتوى",target:"المعرّف",action:"الإجراء",fields:"الحقول المتغيّرة",system:"النظام / خدمة إدارية",unknown:"حساب غير متاح",INSERT:"إضافة",UPDATE:"تعديل",DELETE:"حذف",courses:"الدورات",lessons:"الدروس",resources:"مواد الدروس",lesson_resources:"ربط مواد الدروس",live_sessions:"الجلسات المباشرة",workshop_templates:"قوالب الصفحات",commerce_bundles:"الباقات",commerce_discounts:"الخصومات",admin_users:"صلاحيات الإدارة"};
 ```
 
 ### File: `modules/data/media-preview.ts`
@@ -12904,6 +13178,49 @@ export async function requireAdminPage() {
 }
 ```
 
+### File: `modules/features/admin/repositories/activity.ts`
+
+SHA-256: `855828d647e12d4dc3d7455addd4e7862b720df52ce51de5cc126e6791c4bc40`
+
+```typescript
+import "server-only";
+import {requireAdmin} from "../identity";
+import {createAuthAdministrator} from "@platform/lib/supabase/admin";
+import {ApiError} from "@platform/lib/api/error";
+import {recordPolicy} from "@platform/config/records";
+import {recordSearchPattern} from "@platform/helpers/read-record-query";
+import type {RecordQuery} from "@platform/types/materials";
+export async function readAdminActivity(query:RecordQuery) {
+ const {client}=await requireAdmin(),start=(query.page-1)*recordPolicy.pageSize;
+ let request=client.from("admin_activity").select("*",{count:"exact"}).order("created_at",{ascending:false}).order("id",{ascending:false}).range(start,start+recordPolicy.pageSize-1);
+ if(query.search) request=request.ilike("target",recordSearchPattern(query.search));
+ if(query.filter!=="all") request=request.eq("entity",query.filter);
+ const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const ids=[...new Set(result.data.flatMap(row=>row.actor_id ? [row.actor_id] : []))];
+ const profiles=ids.length ? await createAuthAdministrator().from("profiles").select("id,name,username").in("id",ids) : {data:[],error:null};
+ if(profiles.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return {records:result.data.map(row=>({...row,actor:profiles.data?.find(profile=>profile.id===row.actor_id) ?? null})),total:result.count ?? 0};
+}
+```
+
+### File: `modules/features/admin/repositories/course-choices.ts`
+
+SHA-256: `811b2b81f4df18a5bc4b2e860aed38a55c21c1680add6688dc25044a3adfcd7c`
+
+```typescript
+import "server-only";
+import {requireAdmin} from "../identity";
+import {ApiError} from "@platform/lib/api/error";
+import type {CourseModule} from "@platform/types/lms";
+import type {CourseChoice} from "@platform/types/materials";
+export async function adminCourseChoices():Promise<CourseChoice[]> {
+ const {client}=await requireAdmin();
+ const result=await client.from("courses").select("slug,title:metadata->>title,modules:metadata->modules").order("position");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return result.data.map(row=>({slug:row.slug,title:String(row.title),chapters:(row.modules as unknown as CourseModule[]).filter(chapter=>chapter.id).map(chapter=>({id:chapter.id!,title:chapter.title,sections:(chapter.sections ?? []).map(({id,title})=>({id,title}))})),lessons:(row.modules as unknown as CourseModule[]).flatMap(chapter=>chapter.lessons.map(({id,title})=>({id,title})))}));
+}
+```
+
 ### File: `modules/features/admin/repositories/course-list.ts`
 
 SHA-256: `f6edac59f0473e925b496f47b619a600c200764b127411e37f9ddae20357d3a0`
@@ -14377,6 +14694,21 @@ export function learningRequests(failureLabel: string) {
 }
 ```
 
+### File: `modules/features/learning/client/save-note.ts`
+
+SHA-256: `1980d01c1f2902ddc90cc10df6b4321467893faa479bf1ffca85e18c5113d2f9`
+
+```typescript
+import {httpRequest} from "@platform/lib/http-request";
+import type {SavedLessonNote} from "@platform/types/materials";
+export function saveRemoteNote(path:string,note:SavedLessonNote,error:string) {
+ return httpRequest({path,body:note,failureLabel:error,decode:(value:unknown):SavedLessonNote=>{
+  if(!value||typeof value!=="object"||!("text" in value)||!("revision" in value)||typeof value.text!=="string"||!Number.isSafeInteger(value.revision)||Number(value.revision)<1) throw new Error(error);
+  return {text:value.text,revision:Number(value.revision)};
+ }});
+}
+```
+
 ### File: `modules/features/learning/client/start-course.ts`
 
 SHA-256: `6ee33c5ea51c40b58eb6cd23e014a6bec88a61ec613fbec12bcccab1ff15cf08`
@@ -14418,6 +14750,30 @@ export async function handleEnrollment(request?: Request) {
     if (typeof body?.courseSlug !== "string") throw new ApiError(400, "INVALID_INPUT");
     return Response.json(await enrollCourse(body.courseSlug));
   });
+}
+```
+
+### File: `modules/features/learning/handle-notes.ts`
+
+SHA-256: `6cdfc3f95277e650e4c986b8cb31a04b4baf525737fb8ea9c3e134a4b298b60f`
+
+```typescript
+import {validRecordRevision} from "@platform/helpers/valid-record-revision";
+import {readLessonNote,saveLessonNote} from "./repositories/lesson-notes";
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {apiResponse} from "@platform/lib/api/respond";
+import {ApiError} from "@platform/lib/api/error";
+import {readJson,sameOrigin} from "@platform/lib/server-request";
+import {notePolicy} from "@platform/config/materials";
+export function handleLessonNotes(request:Request,{params}:{params:Promise<{slug:string;lessonId:string}>}) {
+ return apiResponse(async()=>{
+  await requireIdentity();const {slug,lessonId}=await params;
+  if(request.method==="GET") return Response.json(await readLessonNote(slug,lessonId));
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const body=await readJson(request);
+  if(typeof body?.text!=="string"||body.text.length>notePolicy.textMax||!validRecordRevision(body.revision,false)) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await saveLessonNote(slug,lessonId,{text:body.text,revision:Number(body.revision)}));
+ });
 }
 ```
 
@@ -14565,17 +14921,19 @@ export * from "./helpers";
 
 ### File: `modules/features/learning/models/lesson-information.ts`
 
-SHA-256: `7f72a29cc1925288ce5a7634a80690392f92caf124c389f3314c06014a114d42`
+SHA-256: `48f82fbf86c165208d740bdfa5a06f14bce65a761713f5cd74e22bcaabc93235`
 
 ```typescript
+import {noteCopy} from "@platform/data/materials";
+import {endpoints} from "@platform/config/navigation";
 import type { LessonContext } from "../read-lesson-context";
 import { notesKey } from "@platform/config/persistence";
 import { copy } from "@platform/data/site";
-export function lessonInformationModel({ state, slug, lessonId, lesson, resources }: LessonContext) {
+export function lessonInformationModel({ state, slug, lessonId, lesson, resources, note }: LessonContext) {
   return {
     copy: { lessonDetails: copy.lessonDetails, resources: copy.resources, notes: copy.notes,
       notesHint: copy.notesHint, notesUnavailable: copy.notesUnavailable, notesSaved: copy.notesSaved },
-    resources,
+    resources, remoteNotes:note ? {path:endpoints.lessonNotes(slug,lessonId),initial:note,labels:noteCopy} : undefined,
     lesson, storageKey: notesKey(state.profile.email || state.profile.name, slug, lessonId),
   };
 }
@@ -14628,9 +14986,10 @@ export function lessonShellModel({ course, state, lessonId }: LessonContext) {
 
 ### File: `modules/features/learning/read-lesson-context.ts`
 
-SHA-256: `27fe358ff9575f60233a337a635b31764620a50190ea7978690e41365f28e3d8`
+SHA-256: `d493dee83bce11939133f83615e9cc94627261df292be4703f017f60208d0871`
 
 ```typescript
+import {readLessonNote} from "./repositories/lesson-notes";
 import { listLessonResources } from "@platform/features/resources/lesson-resources";
 import { playableUrl } from "@platform/helpers/media/playable-url";
 import { currentIdentity } from "@platform/features/auth/server/identity";
@@ -14651,8 +15010,8 @@ export async function readLessonContext(slug: string, lessonId: string) {
   if (!enrolled && !lesson.preview) redirect(routes.course(slug, course.delivery));
   const lessons = courseLessons(course);
   const index = lessons.findIndex((item) => item.id === lessonId);
-  const [videoUrl, resources] = await Promise.all([readPlayback(slug, lessonId), enrolled ? listLessonResources(slug, lessonId) : Promise.resolve([])]);
-  return { resources, previous: index > 0 ? lessons[index - 1] : undefined, slug, lessonId, course, lesson: { ...lesson, videoUrl: playableUrl(videoUrl, slug, lessonId) }, state, enrolled, lessons, index,
+  const [videoUrl, resources, note] = await Promise.all([readPlayback(slug, lessonId), enrolled ? listLessonResources(slug, lessonId) : Promise.resolve([]), enrolled ? readLessonNote(slug,lessonId) : Promise.resolve(undefined)]);
+  return { resources, note, previous: index > 0 ? lessons[index - 1] : undefined, slug, lessonId, course, lesson: { ...lesson, videoUrl: playableUrl(videoUrl, slug, lessonId) }, state, enrolled, lessons, index,
     next: lessons.at(index + 1), complete: state.completed.includes(lessonKey(slug, lessonId)) };
 }
 export type LessonContext = Awaited<ReturnType<typeof readLessonContext>>;
@@ -14698,6 +15057,35 @@ export async function enrollCourse(slug: string) {
     if (error && error.code !== "23505") throw new ApiError(503, "INTERNAL_ERROR");
   }
   return readState(client, user);
+}
+```
+
+### File: `modules/features/learning/repositories/lesson-notes.ts`
+
+SHA-256: `0214375ab872b94d1314b9efdedb27329af325c516b491023ca7804bc240948f`
+
+```typescript
+import "server-only";
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {ApiError} from "@platform/lib/api/error";
+import type {SavedLessonNote} from "@platform/types/materials";
+export async function readLessonNote(slug:string,lessonId:string):Promise<SavedLessonNote> {
+ const {client,user}=await requireIdentity();
+ const [access,note]=await Promise.all([
+  client.from("lessons").select("id,courses!inner(published,enrollments!inner(user_id))").eq("course_slug",slug).eq("id",lessonId).eq("courses.enrollments.user_id",user.id).eq("courses.published",true).maybeSingle(),
+  client.from("lesson_notes").select("text,revision").eq("user_id",user.id).eq("course_slug",slug).eq("lesson_id",lessonId).maybeSingle(),
+ ]);
+ if(access.error||note.error) throw new ApiError(503,"INTERNAL_ERROR");
+ if(!access.data) throw new ApiError(403,"FORBIDDEN");return note.data ?? {text:"",revision:0};
+}
+export async function saveLessonNote(slug:string,lessonId:string,note:SavedLessonNote) {
+ const {client}=await requireIdentity();
+ const result=await client.rpc("save_lesson_note",{p_slug:slug,p_lesson:lessonId,p_text:note.text,p_revision:note.revision});
+ if(result.error) {
+  const code=["NOTE_CONFLICT","FORBIDDEN","INVALID_INPUT"].find(code=>result.error!.message.includes(code));
+  throw new ApiError(code==="NOTE_CONFLICT" ? 409 : code==="FORBIDDEN" ? 403 : code ? 400 : 503,code ?? "INTERNAL_ERROR");
+ }
+ return {text:note.text,revision:result.data};
 }
 ```
 
@@ -14978,23 +15366,6 @@ export async function mutateLiveSession(input:LiveSessionInput | {id:string;revi
   throw new ApiError(code==="COURSE_CONFLICT" ? 409 : code==="NOT_FOUND" ? 404 : code==="FORBIDDEN" ? 403 : code ? 400 : 503,code ?? "INTERNAL_ERROR");
  }
  return {saved:true};
-}
-```
-
-### File: `modules/features/live-sessions/repositories/choices.ts`
-
-SHA-256: `0cd93802f2275fc3631aa675e7fd286248633537d53fa86b2c60009ff7788e15`
-
-```typescript
-import "server-only";
-import { requireAdmin } from "@platform/features/admin/identity";
-import { ApiError } from "@platform/lib/api/error";
-import type { CourseModule } from "@platform/types/lms";
-export async function liveSessionCourses() {
- const {client}=await requireAdmin();
- const result=await client.from("courses").select("slug,title:metadata->>title,modules:metadata->modules").order("position");
- if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- return result.data.map(row=>({slug:row.slug,title:String(row.title),chapters:(row.modules as unknown as CourseModule[]).filter(chapter=>chapter.id).map(chapter=>({id:chapter.id!,title:chapter.title,sections:(chapter.sections ?? []).map(({id,title})=>({id,title}))}))}));
 }
 ```
 
@@ -16786,6 +17157,68 @@ export function validateProfile(input: unknown, { allowEmptyEmail = false }: { a
 }
 ```
 
+### File: `modules/features/resources/admin-repository.ts`
+
+SHA-256: `4b7ed9bc15b9a30ec14f80166c9361c2dd955676d8d370ac358f87bab489f51e`
+
+```typescript
+import "server-only";
+import {requireAdmin} from "@platform/features/admin/identity";
+import {ApiError} from "@platform/lib/api/error";
+import {materialPolicy} from "@platform/config/materials";
+import {recordSearchPattern} from "@platform/helpers/read-record-query";
+import type {AdminMaterial,MaterialInput,RecordQuery} from "@platform/types/materials";
+import type {Json} from "@platform/types/database";
+export async function readAdminMaterials(query:RecordQuery) {
+ const {client}=await requireAdmin(),start=(query.page-1)*materialPolicy.pageSize;
+ let request=client.from("resources").select("*,lesson_resources(course_slug,lesson_id)",{count:"exact"}).order("updated_at",{ascending:false}).order("id").range(start,start+materialPolicy.pageSize-1);
+ if(query.search) request=request.ilike("title",recordSearchPattern(query.search));
+ if(query.filter!=="all") request=request.eq("kind",query.filter);
+ const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const materials:AdminMaterial[]=result.data.map(row=>({id:row.id,title:row.title,description:row.description,type:row.type,kind:row.kind as "text"|"link",content:row.content,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,assignments:row.lesson_resources.map(link=>({courseSlug:link.course_slug,lessonId:link.lesson_id}))}));
+ return {materials,total:result.count ?? 0};
+}
+export async function mutateMaterial(input:MaterialInput|{id:string;revision:number},remove=false) {
+ const {client}=await requireAdmin();
+ const result=remove ? await client.rpc("delete_admin_material",{p_id:input.id!,p_revision:input.revision}) : await client.rpc("save_admin_material",{p_input:input as unknown as Json});
+ if(result.error) {
+  const code=["MATERIAL_CONFLICT","INVALID_INPUT","NOT_FOUND","FORBIDDEN"].find(code=>result.error!.message.includes(code));
+  throw new ApiError(code==="MATERIAL_CONFLICT" ? 409 : code==="NOT_FOUND" ? 404 : code==="FORBIDDEN" ? 403 : code ? 400 : 503,code ?? "INTERNAL_ERROR");
+ }
+ return {saved:true};
+}
+```
+
+### File: `modules/features/resources/handle-admin.ts`
+
+SHA-256: `042f0d6adfe3a29553a9d962902c9bede7c82638c2ef7607dc3c5f4d3a427fce`
+
+```typescript
+import {validRecordRevision} from "@platform/helpers/valid-record-revision";
+import {requireAdmin} from "@platform/features/admin/identity";
+import {apiResponse} from "@platform/lib/api/respond";
+import {ApiError} from "@platform/lib/api/error";
+import {readJson,sameOrigin} from "@platform/lib/server-request";
+import {validateMaterial} from "./validate-material";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {materialPolicy} from "@platform/config/materials";
+import {readAdminMaterials,mutateMaterial} from "./admin-repository";
+export function handleAdminMaterial(request:Request) {
+ return apiResponse(async()=>{
+  await requireAdmin();
+  if(request.method==="GET") return Response.json(await readAdminMaterials(readRecordQuery(Object.fromEntries(new URL(request.url).searchParams),materialPolicy.kinds)));
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const body=await readJson(request);
+  if(body?.operation==="delete") {
+   if(typeof body.id!=="string"||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(body.id)||!validRecordRevision(body.revision)) throw new ApiError(400,"INVALID_INPUT");
+   return Response.json(await mutateMaterial({id:body.id,revision:Number(body.revision)},true));
+  }
+  const input=validateMaterial(body);if(!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await mutateMaterial(input));
+ });
+}
+```
+
 ### File: `modules/features/resources/lesson-resources.ts`
 
 SHA-256: `00e592d347cf3db81f5a7639437bef820aee567ab91a42fdef990816672e59f2`
@@ -16809,23 +17242,65 @@ export async function listLessonResources(slug: string, lessonId: string): Promi
 
 ### File: `modules/features/resources/service.ts`
 
-SHA-256: `c6ef83c728eaf8112bf984d2332f082a936aacc7abd6a03322cc62af6a84c9fb`
+SHA-256: `40f8b0606bed9f88f371498a3285a86a757b4d19573b4f25e6f91c87930a5510`
 
 ```typescript
-import { requireIdentity } from "@platform/features/auth/server/identity";
-import { ApiError } from "@platform/lib/api/error";
-export async function listResources() {
-  const { client } = await requireIdentity();
-  const { data, error } = await client.from("resources").select("id,title,description,type");
-  if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  return data;
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {ApiError} from "@platform/lib/api/error";
+import {materialPolicy} from "@platform/config/materials";
+import {recordSearchPattern} from "@platform/helpers/read-record-query";
+import type {RecordQuery} from "@platform/types/materials";
+export async function listResources(query:RecordQuery={search:"",filter:"all",page:1}) {
+ const {client}=await requireIdentity(),start=(query.page-1)*materialPolicy.pageSize;
+ let request=client.from("resources").select("id,title,description,type",{count:"exact"}).order("updated_at",{ascending:false}).order("id").range(start,start+materialPolicy.pageSize-1);
+ if(query.search) request=request.ilike("title",recordSearchPattern(query.search));
+ if(query.filter!=="all") request=request.eq("kind",query.filter);
+ const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return {resources:result.data,total:result.count ?? 0};
 }
-export async function readResource(id: string) {
-  const { client } = await requireIdentity();
-  const { data, error } = await client.from("resources").select("id,content").eq("id", id).maybeSingle();
-  if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  if (!data) throw new ApiError(404, "NOT_FOUND");
-  return data;
+export async function readResource(id:string) {
+ const {client}=await requireIdentity();
+ const {data,error}=await client.from("resources").select("id,content,kind").eq("id",id).maybeSingle();
+ if(error) throw new ApiError(503,"INTERNAL_ERROR");
+ if(!data) throw new ApiError(404,"NOT_FOUND");return data;
+}
+```
+
+### File: `modules/features/resources/validate-material.ts`
+
+SHA-256: `7c0f564053672f19648c65081ad5bbb52cd87a190ba205dbb20ee1b5aaf1378b`
+
+```typescript
+import {validRecordRevision} from "@platform/helpers/valid-record-revision";
+import {materialPolicy as p} from "@platform/config/materials";
+import type {MaterialInput,MaterialAssignment} from "@platform/types/materials";
+const segment=(value:unknown):value is string=>typeof value==="string"&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)&&value.length<=160;
+export function validateMaterial(value:Record<string,unknown>|null):MaterialInput|null {
+ if(!value || (value.id!==undefined&&!segment(value.id)) || !validRecordRevision(value.revision,Boolean(value.id)) || (!value.id&&value.revision!==0)) return null;
+ const {title,description,type,content,kind,assignments}=value;
+ if(typeof title!=="string"||!title.trim()||title.length>p.titleMax||typeof description!=="string"||description.length>p.descriptionMax||typeof type!=="string"||!type.trim()||type.length>p.typeMax||typeof content!=="string"||!content.trim()||content.length>p.contentMax||!(kind==="text"||kind==="link")) return null;
+ if(kind==="link"&&!validMaterialLink(content)) return null;
+ if(!Array.isArray(assignments)||assignments.length<1||assignments.length>p.assignmentsMax||!assignments.every(item=>item&&segment(item.courseSlug)&&segment(item.lessonId))) return null;
+ if(new Set(assignments.map(item=>`${item.courseSlug}/${item.lessonId}`)).size!==assignments.length) return null;
+ return {id:value.id as string|undefined,revision:Number(value.revision),title:title.trim(),description:description.trim(),type:type.trim(),content,kind,assignments:assignments as MaterialAssignment[]};
+}
+export function validMaterialLink(value:string) {
+ try {const url=new URL(value);return url.protocol==="https:"&&!url.username&&!url.password&&!/[\s@]/.test(value)&&Boolean(url.hostname); } catch {return false;}
+}
+export function materialFormInput(form:FormData,assignments:MaterialAssignment[]) {
+ return {id:String(form.get("id") ?? "")||undefined,revision:Number(form.get("revision")),title:form.get("title"),description:form.get("description"),type:form.get("type"),kind:form.get("kind"),content:form.get("content"),assignments};
+}
+```
+
+### File: `modules/helpers/format-activity-date.ts`
+
+SHA-256: `4188574b2c5a87175f6181df251f1be1f690675d6d34e2936dcb90fc76843b9e`
+
+```typescript
+import {courseAdministration} from "@platform/config/course-administration";
+/** Content edits can happen on the same day; retain the exact local time. */
+export function formatActivityDate(value:string) {
+ return new Intl.DateTimeFormat(courseAdministration.locale,{timeZone:courseAdministration.timezone,year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(value));
 }
 ```
 
@@ -17072,6 +17547,24 @@ export function readProfileResponse(input: unknown) {
 }
 ```
 
+### File: `modules/helpers/read-record-query.ts`
+
+SHA-256: `be9c8755da28f881cafadcedb1dc2f25c2b520184dddbe9f106a3a42c3024ba3`
+
+```typescript
+import {recordPolicy} from "@platform/config/records";
+import type {RecordQuery} from "@platform/types/materials";
+export function readRecordQuery(params:Record<string,string|string[]|undefined>,filters:readonly string[]):RecordQuery {
+ const first=(key:string)=>Array.isArray(params[key]) ? params[key][0] : params[key];
+ const filter=first("filter") ?? "all",page=Number(first("page"));
+ return {search:(first("q") ?? "").trim().slice(0,recordPolicy.searchMax),filter:filters.includes(filter) ? filter : "all",page:Number.isSafeInteger(page)&&page>0&&page<=recordPolicy.pageMax ? page : 1};
+}
+export function recordPageHref(path:string,query:RecordQuery,page:number) {
+ return path+"?"+new URLSearchParams({q:query.search,filter:query.filter,page:String(page)});
+}
+export const recordSearchPattern=(search:string)=>`%${search.replace(/[%_\\]/g,"")}%`;
+```
+
 ### File: `modules/helpers/search-params.ts`
 
 SHA-256: `87bf1bc6f9e34e6fa3ff92a4652b4e6030799bcb8fad27677241b3315936ad12`
@@ -17102,6 +17595,17 @@ export async function uploadImageFile(file: File, target: ImageUploadTarget, fai
   const value: unknown = await response.json().catch(() => { throw new Error(failureLabel); });
   if (!response.ok) throw new Error(value && typeof value === "object" && "error" in value && typeof value.error === "string" ? value.error : failureLabel);
   return readUploadedImage(value);
+}
+```
+
+### File: `modules/helpers/valid-record-revision.ts`
+
+SHA-256: `f2ca0a07a50d51102f75d633dc28df961d74584c8429b6bdb2f9fca55ac9a68a`
+
+```typescript
+import {recordPolicy} from "@platform/config/records";
+export function validRecordRevision(value:unknown,existing=true):value is number {
+ return typeof value==="number"&&Number.isSafeInteger(value)&&value>=(existing ? 1 : 0)&&value<=recordPolicy.revisionMax;
 }
 ```
 
@@ -17566,20 +18070,6 @@ export function useDeadlineExpired(endsAt:string|null,initialSeconds:number) {
 }
 ```
 
-### File: `modules/hooks/use-hydration-state.ts`
-
-SHA-256: `a628ef6c07853d388d531a3199ae5b6ebc1de985492c92d1ec9eb53c9b0e75fa`
-
-```typescript
-"use client";
-import { useSyncExternalStore } from "react";
-const subscribe=()=>()=>{};
-const clientSnapshot=()=>true;
-const serverSnapshot=()=>false;
-/** Use a deterministic hydration render before displaying browser-local values. */
-export function useHydrationState() { return useSyncExternalStore(subscribe,clientSnapshot,serverSnapshot); }
-```
-
 ### File: `modules/hooks/use-lesson-completion.ts`
 
 SHA-256: `2cbdc377c9746935b1aea4b8f1f26a674c6135a0f9aa1eff467801c0b6cbb359`
@@ -17828,6 +18318,26 @@ export function useProtectedSession(pathname: string, endpoint: string, login: s
     };
   }, [pathname, endpoint, login, restoration]);
   return verifiedPath?.path === pathname && verifiedPath.restoration === restoration;
+}
+```
+
+### File: `modules/hooks/use-remote-lesson-note.ts`
+
+SHA-256: `855e0127c38cdd7fca34961f0a701dda504481fb26f59366e46eeef3e317a4b2`
+
+```typescript
+"use client";
+import {useState} from "react";
+import {useAsyncCommand} from "./use-async-command";
+import {saveRemoteNote} from "@platform/features/learning/client/save-note";
+import type {SavedLessonNote} from "@platform/types/materials";
+export function useRemoteLessonNote(path:string,initial:SavedLessonNote,errorLabel:string) {
+ const [value,setValue]=useState(initial.text),[saved,setSaved]=useState(initial),command=useAsyncCommand(errorLabel);
+ async function save() {
+  const result=await command.run(()=>saveRemoteNote(path,{text:value,revision:saved.revision},errorLabel));
+  if(result) setSaved(result);
+ }
+ return {value,setValue,save,dirty:value!==saved.text,pending:command.pending,error:command.error};
 }
 ```
 
@@ -18137,7 +18647,7 @@ export async function fetchDrive(url: URL, headers: HeadersInit, requestSignal: 
 
 ### File: `modules/lib/security/headers.ts`
 
-SHA-256: `e621dfa05e6af081d5effc408dcbadd4a5de93c777b7e966c77953c9ab2ff880`
+SHA-256: `1f6e6335621bc627f7c9bf97e5ff3a76c77026946db71db4b5bbb0bf7a2aaaf9`
 
 ```typescript
 export const securityHeaders = [
@@ -18146,6 +18656,8 @@ export const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
+
+export const privateRedirectHeaders = [{key:"Referrer-Policy",value:"no-referrer"}];
 ```
 
 ### File: `modules/lib/security/ingress.ts`
@@ -22403,6 +22915,21 @@ SHA-256: `0ea57d4bf48a818c10e76d6cfc1eefacd22f364770a27f468317f8c0fd8dcee9`
 }
 ```
 
+### File: `modules/styles/records.css`
+
+SHA-256: `5b01217f06bf7a0ff50e56aa7fdd4203450f3d8b5c5d818ac77ce9eb026146e9`
+
+```css
+.lms-record-filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto; align-items: end; gap: var(--space-md); }
+.lms-record-filters .btn-primary { min-height: var(--size-44px); font-size: var(--font-size-body); padding: var(--space-sm) var(--space-md); }
+.lms-material-form { max-width: none; }
+.lms-material-form textarea { width: 100%; min-width: 0; resize: vertical; padding: var(--space-md); border: var(--size-1px) solid var(--border-subtle); border-radius: var(--radius-sm); background: var(--bg-main); color: var(--text-primary); font: inherit; }
+.lms-activity-table td { overflow-wrap: anywhere; }
+.lms-notes .btn-primary { justify-self: start; font-size: var(--font-size-body); }
+@media (max-width: 768px) { .lms-record-filters { grid-template-columns: minmax(0,1fr); } }
+.lms-record-filters > .lms-admin-search { display: grid; gap: var(--space-sm); font-weight: var(--font-weight-action); }
+```
+
 ### File: `modules/styles/theme-server.json`
 
 SHA-256: `e632ad156d4cbdff67c54cc40579dcbc9e8ccc838ffd76afd48a90080abe83a6`
@@ -22507,6 +23034,15 @@ export interface AccountSettingsInput {
   firstName: string; lastName: string; username: string; email: string; phone: string; currentPassword: string;
 }
 export type ContactField = "email" | "phone";
+```
+
+### File: `modules/types/admin-activity.ts`
+
+SHA-256: `ba14e61169dbc1e1af18fa87ebeff7bbd18aa09403e58fa45acdcae250182d18`
+
+```typescript
+export type ActivityRecord = Awaited<ReturnType<typeof import("@platform/features/admin/repositories/activity").readAdminActivity>>["records"][number];
+export type ActivityLabels = {[K in keyof typeof import("@platform/data/materials").activityCopy]:string};
 ```
 
 ### File: `modules/types/admin-analytics.ts`
@@ -22764,10 +23300,9 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `46b16f67994fd023c7beafd4e2261962935dca173f089553a070494f0a26bc34`
+SHA-256: `c9f3c55dcfa2ac9370a3f076577807bddfc198e085cbe6efe082d382582e14ab`
 
 ```typescript
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -22830,6 +23365,20 @@ export type Database = {
                   }
                   Update: {
                     "field"?: string,"id"?: never,"reviewer_id"?: string | null,"user_id"?: string,"value"?: string,"verified_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"admin_activity": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"changed_fields": (string)[],"created_at": string,"entity": string,"id": number,"target": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"changed_fields"?: (string)[],"created_at"?: string,"entity": string,"id"?: never,"target": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"changed_fields"?: (string)[],"created_at"?: string,"entity"?: string,"id"?: never,"target"?: string
                   }
                   Relationships: [
 
@@ -22960,6 +23509,26 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "courses"
       referencedColumns: ["slug"]
+    }
+                  ]
+                },"lesson_notes": {
+                  Row: {
+                    "course_slug": string,"lesson_id": string,"revision": number,"text": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"lesson_id": string,"revision"?: number,"text"?: string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "course_slug"?: string,"lesson_id"?: string,"revision"?: number,"text"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lesson_notes_course_slug_lesson_id_fkey"
+      columns: ["course_slug","lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["course_slug","id"]
     }
                   ]
                 },"lesson_progress": {
@@ -23148,14 +23717,14 @@ isOneToOne: false
                   ]
                 },"resources": {
                   Row: {
-                    "content": string,"description": string,"id": string,"title": string,"type": string
+                    "content": string,"created_at": string,"description": string,"id": string,"kind": string,"revision": number,"title": string,"type": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content": string,"description": string,"id": string,"title": string,"type": string
+                    "content": string,"created_at"?: string,"description": string,"id": string,"kind"?: string,"revision"?: number,"title": string,"type": string,"updated_at"?: string
                   }
                   Update: {
-                    "content"?: string,"description"?: string,"id"?: string,"title"?: string,"type"?: string
+                    "content"?: string,"created_at"?: string,"description"?: string,"id"?: string,"kind"?: string,"revision"?: number,"title"?: string,"type"?: string,"updated_at"?: string
                   }
                   Relationships: [
 
@@ -23225,6 +23794,9 @@ isOneToOne: true
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
                            },
+"delete_admin_material":
+{ Args: { "p_id": string,"p_revision": number }; Returns: boolean
+                           },
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
                            },
@@ -23249,11 +23821,17 @@ isOneToOne: true
 "save_admin_curriculum":
 { Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
                            },
+"save_admin_material":
+{ Args: { "p_input": Json }; Returns: string
+                           },
 "save_commerce_bundle":
 { Args: { "p_input": Json }; Returns: undefined
                            },
 "save_commerce_discount":
 { Args: { "p_input": Json,"p_kind": string }; Returns: undefined
+                           },
+"save_lesson_note":
+{ Args: { "p_lesson": string,"p_revision": number,"p_slug": string,"p_text": string }; Returns: number
                            },
 "save_live_session":
 { Args: { "p_input": Json }; Returns: string
@@ -23533,6 +24111,21 @@ export interface Resource {
 }
 ```
 
+### File: `modules/types/materials.ts`
+
+SHA-256: `91214bc419b0c8c51c12399d80916fad813bec0769e73171ea51cd13055cc9a0`
+
+```typescript
+export interface MaterialAssignment {courseSlug:string;lessonId:string}
+export interface MaterialInput {id?:string;revision:number;title:string;description:string;type:string;kind:"text"|"link";content:string;assignments:MaterialAssignment[]}
+export interface AdminMaterial extends MaterialInput {id:string;createdAt:string;updatedAt:string}
+export type MaterialLabels = {[K in keyof typeof import("@platform/data/materials").materialCopy]:string};
+export interface SavedLessonNote {text:string;revision:number}
+export type NoteLabels = {[K in keyof typeof import("@platform/data/materials").noteCopy]:string};
+export interface CourseChoice {slug:string;title:string;chapters:{id:string;title:string;sections:{id:string;title:string}[]}[];lessons:{id:string;title:string}[]}
+export interface RecordQuery {search:string;filter:string;page:number}
+```
+
 ### File: `modules/types/navigation-account.ts`
 
 SHA-256: `6011cdc4d970f7c82478d68a53850eee0085319a0d38eb3d8acf51acf02f6333`
@@ -23604,10 +24197,10 @@ export type TemplateValue = string | number | boolean | null | TemplateValue[] |
 
 ### File: `next.config.ts`
 
-SHA-256: `b9962aea07f47e7cd9c75899884fc8f04174e3f54d90a0bb4b98010d621e5824`
+SHA-256: `a45e2d6e9febb45506fea877338b5e0700b7dff0b4dfa99563dbad9f372bb479`
 
 ```typescript
-import { securityHeaders } from "./modules/lib/security/headers";
+import { securityHeaders, privateRedirectHeaders } from "./modules/lib/security/headers";
 import { workshopCourseConfig } from "./config/workshop-course";
 import type { NextConfig } from "next";
 import { projectRoutes, legacyLearningNamespaces } from "./config/project-navigation";
@@ -23616,7 +24209,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   output: "standalone",
   experimental: { proxyClientMaxBodySize: "4mb" },
-  async headers() { return [{ source: "/:path*", headers: securityHeaders }]; },
+  async headers() { return [{ source: "/:path*", headers: securityHeaders }, { source: "/api/resources/:id", headers: privateRedirectHeaders }]; },
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
@@ -36004,7 +36597,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `5bb6732dcd4c886d5b5fa21539cb4ab69b39f64ba6d719467019e964b817190d`
+SHA-256: `8c8b7142c3c08cca512ce481956e4fd843a202875384294b162e8d91d915b6a8`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -36067,6 +36660,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'lms-gaps') {
+    await require('./lms-gaps.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'live-sessions') {
     await require('./live-sessions.cjs')({admin,provision,anonymous,verify,url});return;
   }
@@ -36487,6 +37083,149 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await manager.api(endpoint,{operation:'delete',id:session.id,revision:session.revision})).status===200,'Admin deletes current session');
   verify((await admin.from('live_session_links').select('*').eq('session_id',session.id)).data.length===0,'Deletion cascades to private URL');
  }finally{await admin.from('courses').delete().in('slug',[slug,liveSlug]);}
+};
+```
+
+### File: `tests/backend/lms-gaps-browser.cjs`
+
+SHA-256: `03bb0fab1a92221e5a22e9ca6bbf361ad6349bdc324a5e05a1bec5f6114575bd`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Disposable local browser accounts. */
+const {chromium,expect}=require('@playwright/test');
+async function login(page,url,account){
+ await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(account.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(account.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL(/\/dashboard/);
+}
+module.exports=async({manager,student,verify,url,slug,lessonId})=>{
+ const browser=await chromium.launch({headless:true}),page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',message=>{if(message.type()==='error'&&/hydration|hydrated|didn.t match/i.test(message.text())) errors.push(message.text());});
+ try{
+  await login(page,url,manager);await page.goto(url+'/admin/dashboard/resources?q=Paging&filter=text');
+  await expect(page.locator('tbody tr')).toHaveCount(5);
+  for(const width of [320,390,1440]){await page.setViewportSize({width,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Admin materials fit ${width}px`);if(width===390) await page.screenshot({path:'/tmp/khatab-material-admin.png',fullPage:true,caret:'initial'});}
+  await page.getByRole('button',{name:'إضافة مادة',exact:true}).click();await expect(page.getByLabel('اسم المادة',{exact:true})).toBeVisible();await expect(page.getByLabel('النص أو رابط HTTPS',{exact:true})).toBeVisible();
+  verify(true,'Admin material editor exposes reusable fields and lesson assignment');
+  const editor=page.locator('.lms-material-form');await editor.getByLabel('اسم المادة',{exact:true}).fill('Paging Browser exercise');await editor.getByLabel('نوع الملف أو المادة',{exact:true}).fill('TXT');await editor.getByLabel('النص أو رابط HTTPS',{exact:true}).fill('Browser authored material');
+  await editor.getByRole('combobox',{name:'الدورة',exact:true}).click();await page.getByRole('option',{name:'Material course '+slug,exact:true}).click();await editor.getByRole('checkbox').first().check();
+  await editor.getByRole('combobox',{name:'الدورة',exact:true}).click();await page.getByRole('option',{name:'Material course '+slug+'-two',exact:true}).click();await editor.getByRole('checkbox').first().check();
+  await editor.getByRole('button',{name:'حفظ المادة',exact:true}).click();await expect(editor).toHaveCount(0);
+  let authored=JSON.parse((await manager.api('/api/admin/resources?q=Paging%20Browser%20exercise')).data).materials[0];verify(authored?.assignments.length===2,'Material editor creates and retains assignments across course selections');
+  await page.getByRole('row').filter({hasText:'Paging Browser exercise'}).getByRole('button',{name:'تعديل',exact:true}).click();await expect(page.locator('.lms-material-form').getByLabel('اسم المادة',{exact:true})).toHaveValue('Paging Browser exercise');
+  await page.locator('.lms-material-form').getByLabel('اسم المادة',{exact:true}).fill('Paging Browser exercise edited');await page.locator('.lms-material-form').getByRole('button',{name:'حفظ المادة',exact:true}).click();await expect(page.locator('.lms-material-form')).toHaveCount(0);
+  authored=JSON.parse((await manager.api('/api/admin/resources?q=Paging%20Browser%20exercise')).data).materials[0];verify(authored.title==='Paging Browser exercise edited'&&authored.assignments.length===2,'Material editor updates without dropping assignments');
+  await manager.api('/api/admin/resources',{operation:'delete',id:authored.id,revision:authored.revision});await page.reload();
+  await page.getByRole('button',{name:'حذف',exact:true}).first().click();await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('dialog').getByRole('button',{name:'إلغاء',exact:true}).click();verify(true,'Material deletion uses accessible dismissible dialog');
+  await page.goto(url+'/admin/dashboard/activity');for(const width of [320,390,1440]){await page.setViewportSize({width,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`History fits ${width}px`);}
+  await page.context().clearCookies();await login(page,url,student);await page.goto(url+'/dashboard/resources?q=Paging&filter=text');await expect(page.locator('.lms-resource-card')).toHaveCount(5);await page.getByRole('link',{name:'التالي',exact:true}).click();await expect(page.locator('.lms-resource-card')).toHaveCount(1);verify(true,'Student materials preserve combined filters through pagination');
+  for(const width of [320,390,1440]){await page.setViewportSize({width,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Student library fits ${width}px`);}
+  const lessonUrl=url+`/learn/${slug}/${lessonId}`;await page.goto(lessonUrl);await expect(page.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('Saved across devices');
+  await page.getByLabel('ملاحظاتي الخاصة',{exact:true}).fill('Browser-saved note');await page.getByRole('button',{name:'حفظ الملاحظات',exact:true}).click();await expect(page.getByText('محفوظة في حسابك',{exact:true})).toBeVisible();await page.reload();await expect(page.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('Browser-saved note');verify(true,'Explicit note save survives reload');
+  const other=await browser.newPage();await login(other,url,student);await other.goto(lessonUrl);await expect(other.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('Browser-saved note');verify(true,'Private note is available in a separate browser context');
+  await other.getByLabel('ملاحظاتي الخاصة',{exact:true}).fill('Second device note');await other.getByRole('button',{name:'حفظ الملاحظات',exact:true}).click();await expect(other.getByText('محفوظة في حسابك',{exact:true})).toBeVisible();
+  await page.getByLabel('ملاحظاتي الخاصة',{exact:true}).fill('Draft remains on conflict');await page.getByRole('button',{name:'حفظ الملاحظات',exact:true}).click();await expect(page.locator('.lms-notes').getByRole('alert')).toContainText('تغيّرت الملاحظات');await expect(page.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('Draft remains on conflict');verify(true,'Stale browser save preserves draft and explains conflict');await other.close();
+  await page.reload();await page.getByLabel('ملاحظاتي الخاصة',{exact:true}).fill('');await page.getByRole('button',{name:'حفظ الملاحظات',exact:true}).click();await expect(page.getByText('محفوظة في حسابك',{exact:true})).toBeVisible();
+  await page.evaluate(({key})=>localStorage.setItem(key,'Legacy browser notes'),{key:`ta3llam-notes:${encodeURIComponent(student.email)}:${slug}:${lessonId}`});await page.reload();await expect(page.getByRole('button',{name:'استيراد ملاحظات هذا المتصفح',exact:true})).toBeVisible();await expect(page.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('');await page.getByRole('button',{name:'استيراد ملاحظات هذا المتصفح',exact:true}).click();await expect(page.getByLabel('ملاحظاتي الخاصة',{exact:true})).toHaveValue('Legacy browser notes');verify(true,'Legacy local notes import requires an explicit action');
+  await page.screenshot({path:'/tmp/khatab-material-notes.png',fullPage:true,caret:'initial'});
+  verify(errors.length===0,'New resource/history/note screens have no browser errors');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/lms-gaps.cjs`
+
+SHA-256: `eadc42650a498e34e7a48ab82b3c0450364543638855ba579333af354bdee2c9`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated local integration coverage. */
+const assert=require('node:assert/strict');
+const json=r=>JSON.parse(r.data);
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Materials Manager'),student=await provision('Notes Student'),outsider=await provision('Unenrolled Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='backend-material-course',secondSlug=slug+'-two',endpoint='/api/admin/resources',created=[];
+ const source=(await admin.from('courses').select('*').eq('slug','editing-foundations').single()).data;assert.ok(source);
+ const lessonId=source.metadata.modules[0].lessons[0].id;
+ const lesson=(await admin.from('lessons').select('*').eq('course_slug',source.slug).eq('id',lessonId).single()).data;assert.ok(lesson);
+ for(const target of [slug,secondSlug]){
+  assert.ok(!(await admin.from('courses').insert({...source,slug:target,metadata:{...source.metadata,slug:target,title:'Material course '+target}})).error);
+  assert.ok(!(await admin.from('lessons').insert({...lesson,course_slug:target})).error);
+ }
+ try{
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:slug});
+  for(const path of [endpoint,'/api/admin/activity']){
+   verify((await anonymous(path)).status===401,'Guest denied '+path);
+   verify((await student.api(path)).status===403,'Student denied '+path);
+  }
+  const input={revision:0,title:'Private exercise',description:'Lesson practice',type:'TXT',kind:'text',content:'private-material-body',assignments:[{courseSlug:slug,lessonId},{courseSlug:secondSlug,lessonId}]};
+  verify((await manager.api(endpoint,input,{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin material mutation rejected');
+  for(const patch of [{kind:'link',content:'javascript:alert(1)'},{kind:'link',content:'https://user:pass@example.com'},{assignments:[]},{assignments:[input.assignments[0],input.assignments[0]]},{content:'x'.repeat(2001)},{assignments:[{courseSlug:slug,lessonId:'missing'}]}]) verify((await manager.api(endpoint,{...input,...patch})).status===400,'Invalid material rejected');
+  const create=await manager.api(endpoint,input);assert.equal(create.status,200,create.data);
+  let material=json(await manager.api(endpoint+'?q=Private%20exercise')).materials[0];assert.ok(material);created.push(material.id);
+  verify(material.assignments.length===2,'Material retains multi-course attachments');
+  verify(Boolean((await outsider.direct.rpc('save_admin_material',{p_input:input})).error),'Student cannot author through direct RPC');
+  const privateUrl='/api/resources/'+material.id;
+  verify((await anonymous(privateUrl)).status===401,'Material download requires login');
+  verify((await outsider.api(privateUrl)).status===404,'Material hidden from unenrolled student');
+  const download=await student.api(privateUrl);verify(download.status===200&&download.data===input.content&&download.headers.get('content-disposition').includes('.txt'),'Owner downloads stored text');
+  verify((await outsider.direct.from('resources').select('*').eq('id',material.id)).data.length===0,'Material body denied through direct JWT');
+  const edit={...input,id:material.id,revision:material.revision,title:'Updated exercise'};
+  const races=await Promise.all([manager.api(endpoint,edit),manager.api(endpoint,edit)]);
+  verify(races.map(r=>r.status).sort().join(',')==='200,409','Concurrent material edits have one winner');
+  material=json(await manager.api(endpoint+'?q=Updated%20exercise')).materials[0];
+  const invalid=await manager.api(endpoint,{...edit,revision:material.revision,assignments:[{courseSlug:slug,lessonId:'missing'}]});
+  verify(invalid.status===400&&(await admin.from('lesson_resources').select('*').eq('resource_id',material.id)).data.length===2,'Invalid attachment change rolls back without losing links');
+  verify((await manager.api(endpoint,{...edit,revision:material.revision,kind:'link',content:'https://drive.google.com/file/d/example/view'})).status===200,'Admin switches material to HTTPS link');
+  const redirect=await student.api(privateUrl);verify(redirect.status===302&&redirect.headers.get('location').includes('drive.google.com')&&redirect.headers.get('referrer-policy')==='no-referrer','Protected link redirects after access check');
+  const publicCourse=await anonymous('/api/courses/'+slug);verify(!publicCourse.data.includes('drive.google.com/file/d/example')&&!publicCourse.data.includes('private-material-body'),'Public course payload excludes material content and links');
+  const notePath=`/api/courses/${slug}/lessons/${lessonId}/notes`;
+  verify((await anonymous(notePath)).status===401,'Notes require login');
+  verify((await outsider.api(notePath)).status===403,'Notes require enrollment');
+  const empty=await student.api(notePath);assert.equal(empty.status,200,empty.data);verify(json(empty).text===''&&json(empty).revision===0,'First note starts at revision zero');
+  const firstSaves=await Promise.all([student.api(notePath,{text:'Private cloud note',revision:0}),student.api(notePath,{text:'Competing note',revision:0})]);
+  verify(firstSaves.map(r=>r.status).sort().join(',')==='200,409','Concurrent first note saves cannot overwrite each other');
+  let note=json(await student.api(notePath));
+  verify((await student.api(notePath,{text:'Saved across devices',revision:note.revision})).status===200,'Owner updates note with current revision');
+  verify((await student.api(notePath,{text:'Lost update',revision:note.revision})).status===409,'Stale note edit rejected');
+  verify((await student.api(notePath,{text:'x'.repeat(4001),revision:2})).status===400,'Note length bounded');
+  verify((await student.api(notePath,{text:'x',revision:2},{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin note save rejected');
+  await admin.from('enrollments').insert({user_id:outsider.id,course_slug:slug});
+  verify(json(await outsider.api(notePath)).revision===0&&(await outsider.direct.from('lesson_notes').select('*').eq('user_id',student.id)).data.length===0,'Other enrolled student cannot read owner notes');
+  await admin.from('enrollments').delete().eq('user_id',outsider.id).eq('course_slug',slug);
+  verify((await manager.direct.from('lesson_notes').select('*').eq('user_id',student.id)).data.length===0,'Admin normal session cannot read a student private note');
+  verify(Boolean((await student.direct.from('lesson_notes').update({text:'Forged'}).eq('user_id',student.id)).error),'Direct note writes cannot bypass revision guard');
+  verify(Boolean((await outsider.direct.rpc('save_lesson_note',{p_slug:slug,p_lesson:lessonId,p_text:'Forged',p_revision:0})).error),'Unenrolled JWT cannot call note-saving RPC');
+  await admin.auth.admin.updateUserById(student.id,{ban_duration:'24h'});
+  verify((await student.api(notePath)).status===401&&(await student.direct.from('lesson_notes').select('*')).data.length===0,'Suspension blocks notes with existing cookies and JWT');
+  await admin.auth.admin.updateUserById(student.id,{ban_duration:'none'});
+  await admin.from('courses').update({published:false}).eq('slug',slug);
+  verify((await student.api(notePath)).status===403&&(await student.api(privateUrl)).status===404,'Unpublished course denies notes and materials');
+  await admin.from('courses').update({published:true}).eq('slug',slug);
+  await admin.from('enrollments').delete().eq('user_id',student.id).eq('course_slug',slug);
+  verify((await student.api(notePath)).status===403&&(await student.direct.from('lesson_notes').select('*')).data.length===0,'Enrollment revocation hides retained note');
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:slug});
+  verify(json(await student.api(notePath)).text==='Saved across devices','Retained note returns after restored access');
+  const history=json(await manager.api('/api/admin/activity?q='+material.id+'&filter=resources'));
+  verify(history.records.some(row=>row.actor_id===manager.id&&row.action==='UPDATE'),'Content history attributes signed-in admin edit');
+  verify(history.records.every(row=>!('content' in row)&&!('before' in row)&&!JSON.stringify(row).includes('private-material-body')),'History stores field names without sensitive payloads');
+  verify((await student.direct.from('admin_activity').select('*')).data.length===0,'Student JWT cannot read admin history');
+  verify((await student.direct.from('admin_activity').delete().eq('entity','resources')).error!==null,'Student cannot delete history');
+  verify((await manager.direct.from('admin_activity').delete().eq('entity','resources')).error!==null,'Administrator JWT cannot delete history');
+  verify(Boolean((await manager.direct.from('admin_activity').insert({actor_id:manager.id,entity:'courses',target:'fake',action:'INSERT'})).error),'Admin cannot forge history rows');
+  const attachments=json(await manager.api('/api/admin/activity?q='+material.id+'&filter=lesson_resources'));
+  verify(attachments.total>0,'Attachment changes have durable history');
+  for(let index=0;index<6;index++){
+   assert.equal((await manager.api(endpoint,{...input,title:'Paging material '+index,assignments:[input.assignments[0]]})).status,200);
+  }
+  const first=json(await manager.api(endpoint+'?q=Paging&filter=text')),second=json(await manager.api(endpoint+'?q=Paging&filter=text&page=2'));
+  created.push(...first.materials.map(row=>row.id),...second.materials.map(row=>row.id));
+  verify(first.materials.length===5&&second.materials.length===1,'Search and type filters combine with five-record pagination');
+  await require('./lms-gaps-browser.cjs')({manager,student,verify,url,slug,lessonId,materialId:material.id});
+  material=json(await manager.api(endpoint+'?q=Updated%20exercise')).materials[0];
+  verify((await manager.api(endpoint,{operation:'delete',id:material.id,revision:material.revision-1})).status===409,'Stale material deletion rejected');
+  verify((await manager.api(endpoint,{operation:'delete',id:material.id,revision:material.revision})).status===200,'Current material deleted');
+  verify((await admin.from('lesson_resources').select('*').eq('resource_id',material.id)).data.length===0,'Material deletion removes attachment rows');
+ }finally{
+  await admin.from('resources').delete().in('id',created);await admin.from('courses').delete().in('slug',[slug,secondSlug]);
+ }
 };
 ```
 
@@ -41905,7 +42644,7 @@ test("Checked and unchecked native forms encode real booleans", () => {
 
 ### File: `tests/security/learning-workflows.test.ts`
 
-SHA-256: `c9a9d25a9022fa47da85ce14678ef693c04d91331835858f36631e131110bbb0`
+SHA-256: `d8e0765647c5c76b761b882bcaf6a35714937d1d9a46eaa9dcfeb07c17421eb0`
 
 ```typescript
 import { paymentStatusHint, paymentNeedsPolling } from "../../modules/features/payments/helpers/status-hint";
@@ -41977,7 +42716,7 @@ test("Live lesson preview actions return to the normal course details route", ()
   const course = fixture(); course.delivery = "live";
   const lessons = courseLessons(course), lesson = lessons[0];
   const model = lessonPlaybackModel({ course, lesson, slug: course.slug, lessons, index: 0, lessonId: lesson.id,
-    state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], enrolled: false,
+    state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], note: undefined, enrolled: false,
     previous: undefined, next: lessons[1], complete: false });
   assert.equal(model.actions.courseHref, "/courses/ordered-course");
 });
@@ -42009,6 +42748,30 @@ test('schedule validation rejects invalid calendars, unsafe links, bounds and hi
 test('combined schedule filters are bounded and deterministic',()=>{
  assert.deepEqual(readLiveQuery({q:'  demo  ',status:'active',page:'2'}),{search:'demo',status:'active',page:2});
  assert.equal(readLiveQuery({page:'-1',status:'invalid'}).page,1);
+});
+```
+
+### File: `tests/security/materials.test.ts`
+
+SHA-256: `1b58576925de5d14f8a6ab07419cf1f927a023b47f10bf73059c87a4d19099f0`
+
+```typescript
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateMaterial,validMaterialLink} from '../../modules/features/resources/validate-material';
+import {readRecordQuery,recordPageHref,recordSearchPattern} from '../../modules/helpers/read-record-query';
+const input={revision:0,title:'Lesson resources',description:'',type:'TXT',kind:'text',content:'Practice',assignments:[{courseSlug:'editing',lessonId:'lesson-one'}]};
+test('materials validate safe links, distinct attachments and bounded payloads',()=>{
+ assert.ok(validateMaterial(input));
+ for(const patch of [{revision:null},{revision:2147483648},{revision:1.5},{revision:-1},{id:'bad/id'},{title:' '},{content:'x'.repeat(2001)},{assignments:[]},{assignments:[input.assignments[0],input.assignments[0]]},{assignments:[{courseSlug:'course',lessonId:'../etc'}]},{kind:'link',content:'javascript:alert(1)'},{kind:'link',content:'https://user:pass@example.com'}]) assert.equal(validateMaterial({...input,...patch}),null);
+ assert.equal(validMaterialLink('https://drive.google.com/file/d/test/view'),true);
+ for(const url of ['http://example.com','https://user@example.com','https://example.com/space here']) assert.equal(validMaterialLink(url),false);
+});
+test('material query bounds and pagination preserve combined filters without wildcard injection',()=>{
+ assert.deepEqual(readRecordQuery({q:[' practice ','ignored'],filter:'link',page:'2'},['link','text']),{search:'practice',filter:'link',page:2});
+ assert.deepEqual(readRecordQuery({page:'Infinity',filter:'injected'},['link']),{search:'',filter:'all',page:1});
+ assert.equal(recordPageHref('/dashboard/resources',{search:'a & b',filter:'link',page:1},2),'/dashboard/resources?q=a+%26+b&filter=link&page=2');
+ assert.equal(recordSearchPattern('a%_\\b'),'%ab%');
 });
 ```
 

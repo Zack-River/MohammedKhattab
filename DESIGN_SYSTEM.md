@@ -9,7 +9,7 @@ Keep their visual language when adding pages. Do not introduce a new aesthetic, 
 
 ## Learning and payment workflow additions (2026-10-13)
 
-Student lesson navigation follows saved chapter/section order, then unassigned lessons. The same grouping helper supplies the public curriculum, learner outline and resume/next/previous calculations. Section headings and locked/preview indicators use the existing typography, muted colors and icon set. Preview visitors are directed to course details; enrolled learners retain explicit manual completion. Materials are retrieved through learner-scoped database relationships rather than static seed imports. Browser-local notes remain labelled as such.
+Student lesson navigation follows saved chapter/section order, then unassigned lessons. The same grouping helper supplies the public curriculum, learner outline and resume/next/previous calculations. Section headings and locked/preview indicators use the existing typography, muted colors and icon set. Preview visitors are directed to course details; enrolled learners retain explicit manual completion. Materials are retrieved through learner-scoped database relationships rather than static seed imports. Preview notes remain browser-local and labelled as such; enrolled learners now save private notes to their account.
 
 `/dashboard/purchases` reuses the sales filters/table/row components with customer information omitted and receipt links enabled. Search and status combine; five records per page become the existing mobile card layout. Test/live payments are explicitly distinguished. Failed/expired receipt copy does not imply payment is awaiting confirmation. Admin user subscription cards reuse the shared progress component with actual current lesson totals. Transaction tables use `data-reveal-motion="fade"` so entrance opacity changes without moving a link between pointer press and release. Default reveals retain their configured translation. No new dependency or visual theme is introduced.
 
@@ -18,6 +18,12 @@ Student lesson navigation follows saved chapter/section order, then unassigned l
 The admin Live Sessions tab reuses the dashboard shell, searchable five-record table with mobile cards, custom select/checkbox controls, form fields, save feedback, pagination and centered accessible deletion dialog. Date/time controls are paired on wide screens and stacked on phones; course/chapter/section selectors share a responsive grid. Search, status and Apply align in one row on desktop. No new library or theme values are introduced.
 
 One shared session card and schedule component serve normal course details, recorded lesson pages and the student live-session dashboard. Course and optional chapter/section labels remain distinct from the session title. Upcoming, active and ended states use existing typography, muted text and readable primary accents. Only an active enrolled session has a red joining action; upcoming and ended cards retain timing information. Entrance effects use existing reveal attributes and the table's stationary fade variant. Server-time snapshots avoid hydration differences. Policies, timing, labels, API paths and formatting helpers are centralized; presentation receives labels through props.
+
+## Materials, private notes and content history (2026-10-13)
+
+Admin materials and content history reuse the existing dashboard shell, five-record semantic tables/mobile cards, centered deletion dialog, custom select/checkbox controls and stationary fade reveals. One record-filter/pagination pair serves both admin lists and the student resource library. Material forms use the existing responsive paired fields, textarea, save feedback and scrollable lesson checkboxes. Selecting a course retains attachments chosen in other courses. New styles reference existing theme tokens.
+
+Enrolled lesson notes reuse the current dark notes panel with explicit red Save action, saved/unsaved status and conflict feedback; previews retain browser-local notes. Shared hydration gating prevents pre-hydration editing, and the component is keyed by lesson path. No new motion/player/UI dependency or visual direction is introduced. History displays actual timestamps and human/system actor labels without invented metrics.
 
 ## Shared foundation
 

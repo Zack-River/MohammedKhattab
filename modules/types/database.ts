@@ -1,4 +1,3 @@
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -61,6 +60,20 @@ export type Database = {
                   }
                   Update: {
                     "field"?: string,"id"?: never,"reviewer_id"?: string | null,"user_id"?: string,"value"?: string,"verified_at"?: string
+                  }
+                  Relationships: [
+
+                  ]
+                },"admin_activity": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"changed_fields": (string)[],"created_at": string,"entity": string,"id": number,"target": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"changed_fields"?: (string)[],"created_at"?: string,"entity": string,"id"?: never,"target": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"changed_fields"?: (string)[],"created_at"?: string,"entity"?: string,"id"?: never,"target"?: string
                   }
                   Relationships: [
 
@@ -191,6 +204,26 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "courses"
       referencedColumns: ["slug"]
+    }
+                  ]
+                },"lesson_notes": {
+                  Row: {
+                    "course_slug": string,"lesson_id": string,"revision": number,"text": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"lesson_id": string,"revision"?: number,"text"?: string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "course_slug"?: string,"lesson_id"?: string,"revision"?: number,"text"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lesson_notes_course_slug_lesson_id_fkey"
+      columns: ["course_slug","lesson_id"]
+isOneToOne: false
+      referencedRelation: "lessons"
+      referencedColumns: ["course_slug","id"]
     }
                   ]
                 },"lesson_progress": {
@@ -379,14 +412,14 @@ isOneToOne: false
                   ]
                 },"resources": {
                   Row: {
-                    "content": string,"description": string,"id": string,"title": string,"type": string
+                    "content": string,"created_at": string,"description": string,"id": string,"kind": string,"revision": number,"title": string,"type": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content": string,"description": string,"id": string,"title": string,"type": string
+                    "content": string,"created_at"?: string,"description": string,"id": string,"kind"?: string,"revision"?: number,"title": string,"type": string,"updated_at"?: string
                   }
                   Update: {
-                    "content"?: string,"description"?: string,"id"?: string,"title"?: string,"type"?: string
+                    "content"?: string,"created_at"?: string,"description"?: string,"id"?: string,"kind"?: string,"revision"?: number,"title"?: string,"type"?: string,"updated_at"?: string
                   }
                   Relationships: [
 
@@ -456,6 +489,9 @@ isOneToOne: true
 "delete_admin_course":
 { Args: { "p_slug": string }; Returns: undefined
                            },
+"delete_admin_material":
+{ Args: { "p_id": string,"p_revision": number }; Returns: boolean
+                           },
 "delete_commerce_record":
 { Args: { "p_key": string,"p_kind": string,"p_revision": number }; Returns: undefined
                            },
@@ -480,11 +516,17 @@ isOneToOne: true
 "save_admin_curriculum":
 { Args: { "p_deleted_id"?: string,"p_lesson"?: Json,"p_modules": Json,"p_revision": number,"p_slug": string }; Returns: undefined
                            },
+"save_admin_material":
+{ Args: { "p_input": Json }; Returns: string
+                           },
 "save_commerce_bundle":
 { Args: { "p_input": Json }; Returns: undefined
                            },
 "save_commerce_discount":
 { Args: { "p_input": Json,"p_kind": string }; Returns: undefined
+                           },
+"save_lesson_note":
+{ Args: { "p_lesson": string,"p_revision": number,"p_slug": string,"p_text": string }; Returns: number
                            },
 "save_live_session":
 { Args: { "p_input": Json }; Returns: string

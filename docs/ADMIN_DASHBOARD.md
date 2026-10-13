@@ -2,9 +2,13 @@
 
 ## Routes and shared UI
 
-- `/admin/dashboard`: administrator-only Users tab, paginated five accounts at a time, including phones.
-- `/admin/dashboard/users/[id]`: administrator-only account details and actual course subscriptions. No public `/users` profile pages.
+- `/admin/dashboard`: administrator-only analytics home.
+- `/admin/dashboard/users`: Users tab, paginated five accounts at a time, including phones.
+- `/admin/dashboard/users/[username]`: administrator-only account details and actual course subscriptions. No public `/users` profile pages.
 - `/admin/dashboard/courses` and `/admin/dashboard/courses/[slug]`: existing database-backed course and media editor.
+- `/admin/dashboard/resources`: material authoring and lesson assignments.
+- `/admin/dashboard/activity`: immutable content/role history. See [materials, notes and history](LESSON_MATERIALS_NOTES_HISTORY.md).
+- `/admin/dashboard/live-sessions`: scheduling with protected joining windows.
 - Previous `/dashboard/admin/courses` URLs redirect to the new editor.
 
 The existing dashboard shell, form/buttons, font and theme are reused. User presentation receives typed label props; account data, moderation configuration, validation and server repositories remain separate. `modules/styles/admin.css` uses canonical theme tokens.
