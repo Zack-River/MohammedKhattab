@@ -1,7 +1,7 @@
 # Current checkpoint — Remove homepage clients section (2026-10-13)
 
 - Removed the clients header, creator marquee and reel grid from the Ta3allam homepage model only. Shared components and other page models remain available. Homepage navigation contains no clients anchor.
-- Lint and production build (including TypeScript) passed. Live deployment verification follows the push.
+- Lint and production build (including TypeScript) passed. Commit `22ef60e19a529d86157ca01b1a65c9df2ad17794` pushed; Vercel reported success. Live HTTP verification on https://ta3allam.vercel.app/ confirms the clients section, marquee and reel grid are absent while course and instructor sections remain. Source snapshot and secret scan also passed.
 
 ---
 
