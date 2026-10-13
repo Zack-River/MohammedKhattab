@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: `/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
       ...legacyLearningNamespaces.flatMap((namespace) => [
         { source: `/${namespace}/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
         { source: `/${namespace}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },

@@ -83,6 +83,9 @@ async function run() {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
   }
+  if (process.env.BACKEND_SUITE === 'public-navigation') {
+    await require('./public-navigation.cjs')({admin,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'course-details') {
     await require('./course-details.cjs')({admin,provision,anonymous,verify,url});return;
   }

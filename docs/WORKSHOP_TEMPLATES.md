@@ -21,3 +21,5 @@ Run `BACKEND_SUITE=workshop-template npm run backend:test` with isolated local S
 Run `BACKEND_SUITE=featured-products npm run backend:test` for real offer identity/deadline, bundle template permissions, optimistic conflicts, responsive editing/rendering, one navbar/footer, expiration, future/undated offers, unfeatured/draft-member visibility and correct checkout links.
 
 Public catalog and founder links open `/courses/[slug]` or `/bundles/[slug]`, including featured products. Use the direct `/featured/[slug]` URL (bundles add `?kind=bundle`) in advertisements. The private admin editor retains its featured preview link.
+
+Canonical `/courses/[slug]` URLs must not appear as redirect sources in Next configuration. Legacy aliases alone redirect to course details. Public-navigation acceptance checks both link destinations and the final rendered page, including the seven-day workshop.

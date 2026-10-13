@@ -1,3 +1,9 @@
+# Current checkpoint — Remove course redirect interception (2026-10-13)
+
+- Found the remaining redirect layer in `next.config.ts`: `/courses/7days-freelance` was intercepted before its page. Live HTTP verification reproduced a 308 response pointing to the same URL. Removed that obsolete canonical-course rule; only legacy aliases redirect to course details.
+- Added actual public-navigation browser acceptance across home, catalog, founder and bundles at 390/1440px. All public pages have no featured navigation; home/catalog/founder clicks land on normal course details. Direct featured advertising links remain usable. All 16 checks passed using isolated local data, with fixture cleanup and no hosted writes or payments.
+- Added a regression guard preventing self-redirects, canonical course interception and featured destinations in public redirects. All 52 helper/security checks and architecture (826 production files / zero violations) passed. Lint and production build/TypeScript passed. Reproduction snapshot refreshed and verified (996 files), secret scan passed (1,806 files / zero violations), and diff checks passed; live availability depends on Vercel deployment.
+
 # Current checkpoint — Promotional links stay separate (2026-10-13)
 
 - Public course title/image links now always open `/courses/[slug]`, regardless of featured status. Founder workshop links also open normal course details. Bundle listing titles open `/bundles/[slug]`.

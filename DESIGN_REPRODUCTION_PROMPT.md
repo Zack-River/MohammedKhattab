@@ -22931,7 +22931,7 @@ export type TemplateValue = string | number | boolean | null | TemplateValue[] |
 
 ### File: `next.config.ts`
 
-SHA-256: `ceb0d3fffb14360114be4b02ced7cf27675fb9ec3bb8c0460104c0cd3fd67056`
+SHA-256: `b9962aea07f47e7cd9c75899884fc8f04174e3f54d90a0bb4b98010d621e5824`
 
 ```typescript
 import { securityHeaders } from "./modules/lib/security/headers";
@@ -22947,7 +22947,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: `/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
-      { source: `/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
       ...legacyLearningNamespaces.flatMap((namespace) => [
         { source: `/${namespace}/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
         { source: `/${namespace}/courses/${workshopCourseConfig.slug}`, destination: projectRoutes.workshop, permanent: true },
@@ -35332,7 +35331,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `ccac4159e770e188418945a88b6ff6049a5a7d48259c867d94abf08c5f457493`
+SHA-256: `d6fb081c0e253c049c63858fabcff86069fdb0af5594272ebf2b66ff96dcea93`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -35419,6 +35418,9 @@ async function run() {
   if (process.env.BACKEND_SUITE === 'course-price') {
     await require('./course-price.cjs')({admin,provision,verify,url});
     return;
+  }
+  if (process.env.BACKEND_SUITE === 'public-navigation') {
+    await require('./public-navigation.cjs')({admin,anonymous,verify,url});return;
   }
   if (process.env.BACKEND_SUITE === 'course-details') {
     await require('./course-details.cjs')({admin,provision,anonymous,verify,url});return;
@@ -36098,6 +36100,46 @@ module.exports=async function checks({admin,provision,anonymous,verify,url}) {
     }
     verify(errors.length===0,'Settings and phone queue have no runtime errors');
   } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/public-navigation.cjs`
+
+SHA-256: `441ebd7a28583ad85baca604b4e7edab62162142fd80de77cad8a6504461a8d0`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Actual public links and redirect destinations, isolated local catalog fixture. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto'),{chromium,expect}=require('@playwright/test');
+module.exports=async({admin,anonymous,verify,url})=>{
+ const slug='navigation-'+randomUUID(),source=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata;
+ assert.ok(!(await admin.from('courses').insert({slug,metadata:{...source,slug,featured:true,title:'Public navigation fixture'},amount:499,published:true,position:0})).error);
+ const browser=await chromium.launch(),page=await browser.newPage({reducedMotion:'reduce'});
+ try{
+  const response=await anonymous('/courses/7days-freelance');
+  verify(response.status===200&&!response.headers.get('location')&&response.data.includes('lms-course-details-page'),'Canonical seven-day course renders without redirect interception');
+  for(const width of [390,1440]){
+   await page.setViewportSize({width,height:900});
+   for(const path of ['/','/courses','/founder','/bundles']){
+    await page.goto(url+path);await page.waitForLoadState('networkidle');
+    verify(await page.locator('a[href^="/featured/"]').count()===0,`${path} has no advertising navigation at ${width}`);
+   }
+   await page.goto(url+'/');
+   const homeLink=page.locator('.lms-course-card .lms-card-title a').first(),homeHref=await homeLink.getAttribute('href');
+   assert.match(homeHref,/^\/courses\/[a-z0-9-]+$/);await homeLink.click();
+   await expect(page).toHaveURL(url+homeHref);await expect(page.locator('.lms-course-details-page')).toBeVisible();
+   verify(true,'Home course opens normal details at '+width);
+   await page.goto(url+'/courses?q=Public%20navigation%20fixture');
+   const course=page.locator('.lms-course-card').filter({has:page.getByRole('heading',{name:'Public navigation fixture',exact:true})});
+   await course.locator('a[href="/courses/'+slug+'"]').first().click();
+   await expect(page).toHaveURL(url+'/courses/'+slug);await expect(page.locator('.lms-course-details-page')).toBeVisible();
+   verify(true,'Catalog featured course opens normal details at '+width);
+   await page.goto(url+'/founder');await page.locator('a.personal-course[href="/courses/7days-freelance"]').click();
+   await expect(page).toHaveURL(url+'/courses/7days-freelance');await expect(page.locator('.lms-course-details-page')).toBeVisible();
+   verify(true,'Founder workshop opens normal details at '+width);
+  }
+  await page.goto(url+'/featured/'+slug);await expect(page.locator('.hero-section')).toBeVisible();
+  verify(true,'Direct advertising link remains available');
+ }finally{await browser.close();await admin.from('courses').delete().eq('slug',slug);}
 };
 ```
 
@@ -41155,6 +41197,28 @@ module.exports = async function paymentLocks({ connectionString, user, slug, ord
     assert.equal(settlementError?.code, undefined, 'Settlement must not deadlock against checkout');
   } finally { await a.query('rollback'); await a.end(); await b.end(); }
 };
+```
+
+### File: `tests/security/public-navigation.test.ts`
+
+SHA-256: `a85c3792430d12ee375b3804cc664463c7d3681a0f6360a787916513e24fa409`
+
+```typescript
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import config from "../../next.config";
+import { projectRoutes } from "../../config/project-navigation";
+import { personalPortfolio } from "../../config/personal-portfolio-model";
+test("Public redirects cannot intercept normal course details or send navigation to advertising pages", async () => {
+  const redirects = await config.redirects!();
+  for (const rule of redirects) {
+    assert.notEqual(rule.source, rule.destination, `Self redirect: ${rule.source}`);
+    assert.ok(!rule.source.startsWith("/courses/"), `Canonical course route intercepted: ${rule.source}`);
+    assert.ok(!rule.destination.startsWith("/featured/"), `Public redirect targets advertising: ${rule.source}`);
+  }
+  assert.equal(projectRoutes.workshop, "/courses/7days-freelance");
+  assert.ok(personalPortfolio.courses.items.some(item => item.href === projectRoutes.workshop));
+});
 ```
 
 ### File: `tests/security/request-guards.test.ts`
