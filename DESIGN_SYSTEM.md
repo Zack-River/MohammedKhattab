@@ -401,3 +401,5 @@ Certificates use a landscape 1200 × 850 vector document with embedded local IBM
 ## Complimentary access controls (2026-10-13)
 
 The administrator user page adds course/bundle gifts through the existing centered, scrollable dialog. Product and duration selectors use shared custom selects; custom whole days use the standard text input; private reasons and saving/conflict feedback reuse existing controls. Subscription cards display lifetime, expiry with Cairo date/time or expired status using existing text styles. There is no new palette, spacing role or dependency.
+
+The complimentary-access content selector also offers **كل الدورات والباقات**. Selecting it hides the individual product selector and retains the shared duration/reason fields. The existing hint explains current published catalog coverage and exclusion of future publications. No new styles, theme tokens or dependencies are added.

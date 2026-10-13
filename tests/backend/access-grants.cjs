@@ -59,6 +59,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   const replay=await admin.rpc('settle_course_payment',{p_order:order.id,p_intent:order.provider_intent_key,p_transaction:transaction,p_amount:order.amount_minor,p_currency:order.currency});verify(!replay.error&&(await admin.from('enrollments').select('revision').eq('user_id',expired.id).single()).data.revision===paid.revision,'Payment replay does not rewrite access again');
   assert.equal((await manager.api(expiredEndpoint,{courseSlug:slugs[0],action:'revoke',revision:paid.revision,reason:'Payment replay revocation check'})).status,200);
   assert.ok(!(await admin.rpc('settle_course_payment',{p_order:order.id,p_intent:order.provider_intent_key,p_transaction:transaction,p_amount:order.amount_minor,p_currency:order.currency})).error);verify(!(await admin.from('enrollments').select('active').eq('user_id',expired.id).single()).data.active,'Payment replay cannot bypass revoked access');
+  await require('./access-catalog.cjs')({admin,manager,provision,verify,source});
   await require('./access-grants-browser.cjs')({admin,manager,student,outsider,slugs,bundle,endpoint,verify,url});
  } finally {if(expiredBuyer)await admin.from('payment_orders').delete().eq('user_id',expiredBuyer);await admin.from('certificates').delete().eq('user_id',student.id);if(material)await admin.from('resources').delete().eq('id',material);await admin.from('commerce_bundles').delete().eq('slug',bundle);await admin.from('courses').delete().in('slug',slugs);}
 };

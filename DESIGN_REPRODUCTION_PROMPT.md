@@ -5443,7 +5443,7 @@ export default function AccessDurationFields({duration,onChange,labels}:{duratio
 
 ### File: `modules/components/admin/access-grant-form.tsx`
 
-SHA-256: `2a96c5bf00c145d03ab67e796b5646ca59a3ebff240e07a7a3a565eca21138fd`
+SHA-256: `e3b5067f9058bb32170bee1b25f97a6f5621a0d21710b3da40fd37a38b2b6a36`
 
 ```tsx
 "use client";
@@ -5465,11 +5465,11 @@ export default function AccessGrantForm({userId,courses,bundles,subscriptions,la
  const submit=(form:HTMLFormElement)=>{const grant=readAccessGrantForm(new FormData(form),choices,subscriptions);setInvalid(!grant);if(grant) void command.save({action:"grant",...grant}).then(saved=>{if(saved) onClose();});};
  return <AdminDialog title={labels.freeAccess} closeLabel={labels.cancel} pending={command.pending} onClose={onClose}><form className="lms-profile-form" onSubmit={event=>{event.preventDefault();submit(event.currentTarget);}}>
  <fieldset disabled={command.pending}>
-  <Select name="kind" label={labels.productType} value={kind} onValueChange={value=>{setKind(value);setSlug("");}} options={[{value:"course",label:labels.course},{value:"bundle",label:labels.bundle}]}/>
-  <Select name="product" label={kind==="bundle"?labels.bundle:labels.course} value={slug} onValueChange={setSlug} placeholder={labels.choose} required options={choices.map(choice=>({value:choice.slug,label:choice.title}))}/>
+  <Select name="kind" label={labels.productType} value={kind} onValueChange={value=>{setKind(value);setSlug("");}} options={[{value:"course",label:labels.course},{value:"bundle",label:labels.bundle},{value:"all",label:labels.all}]}/>
+  {kind!=="all"&&<Select name="product" label={kind==="bundle"?labels.bundle:labels.course} value={slug} onValueChange={setSlug} placeholder={labels.choose} required options={choices.map(choice=>({value:choice.slug,label:choice.title}))}/>}
   <AccessDurationFields {...{duration,labels}} onChange={setDuration}/>
   <TextareaField label={labels.reason} hint={labels.reasonHint} name="reason" required maxLength={enrollmentPolicy.reasonMax} rows={3}/>
- </fieldset><p className="lms-field-hint">{labels.grantHint}</p>
+ </fieldset><p className="lms-field-hint">{kind==="all"?labels.allHint:labels.grantHint}</p>
  <SaveFeedback {...command} error={invalid?labels.error:command.error} labels={labels}/>
  </form></AdminDialog>;
 }
@@ -10823,10 +10823,10 @@ export const dashboardShellContent = {
 
 ### File: `modules/config/enrollment.ts`
 
-SHA-256: `12e0b758b5b92b30200c4466f4bcd3de6e9ce78b2aa99b27979100c560588871`
+SHA-256: `8137353065d192e4c35541724d66c104b1d0fcdd55026dbe77091b7e4f256b69`
 
 ```typescript
-export const enrollmentPolicy = { reasonMax: 500, actions: ["grant", "revoke", "restore"], historyLimit: 5, maxDays:3650 } as const;
+export const enrollmentPolicy = { reasonMax: 500, actions: ["grant", "revoke", "restore"], historyLimit: 5, maxDays:3650, revisionsMaxBytes:12000 } as const;
 export const accessDurations=[{value:"lifetime",label:"مدى الحياة"},{value:"1",label:"يوم واحد"},{value:"7",label:"أسبوع"},{value:"30",label:"٣٠ يومًا"},{value:"365",label:"سنة"},{value:"custom",label:"مدة مخصصة بالأيام"}] as const;
 ```
 
@@ -11793,7 +11793,7 @@ export const curriculumCopy = {
 
 ### File: `modules/data/enrollment.ts`
 
-SHA-256: `0ad924b9622e3aeb13a67a832b6cdb84d1139cab09099f5287dcb79b373fb861`
+SHA-256: `31fbb9b8f48d8d50c42ecdbbbae86aa87b4359ebc01712aabf4a838cd67808cd`
 
 ```typescript
 export const enrollmentCopy = {
@@ -11802,7 +11802,7 @@ export const enrollmentCopy = {
  hint: "إيقاف الوصول يحتفظ بتقدّم الطالب وملاحظاته. لا ينفّذ استردادًا ماليًا.",
  save: "تأكيد التغيير", saving: "جارٍ الحفظ…", saved: "تم تحديث الاشتراك", cancel: "إلغاء", error: "تعذّر تحديث الاشتراك.",
  history: "آخر تغييرات الاشتراكات", actor: "بواسطة", system: "النظام", empty: "لا توجد تغييرات إدارية بعد.",
- freeAccess:"منح وصول مجاني", productType:"نوع المحتوى", bundle:"الباقة", duration:"مدة الوصول", days:"عدد الأيام", lifetime:"وصول مدى الحياة", expires:"الوصول حتى", expired:"انتهت مدة الوصول", grantHint:"لا تُنشأ فاتورة أو عملية دفع. يحتفظ الطالب بتقدّمه عند انتهاء المدة. الباقة تشمل دوراتها الحالية، ولا تُقصّر صلاحية وصول موجودة. يلزم تأكيد البريد والهاتف.",
+ all:"كل الدورات والباقات", allHint:"يشمل جميع الدورات المنشورة حاليًا، بما فيها دورات الباقات، بنفس المدة المختارة. لا يشمل المحتوى الذي يُنشر لاحقًا. لا تُنشأ عملية دفع، ولا يُقصّر وصول موجود. يلزم تأكيد البريد والهاتف.", freeAccess:"منح وصول مجاني", productType:"نوع المحتوى", bundle:"الباقة", duration:"مدة الوصول", days:"عدد الأيام", lifetime:"وصول مدى الحياة", expires:"الوصول حتى", expired:"انتهت مدة الوصول", grantHint:"لا تُنشأ فاتورة أو عملية دفع. يحتفظ الطالب بتقدّمه عند انتهاء المدة. الباقة تشمل دوراتها الحالية، ولا تُقصّر صلاحية وصول موجودة. يلزم تأكيد البريد والهاتف.",
 } as const;
 ```
 
@@ -12964,18 +12964,19 @@ export async function readEnrollmentHistory(userId: string): Promise<EnrollmentE
 
 ### File: `modules/features/admin/enrollments/validate-grant.ts`
 
-SHA-256: `32ccbb80ab37e918a4126f5ea5824f9ee64bc67a78d6737a93d076d0c3f82bc2`
+SHA-256: `7af44bca721d48e1153ea1db9b8199fe41802c27fd130282af35766602635570`
 
 ```typescript
 import {validRecordRevision} from "@platform/helpers/valid-record-revision";
 import {enrollmentPolicy} from "@platform/config/enrollment";
+import {commercePolicy} from "@platform/config/commerce";
 import type {AccessGrant} from "@platform/types/access-grant";
 const slug=(value:unknown):value is string=>typeof value==="string"&&value.length<=100&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 export function validateAccessGrant(value:unknown):AccessGrant|null {
  if(!value||typeof value!=="object") return null;
  const v=value as Record<string,unknown>,r=v.revisions;
- if(v.action!=="grant"||(v.kind!=="course"&&v.kind!=="bundle")||!slug(v.slug)||typeof v.reason!=="string"||!v.reason.trim()||v.reason.length>enrollmentPolicy.reasonMax||!r||typeof r!=="object"||Array.isArray(r)) return null;
- const entries=Object.entries(r);if(!entries.length||entries.length>20||entries.some(([key,revision])=>!slug(key)||!validRecordRevision(revision,false))) return null;
+ if(v.action!=="grant"||(v.kind!=="course"&&v.kind!=="bundle"&&v.kind!=="all")||!slug(v.slug)||typeof v.reason!=="string"||!v.reason.trim()||v.reason.length>enrollmentPolicy.reasonMax||!r||typeof r!=="object"||Array.isArray(r)) return null;
+ const entries=Object.entries(r);if((v.kind==="all"?v.slug!=="all"||JSON.stringify(r).length>enrollmentPolicy.revisionsMaxBytes:!entries.length||entries.length>commercePolicy.maxCourses)||entries.some(([key,revision])=>!slug(key)||!validRecordRevision(revision,false))) return null;
  if(v.expiresAt!==null&&(typeof v.expiresAt!=="string"||!/^\d{4}-\d{2}-\d{2}T/.test(v.expiresAt)||!Number.isFinite(Date.parse(v.expiresAt))||Date.parse(v.expiresAt)<=Date.now()||Date.parse(v.expiresAt)>Date.now()+enrollmentPolicy.maxDays*86400000)) return null;
  return {kind:v.kind,slug:v.slug,reason:v.reason.trim(),expiresAt:v.expiresAt as string|null,revisions:Object.fromEntries(entries)};
 }
@@ -18092,16 +18093,17 @@ export function materialFormInput(form:FormData,assignments:MaterialAssignment[]
 
 ### File: `modules/helpers/access-grant-form.ts`
 
-SHA-256: `995504ef7464794cfa1893132818401f4bed7bf9dec8c03c4a9b3db039dd3991`
+SHA-256: `626c72f14d9a9e68158f8e01e044bdb1d2de99f7547387e0b2e6a7bcc5b22354`
 
 ```typescript
 import {enrollmentPolicy} from "@platform/config/enrollment";
 import type {AccessChoice,AccessGrant} from "@platform/types/access-grant";
 export function readAccessGrantForm(form:FormData,choices:AccessChoice[],subscriptions:{slug:string;revision:number}[],now=Date.now()):AccessGrant|null {
- const kind=form.get("kind"),slug=String(form.get("product")??""),choice=choices.find(row=>row.slug===slug),duration=form.get("duration");
+ const kind=form.get("kind"),slug=kind==="all"?"all":String(form.get("product")??""),choice=choices.find(row=>row.slug===slug),duration=form.get("duration");
  const days=duration==="custom"?Number(form.get("days")):Number(duration);
- if((kind!=="course"&&kind!=="bundle")||!choice||!choice.courseSlugs.length||(duration!=="lifetime"&&(!Number.isInteger(days)||days<1||days>enrollmentPolicy.maxDays))) return null;
- return {kind,slug,expiresAt:duration==="lifetime"?null:new Date(now+days*86400000).toISOString(),reason:String(form.get("reason")??""),revisions:Object.fromEntries(choice.courseSlugs.map(slug=>[slug,subscriptions.find(row=>row.slug===slug)?.revision??0]))};
+ if((kind!=="course"&&kind!=="bundle"&&kind!=="all")||(kind!=="all"&&(!choice||!choice.courseSlugs.length))||(duration!=="lifetime"&&(!Number.isInteger(days)||days<1||days>enrollmentPolicy.maxDays))) return null;
+ const revisions=new Map(subscriptions.map(row=>[row.slug,row.revision]));
+ return {kind,slug,expiresAt:duration==="lifetime"?null:new Date(now+days*86400000).toISOString(),reason:String(form.get("reason")??""),revisions:Object.fromEntries((kind==="all"?subscriptions.map(row=>row.slug):choice!.courseSlugs).map(slug=>[slug,revisions.get(slug)??0]))};
 }
 ```
 
@@ -23897,10 +23899,10 @@ SHA-256: `5bb23c6c81e66a7ed934e1e6e9b7da65cfdde511a6d4966c1d5789374dce5d9e`
 
 ### File: `modules/types/access-grant.ts`
 
-SHA-256: `002c99941d162355903f19e56e7b513ee25c4c73607ae89c1258602f2b300077`
+SHA-256: `ded5243c947c8f604b326e35be4996bd75760485a5effe143300772a83469161`
 
 ```typescript
-export type AccessGrant = {kind:"course"|"bundle";slug:string;expiresAt:string|null;reason:string;revisions:Record<string,number>};
+export type AccessGrant = {kind:"course"|"bundle"|"all";slug:string;expiresAt:string|null;reason:string;revisions:Record<string,number>};
 export type AccessChoice = {slug:string;title:string;courseSlugs:string[]};
 ```
 
@@ -35660,9 +35662,46 @@ for (const failure of ["network", "malformed"]) test(`login displays an Arabic r
 });
 ```
 
+### File: `tests/backend/access-catalog.cjs`
+
+SHA-256: `66be40cd99deb4793d0e669b6b5b51b8074570f1a76dd30c6d7c5c68eea829d2`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local catalog access fixtures only. */
+const assert=require('node:assert/strict');
+module.exports=async({admin,manager,provision,verify,source})=>{
+ const learner=await provision('Catalog Access Learner'),prefix='catalog-'+require('node:crypto').randomUUID().slice(0,8),slugs=Array.from({length:24},(_,i)=>prefix+'-'+i),draft=prefix+'-draft',future=prefix+'-future';
+ const endpoint=`/api/admin/users/${learner.id}/enrollments`,until=new Date(Date.now()+86400000).toISOString();
+ const body={action:'grant',kind:'all',slug:'all',expiresAt:until,reason:'Current catalog access test',revisions:{}};
+ const rows=async()=>(await admin.from('enrollments').select('*').eq('user_id',learner.id)).data;
+ try{
+  assert.ok(!(await admin.from('courses').insert([...slugs,draft].map(slug=>({...source,slug,published:slug!==draft,metadata:{...source.metadata,slug,title:slug}})))).error);
+  const published=(await admin.from('courses').select('slug').eq('published',true)).data;
+  const result=await manager.api(endpoint,body);verify(result.status===200,'All-catalog option supports more than twenty courses');
+  let entries=await rows();verify(entries.length===published.length&&entries.every(e=>Date.parse(e.access_expires_at)===Date.parse(until)),'Catalog grants every current published course with the selected duration');
+  verify(!entries.some(e=>e.course_slug===draft),'Catalog excludes unpublished drafts');
+  verify((await admin.from('payment_orders').select('id').eq('user_id',learner.id)).data.length===0,'Catalog grants create no payment order');
+  verify((await manager.api(endpoint,{...body,expiresAt:null})).status===409,'Stale catalog snapshots cannot overwrite existing access');
+  verify((await rows()).every(e=>Date.parse(e.access_expires_at)===Date.parse(until)),'Catalog conflict rolls back every change');
+  assert.ok(!(await admin.from('courses').insert({...source,slug:future,published:true,metadata:{...source.metadata,slug:future}})).error);
+  verify(!(await rows()).some(e=>e.course_slug===future),'Later publications are not silently included in an earlier grant');
+  await admin.from('enrollments').update({active:false}).eq('user_id',learner.id).eq('course_slug',slugs[23]);
+  let revisions=Object.fromEntries(entries.map(e=>[e.course_slug,e.revision]));
+  verify((await manager.api(endpoint,{...body,expiresAt:null,revisions})).status===409,'Catalog grants respect explicitly revoked access');
+  entries=await rows();verify(entries.every(e=>Date.parse(e.access_expires_at)===Date.parse(until))&&!entries.some(e=>e.course_slug===future),'Revoked catalog member atomically rolls back inserts and renewals');
+  await admin.from('enrollments').update({active:true,access_expires_at:null,access_origin:'standard'}).eq('user_id',learner.id).eq('course_slug',slugs[23]);
+  verify((await manager.api(endpoint,{...body,expiresAt:null,revisions})).status===200,'Catalog can be renewed to lifetime with fresh revisions');
+  entries=await rows();verify(entries.length===published.length+1&&entries.every(e=>e.access_expires_at===null),'Lifetime catalog grant covers current catalog and preserves existing lifetime access');
+  verify(entries.find(e=>e.course_slug===slugs[23]).access_origin==='standard','Catalog grant preserves paid/standard access origin');
+  revisions=Object.fromEntries(entries.map(e=>[e.course_slug,e.revision]));
+  verify((await manager.api(endpoint,{...body,revisions})).status===200&&(await rows()).every(e=>e.access_expires_at===null),'Timed catalog grants never shorten lifetime subscriptions');
+ }finally{await admin.from('courses').delete().in('slug',[...slugs,draft,future]);}
+};
+```
+
 ### File: `tests/backend/access-grants-browser.cjs`
 
-SHA-256: `c2e8446c8274cefecccaec88b2e02037f97998d9cf7cdcf7a55ba991843f71b5`
+SHA-256: `85345415becc5e9af058e01d20a91cd0945b88926144e77f971eebff55b85674`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Real responsive administrator grant flows. */
@@ -35688,6 +35727,11 @@ module.exports=async({admin,manager,outsider,slugs,bundle,verify,url})=>{
   await dialog.getByRole('combobox',{name:'الباقة',exact:true}).click();await page.getByRole('option',{name:'Access test bundle',exact:true}).click();await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser lifetime bundle grant');
   await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(page.locator('.lms-resource-card')).toHaveCount(3);
   const rows=(await admin.from('enrollments').select('access_expires_at').eq('user_id',outsider.id).in('course_slug',slugs)).data;verify(rows.length===3&&rows.every(r=>r.access_expires_at===null),'Browser bundle grant extends all temporary members to lifetime');
+  await page.getByRole('button',{name:'منح وصول مجاني',exact:true}).click();await dialog.getByRole('combobox',{name:'نوع المحتوى',exact:true}).click();await page.getByRole('option',{name:'كل الدورات والباقات',exact:true}).click();
+  verify(await dialog.getByRole('combobox').count()===2,'All-catalog selection hides the individual product selector');
+  await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser lifetime catalog grant');await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const published=(await admin.from('courses').select('slug').eq('published',true)).data,catalog=(await admin.from('enrollments').select('course_slug,access_expires_at').eq('user_id',outsider.id)).data;
+  verify(catalog.length===published.length&&catalog.every(r=>r.access_expires_at===null),'Browser all-catalog submission grants lifetime access to every published course');
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/khatab-access-grants-mobile.png',fullPage:true,caret:'initial'});verify(errors.length===0,'Free-access flow has no browser runtime errors');
  }finally{await browser.close();}
 };
@@ -35695,7 +35739,7 @@ module.exports=async({admin,manager,outsider,slugs,bundle,verify,url})=>{
 
 ### File: `tests/backend/access-grants.cjs`
 
-SHA-256: `0dc54293084e0332bf98f546396b6622ceab412387e2a0af4b32b76a6b5f33ff`
+SHA-256: `e4648e77ab6b24c21d1fd6a0885a6bdabac28cb77779cb375189a5e8eff77a07`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated duration, bundle and access-boundary tests. */
@@ -35759,6 +35803,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   const replay=await admin.rpc('settle_course_payment',{p_order:order.id,p_intent:order.provider_intent_key,p_transaction:transaction,p_amount:order.amount_minor,p_currency:order.currency});verify(!replay.error&&(await admin.from('enrollments').select('revision').eq('user_id',expired.id).single()).data.revision===paid.revision,'Payment replay does not rewrite access again');
   assert.equal((await manager.api(expiredEndpoint,{courseSlug:slugs[0],action:'revoke',revision:paid.revision,reason:'Payment replay revocation check'})).status,200);
   assert.ok(!(await admin.rpc('settle_course_payment',{p_order:order.id,p_intent:order.provider_intent_key,p_transaction:transaction,p_amount:order.amount_minor,p_currency:order.currency})).error);verify(!(await admin.from('enrollments').select('active').eq('user_id',expired.id).single()).data.active,'Payment replay cannot bypass revoked access');
+  await require('./access-catalog.cjs')({admin,manager,provision,verify,source});
   await require('./access-grants-browser.cjs')({admin,manager,student,outsider,slugs,bundle,endpoint,verify,url});
  } finally {if(expiredBuyer)await admin.from('payment_orders').delete().eq('user_id',expiredBuyer);await admin.from('certificates').delete().eq('user_id',student.id);if(material)await admin.from('resources').delete().eq('id',material);await admin.from('commerce_bundles').delete().eq('slug',bundle);await admin.from('courses').delete().in('slug',slugs);}
 };
@@ -43833,7 +43878,7 @@ test("reduced motion and JavaScript-free visits keep all content visible", async
 
 ### File: `tests/security/access-grant.test.ts`
 
-SHA-256: `fb377b33507e76f5393a40517d9580b9558cfb8b12c76ff4158d402cd8d7ef27`
+SHA-256: `b41d93f6b64c2595d642a79d18f1b01d5e193b17ae84d0421b0856c5c626c205`
 
 ```typescript
 import assert from "node:assert/strict";
@@ -43855,6 +43900,18 @@ test("Grant forms snapshot only selected bundle members and compute custom days"
 test("Lifetime form has no artificial expiry",()=>{
  const form=new FormData();form.set("kind","course");form.set("product","course-one");form.set("duration","lifetime");
  assert.equal(readAccessGrantForm(form,[{slug:"course-one",title:"Course",courseSlugs:["course-one"]}],[])?.expiresAt,null);
+});
+
+test("All-catalog forms use existing revision snapshots without requiring a product",()=>{
+ const form=new FormData();form.set("kind","all");form.set("duration","lifetime");form.set("reason","Catalog grant");
+ const grant=readAccessGrantForm(form,[],[{slug:"course-one",revision:3}]);
+ assert.deepEqual(grant,{kind:"all",slug:"all",expiresAt:null,reason:"Catalog grant",revisions:{"course-one":3}});
+ assert.ok(validateAccessGrant({...grant,action:"grant"}));
+ assert.ok(validateAccessGrant({...grant,action:"grant",revisions:{}}));
+ assert.equal(validateAccessGrant({...grant,action:"grant",slug:"other"}),null);
+ const revisions=Object.fromEntries(Array.from({length:24},(_,i)=>["course-"+i,1]));
+ assert.ok(validateAccessGrant({...grant,action:"grant",revisions}));
+ assert.equal(validateAccessGrant({...grant,action:"grant",kind:"bundle",revisions}),null);
 });
 ```
 

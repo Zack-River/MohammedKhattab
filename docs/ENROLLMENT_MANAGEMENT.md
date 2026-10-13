@@ -30,7 +30,7 @@ Run `BACKEND_SUITE=enrollments npm run backend:test` against the isolated local 
 
 ## Free course and bundle access (2026-10-13)
 
-On an administrator's private user page, choose **منح وصول مجاني**. Select a course or enabled bundle, then lifetime, one day, one week, 30 days, 365 days or custom whole days (1–3,650). Supply a private reason and save. Expiry is stored as an absolute timestamp and displayed with Cairo date/time on the subscription card. Expired access can be renewed or extended to lifetime using the same dialog. Existing explicit revocation must be restored separately before a gift can extend access.
+On an administrator's private user page, choose **منح وصول مجاني**. Select a course, enabled bundle or **كل الدورات والباقات** (all courses and bundles), then lifetime, one day, one week, 30 days, 365 days or custom whole days (1–3,650). Supply a private reason and save. Expiry is stored as an absolute timestamp and displayed with Cairo date/time on the subscription card. Expired access can be renewed or extended to lifetime using the same dialog. Existing explicit revocation must be restored separately before a gift can extend access.
 
 A bundle grant is one atomic transaction covering its current published course members. A revoked member or stale revision rolls back the whole operation. Existing paid/lifetime access is preserved; a shorter gift does not shorten a longer grant. Future bundle membership changes do not rewrite previous gifts; grant the updated bundle explicitly if needed. Disabled bundles or unpublished members cannot be granted through this flow. New grants retain the existing email/phone verification requirement.
 
@@ -54,3 +54,11 @@ The existing administrative enrollment endpoint also accepts:
 `kind` is `course` or `bundle`; `expiresAt: null` means lifetime. Timed grants use a future ISO timestamp within the permitted duration. `revisions` snapshots the existing revision for each member (zero for a missing enrollment). The signed-in administrator calls guarded `grant_enrollment_access`; its private per-course helper has no public execute permission. Client inserts cannot set origin or expiry, and clients cannot extend grants through direct writes. Existing revoke/restore requests remain compatible.
 
 Migration: `20261013151301_admin_access_duration.sql`. New focused suite: `BACKEND_SUITE=access-grants npm run backend:test`. All gateway interactions in that suite use the isolated local mock and never charge money.
+
+## All courses and bundles
+
+Choose **كل الدورات والباقات** in the same dialog. No individual product selector is required. The grant snapshots every currently published course, including the courses contained in bundles, and applies the selected lifetime or duration once per course. Drafts and future publications are excluded. Bundles are course collections; no duplicate subscription or bundle payment is created. Reapply explicitly to include later publications.
+
+The same endpoint accepts `kind: "all"`, `slug: "all"`, the chosen `expiresAt`, a private reason and existing enrollment revisions. A student with no subscriptions uses `revisions: {}`. Missing members expect revision zero; an existing membership missing from a stale snapshot causes a conflict. Unlike the per-bundle limit of 20 members, this option resolves the full published catalog inside the guarded transaction. Revision data is bounded to 12,000 bytes and requests retain their existing ingress size limit. Existing lifetime/paid access, contact verification, revocation and atomic rollback rules are unchanged. Each changed course has its own audit entry.
+
+Migration: `20261013160045_admin_catalog_access.sql`. The access-grants suite includes a catalog larger than 20 courses, draft/future exclusion, timed/lifetime renewal, preservation of paid access, stale/revoked rollback and a real browser catalog submission.

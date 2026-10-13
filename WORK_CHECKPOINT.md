@@ -1,3 +1,12 @@
+# Current checkpoint — All courses and bundles access (2026-10-13)
+
+- Added **كل الدورات والباقات** to the existing complimentary-access dialog with the same lifetime, preset and custom-day controls. This hides the individual product selector and explains current published catalog coverage. Grants include bundle member courses once each, exclude drafts and later publications, and create no payment records.
+- Extended the guarded grant RPC to resolve all published courses in one transaction, supporting catalogs larger than 20 courses. Existing enrollment revisions prevent stale overwrites; revoked members roll back the entire grant. Existing paid, lifetime and longer access remains intact. No new dependency, environment variable, page or parallel access store was added.
+- **209 local checks passed:** 75 duration/bundle/catalog/API/RLS/browser/mock-payment checks, 61 existing enrollment checks and 73 helper/security tests. Catalog tests include 24 extra published courses, draft/future exclusion, timed/lifetime renewal, paid-origin preservation, stale/revoked atomic rollback and real browser submission. Existing responsive checks cover 320/390/1440px. No production grant or charge was submitted.
+- Migration `20261013160045_admin_catalog_access.sql` applied locally and hosted. Both database advisors report no issues; full shadow replay has no schema differences. Architecture check: 937 production files, zero violations. Lint, TypeScript/production build, source snapshot (1,128 files), secret scan (1,951 files / zero violations) and diff checks passed. Release verification is in progress.
+
+---
+
 # Current checkpoint — Complimentary timed and lifetime access (2026-10-13)
 
 - Extended the private admin user page with a reusable free-access dialog for courses or enabled bundles: lifetime, 1/7/30/365 days and custom whole days (1–3,650). Existing custom selectors, form fields, reason controls and centered responsive dialog are reused. Subscription cards show lifetime or exact Cairo expiry and expired status; history retains actor/reason, duration and bundle identifier.

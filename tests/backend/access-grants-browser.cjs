@@ -21,6 +21,11 @@ module.exports=async({admin,manager,outsider,slugs,bundle,verify,url})=>{
   await dialog.getByRole('combobox',{name:'الباقة',exact:true}).click();await page.getByRole('option',{name:'Access test bundle',exact:true}).click();await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser lifetime bundle grant');
   await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(page.locator('.lms-resource-card')).toHaveCount(3);
   const rows=(await admin.from('enrollments').select('access_expires_at').eq('user_id',outsider.id).in('course_slug',slugs)).data;verify(rows.length===3&&rows.every(r=>r.access_expires_at===null),'Browser bundle grant extends all temporary members to lifetime');
+  await page.getByRole('button',{name:'منح وصول مجاني',exact:true}).click();await dialog.getByRole('combobox',{name:'نوع المحتوى',exact:true}).click();await page.getByRole('option',{name:'كل الدورات والباقات',exact:true}).click();
+  verify(await dialog.getByRole('combobox').count()===2,'All-catalog selection hides the individual product selector');
+  await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser lifetime catalog grant');await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const published=(await admin.from('courses').select('slug').eq('published',true)).data,catalog=(await admin.from('enrollments').select('course_slug,access_expires_at').eq('user_id',outsider.id)).data;
+  verify(catalog.length===published.length&&catalog.every(r=>r.access_expires_at===null),'Browser all-catalog submission grants lifetime access to every published course');
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/khatab-access-grants-mobile.png',fullPage:true,caret:'initial'});verify(errors.length===0,'Free-access flow has no browser runtime errors');
  }finally{await browser.close();}
 };

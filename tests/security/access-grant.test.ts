@@ -18,3 +18,15 @@ test("Lifetime form has no artificial expiry",()=>{
  const form=new FormData();form.set("kind","course");form.set("product","course-one");form.set("duration","lifetime");
  assert.equal(readAccessGrantForm(form,[{slug:"course-one",title:"Course",courseSlugs:["course-one"]}],[])?.expiresAt,null);
 });
+
+test("All-catalog forms use existing revision snapshots without requiring a product",()=>{
+ const form=new FormData();form.set("kind","all");form.set("duration","lifetime");form.set("reason","Catalog grant");
+ const grant=readAccessGrantForm(form,[],[{slug:"course-one",revision:3}]);
+ assert.deepEqual(grant,{kind:"all",slug:"all",expiresAt:null,reason:"Catalog grant",revisions:{"course-one":3}});
+ assert.ok(validateAccessGrant({...grant,action:"grant"}));
+ assert.ok(validateAccessGrant({...grant,action:"grant",revisions:{}}));
+ assert.equal(validateAccessGrant({...grant,action:"grant",slug:"other"}),null);
+ const revisions=Object.fromEntries(Array.from({length:24},(_,i)=>["course-"+i,1]));
+ assert.ok(validateAccessGrant({...grant,action:"grant",revisions}));
+ assert.equal(validateAccessGrant({...grant,action:"grant",kind:"bundle",revisions}),null);
+});

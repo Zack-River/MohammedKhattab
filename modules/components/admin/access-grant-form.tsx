@@ -17,11 +17,11 @@ export default function AccessGrantForm({userId,courses,bundles,subscriptions,la
  const submit=(form:HTMLFormElement)=>{const grant=readAccessGrantForm(new FormData(form),choices,subscriptions);setInvalid(!grant);if(grant) void command.save({action:"grant",...grant}).then(saved=>{if(saved) onClose();});};
  return <AdminDialog title={labels.freeAccess} closeLabel={labels.cancel} pending={command.pending} onClose={onClose}><form className="lms-profile-form" onSubmit={event=>{event.preventDefault();submit(event.currentTarget);}}>
  <fieldset disabled={command.pending}>
-  <Select name="kind" label={labels.productType} value={kind} onValueChange={value=>{setKind(value);setSlug("");}} options={[{value:"course",label:labels.course},{value:"bundle",label:labels.bundle}]}/>
-  <Select name="product" label={kind==="bundle"?labels.bundle:labels.course} value={slug} onValueChange={setSlug} placeholder={labels.choose} required options={choices.map(choice=>({value:choice.slug,label:choice.title}))}/>
+  <Select name="kind" label={labels.productType} value={kind} onValueChange={value=>{setKind(value);setSlug("");}} options={[{value:"course",label:labels.course},{value:"bundle",label:labels.bundle},{value:"all",label:labels.all}]}/>
+  {kind!=="all"&&<Select name="product" label={kind==="bundle"?labels.bundle:labels.course} value={slug} onValueChange={setSlug} placeholder={labels.choose} required options={choices.map(choice=>({value:choice.slug,label:choice.title}))}/>}
   <AccessDurationFields {...{duration,labels}} onChange={setDuration}/>
   <TextareaField label={labels.reason} hint={labels.reasonHint} name="reason" required maxLength={enrollmentPolicy.reasonMax} rows={3}/>
- </fieldset><p className="lms-field-hint">{labels.grantHint}</p>
+ </fieldset><p className="lms-field-hint">{kind==="all"?labels.allHint:labels.grantHint}</p>
  <SaveFeedback {...command} error={invalid?labels.error:command.error} labels={labels}/>
  </form></AdminDialog>;
 }
