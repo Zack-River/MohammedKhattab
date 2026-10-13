@@ -58,6 +58,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'enrollments') {
+    await require('./enrollments.cjs')({admin,provision,anonymous,verify,url,config});return;
+  }
   if (process.env.BACKEND_SUITE === 'lms-gaps') {
     await require('./lms-gaps.cjs')({admin,provision,anonymous,verify,url});return;
   }

@@ -93,3 +93,5 @@ Dashboard access is enforced before rendering in the session proxy and authentic
 Public `/users/[username]` pages are deferred. Account details remain private under `/dashboard/profile`. Recorded and live courses link to `/courses/[slug]`. Featured advertising pages are available by direct `/featured/[slug]` links.
 
 Administrator user-management routes, moderation and authorization details are documented in [ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).
+
+Course access administration is documented in [Enrollment management](docs/ENROLLMENT_MANAGEMENT.md).

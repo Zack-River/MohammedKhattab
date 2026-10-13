@@ -6,7 +6,7 @@ import { publicCourse } from "@platform/features/catalog/helpers/public-course";
 export async function readUserSubscriptions(id: string) {
   await requireAdmin();
   const client = createAuthAdministrator();
-  const enrollments = await client.from("enrollments").select("course_slug,created_at").eq("user_id", id).order("created_at", { ascending: false });
+  const enrollments = await client.from("enrollments").select("course_slug,created_at,active,revision").eq("user_id", id).order("created_at", { ascending: false });
   if (enrollments.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!enrollments.data.length) return [];
   const progress = await client.from("lesson_progress").select("course_slug,lesson_id").eq("user_id", id).eq("completed", true);
@@ -19,6 +19,6 @@ export async function readUserSubscriptions(id: string) {
     if (!record) return [];
     const course = publicCourse(record.metadata, record.slug, record.amount);
     const { count, total, percent } = courseProgress(course, { completed });
-    return [{ count, total, percent, slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at }];
+    return [{ count, total, percent, slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at, active: row.active, revision: row.revision }];
   });
 }

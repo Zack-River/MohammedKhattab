@@ -25,6 +25,10 @@ Admin materials and content history reuse the existing dashboard shell, five-rec
 
 Enrolled lesson notes reuse the current dark notes panel with explicit red Save action, saved/unsaved status and conflict feedback; previews retain browser-local notes. Shared hydration gating prevents pre-hydration editing, and the component is keyed by lesson path. No new motion/player/UI dependency or visual direction is introduced. History displays actual timestamps and human/system actor labels without invented metrics.
 
+## Manual enrollment management (2026-10-13)
+
+The private admin user page composes the existing subscription cards/progress bar with grant, revoke and restore actions. Forms reuse the centered accessible admin dialog, custom select, textarea, save feedback and existing account spacing. Enrollment actions share the hydration gate so reload-time clicks cannot precede their handlers. Required reasons are private to administrators. Active/revoked labels remain textual rather than relying on color. The latest five history entries use full-width themed cards with wrapping text and stationary fade reveals. Payment receipts reuse the existing text-link style for support when access is revoked. No new palette, motion library or dependency is introduced.
+
 ## Shared foundation
 
 `packages/design-system/styles/theme.css` owns the canonical colors, typography, spacing, radii, layout widths and motion roles. `app/styles/theme.css` remains the workshop entry point and imports that source; `modules/styles/theme.css` imports it before explicit LMS deltas. Both references share `#101317` backgrounds, `#FC3522` accents, IBM Plex Sans Arabic, Arabic RTL typography, dark cards, restrained borders, and red primary actions. Fonts and assets are local.

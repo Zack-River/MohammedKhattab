@@ -1,3 +1,4 @@
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -186,16 +187,36 @@ isOneToOne: false
                   Relationships: [
 
                   ]
-                },"enrollments": {
+                },"enrollment_events": {
                   Row: {
-                    "course_slug": string,"created_at": string,"user_id": string
+                    "action": string,"actor_id": string | null,"course_slug": string,"created_at": string,"id": number,"reason": string,"revision": number,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "course_slug": string,"created_at"?: string,"user_id": string
+                    "action": string,"actor_id"?: string | null,"course_slug": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number,"user_id": string
                   }
                   Update: {
-                    "course_slug"?: string,"created_at"?: string,"user_id"?: string
+                    "action"?: string,"actor_id"?: string | null,"course_slug"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "enrollment_events_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
+                },"enrollments": {
+                  Row: {
+                    "active": boolean,"course_slug": string,"created_at": string,"revision": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"course_slug": string,"created_at"?: string,"revision"?: number,"user_id": string
+                  }
+                  Update: {
+                    "active"?: boolean,"course_slug"?: string,"created_at"?: string,"revision"?: number,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -500,6 +521,9 @@ isOneToOne: true
                            },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
+                           },
+"manage_enrollment":
+{ Args: { "p_action": string,"p_reason": string,"p_revision": number,"p_slug": string,"p_user": string }; Returns: undefined
                            },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json

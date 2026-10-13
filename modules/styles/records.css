@@ -6,3 +6,5 @@
 .lms-notes .btn-primary { justify-self: start; font-size: var(--font-size-body); }
 @media (max-width: 768px) { .lms-record-filters { grid-template-columns: minmax(0,1fr); } }
 .lms-record-filters > .lms-admin-search { display: grid; gap: var(--space-sm); font-weight: var(--font-weight-action); }
+
+.lms-enrollment-event { max-width: none; overflow-wrap: anywhere; }

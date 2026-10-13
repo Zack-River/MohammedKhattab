@@ -12,7 +12,7 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
   const refresh = () =>
     command.run(async () => setOrder(await paymentRequest<Receipt>(endpoints.paymentReconcile(order.id))));
   useEffect(() => {
-    if (!paymentNeedsPolling(initial.status, initial.enrolled)) return;
+    if (!paymentNeedsPolling(initial.status, initial.enrolled, initial.accessRevoked)) return;
     let stopped = false,
       attempts = 0,
       timer: ReturnType<typeof setTimeout>;
@@ -38,6 +38,6 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [initial.id, initial.status, initial.enrolled]);
+  }, [initial.id, initial.status, initial.enrolled, initial.accessRevoked]);
   return { order, refresh, pending: command.pending, error: command.error };
 }

@@ -5,7 +5,7 @@ import type {SavedLessonNote} from "@platform/types/materials";
 export async function readLessonNote(slug:string,lessonId:string):Promise<SavedLessonNote> {
  const {client,user}=await requireIdentity();
  const [access,note]=await Promise.all([
-  client.from("lessons").select("id,courses!inner(published,enrollments!inner(user_id))").eq("course_slug",slug).eq("id",lessonId).eq("courses.enrollments.user_id",user.id).eq("courses.published",true).maybeSingle(),
+  client.from("lessons").select("id,courses!inner(published,enrollments!inner(user_id))").eq("course_slug",slug).eq("id",lessonId).eq("courses.enrollments.user_id",user.id).eq("courses.enrollments.active",true).eq("courses.published",true).maybeSingle(),
   client.from("lesson_notes").select("text,revision").eq("user_id",user.id).eq("course_slug",slug).eq("lesson_id",lessonId).maybeSingle(),
  ]);
  if(access.error||note.error) throw new ApiError(503,"INTERNAL_ERROR");

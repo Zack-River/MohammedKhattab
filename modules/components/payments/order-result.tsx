@@ -11,12 +11,14 @@ export default function OrderResult({
   libraryHref,
   retryHref,
   settingsHref,
+  supportHref,
 }: {
   initial: Awaited<ReturnType<typeof readPaymentReceipt>>;
   labels: typeof paymentCopy;
   libraryHref: string;
   retryHref: string;
   settingsHref: string;
+  supportHref: string;
 }) {
   const { order, refresh, pending, error } = usePaymentStatus(initial, labels.error);
   return (
@@ -27,7 +29,7 @@ export default function OrderResult({
         {order.amount} {labels.currency}
       </strong>
       <p>{paymentStatusHint(order, labels)}</p>
-      {order.status === "paid" && order.enrolled ? (
+      {order.accessRevoked ? <Link className="lms-text-link" href={supportHref}>{labels.support}</Link> : order.status === "paid" && order.enrolled ? (
         <Link className="btn-primary" href={libraryHref}>
           {labels.course}
         </Link>

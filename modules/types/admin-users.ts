@@ -9,7 +9,7 @@ export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: bool
 export interface AdminUserQuery {
   page: number; search: string; searchMode: typeof userSearchModes[number]; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
 }
-export interface UserSubscription { count: number; total: number; percent: number; slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
+export interface UserSubscription { count: number; total: number; percent: number; slug: string; title: string; enrolledAt: string; active: boolean; revision: number; delivery: "recorded" | "live"; }
 
 import type { adminUsersCopy } from "@platform/data/admin-users";
 export type AdminUsersLabels = { [K in keyof typeof adminUsersCopy]: string };

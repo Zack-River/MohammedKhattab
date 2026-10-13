@@ -1,4 +1,6 @@
 export const backendCopy: Record<string, string> = {
+  ENROLLMENT_CONFLICT: "تغيّر الاشتراك منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
+  ENROLLMENT_REVOKED: "أوقفت الإدارة الوصول إلى هذه الدورة. تواصل مع الدعم.",
   COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
   REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
   REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",

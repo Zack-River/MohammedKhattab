@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { currentIdentity } from "@platform/features/auth/server/identity";
 import { readPaymentOrder, readPaymentReceipt } from "@platform/features/payments/repositories/read-order";
 import { ApiError } from "@platform/lib/api/error";
+import {creatorContacts} from "@/config/creator-contacts";
 import OrderResult from "@platform/components/payments/order-result";
 import { paymentCopy as labels } from "@platform/data/payment-copy";
 import { routes } from "@platform/config/navigation";
@@ -26,6 +27,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ orderI
           libraryHref={routes.library}
           retryHref={order.bundle_slug ? routes.bundleCheckout(order.bundle_slug) : routes.checkout(order.course_slug!)}
           settingsHref={routes.settings}
+          supportHref={creatorContacts.whatsapp}
         />
       </div>
     </main>

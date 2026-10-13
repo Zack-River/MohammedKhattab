@@ -407,13 +407,14 @@ export default function LoginPage() { return <AuthPage model={authPages.login} /
 
 ### File: `app/(public)/payments/[orderId]/page.tsx`
 
-SHA-256: `4bc00bfbcadaf59613952ff648232c86000a9a60b2851465d0d26750d7a87c90`
+SHA-256: `6d2c259b0218d6e374cb5cbd568cf8092c1440f109047cd91156d9594f8b1a17`
 
 ```tsx
 import { redirect, notFound } from "next/navigation";
 import { currentIdentity } from "@platform/features/auth/server/identity";
 import { readPaymentOrder, readPaymentReceipt } from "@platform/features/payments/repositories/read-order";
 import { ApiError } from "@platform/lib/api/error";
+import {creatorContacts} from "@/config/creator-contacts";
 import OrderResult from "@platform/components/payments/order-result";
 import { paymentCopy as labels } from "@platform/data/payment-copy";
 import { routes } from "@platform/config/navigation";
@@ -438,6 +439,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ orderI
           libraryHref={routes.library}
           retryHref={order.bundle_slug ? routes.bundleCheckout(order.bundle_slug) : routes.checkout(order.course_slug!)}
           settingsHref={routes.settings}
+          supportHref={creatorContacts.whatsapp}
         />
       </div>
     </main>
@@ -851,7 +853,7 @@ export default async function SettingsPage() { await requireAdminPage(); return 
 
 ### File: `app/admin/dashboard/users/[username]/page.tsx`
 
-SHA-256: `4e29a4fe5c2817412aa3a75a1edceb368e637cde7a620c509afdba20d1aafd73`
+SHA-256: `e07130eaee5b5557fc3433c93939bca7a446b35ad3cd529189de3a8055b016b6`
 
 ```tsx
 import AdminContactVerification from "@platform/components/account/admin-contact-verification";
@@ -862,7 +864,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PageHeading from "@platform/components/ui/page-heading";
 import UserDetails from "@platform/components/admin/user-details";
-import UserSubscriptions from "@platform/components/admin/user-subscriptions";
+import EnrollmentManager from "@platform/components/admin/enrollment-manager";
+import EnrollmentHistory from "@platform/components/admin/enrollment-history";
+import {adminCourseTitles} from "@platform/features/admin/repositories/course-titles";
+import {readEnrollmentHistory} from "@platform/features/admin/enrollments/repository";
+import {enrollmentCopy} from "@platform/data/enrollment";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readUserSubscriptions } from "@platform/features/admin/repositories/user-subscriptions";
 import { resolveAdminUser } from "@platform/features/admin/repositories/user-handle";
@@ -874,11 +880,11 @@ export default async function AdminUserPage({ params }: { params: Promise<{ user
   const { username } = await params;
   const user = await resolveAdminUser(username).catch(error => { if (error instanceof ApiError && error.status === 404) notFound(); throw error; });
   if (username !== user.username) redirect(routes.adminUser(user.username));
-  const subscriptions = await readUserSubscriptions(user.id);
-  const contact = await readUserContacts(user.id);
+  const [subscriptions,contact,courses,events] = await Promise.all([readUserSubscriptions(user.id),readUserContacts(user.id),adminCourseTitles(),readEnrollmentHistory(user.id)]);
   return <><PageHeading title={user.name}><Link className="lms-text-link" href={routes.adminUsers}>{labels.back}</Link></PageHeading>
     <UserDetails labels={labels} user={user} /><AdminContactVerification userId={user.id} email={contact.pending_email ?? contact.email} phone={displayPhoneNumber(contact.phone_e164)} phoneValue={contact.phone_e164} emailVerified={Boolean(contact.email_verified_at && !contact.pending_email)} phoneVerified={Boolean(contact.phone_verified_at)} labels={accountCopy} />
-    <UserSubscriptions labels={labels} subscriptions={subscriptions} />
+    <EnrollmentManager userId={user.id} userLabels={labels} labels={enrollmentCopy} {...{subscriptions,courses}} />
+    <EnrollmentHistory {...{events,courses}} labels={enrollmentCopy}/>
   </>;
 }
 ```
@@ -1085,6 +1091,17 @@ SHA-256: `c1dca8c4ce0b4e12c5ed5ffaac8f5a9b9009b59dfbc1b645d53da2dc78ef1d94`
 ```typescript
 import { handleSales } from "@platform/features/commerce/handle-sales";
 export const GET=handleSales;
+```
+
+### File: `app/api/admin/users/[id]/enrollments/route.ts`
+
+SHA-256: `e5166790ead9ac1d3d8dc700bef4afb10e95a5f7de5a3a8693c051ead18e1902`
+
+```typescript
+import {handleEnrollmentChange} from "@platform/features/admin/enrollments/handler";
+export async function POST(request:Request,context:{params:Promise<{id:string}>}) {
+ return handleEnrollmentChange(request,(await context.params).id);
+}
 ```
 
 ### File: `app/api/admin/users/[id]/route.ts`
@@ -6070,6 +6087,72 @@ export default function SectionGroup({ context, chapterId, group }: { context: C
 }
 ```
 
+### File: `modules/components/admin/enrollment-form.tsx`
+
+SHA-256: `b3a74620c712a822d75259bd8800fce357ea6479f434344a1a1cfaf4fe131f5f`
+
+```tsx
+"use client";
+import {useState} from "react";
+import Select from "@khatab/design/ui/select";
+import TextareaField from "@platform/components/ui/textarea-field";
+import AdminDialog from "./admin-dialog";
+import SaveFeedback from "./save-feedback";
+import {useAdminSave} from "@platform/hooks/use-admin-save";
+import {endpoints} from "@platform/config/navigation";
+import {enrollmentPolicy} from "@platform/config/enrollment";
+import type {EnrollmentChange,EnrollmentLabels} from "@platform/types/enrollment";
+export default function EnrollmentForm({userId,initial,courses,labels,onClose}:{userId:string;initial:Omit<EnrollmentChange,"reason">;courses:{slug:string;title:string}[];labels:EnrollmentLabels;onClose:()=>void}) {
+ const command=useAdminSave(endpoints.adminEnrollments(userId),labels.error),[slug,setSlug]=useState(initial.courseSlug);
+ return <AdminDialog title={labels[initial.action]} closeLabel={labels.cancel} pending={command.pending} onClose={onClose}><form className="lms-profile-form" onSubmit={event=>{event.preventDefault();const reason=String(new FormData(event.currentTarget).get("reason") ?? "");void command.save({...initial,courseSlug:slug,reason}).then(saved=>{if(saved) onClose();});}}>
+  <fieldset disabled={command.pending}>
+   {initial.action==="grant" ? <Select name="course" label={labels.course} value={slug} onValueChange={setSlug} required placeholder={labels.choose} options={courses.map(course=>({value:course.slug,label:course.title}))}/> : <p>{courses.find(course=>course.slug===slug)?.title ?? slug}</p>}
+   <TextareaField label={labels.reason} hint={labels.reasonHint} name="reason" required maxLength={enrollmentPolicy.reasonMax} rows={4}/>
+  </fieldset><p>{labels.hint}</p><SaveFeedback {...command} labels={labels}/>
+ </form></AdminDialog>;
+}
+```
+
+### File: `modules/components/admin/enrollment-history.tsx`
+
+SHA-256: `624013e202c59df9bd797ed2a5d0a4f35ee3e0fae7c1f05f4c4036d40a6c1642`
+
+```tsx
+import PageHeading from "@platform/components/ui/page-heading";
+import {formatActivityDate} from "@platform/helpers/format-activity-date";
+import type {EnrollmentEvent,EnrollmentLabels} from "@platform/types/enrollment";
+export default function EnrollmentHistory({events,courses,labels}:{events:EnrollmentEvent[];courses:{slug:string;title:string}[];labels:EnrollmentLabels}) {
+ return <section className="lms-account-stack"><PageHeading level={2} title={labels.history}/>
+  {events.map(event=><article key={event.id} className="lms-profile-card lms-enrollment-event" data-reveal data-reveal-motion="fade"><h3>{labels[event.action]} · {courses.find(course=>course.slug===event.course_slug)?.title ?? event.course_slug}</h3><p>{event.reason}</p><p>{labels.actor}: {event.actor || labels.system}</p><time dateTime={event.created_at}>{formatActivityDate(event.created_at)}</time></article>)}
+  {!events.length&&<p>{labels.empty}</p>}
+ </section>;
+}
+```
+
+### File: `modules/components/admin/enrollment-manager.tsx`
+
+SHA-256: `522fe3eba87d7c59100c770d992cb3eed168e854aeaf958aa27ad7cb26032894`
+
+```tsx
+"use client";
+import {useHydrated} from "@khatab/design/hooks/use-hydrated";
+import {useState} from "react";
+import UserSubscriptions from "./user-subscriptions";
+import EnrollmentForm from "./enrollment-form";
+import type {EnrollmentChange,EnrollmentLabels} from "@platform/types/enrollment";
+import type {UserSubscription,AdminUsersLabels} from "@platform/types/admin-users";
+export default function EnrollmentManager({userId,subscriptions,courses,labels,userLabels}:{userId:string;subscriptions:UserSubscription[];courses:{slug:string;title:string}[];labels:EnrollmentLabels;userLabels:AdminUsersLabels}) {
+ const hydrated=useHydrated();
+ const [change,setChange]=useState<Omit<EnrollmentChange,"reason">>();
+ const available=courses.filter(course=>!subscriptions.some(row=>row.slug===course.slug));
+ return <div className="lms-account-stack">
+  <div className="lms-admin-actions"><button type="button" className="btn-primary" disabled={!hydrated || !available.length} onClick={()=>setChange({action:"grant",courseSlug:"",revision:0})}>{labels.grant}</button></div>
+  <UserSubscriptions subscriptions={subscriptions} labels={userLabels} renderAction={course=><><p>{course.active ? labels.active : labels.revoked}</p><button type="button" className="lms-text-link" disabled={!hydrated} onClick={()=>setChange({courseSlug:course.slug,revision:course.revision,action:course.active ? "revoke" : "restore"})}>{course.active ? labels.revoke : labels.restore}</button></>}/>
+  {change&&<EnrollmentForm initial={change} {...{userId,labels}} courses={change.action==="grant" ? available : courses} onClose={()=>setChange(undefined)}/>}
+ </div>;
+}
+```
+
 ### File: `modules/components/admin/featured-layout-field.tsx`
 
 SHA-256: `2780255da087fa3004d774e8e207e66b0393685471670fdb8503e4f64572b231`
@@ -6469,21 +6552,22 @@ export default function UserStatus({ user, labels }: { user: AdminUser; labels: 
 
 ### File: `modules/components/admin/user-subscriptions.tsx`
 
-SHA-256: `e873227a10a8a09c4b4f1b54b0cd56fa2f1a828d23cb5856fdb9a20fd2669845`
+SHA-256: `fb29bdadb9e9ae9d02aa0438bf9b5382dd56c8dbf2ca158833a0acf1dd0b51c0`
 
 ```tsx
+import type { ReactNode } from "react";
 import ProgressBar from "@platform/components/ui/progress-bar";
 import Link from "next/link";
 import PageHeading from "@platform/components/ui/page-heading";
 import { routes } from "@platform/config/navigation";
 import type { AdminUsersLabels } from "@platform/types/admin-users";
 import type { UserSubscription } from "@platform/types/admin-users";
-export default function UserSubscriptions({ subscriptions, labels }: { subscriptions: UserSubscription[]; labels: AdminUsersLabels }) {
+export default function UserSubscriptions({ subscriptions, labels, renderAction }: { subscriptions: UserSubscription[]; labels: AdminUsersLabels; renderAction?: (course:UserSubscription)=>ReactNode }) {
   return <><PageHeading level={2} title={labels.subscriptions} /><div className="lms-resource-grid">
-    {subscriptions.map(course => <section className="lms-resource-card" key={course.slug}>
+    {subscriptions.map(course => <section className="lms-resource-card" data-reveal data-reveal-motion="fade" key={course.slug}>
       <h2><Link href={routes.course(course.slug, course.delivery)} className="lms-text-link">{course.title}</Link></h2>
       {course.total > 0 && <ProgressBar percent={course.percent} count={course.count} total={course.total} copy={{ progress: labels.progress, lessons: labels.lessons }} />}
-      <time dateTime={course.enrolledAt}>{course.enrolledAt.slice(0, 10)}</time>
+      <time dateTime={course.enrolledAt}>{course.enrolledAt.slice(0, 10)}</time>{renderAction?.(course)}
     </section>)}{!subscriptions.length && <p>{labels.noSubscriptions}</p>}
   </div></>;
 }
@@ -9226,7 +9310,7 @@ export default function CheckoutButton({
 
 ### File: `modules/components/payments/order-result.tsx`
 
-SHA-256: `a792f68bdb17d203f52b14185b33f2de77d85e245d66d8b840dda5d9f2bae403`
+SHA-256: `e4443392d190847aec80c071c0509d1f4ecdcb6f43631e2c2bb04229262a51b7`
 
 ```tsx
 "use client";
@@ -9242,12 +9326,14 @@ export default function OrderResult({
   libraryHref,
   retryHref,
   settingsHref,
+  supportHref,
 }: {
   initial: Awaited<ReturnType<typeof readPaymentReceipt>>;
   labels: typeof paymentCopy;
   libraryHref: string;
   retryHref: string;
   settingsHref: string;
+  supportHref: string;
 }) {
   const { order, refresh, pending, error } = usePaymentStatus(initial, labels.error);
   return (
@@ -9258,7 +9344,7 @@ export default function OrderResult({
         {order.amount} {labels.currency}
       </strong>
       <p>{paymentStatusHint(order, labels)}</p>
-      {order.status === "paid" && order.enrolled ? (
+      {order.accessRevoked ? <Link className="lms-text-link" href={supportHref}>{labels.support}</Link> : order.status === "paid" && order.enrolled ? (
         <Link className="btn-primary" href={libraryHref}>
           {labels.course}
         </Link>
@@ -10436,6 +10522,14 @@ export const dashboardShellContent = {
 };
 ```
 
+### File: `modules/config/enrollment.ts`
+
+SHA-256: `619ccfb2aab55de6b339d7b639f4aa3d30d1be61a9097f55cfa5f5815d0938cb`
+
+```typescript
+export const enrollmentPolicy = { reasonMax: 500, actions: ["grant", "revoke", "restore"], historyLimit: 5 } as const;
+```
+
 ### File: `modules/config/image-upload.ts`
 
 SHA-256: `ded6e106e418c288e35906a236cbf8a4ce0e345606c51314285a48e0e7767138`
@@ -10476,7 +10570,7 @@ export const activityEntities = ["courses","lessons","resources","lesson_resourc
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `8d3d72b4b45c80696a4fdaba216964653be18f6ffe53b0a637f73e645675c23b`
+SHA-256: `c17f88a6a6e81f39ee9a6977789dc99739fb0780cb3ab2706b72f91a9d85afb6`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -10573,6 +10667,7 @@ export const endpoints = {
   adminSales: "/api/admin/sales",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
+  adminEnrollments: (id: string) => `/api/admin/users/${segment(id)}/enrollments`,
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
@@ -10862,10 +10957,12 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `e9c4566b8cfe80911befbb8dc9b47c239e9990c06d48c9a9c4072e18c77139af`
+SHA-256: `f04200f70160402fbdf40127d1648b4957313ddd3ff7b6662d5baf9434e7d64e`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  ENROLLMENT_CONFLICT: "تغيّر الاشتراك منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
+  ENROLLMENT_REVOKED: "أوقفت الإدارة الوصول إلى هذه الدورة. تواصل مع الدعم.",
   COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
   REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
   REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",
@@ -11359,6 +11456,20 @@ export const curriculumCopy = {
 } as const;
 ```
 
+### File: `modules/data/enrollment.ts`
+
+SHA-256: `c304027308f1f73135bfe2116f8df9f0db058565987f6e29c0c3bd3b641dd34c`
+
+```typescript
+export const enrollmentCopy = {
+ grant: "إضافة اشتراك", revoke: "إيقاف الوصول", restore: "استعادة الاشتراك", active: "اشتراك نشط", revoked: "الوصول موقوف",
+ course: "الدورة", choose: "اختر الدورة", reason: "سبب التغيير", reasonHint: "يظهر السبب للمديرين فقط. لا تكتب كلمات مرور أو بيانات حساسة.",
+ hint: "إيقاف الوصول يحتفظ بتقدّم الطالب وملاحظاته. لا ينفّذ استردادًا ماليًا.",
+ save: "تأكيد التغيير", saving: "جارٍ الحفظ…", saved: "تم تحديث الاشتراك", cancel: "إلغاء", error: "تعذّر تحديث الاشتراك.",
+ history: "آخر تغييرات الاشتراكات", actor: "بواسطة", system: "النظام", empty: "لا توجد تغييرات إدارية بعد.",
+} as const;
+```
+
 ### File: `modules/data/image-upload.ts`
 
 SHA-256: `722d1ee10a90c6c3cd0a4ca6aa74aaca0ec68da9429f4ed86446db29ad981e81`
@@ -11552,10 +11663,11 @@ export const offerCopy = {
 
 ### File: `modules/data/payment-copy.ts`
 
-SHA-256: `b948ca21f81f9e4531af0b93abacfbaf7026491fb68f2d5235e95dd54a170e3a`
+SHA-256: `ce94dba9ce263a23d34233401fd7d178f3e08d2fe8bdc0e2087fe4f5fb69d524`
 
 ```typescript
 export const paymentCopy = {
+  support: "تواصل مع الدعم",
   subscribe: "اشترك الآن",
   checking: "جارٍ التحقق…",
   title: "إتمام الاشتراك",
@@ -11580,6 +11692,7 @@ export const paymentCopy = {
     failed: "لم يكتمل الدفع",
     expired: "انتهت صلاحية طلب الدفع",
   } as Record<string, string>,
+  revokedHint: "أوقفت الإدارة الوصول إلى إحدى دورات هذا الطلب. تواصل مع الدعم؛ لا تدفع مرة أخرى.",
   activationHint: "تم استلام الدفع. أكّد بيانات التواصل ثم اضغط التحقق لتفعيل الدورة بدون دفع مرة أخرى.",
   failedHint: "لم يكتمل الدفع، ولم يُفعّل اشتراك جديد. يمكنك إعادة المحاولة من صفحة الدورة.",
   expiredHint: "انتهت صلاحية هذا الطلب. أنشئ طلبًا جديدًا وراجع السعر الحالي قبل الدفع.",
@@ -12414,6 +12527,78 @@ export async function readAdminAnalytics() {
 }
 ```
 
+### File: `modules/features/admin/enrollments/handler.ts`
+
+SHA-256: `5df053410f3b0635d99f82ac94a110ce2dc07a93e0a5e863bd4e9fc4cbbae7ab`
+
+```typescript
+import {apiResponse} from "@platform/lib/api/respond";
+import {ApiError} from "@platform/lib/api/error";
+import {readJson,sameOrigin} from "@platform/lib/server-request";
+import {requireAdmin} from "../identity";
+import {validUserId} from "../helpers/read-moderation";
+import {validateEnrollment} from "./validate";
+import {manageEnrollment} from "./repository";
+export function handleEnrollmentChange(request:Request,userId:string) {
+ return apiResponse(async()=>{
+  await requireAdmin();
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const input=validateEnrollment(await readJson(request));
+  if(!validUserId(userId)||!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await manageEnrollment(userId,input));
+ });
+}
+```
+
+### File: `modules/features/admin/enrollments/repository.ts`
+
+SHA-256: `47f971f062fd29f3f3339d5b4a31598f9c1dd698022d8b7b47cae86d741a823a`
+
+```typescript
+import "server-only";
+import { requireAdmin } from "../identity";
+import { ApiError } from "@platform/lib/api/error";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { enrollmentPolicy } from "@platform/config/enrollment";
+import type { EnrollmentChange, EnrollmentEvent } from "@platform/types/enrollment";
+export async function manageEnrollment(userId: string, change: EnrollmentChange) {
+ const {client} = await requireAdmin();
+ const result = await client.rpc("manage_enrollment", {p_user:userId,p_slug:change.courseSlug,p_action:change.action,p_reason:change.reason,p_revision:change.revision});
+ if (result.error) {
+  const code = ["ENROLLMENT_CONFLICT","CONTACT_VERIFICATION_REQUIRED","FORBIDDEN","NOT_FOUND","INVALID_INPUT"].find(code => result.error!.message.includes(code));
+  throw new ApiError(code === "ENROLLMENT_CONFLICT" ? 409 : code === "NOT_FOUND" ? 404 : code === "FORBIDDEN" || code === "CONTACT_VERIFICATION_REQUIRED" ? 403 : code ? 400 : 503,code ?? "INTERNAL_ERROR");
+ }
+ return {saved:true};
+}
+export async function readEnrollmentHistory(userId: string): Promise<EnrollmentEvent[]> {
+ const {client} = await requireAdmin();
+ const result = await client.from("enrollment_events").select("id,course_slug,action,reason,created_at,actor_id").eq("user_id",userId).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(enrollmentPolicy.historyLimit);
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const ids = [...new Set(result.data.flatMap(row => row.actor_id ? [row.actor_id] : []))];
+ const actors = ids.length ? await createAuthAdministrator().from("profiles").select("id,name").in("id",ids) : {data:[],error:null};
+ if(actors.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return result.data.map(row => ({...row,action:row.action as EnrollmentEvent["action"],actor:actors.data?.find(actor=>actor.id===row.actor_id)?.name ?? ""}));
+}
+```
+
+### File: `modules/features/admin/enrollments/validate.ts`
+
+SHA-256: `902681cae940bc7c2fb1f76024ab12d3ef9b3de5afc40fb0df2509d1b9f3af32`
+
+```typescript
+import { enrollmentPolicy } from "@platform/config/enrollment";
+import { validRecordRevision } from "@platform/helpers/valid-record-revision";
+import type { EnrollmentChange } from "@platform/types/enrollment";
+export function validateEnrollment(value: unknown): EnrollmentChange | null {
+ if (!value || typeof value !== "object") return null;
+ const v = value as Record<string, unknown>;
+ if (typeof v.courseSlug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v.courseSlug) || v.courseSlug.length > 100
+ || !enrollmentPolicy.actions.some(action => action === v.action) || typeof v.reason !== "string"
+ || !v.reason.trim() || v.reason.length > enrollmentPolicy.reasonMax || !validRecordRevision(v.revision, false)) return null;
+ return {courseSlug:v.courseSlug,action:v.action as EnrollmentChange["action"],reason:v.reason.trim(),revision:Number(v.revision)};
+}
+```
+
 ### File: `modules/features/admin/handle-course-delete.ts`
 
 SHA-256: `41caf84cdd7d41d4ed4c3bdbb2b76e77fb87e3a089aa19e76a4ae6901de1e053`
@@ -13240,6 +13425,24 @@ export async function readCourseList(query: AdminCourseQuery) {
 }
 ```
 
+### File: `modules/features/admin/repositories/course-titles.ts`
+
+SHA-256: `ecdabb0d75cd5f299d6fc1f89ecdad74acadc9af7749101eca366e543f658e61`
+
+```typescript
+import "server-only";
+import {requireAdmin} from "../identity";
+import {ApiError} from "@platform/lib/api/error";
+import type {CourseChoice} from "@platform/types/materials";
+/** Enrollment selection does not need curriculum JSON or private media. */
+export async function adminCourseTitles():Promise<Pick<CourseChoice,"slug"|"title">[]> {
+ const {client}=await requireAdmin();
+ const result=await client.from("courses").select("slug,title:metadata->>title").order("position");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return result.data.map(row=>({slug:row.slug,title:String(row.title)}));
+}
+```
+
 ### File: `modules/features/admin/repositories/courses.ts`
 
 SHA-256: `5d1e129819d2576a99abdeefb68adf77ae44b440e0920d6de67aa680ac6eea31`
@@ -13414,7 +13617,7 @@ export async function resolveAdminUser(handle: string) {
 
 ### File: `modules/features/admin/repositories/user-subscriptions.ts`
 
-SHA-256: `c940ad0d0fa7b7468a681889853ecd3534c88747bd543c5fdfd5a1151bb9cdd6`
+SHA-256: `22f01e4411d08067890d124cf084007ff2496d865c31d70b3aed06e54434706b`
 
 ```typescript
 import { courseProgress } from "@platform/features/learning/helpers/course-progress";
@@ -13425,7 +13628,7 @@ import { publicCourse } from "@platform/features/catalog/helpers/public-course";
 export async function readUserSubscriptions(id: string) {
   await requireAdmin();
   const client = createAuthAdministrator();
-  const enrollments = await client.from("enrollments").select("course_slug,created_at").eq("user_id", id).order("created_at", { ascending: false });
+  const enrollments = await client.from("enrollments").select("course_slug,created_at,active,revision").eq("user_id", id).order("created_at", { ascending: false });
   if (enrollments.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!enrollments.data.length) return [];
   const progress = await client.from("lesson_progress").select("course_slug,lesson_id").eq("user_id", id).eq("completed", true);
@@ -13438,7 +13641,7 @@ export async function readUserSubscriptions(id: string) {
     if (!record) return [];
     const course = publicCourse(record.metadata, record.slug, record.amount);
     const { count, total, percent } = courseProgress(course, { completed });
-    return [{ count, total, percent, slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at }];
+    return [{ count, total, percent, slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at, active: row.active, revision: row.revision }];
   });
 }
 ```
@@ -14203,7 +14406,7 @@ export default async function BundlesCatalog() {
 
 ### File: `modules/features/commerce/checkout-page.tsx`
 
-SHA-256: `d6fa7307b8cca606dab1a93b1e6239d3c08e7c3152221e35572bdf381d7a9441`
+SHA-256: `96bd7842e7e2cd96aff7ee3f1e3093db3614b85591b683e331271c67675d75a0`
 
 ```tsx
 import Link from "next/link";
@@ -14221,15 +14424,15 @@ export default async function CommerceCheckoutPage({slug,bundle}:{slug:string;bu
  const identity=await currentIdentity();if(!identity) redirect(routes.login);
  const product=bundle ? await findBundle(slug) : await findCourse(slug);if(!product) notFound();
  const input=bundle ? {bundleSlug:slug} : {courseSlug:slug},quote=await quotePurchase(input);
- const enrolled=await identity.client.from('enrollments').select('course_slug').eq('user_id',identity.user.id).in('course_slug',quote.courseSlugs);
- if(enrolled.error) throw new Error('Enrollment lookup failed');if(enrolled.data.length) redirect(routes.library);
+ const enrolled=await identity.client.from('enrollments').select('course_slug,active').eq('user_id',identity.user.id).in('course_slug',quote.courseSlugs);
+ if(enrolled.error) throw new Error('Enrollment lookup failed');if(enrolled.data.some(row=>row.active)) redirect(routes.library);
  const paid=await identity.client.from('payment_orders').select('id').eq('user_id',identity.user.id).eq(bundle ? 'bundle_slug' : 'course_slug',slug).eq('status','paid').limit(1).maybeSingle();
  if(paid.error) throw new Error('Payment lookup failed');if(paid.data) redirect(routes.payment(paid.data.id));
  if(quote.baseMinor<=0) redirect(routes.courses);
  const account=await readAccount(),verified=account.emailVerified && account.phoneVerified;
  const backHref=bundle ? routes.bundle(slug) : routes.course(slug,'delivery' in product ? product.delivery : undefined);
  return <main className="container lms-public-main"><div className="lms-payment-layout"><h1>{labels.title}</h1><p>{labels.summary}</p><section className="lms-profile-card lms-payment-card" data-reveal="true"><h2>{product.title}</h2><p>{product.description}</p>
- {verified ? <CheckoutControls input={input} initial={quote} labels={commerceCopy} paymentLabels={labels} /> : <><p>{labels.verification}</p><Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>{labels.settings}</Link></>}
+ {enrolled.data.some(row=>!row.active) ? <p>{labels.revokedHint}</p> : verified ? <CheckoutControls input={input} initial={quote} labels={commerceCopy} paymentLabels={labels} /> : <><p>{labels.verification}</p><Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>{labels.settings}</Link></>}
  <Link className="lms-payment-back" href={backHref}>{labels.back}</Link></section></div></main>;
 }
 ```
@@ -14309,12 +14512,12 @@ export function handleSales(request:Request) {
 
 ### File: `modules/features/commerce/helpers/database-error.ts`
 
-SHA-256: `ee5caf81123d528c8374985960d7652a5973b460f88faace7100540e20814501`
+SHA-256: `aa51a215d46e42a5990ebadea9996c660de722565885fdf5153849cc6b06c1e7`
 
 ```typescript
 import { ApiError } from "@platform/lib/api/error";
 export function commerceDatabaseError(error: {message:string;code?:string}): never {
- const codes: Record<string,number> = {COUPON_UNAVAILABLE:400,UNAUTHENTICATED:401,INVALID_BUNDLE_COURSES:400,INVALID_PAYMENT_COURSE:404,COMMERCE_CONFLICT:409,PAYMENT_OVERLAP:409,PAYMENT_PRICE_CHANGED:409,PAYMENT_PRICE_LOCKED:409,ALREADY_ENROLLED:409,PAYMENT_ALREADY_PAID:409,CONTACT_VERIFICATION_REQUIRED:403,INVALID_INPUT:400};
+ const codes: Record<string,number> = {ENROLLMENT_REVOKED:403,COUPON_UNAVAILABLE:400,UNAUTHENTICATED:401,INVALID_BUNDLE_COURSES:400,INVALID_PAYMENT_COURSE:404,COMMERCE_CONFLICT:409,PAYMENT_OVERLAP:409,PAYMENT_PRICE_CHANGED:409,PAYMENT_PRICE_LOCKED:409,ALREADY_ENROLLED:409,PAYMENT_ALREADY_PAID:409,CONTACT_VERIFICATION_REQUIRED:403,INVALID_INPUT:400};
  const code = Object.keys(codes).find(key => error.message.includes(key));
  if (code) throw new ApiError(codes[code],code);
  if (error.code === "23505") throw new ApiError(409,"COMMERCE_DUPLICATE");
@@ -15034,7 +15237,7 @@ export const readStudentState = cache(async () => {
 
 ### File: `modules/features/learning/repositories/enroll-course.ts`
 
-SHA-256: `d4215bae4986f2bf5f1041a86e200826440e85a49faeb9ab46d533cda01004a6`
+SHA-256: `9347177be19d3fbb707d46ef8d732228b651d8dfc53ee11fcfc5ce02cf967b50`
 
 ```typescript
 import { offerBaseAmount } from "@platform/features/commerce/helpers/offer-base-amount";
@@ -15046,8 +15249,9 @@ export async function enrollCourse(slug: string) {
   const { client, user } = await requireIdentity();
   const course = await findCourse(slug);
   if (!course) throw new ApiError(404, "NOT_FOUND");
-  const { data, error: lookupError } = await client.from("enrollments").select("course_slug").eq("user_id", user.id).eq("course_slug", slug).maybeSingle();
+  const { data, error: lookupError } = await client.from("enrollments").select("course_slug,active").eq("user_id", user.id).eq("course_slug", slug).maybeSingle();
   if (lookupError) throw new ApiError(503, "INTERNAL_ERROR");
+  if (data && !data.active) throw new ApiError(403, "ENROLLMENT_REVOKED");
   if (!data) {
     const verification = await client.rpc("contacts_verified");
     if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
@@ -15062,7 +15266,7 @@ export async function enrollCourse(slug: string) {
 
 ### File: `modules/features/learning/repositories/lesson-notes.ts`
 
-SHA-256: `0214375ab872b94d1314b9efdedb27329af325c516b491023ca7804bc240948f`
+SHA-256: `e7849099387db28c183e008ded666510167a44005d204a0ba7ecfc5a8e7d3103`
 
 ```typescript
 import "server-only";
@@ -15072,7 +15276,7 @@ import type {SavedLessonNote} from "@platform/types/materials";
 export async function readLessonNote(slug:string,lessonId:string):Promise<SavedLessonNote> {
  const {client,user}=await requireIdentity();
  const [access,note]=await Promise.all([
-  client.from("lessons").select("id,courses!inner(published,enrollments!inner(user_id))").eq("course_slug",slug).eq("id",lessonId).eq("courses.enrollments.user_id",user.id).eq("courses.published",true).maybeSingle(),
+  client.from("lessons").select("id,courses!inner(published,enrollments!inner(user_id))").eq("course_slug",slug).eq("id",lessonId).eq("courses.enrollments.user_id",user.id).eq("courses.enrollments.active",true).eq("courses.published",true).maybeSingle(),
   client.from("lesson_notes").select("text,revision").eq("user_id",user.id).eq("course_slug",slug).eq("lesson_id",lessonId).maybeSingle(),
  ]);
  if(access.error||note.error) throw new ApiError(503,"INTERNAL_ERROR");
@@ -15091,7 +15295,7 @@ export async function saveLessonNote(slug:string,lessonId:string,note:SavedLesso
 
 ### File: `modules/features/learning/repositories/read-state.ts`
 
-SHA-256: `5aad72b25c2907c55efff9ab32924e4200a676194e7e3c0bd16961716e154296`
+SHA-256: `6aaafc3e7cba852d0be2ec3c8cdf55b0554a1536acb5852f78c304550d0c241a`
 
 ```typescript
 import type { DatabaseClient } from "@platform/types/database-client";
@@ -15102,7 +15306,7 @@ import type { LearningState } from "@platform/types/lms";
 export async function readState(client: DatabaseClient, user: User): Promise<LearningState> {
   const [profile, enrollment, progress] = await Promise.all([
     readProfile(client, user),
-    client.from("enrollments").select("course_slug").eq("user_id", user.id),
+    client.from("enrollments").select("course_slug").eq("active", true).eq("user_id", user.id),
     client.from("lesson_progress").select("course_slug,lesson_id").eq("user_id", user.id).eq("completed", true),
   ]);
   if (enrollment.error || progress.error) throw new ApiError(503, "INTERNAL_ERROR");
@@ -15112,7 +15316,7 @@ export async function readState(client: DatabaseClient, user: User): Promise<Lea
 
 ### File: `modules/features/learning/repositories/save-progress.ts`
 
-SHA-256: `b24063d3844ee7494239b69cb49d9e1d5b04ab42a07c88c8d28aa7de3cce8319`
+SHA-256: `44b30fcaf9b6bfbbfe8a2a9e456f1717e1b3f5bc66434fa151fab5bed080f27c`
 
 ```typescript
 import { requireIdentity } from "@platform/features/auth/server/identity";
@@ -15124,7 +15328,7 @@ export async function saveProgress(slug: string, id: string, completed: boolean)
   const { client, user } = await requireIdentity();
   const course = await findCourse(slug);
   if (!course || !findLesson(course, id)) throw new ApiError(404, "NOT_FOUND");
-  const { data, error: accessError } = await client.from("enrollments").select("course_slug").eq("user_id", user.id).eq("course_slug", slug).maybeSingle();
+  const { data, error: accessError } = await client.from("enrollments").select("course_slug").eq("active", true).eq("user_id", user.id).eq("course_slug", slug).maybeSingle();
   if (accessError) throw new ApiError(503, "INTERNAL_ERROR");
   if (!data) throw new ApiError(403, "FORBIDDEN");
   const { error } = await client.from("lesson_progress").upsert({ user_id: user.id, course_slug: slug, lesson_id: id, completed }, { onConflict: "user_id,course_slug,lesson_id" });
@@ -15371,7 +15575,7 @@ export async function mutateLiveSession(input:LiveSessionInput | {id:string;revi
 
 ### File: `modules/features/live-sessions/repositories/my-schedule.ts`
 
-SHA-256: `7389127a278a7bd6960d5e7924e2a2092d38196e2ac13e71e95ec2bed7aa8ebd`
+SHA-256: `3c04f3a4bbe296632dd7de5214149b3ea8ad2b05553ee7f1b67ea749624ec957`
 
 ```typescript
 import "server-only";
@@ -15380,7 +15584,7 @@ import { ApiError } from "@platform/lib/api/error";
 import { readLiveSchedule } from "./schedule";
 export async function readMyLiveSchedule() {
  const {client}=await requireIdentity();
- const result=await client.from("enrollments").select("course_slug");
+ const result=await client.from("enrollments").select("course_slug").eq("active",true);
  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
  return readLiveSchedule(result.data.map(row=>row.course_slug));
 }
@@ -16649,18 +16853,20 @@ export function isSampleLessonVideo(url: string) {
 
 ### File: `modules/features/payments/helpers/status-hint.ts`
 
-SHA-256: `9e055cda625921864973e9ef91e9744ed2178244dac6775f73f0e230d70353b5`
+SHA-256: `61256f66b42689695f8704fdaabcf0f999f717e765193e593a24240b5cba6030`
 
 ```typescript
 import type { paymentCopy } from "@platform/data/payment-copy";
-export function paymentStatusHint(order: { status: string; enrolled: boolean; bundleSlug?: string | null }, labels: typeof paymentCopy) {
+export function paymentStatusHint(order: { status: string; enrolled: boolean; bundleSlug?: string | null; accessRevoked?: boolean }, labels: typeof paymentCopy) {
+  if (order.accessRevoked) return labels.revokedHint;
   if (order.status === "failed") return labels.failedHint;
   if (order.status === "expired") return labels.expiredHint;
   if (order.status !== "paid") return labels.pendingHint;
   if (!order.enrolled) return labels.activationHint;
   return order.bundleSlug ? labels.paidBundleHint : labels.paidHint;
 }
-export function paymentNeedsPolling(status: string, enrolled: boolean) {
+export function paymentNeedsPolling(status: string, enrolled: boolean, accessRevoked = false) {
+  if (accessRevoked) return false;
   return status === "creating" || status === "pending" || status === "paid" && !enrolled;
 }
 ```
@@ -16843,7 +17049,7 @@ export async function markUnpaid(order: PaymentOrder, statusText: unknown) {
 
 ### File: `modules/features/payments/repositories/read-order.ts`
 
-SHA-256: `693d9c502672261e33cb5d0249c664932ffd7150111a37e411516b68248a460e`
+SHA-256: `f7983b9e31f0f4fc80b15dc9371f6a8e363ee83c73d463c11eb599779b9bb110`
 
 ```typescript
 import "server-only";
@@ -16880,9 +17086,9 @@ export function publicPaymentOrder(order: PaymentOrder) {
 export async function readPaymentReceipt(order: PaymentOrder) {
   const { client, user } = await requireIdentity();
   const slugs=paymentCourseSlugs(order);
-  const result = await client.from("enrollments").select("course_slug").eq("user_id",user.id).in("course_slug",slugs);
+  const result = await client.from("enrollments").select("course_slug,active").eq("user_id",user.id).in("course_slug",slugs);
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return {...publicPaymentOrder(order), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug))};
+  return {...publicPaymentOrder(order), accessRevoked: result.data.some(row=>!row.active), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug && row.active))};
 }
 ```
 
@@ -18183,7 +18389,7 @@ export function useLogout(errorLabel: string) {
 
 ### File: `modules/hooks/use-payment-status.ts`
 
-SHA-256: `b659f35c68c5312dd7313cd2580c742f9a4ef57e38cb7ee4c3d7c41603741478`
+SHA-256: `c36dd7f6f70f46ec90b617260a4566d1d8ac8268e5e045910957919fb3ee6d89`
 
 ```typescript
 "use client";
@@ -18200,7 +18406,7 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
   const refresh = () =>
     command.run(async () => setOrder(await paymentRequest<Receipt>(endpoints.paymentReconcile(order.id))));
   useEffect(() => {
-    if (!paymentNeedsPolling(initial.status, initial.enrolled)) return;
+    if (!paymentNeedsPolling(initial.status, initial.enrolled, initial.accessRevoked)) return;
     let stopped = false,
       attempts = 0,
       timer: ReturnType<typeof setTimeout>;
@@ -18226,7 +18432,7 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [initial.id, initial.status, initial.enrolled]);
+  }, [initial.id, initial.status, initial.enrolled, initial.accessRevoked]);
   return { order, refresh, pending: command.pending, error: command.error };
 }
 ```
@@ -22917,7 +23123,7 @@ SHA-256: `0ea57d4bf48a818c10e76d6cfc1eefacd22f364770a27f468317f8c0fd8dcee9`
 
 ### File: `modules/styles/records.css`
 
-SHA-256: `5b01217f06bf7a0ff50e56aa7fdd4203450f3d8b5c5d818ac77ce9eb026146e9`
+SHA-256: `f935a61682590349aeee9e695e9a8b0ddb97ff92705ab39022afc0d70d47a1cb`
 
 ```css
 .lms-record-filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) auto; align-items: end; gap: var(--space-md); }
@@ -22928,6 +23134,8 @@ SHA-256: `5b01217f06bf7a0ff50e56aa7fdd4203450f3d8b5c5d818ac77ce9eb026146e9`
 .lms-notes .btn-primary { justify-self: start; font-size: var(--font-size-body); }
 @media (max-width: 768px) { .lms-record-filters { grid-template-columns: minmax(0,1fr); } }
 .lms-record-filters > .lms-admin-search { display: grid; gap: var(--space-sm); font-weight: var(--font-weight-action); }
+
+.lms-enrollment-event { max-width: none; overflow-wrap: anywhere; }
 ```
 
 ### File: `modules/styles/theme-server.json`
@@ -23096,7 +23304,7 @@ export interface CreateCourseInput { slug: string; title: string; description: s
 
 ### File: `modules/types/admin-users.ts`
 
-SHA-256: `bd7d093b18cf4dd864269eb5c814fdef5db29f7951b7934b67ed1ca5ea5328ef`
+SHA-256: `78b12b6dbb85f69030bbb3e31ce35e11bade0b2f2cde6ea5e60a34ab3c5a0f45`
 
 ```typescript
 import type { suspensionPeriods, userSearchModes } from "@platform/config/user-moderation";
@@ -23110,7 +23318,7 @@ export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: bool
 export interface AdminUserQuery {
   page: number; search: string; searchMode: typeof userSearchModes[number]; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
 }
-export interface UserSubscription { count: number; total: number; percent: number; slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
+export interface UserSubscription { count: number; total: number; percent: number; slug: string; title: string; enrolledAt: string; active: boolean; revision: number; delivery: "recorded" | "live"; }
 
 import type { adminUsersCopy } from "@platform/data/admin-users";
 export type AdminUsersLabels = { [K in keyof typeof adminUsersCopy]: string };
@@ -23300,9 +23508,10 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `c9f3c55dcfa2ac9370a3f076577807bddfc198e085cbe6efe082d382582e14ab`
+SHA-256: `327841c23d3eb4650908772f5687c6e80428071b78e7d6d65dc78702e662212e`
 
 ```typescript
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -23491,16 +23700,36 @@ isOneToOne: false
                   Relationships: [
 
                   ]
-                },"enrollments": {
+                },"enrollment_events": {
                   Row: {
-                    "course_slug": string,"created_at": string,"user_id": string
+                    "action": string,"actor_id": string | null,"course_slug": string,"created_at": string,"id": number,"reason": string,"revision": number,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "course_slug": string,"created_at"?: string,"user_id": string
+                    "action": string,"actor_id"?: string | null,"course_slug": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number,"user_id": string
                   }
                   Update: {
-                    "course_slug"?: string,"created_at"?: string,"user_id"?: string
+                    "action"?: string,"actor_id"?: string | null,"course_slug"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "enrollment_events_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
+                },"enrollments": {
+                  Row: {
+                    "active": boolean,"course_slug": string,"created_at": string,"revision": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"course_slug": string,"created_at"?: string,"revision"?: number,"user_id": string
+                  }
+                  Update: {
+                    "active"?: boolean,"course_slug"?: string,"created_at"?: string,"revision"?: number,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -23806,6 +24035,9 @@ isOneToOne: true
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
                            },
+"manage_enrollment":
+{ Args: { "p_action": string,"p_reason": string,"p_revision": number,"p_slug": string,"p_user": string }; Returns: undefined
+                           },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -23971,6 +24203,19 @@ export const Constants = {
           }
         }
 } as const
+```
+
+### File: `modules/types/enrollment.ts`
+
+SHA-256: `00f7f5165d22a5c1e54a0313f4cdc28977cddb8193aff9c3a2e7fc2def797fb2`
+
+```typescript
+import type { enrollmentPolicy } from "@platform/config/enrollment";
+import type { enrollmentCopy } from "@platform/data/enrollment";
+export type EnrollmentAction = typeof enrollmentPolicy.actions[number];
+export type EnrollmentChange = { courseSlug: string; action: EnrollmentAction; reason: string; revision: number };
+export type EnrollmentLabels = typeof enrollmentCopy;
+export type EnrollmentEvent = { id: number; course_slug: string; action: EnrollmentAction; reason: string; created_at: string; actor: string };
 ```
 
 ### File: `modules/types/image-upload.ts`
@@ -36256,6 +36501,183 @@ assert.deepEqual(validateEmailVariables("Plain Arabic text — تعلّم"), [])
 console.log("Email placeholder contract passed: seven allowed variables, whitespace variants, scoped/unknown/malformed rejection.");
 ```
 
+### File: `tests/backend/enrollments-browser.cjs`
+
+SHA-256: `1c66b867eb5996d8b9e00618eab2273ddf248a29dcc13502e58db65effb854af`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Disposable local browser accounts. */
+const {chromium,expect}=require('@playwright/test');
+module.exports=async({admin,manager,student,slug,url,verify})=>{
+ const browser=await chromium.launch({headless:true}),page=await browser.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&/hydration|hydrated|didn.t match/i.test(m.text())) errors.push(m.text());});
+ try {
+  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL(/\/dashboard/);
+  const profile=(await admin.from('profiles').select('username').eq('id',student.id).single()).data;
+  await page.goto(url+'/admin/dashboard/users/'+profile.username);
+  const card=page.locator('.lms-resource-card').filter({hasText:'Enrollment test course'});
+  await expect(card.getByRole('link')).toHaveAttribute('href','/courses/'+slug);
+  await expect(card.getByText('الوصول موقوف',{exact:true})).toBeVisible();
+  for(const width of [320,390,1440]){await page.setViewportSize({width,height:900});verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Enrollment management fits ${width}px`);}
+  await card.getByRole('button',{name:'استعادة الاشتراك',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true}).fill('Browser restoration after review');await page.getByRole('dialog').getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(card.getByText('اشتراك نشط',{exact:true})).toBeVisible();verify(true,'Browser restores enrollment through guarded API');
+  await card.getByRole('button',{name:'إيقاف الوصول',exact:true}).click();await page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true}).fill('Browser revocation');await page.getByRole('dialog').getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(card.getByText('الوصول موقوف',{exact:true})).toBeVisible();verify(true,'Browser revokes without deleting progress card');
+  await card.getByRole('button',{name:'استعادة الاشتراك',exact:true}).click();
+  const revision=(await admin.from('enrollments').select('revision').eq('user_id',student.id).eq('course_slug',slug).single()).data.revision;
+  await manager.api(`/api/admin/users/${student.id}/enrollments`,{courseSlug:slug,action:'restore',reason:'Competing administrator',revision});
+  await page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true}).fill('Draft retained on conflict');await page.getByRole('dialog').getByRole('button',{name:'تأكيد التغيير',exact:true}).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('تغيّر الاشتراك');await expect(page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true})).toHaveValue('Draft retained on conflict');verify(true,'Stale browser edit preserves reason and explains conflict');
+  await page.getByRole('dialog').getByRole('button',{name:'إلغاء',exact:true}).click();await page.reload();
+  await page.getByRole('button',{name:'إضافة اشتراك',exact:true}).click();const dialog=page.getByRole('dialog');
+  await dialog.getByRole('combobox',{name:'الدورة',exact:true}).click();await page.getByRole('option').filter({hasText:'المونتاج باستخدام Premiere Pro'}).click();
+  await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser manual grant');await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(page.locator('.lms-resource-card')).toHaveCount(2);verify(true,'Browser grants a new course with required reason');
+  await page.setViewportSize({width:390,height:900});await page.screenshot({path:'/tmp/khatab-enrollment-mobile.png',fullPage:true,caret:'initial'});
+  verify(errors.length===0,'Enrollment browser workflow has no hydration or runtime errors');
+ }catch(error){console.log("Browser errors:",JSON.stringify(errors));await page.screenshot({path:"/tmp/khatab-enrollment-failure.png",fullPage:true,caret:"initial"});throw error;}finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/enrollments-payment.cjs`
+
+SHA-256: `2bdf4c4e0ba9b3ee93f0c90e1873d628318d5cb59de6e1fc5a1f7bfeba3f12ff`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local payment settlement without external provider calls. */
+const assert=require('node:assert/strict');
+module.exports=async({admin,student,manager,endpoint,input,slug,verify})=>{
+ const order=await admin.from('payment_orders').insert({user_id:student.id,course_slug:slug,course_title:'Enrollment receipt',amount_minor:120000,live:false,status:'pending',provider_intent_key:require('node:crypto').randomUUID()}).select('*').single();assert.ok(!order.error);
+ await admin.from('payment_order_items').insert({order_id:order.data.id,course_slug:slug});
+ verify((await manager.api(endpoint,{...input,action:'revoke',revision:3,reason:'Revoke before delayed settlement'})).status===200,'Revoke before payment callback');
+ const checkout={p_user:student.id,p_kind:'course',p_slug:slug,p_coupon:null,p_live:false};
+ verify((await admin.rpc('begin_commerce_payment',checkout)).error?.message.includes('ENROLLMENT_REVOKED'),'Revoked pending order cannot reopen checkout');
+ const params={p_order:order.data.id,p_intent:order.data.provider_intent_key,p_transaction:8765432,p_amount:120000,p_currency:'EGP'};
+ for(let i=0;i<2;i++) {const r=await admin.rpc('settle_course_payment',params);assert.ok(!r.error,r.error?.message);}
+ const row=(await admin.from('enrollments').select('active,revision').eq('user_id',student.id).eq('course_slug',slug).single()).data;
+ verify((await admin.rpc('begin_commerce_payment',checkout)).error?.message.includes('ENROLLMENT_REVOKED'),'Revoked paid course cannot create a replacement charge');
+ verify(!row.active&&row.revision===4,'Delayed and duplicate settlements cannot restore revoked access');
+ const receipt=await student.api('/api/payments/'+order.data.id);assert.equal(receipt.status,200,receipt.data);
+ const body=JSON.parse(receipt.data);verify(body.status==='paid'&&!body.enrolled&&body.accessRevoked,'Receipt distinguishes paid from revoked course access');
+ const page=await student.api('/payments/'+order.data.id);verify(page.status===200&&page.data.includes('لا تدفع مرة أخرى'),'Receipt renders without requesting another payment');
+};
+```
+
+### File: `tests/backend/enrollments-race.cjs`
+
+SHA-256: `3774cee39d738890022d41c1227664ecb286d9065cc3b2fe179fa175af7d5856`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated local lock-order verification. */
+const {Client}=require('pg');
+const assert=require('node:assert/strict');
+module.exports=async({admin,manager,outsider,slug,lessonId,config,verify})=>{
+ const endpoint=`/api/admin/users/${outsider.id}/enrollments`;
+ assert.equal((await manager.api(endpoint,{courseSlug:slug,action:'grant',revision:0,reason:'Local concurrency fixture'})).status,200);
+ const db=new Client({connectionString:config.DB_URL});await db.connect();
+ try {
+  const token=(await outsider.direct.auth.getSession()).data.session.access_token;
+  const claims=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString());
+  await db.query('begin');await db.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify(claims)]);await db.query('set local role authenticated');
+  await db.query('select public.save_lesson_note($1,$2,$3,0)',[slug,lessonId,'Committed before revocation']);
+  await db.query('insert into public.lesson_progress(user_id,course_slug,lesson_id,completed) values($1,$2,$3,true)',[outsider.id,slug,lessonId]);
+  const pending=manager.api(endpoint,{courseSlug:slug,action:'revoke',revision:1,reason:'Concurrent revocation'});
+  let blocked=false;
+  for(let attempt=0;attempt<60;attempt++) {
+   const result=await db.query('select exists(select 1 from pg_stat_activity where pg_backend_pid()=any(pg_blocking_pids(pid))) waiting');
+   if(result.rows[0].waiting){blocked=true;break;}
+   await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  verify(blocked,'Revocation waits for in-flight note and progress transaction');
+  await db.query('commit');verify((await pending).status===200,'Revocation completes after learning write commits');
+  const row=(await admin.from('enrollments').select('active').eq('user_id',outsider.id).eq('course_slug',slug).single()).data;
+  const note=(await admin.from('lesson_notes').select('text').eq('user_id',outsider.id).eq('course_slug',slug).single()).data;
+  const progress=(await admin.from('lesson_progress').select('completed').eq('user_id',outsider.id).eq('course_slug',slug).single()).data;
+  verify(!row.active&&note.text==='Committed before revocation'&&progress.completed,'Serialized revocation preserves the completed learning write');
+ }finally{await db.query('rollback').catch(()=>{});await db.end();}
+};
+```
+
+### File: `tests/backend/enrollments.cjs`
+
+SHA-256: `b309f7b2aac9195cc6cef464ff0df2231a7c8b5ad69a327f5e61f5aeda780932`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated local integration coverage. */
+const assert=require('node:assert/strict');
+module.exports=async({admin,provision,anonymous,verify,url,config})=>{
+ const manager=await provision('Enrollment Manager'),student=await provision('Enrollment Student'),outsider=await provision('Enrollment Outsider');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='backend-enrollment-course',endpoint=`/api/admin/users/${student.id}/enrollments`,created=[];
+ const source=(await admin.from('courses').select('*').eq('slug','editing-foundations').single()).data;
+ const lessonId=source.metadata.modules[0].lessons[0].id;
+ const lesson=(await admin.from('lessons').select('*').eq('course_slug',source.slug).eq('id',lessonId).single()).data;
+ assert.ok(!(await admin.from('courses').insert({...source,slug,metadata:{...source.metadata,slug,title:'Enrollment test course'}})).error);
+ assert.ok(!(await admin.from('lessons').insert({...lesson,course_slug:slug,preview:false})).error);
+ const input={courseSlug:slug,action:'grant',reason:'Manual admission after support review',revision:0};
+ const notePath=`/api/courses/${slug}/lessons/${lessonId}/notes`;
+ try {
+  verify((await anonymous(endpoint,input)).status===401,'Guest cannot manage enrollment');
+  verify((await student.api(endpoint,input)).status===403,'Student cannot manage enrollment');
+  verify((await manager.api(endpoint,input,{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin enrollment mutation denied');
+  for(const patch of [{reason:''},{reason:'x'.repeat(501)},{action:'delete'},{revision:-1},{revision:'0'},{courseSlug:"x'; drop table courses;--"}]) verify((await manager.api(endpoint,{...input,...patch})).status===400,'Invalid enrollment request rejected');
+  verify(Boolean((await outsider.direct.rpc('manage_enrollment',{p_user:student.id,p_slug:slug,p_action:'grant',p_reason:'forged',p_revision:0})).error),'Direct student RPC cannot grant access');
+  await admin.from('account_contacts').update({phone_verified_at:null}).eq('user_id',student.id);
+  verify((await manager.api(endpoint,input)).status===403,'New manual enrollment retains verification gate');
+  await admin.from('account_contacts').update({phone_verified_at:new Date().toISOString()}).eq('user_id',student.id);
+  const baseline=JSON.parse((await manager.api('/api/admin/analytics')).data).metrics.totalEnrollments;
+  const grants=await Promise.all([manager.api(endpoint,input),manager.api(endpoint,input)]);
+  verify(grants.map(r=>r.status).sort().join(',')==='200,409','Concurrent grants have one winner');
+  verify((await student.direct.from('lessons').select('video_url').eq('course_slug',slug)).data.length===1,'Granted student can read protected playback');
+  assert.ok(!(await student.direct.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:lessonId,completed:true})).error);
+  verify((await student.api(notePath,{text:'Preserved private note',revision:0})).status===200,'Granted student saves a private note');
+  const material=await admin.from('resources').insert({id:'backend-entitlement-material',title:'Enrollment material',description:'',type:'TXT',kind:'text',content:'retained material'}).select('id').single();assert.ok(!material.error);created.push(material.data.id);
+  assert.ok(!(await admin.from('lesson_resources').insert({resource_id:material.data.id,course_slug:slug,lesson_id:lessonId})).error);
+  const session=await admin.from('live_sessions').insert({course_slug:slug,title:'Enrollment live',starts_at:new Date(Date.now()-60000).toISOString(),ends_at:new Date(Date.now()+3600000).toISOString()}).select('id').single();assert.ok(!session.error,JSON.stringify(session.error));
+  await admin.from('live_session_links').insert({session_id:session.data.id,join_url:'https://meet.google.com/aaa-bbbb-ccc'});
+  verify((await student.direct.from('live_session_links').select('join_url').eq('session_id',session.data.id)).data.length===1,'Granted learner has active live joining link');
+  const revoke={...input,action:'revoke',revision:1,reason:'Support requested suspension of this course'};
+  verify((await manager.api(endpoint,revoke)).status===200,'Administrator revokes course access');
+  const row=(await admin.from('enrollments').select('*').eq('user_id',student.id).eq('course_slug',slug).single()).data;
+  verify(row.active===false&&row.revision===2,'Revocation keeps durable enrollment with incremented revision');
+  const listed=JSON.parse((await manager.api('/api/admin/courses?q=Enrollment%20test')).data).courses.find(course=>course.slug===slug);
+  verify(listed.students===0,'Admin course student count excludes revoked access');
+  verify(JSON.parse((await manager.api('/api/admin/analytics')).data).metrics.totalEnrollments===baseline,'Analytics excludes revoked entitlement without deleting its history');
+  for(const [table,select,filter] of [['lessons','video_url','course_slug'],['lesson_progress','*','course_slug'],['lesson_notes','*','course_slug'],['lesson_resources','*','course_slug'],['resources','content','id'],['live_session_links','join_url','session_id']]) {
+   const value=table==='resources' ? material.data.id : table==='live_session_links' ? session.data.id : slug;
+   const r=await student.direct.from(table).select(select).eq(filter,value);
+   verify(!r.error&&r.data.length===0,'Revoked JWT denied '+table);
+  }
+  verify((await student.api('/api/resources/'+material.data.id)).status===404,'Revoked material download denied');
+  verify((await student.api(notePath)).status===403,'Revoked note endpoint denied');
+  const state=JSON.parse((await student.api('/api/enrollments')).data);
+  verify(!state.enrolled.includes(slug)&&!state.completed.includes(slug+'/'+lessonId),'Learner state excludes revoked course and its progress');
+  verify((await student.api('/api/enrollments',{courseSlug:slug})).status===403,'Self enrollment cannot override administrative revocation');
+  verify((await student.api('/api/progress',{courseSlug:slug,lessonId,completed:false})).status===403,'Progress API denies revoked enrollment');
+  verify(Boolean((await student.direct.from('enrollments').insert({user_id:student.id,course_slug:'motion-essentials',active:true,revision:99})).error),'Student cannot supply administrative state or revision on insert');
+  verify(Boolean((await student.direct.rpc('save_lesson_note',{p_slug:slug,p_lesson:lessonId,p_text:'Forged',p_revision:1})).error),'Revoked learner cannot bypass note API through RPC');
+  verify(Boolean((await student.direct.from('lesson_progress').upsert({user_id:student.id,course_slug:slug,lesson_id:lessonId,completed:false})).error),'Revoked learner cannot write progress directly');
+  verify(Boolean((await student.direct.from('enrollments').update({active:true}).eq('course_slug',slug)).error),'Learner cannot restore enrollment directly');
+  const before=(await admin.from('lesson_progress').select('*').eq('user_id',student.id)).data;
+  verify(before.some(p=>p.course_slug===slug&&p.completed),'Revocation preserves completed lesson in storage');
+  const restore={...input,action:'restore',revision:2,reason:'Resolved support review'};
+  const restores=await Promise.all([manager.api(endpoint,restore),manager.api(endpoint,restore)]);
+  verify(restores.map(r=>r.status).sort().join(',')==='200,409','Concurrent restores reject stale writer');
+  verify(JSON.parse((await student.api(notePath)).data).text==='Preserved private note','Restoration recovers saved notes');
+  verify((await student.direct.from('lesson_progress').select('*').eq('course_slug',slug)).data[0].completed,'Restoration recovers saved progress');
+  const events=(await manager.direct.from('enrollment_events').select('*').eq('user_id',student.id).order('revision')).data;
+  verify(events.map(e=>e.action).join(',')==='grant,revoke,restore'&&events.every(e=>e.actor_id===manager.id&&e.reason),'History records reason and verified administrator actor');
+  verify((await student.direct.from('enrollment_events').select('*')).data.length===0,'Student cannot read private administrative reasons');
+  verify(Boolean((await manager.direct.from('enrollment_events').insert({user_id:student.id,course_slug:slug,action:'grant',reason:'fake',revision:8})).error),'History cannot be forged even by admin direct JWT');
+  await require('./enrollments-payment.cjs')({admin,student,manager,endpoint,input,slug,verify});
+  await require('./enrollments-race.cjs')({admin,manager,outsider,slug,lessonId,config,verify});
+  await require('./enrollments-browser.cjs')({admin,manager,student,slug,url,verify});
+ } finally {
+  await admin.from('payment_orders').delete().eq('user_id',student.id);
+  await admin.from('resources').delete().in('id',created);
+  await admin.from('courses').delete().eq('slug',slug);
+ }
+};
+```
+
 ### File: `tests/backend/featured-products-browser.cjs`
 
 SHA-256: `cf28b82f77bbe8e8d9790b2ff3afc7ec62a4f88757b8bf5c78be834d4b728cfc`
@@ -36597,7 +37019,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `8c8b7142c3c08cca512ce481956e4fd843a202875384294b162e8d91d915b6a8`
+SHA-256: `386ee78711f80bc131314e4620dcd172a3696ba2810ac008336bd3e8a69d6694`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -36660,6 +37082,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'enrollments') {
+    await require('./enrollments.cjs')({admin,provision,anonymous,verify,url,config});return;
+  }
   if (process.env.BACKEND_SUITE === 'lms-gaps') {
     await require('./lms-gaps.cjs')({admin,provision,anonymous,verify,url});return;
   }
@@ -42549,6 +42974,28 @@ test("redirect loops have a finite request budget", async () => {
     await assert.rejects(fetchDrive(new URL("https://drive.usercontent.google.com/download"), {}, new AbortController().signal), { status: 503 });
     assert.equal(calls, 4);
   } finally { globalThis.fetch = original; }
+});
+```
+
+### File: `tests/security/enrollment.test.ts`
+
+SHA-256: `a09a91b6fdbf7cc043794a8d432e966526033ac653afcb546af6e621cc5c93fb`
+
+```typescript
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {validateEnrollment} from "../../modules/features/admin/enrollments/validate";
+import {paymentNeedsPolling,paymentStatusHint} from "../../modules/features/payments/helpers/status-hint";
+import {paymentCopy} from "../../modules/data/payment-copy";
+test("new and existing enrollment revisions are bounded integers",()=>{
+ const valid={courseSlug:"editing-foundations",action:"grant",reason:"  Support review  ",revision:0};
+ assert.equal(validateEnrollment(valid)?.reason,"Support review");
+ for(const revision of [-1,0.5,"0",2147483647,NaN]) assert.equal(validateEnrollment({...valid,revision}),null);
+});
+test("revoked paid receipts do not poll or imply activation is pending",()=>{
+ assert.equal(paymentNeedsPolling("paid",false,true),false);
+ assert.equal(paymentStatusHint({status:"paid",enrolled:false,accessRevoked:true},paymentCopy),paymentCopy.revokedHint);
+ assert.equal(paymentNeedsPolling("paid",false),true);
 });
 ```
 

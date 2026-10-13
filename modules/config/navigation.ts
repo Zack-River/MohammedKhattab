@@ -92,6 +92,7 @@ export const endpoints = {
   adminSales: "/api/admin/sales",
   adminAnalytics: "/api/admin/analytics",
   adminUsers: "/api/admin/users",
+  adminEnrollments: (id: string) => `/api/admin/users/${segment(id)}/enrollments`,
   adminUser: (id: string) => `/api/admin/users/${segment(id)}`,
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
