@@ -1,7 +1,7 @@
 # Current checkpoint — Signup activation instructions (2026-10-13)
 
 - Updated the centralized signup confirmation message: open the inbox and activate the email before using the account; check the Spam folder if missing, then sign in after activation. Reuses the existing persistent themed `role="status"` confirmation and resend-email link.
-- Existing signup browser test passed with the updated Spam instruction, confirmation visibility and no redirect; response was intercepted, so no account or email was created. Lint and production build passed; source snapshot verified 1,128 files. Live verification pending release.
+- Existing signup browser test passed with the updated Spam instruction, confirmation visibility and no redirect; response was intercepted, so no account or email was created. Lint and production build passed; source snapshot verified 1,128 files. Implementation `af074eb9dc39350064f2c1f5b480641b2b886d68` pushed; Vercel reported success. The same signup browser test passed on https://ta3allam.vercel.app with its signup response intercepted: updated activation/Spam confirmation is visible and the page does not redirect. No production account or email was created. Secret scan checked 1,951 files with zero violations.
 
 ---
 
