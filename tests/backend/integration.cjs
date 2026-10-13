@@ -58,6 +58,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'certificates') {
+    await require('./certificates.cjs')({admin,provision,anonymous,verify,url,config});return;
+  }
   if (process.env.BACKEND_SUITE === 'enrollments') {
     await require('./enrollments.cjs')({admin,provision,anonymous,verify,url,config});return;
   }
@@ -206,6 +209,7 @@ async function run() {
   verify((await a.api('/api/progress', { courseSlug: course.slug, lessonId: 'missing', completed: true })).status === 404, 'Unknown lesson rejected');
   verify((await a.api(`/api/certificates/${course.slug}`)).status === 403, 'Incomplete course certificate denied');
   for (const lesson of lessons) await a.api('/api/progress', { courseSlug: course.slug, lessonId: lesson.id, completed: true });
+  verify((await a.api('/api/certificates',{operation:'issue',slug:course.slug})).status===200,'Completed student explicitly issues certificate');
   verify((await a.api(`/api/certificates/${course.slug}`)).status === 200, 'Completed enrolled course certificate allowed');
   const resourceId = lessons.flatMap(lesson => lesson.resourceIds)[0];
   if (resourceId) {

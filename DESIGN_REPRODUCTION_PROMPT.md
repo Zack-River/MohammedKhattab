@@ -501,6 +501,52 @@ export default async function Page({searchParams}:{searchParams:Promise<Record<s
 }
 ```
 
+### File: `app/admin/dashboard/certificates/[id]/page.tsx`
+
+SHA-256: `2429c291293b2b89c9bdb1190ff7e56b7c232c37b72f17cf7914196f0d7ba07a`
+
+```tsx
+import {notFound} from "next/navigation";
+import {ApiError} from "@platform/lib/api/error";
+import {requireAdminPage} from "@platform/features/admin/page-identity";
+import {readCertificate,readCertificateEvents} from "@platform/features/certificates/repository";
+import {certificateCopy as labels} from "@platform/data/certificates";
+import {endpoints} from "@platform/config/navigation";
+import PageHeading from "@platform/components/ui/page-heading";
+import CertificateDocumentView from "@platform/components/certificates/document-view";
+import CertificateEventHistory from "@platform/components/certificates/event-history";
+export default async function Page({params}:{params:Promise<{id:string}>}) {
+ await requireAdminPage();const {id}=await params;
+ const [record,events]=await Promise.all([readCertificate(id,true),readCertificateEvents(id)]).catch(error=>{if(error instanceof ApiError&&error.status===404) notFound();throw error;});
+ return <><PageHeading title={record.course_title}/><div className="lms-account-stack"><CertificateDocumentView src={endpoints.adminCertificate(id)} title={labels.preview} printLabel={labels.print}/><CertificateEventHistory {...{events,labels}}/></div></>;
+}
+```
+
+### File: `app/admin/dashboard/certificates/page.tsx`
+
+SHA-256: `6c371ef03621ceb46f70cc0c177316a91bc7481c050f6120609dea2394605e10`
+
+```tsx
+import {requireAdminPage} from "@platform/features/admin/page-identity";
+import {adminCourseTitles} from "@platform/features/admin/repositories/course-titles";
+import {listCertificates} from "@platform/features/certificates/repository";
+import {certificateCopy as labels} from "@platform/data/certificates";
+import {certificatePolicy} from "@platform/config/certificates";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {routes,endpoints} from "@platform/config/navigation";
+import PageHeading from "@platform/components/ui/page-heading";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
+import CertificateIssueForm from "@platform/components/certificates/issue-form";
+import CertificateAdminTable from "@platform/components/certificates/admin-table";
+import CertificatePreview from "@platform/components/certificates/preview";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requireAdminPage();const query=readRecordQuery(await searchParams,certificatePolicy.statuses),[result,courses]=await Promise.all([listCertificates(query,true),adminCourseTitles()]);
+ return <><PageHeading title={labels.title}/><div className="lms-account-stack"><CertificatePreview src={endpoints.certificatePreview} labels={labels}/><CertificateIssueForm {...{courses,labels}} endpoint={endpoints.adminCertificates} admin/>
+  <RecordFilters action={routes.adminCertificates} query={query} options={[{value:"all",label:labels.all},...certificatePolicy.statuses.map(value=>({value,label:labels[value]}))]} labels={labels}/><CertificateAdminTable records={result.certificates} labels={labels}/><RecordPagination path={routes.adminCertificates} query={query} total={result.total} pageSize={certificatePolicy.pageSize} labels={labels}/></div></>;
+}
+```
+
 ### File: `app/admin/dashboard/commerce/[kind]/page.tsx`
 
 SHA-256: `b66248c766b3292c637fa108d6ace6c330d86bea215bfae8a7923cdfd27a1728`
@@ -675,9 +721,10 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 
 ### File: `app/admin/dashboard/layout.tsx`
 
-SHA-256: `78003f05bddb787984aa8daccc540f5a4d88cd2d0e543673c933169898518192`
+SHA-256: `f7f0224c558c6da0e0327fa14c97c31493dc05b645664b3baed0055931bac16d`
 
 ```tsx
+import {certificateCopy} from "@platform/data/certificates";
 import {materialCopy,activityCopy} from "@platform/data/materials";
 import { liveSessionCopy } from "@platform/data/live-sessions";
 import { adminAccountMenuContent } from "@platform/config/account-menu";
@@ -702,7 +749,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminResources, label: materialCopy.title, symbol: "folder" }, { href: routes.adminActivity, label: activityCopy.title, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminTools, label: materialCopy.title, symbol: "folder" }, { href: routes.adminCertificates, label: certificateCopy.title, symbol: "award" }, { href: routes.adminActivity, label: activityCopy.title, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }
@@ -798,25 +845,16 @@ export default async function ProfilePage() { await requireAdminPage(); return <
 
 ### File: `app/admin/dashboard/resources/page.tsx`
 
-SHA-256: `228a2057c4ff9b17a80d919a9cf0dcefe5b03d4c5e219908bf7cd4a748d7404e`
+SHA-256: `374663a28cc0cb357aa0e59e88a32ee06ecbfbc6b128071b6ed49a4ee3b15781`
 
 ```tsx
-import {requireAdminPage} from "@platform/features/admin/page-identity";
-import {adminCourseChoices} from "@platform/features/admin/repositories/course-choices";
-import {readAdminMaterials} from "@platform/features/resources/admin-repository";
-import {readRecordQuery} from "@platform/helpers/read-record-query";
-import MaterialManager from "@platform/components/resources/material-manager";
-import RecordFilters from "@platform/components/admin/record-filters";
-import RecordPagination from "@platform/components/admin/record-pagination";
-import PageHeading from "@platform/components/ui/page-heading";
-import {materialCopy as labels} from "@platform/data/materials";
-import {materialPolicy as p} from "@platform/config/materials";
+import {redirect} from "next/navigation";
 import {routes} from "@platform/config/navigation";
+import {readRecordQuery,recordPageHref} from "@platform/helpers/read-record-query";
+import {materialPolicy} from "@platform/config/materials";
 export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
- await requireAdminPage();const query=readRecordQuery(await searchParams,p.kinds),[result,courses]=await Promise.all([readAdminMaterials(query),adminCourseChoices()]);
- return <><PageHeading title={labels.title}/><RecordFilters action={routes.adminResources} query={query} options={[{value:"all",label:labels.all},...p.kinds.map(value=>({value,label:labels[value]}))]} labels={{...labels,filter:labels.kind}}/>
-  <MaterialManager materials={result.materials} courses={courses} labels={labels}/><RecordPagination path={routes.adminResources} query={query} total={result.total} pageSize={p.pageSize} labels={labels}/>
- </>;
+ const query=readRecordQuery(await searchParams,materialPolicy.kinds);
+ redirect(recordPageHref(routes.adminTools,query,query.page));
 }
 ```
 
@@ -849,6 +887,30 @@ SHA-256: `070588410403374b213113bbc5ebdb3b84cf849e95910a5b733ccf381a30001a`
 import AccountSettingsPage from "@platform/features/account/settings-page";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 export default async function SettingsPage() { await requireAdminPage(); return <AccountSettingsPage />; }
+```
+
+### File: `app/admin/dashboard/tools/page.tsx`
+
+SHA-256: `3030d9dd852cda8e49195a313ff0ed15c8513f6c37417150bdfe9e77e14b8659`
+
+```tsx
+import {requireAdminPage} from "@platform/features/admin/page-identity";
+import {adminCourseChoices} from "@platform/features/admin/repositories/course-choices";
+import {readAdminMaterials} from "@platform/features/resources/admin-repository";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import MaterialManager from "@platform/components/resources/material-manager";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
+import PageHeading from "@platform/components/ui/page-heading";
+import {materialCopy as labels} from "@platform/data/materials";
+import {materialPolicy as p} from "@platform/config/materials";
+import {routes} from "@platform/config/navigation";
+export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requireAdminPage();const query=readRecordQuery(await searchParams,p.kinds),[result,courses]=await Promise.all([readAdminMaterials(query),adminCourseChoices()]);
+ return <><PageHeading title={labels.title}/><RecordFilters action={routes.adminTools} query={query} options={[{value:"all",label:labels.all},...p.kinds.map(value=>({value,label:labels[value]}))]} labels={{...labels,filter:labels.kind}}/>
+  <MaterialManager materials={result.materials} courses={courses} labels={labels}/><RecordPagination path={routes.adminTools} query={query} total={result.total} pageSize={p.pageSize} labels={labels}/>
+ </>;
+}
 ```
 
 ### File: `app/admin/dashboard/users/[username]/page.tsx`
@@ -966,6 +1028,46 @@ import { readAdminAnalytics } from "@platform/features/admin/analytics/repositor
 export async function GET() {
   return apiResponse(async () => Response.json(await readAdminAnalytics()));
 }
+```
+
+### File: `app/api/admin/certificates/[id]/route.ts`
+
+SHA-256: `eeea7ee7defd6f55251f0a13563fd24cbce4bac6ea0490676b0d69eb04ef3be1`
+
+```typescript
+import {apiResponse} from "@platform/lib/api/respond";
+import {readCertificate} from "@platform/features/certificates/repository";
+import {certificateSvg,certificateResponse} from "@platform/features/certificates/document";
+import {certificateDocument} from "@platform/data/certificates";
+export const GET=(_request:Request,{params}:{params:Promise<{id:string}>})=>apiResponse(async()=>{
+ const record=await readCertificate((await params).id,true);
+ return certificateResponse(certificateSvg(record,record.status==="revoked"?certificateDocument.revoked:""),`ta3allam-${record.id}`,true);
+});
+```
+
+### File: `app/api/admin/certificates/preview/route.ts`
+
+SHA-256: `13ba69ea8afca2e4ee582179c3106fe77672567ea36759bbb7d83d9479c8ccd0`
+
+```typescript
+import {requireAdmin} from "@platform/features/admin/identity";
+import {apiResponse} from "@platform/lib/api/respond";
+import {certificateDocument,certificatePreview} from "@platform/data/certificates";
+import {certificatePresentation} from "@platform/features/certificates/presentation";
+import {renderCertificate} from "@platform/features/certificates/renderer";
+import {certificateResponse} from "@platform/features/certificates/document";
+import {formatCourseDate} from "@platform/helpers/format-course-date";
+export const GET=()=>apiResponse(async()=>{await requireAdmin();return certificateResponse(renderCertificate({...certificateDocument,...certificatePreview,issuedDate:formatCourseDate(certificatePreview.issuedAt,""),lessonCount:String(certificatePreview.lessonCount),watermark:certificateDocument.preview},certificatePresentation),"ta3allam-preview",true);});
+```
+
+### File: `app/api/admin/certificates/route.ts`
+
+SHA-256: `c4bfac0b678c7a453e63ed7a3a514d7aa880a444de65cdef1ee0911d99f825dc`
+
+```typescript
+import {handleCertificates} from "@platform/features/certificates/handle";
+export const GET=(request:Request)=>handleCertificates(request,true);
+export const POST=(request:Request)=>handleCertificates(request,true);
 ```
 
 ### File: `app/api/admin/commerce/[kind]/route.ts`
@@ -1262,14 +1364,24 @@ export async function GET(request:Request,{params}:{params:Promise<{slug:string}
 
 ### File: `app/api/certificates/[slug]/route.ts`
 
-SHA-256: `4a8776bd9ea827e1d5ff65a8a89d1ce7d326b60820224b6667a958b9d9ced7c6`
+SHA-256: `f29677e3cb30a52c9c422b9f6eec5f8f06f71343d341a31ba38e5142a7142fa9`
 
 ```typescript
 import { downloadCertificate } from "@platform/features/certificates/download";
 import { apiResponse } from "@platform/lib/api/respond";
-export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
-  return apiResponse(async () => downloadCertificate((await params).slug));
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  return apiResponse(async () => downloadCertificate((await params).slug,new URL(request.url).searchParams.get("view")==="1"));
 }
+```
+
+### File: `app/api/certificates/route.ts`
+
+SHA-256: `71e410962d2335f048705631b5596e8f61f42d6b5cff811036ac46a64a9a9442`
+
+```typescript
+import {handleCertificates} from "@platform/features/certificates/handle";
+export const GET=(request:Request)=>handleCertificates(request);
+export const POST=(request:Request)=>handleCertificates(request);
 ```
 
 ### File: `app/api/courses/[slug]/intro/route.ts`
@@ -2472,61 +2584,48 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 }
 ```
 
+### File: `app/dashboard/certificates/[slug]/page.tsx`
+
+SHA-256: `19c6e94265ca55951dba27ee63127754a284470bc8117146185da06d38f2ab8d`
+
+```tsx
+import {notFound} from "next/navigation";
+import {ApiError} from "@platform/lib/api/error";
+import {requirePageIdentity} from "@platform/features/auth/server/page-identity";
+import {readStudentCertificate} from "@platform/features/certificates/download";
+import CertificateDocumentView from "@platform/components/certificates/document-view";
+import {certificateCopy as labels} from "@platform/data/certificates";
+import {endpoints} from "@platform/config/navigation";
+export default async function Page({params}:{params:Promise<{slug:string}>}) {
+ await requirePageIdentity();const {slug}=await params;await readStudentCertificate(slug).catch(error=>{if(error instanceof ApiError&&(error.status===403||error.status===404)) notFound();throw error;});
+ return <CertificateDocumentView src={endpoints.certificate(slug)+"?view=1"} title={labels.preview} printLabel={labels.print}/>;
+}
+```
+
 ### File: `app/dashboard/certificates/page.tsx`
 
-SHA-256: `62fb0f663b0485da89ba1140404739bf32997b481770119863160b8fd92f9240`
+SHA-256: `b993e43324a6f883e195e58ed7047648e84d84504e740ab4a78bd8a807b8ba56`
 
 ```tsx
 import CertificateCard from "@platform/components/certificates/certificate-card";
-import { routes } from "@platform/config/navigation";
-import { interfaceCopy } from "@platform/data/interface-copy";
+import CertificateIssueForm from "@platform/components/certificates/issue-form";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
 import PageHeading from "@platform/components/ui/page-heading";
-import EmptyState from "@platform/components/ui/empty-state";
-import { listCourses } from "@platform/features/catalog";
-import { copy, site } from "@platform/data/site";
-import { readStudentState, courseProgress } from "@platform/features/learning";
-export const metadata = {
-  title: interfaceCopy.certificatesPageTitle,
-};
-export default async function CertificatesPage() {
-  const state = await readStudentState();
-  const courses = await listCourses();
-  const earned = courses.filter(
-    (course) =>
-      state.enrolled.includes(course.slug) &&
-      courseProgress(course, state).percent === 100,
-  );
-  return (
-    <>
-      <PageHeading
-        title={copy.certificateTitle}
-        description={copy.certificateDescription}
-      />
-      {earned.length ? (
-        <div className="lms-resource-grid">
-          {earned.map((course) => (
-            <CertificateCard
-              interfaceCopy={{
-                certificateHeading: interfaceCopy.certificateHeading,
-              }}
-              copy={{ print: copy.print }}
-              site={{ name: site.name, demoLabel: site.demoLabel }}
-              key={course.slug}
-              course={course}
-              learnerName={state.profile.name}
-            />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title={copy.emptyCertificates}
-          description={copy.emptyCertificatesBody}
-          href={routes.library}
-          label={copy.continue}
-        />
-      )}
-    </>
-  );
+import {routes,endpoints} from "@platform/config/navigation";
+import {certificateCopy as labels,certificateDocument} from "@platform/data/certificates";
+import {certificatePolicy} from "@platform/config/certificates";
+import {listCertificates,eligibleCertificateCourses,certificateAccessSlugs} from "@platform/features/certificates/repository";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {copy,site} from "@platform/data/site";
+import {requirePageIdentity} from "@platform/features/auth/server/page-identity";
+export const metadata={title:labels.title};
+export default async function CertificatesPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requirePageIdentity();const query=readRecordQuery(await searchParams,certificatePolicy.statuses),[eligible,result,access]=await Promise.all([eligibleCertificateCourses(),listCertificates(query),certificateAccessSlugs()]);
+ return <><PageHeading title={copy.certificateTitle} description={copy.certificateDescription}/><div className="lms-account-stack">
+  {eligible.length>0&&<CertificateIssueForm key={eligible.map(course=>course.slug).join(":")} courses={eligible} labels={labels} endpoint={endpoints.certificates}/>}<RecordFilters action={routes.certificates} query={query} options={[{value:"all",label:labels.all},...certificatePolicy.statuses.map(value=>({value,label:labels[value]}))]} labels={labels}/>
+  <div className="lms-resource-grid">{result.certificates.map(record=><CertificateCard key={record.id} record={record} accessible={access.has(record.course_slug)} labels={labels} heading={certificateDocument.title} brand={site.name}/>)}</div>{!result.total&&<p className="lms-admin-empty">{labels.empty}</p>}
+  <RecordPagination path={routes.certificates} query={query} total={result.total} pageSize={certificatePolicy.pageSize} labels={labels}/></div></>;
 }
 ```
 
@@ -6115,17 +6214,14 @@ export default function EnrollmentForm({userId,initial,courses,labels,onClose}:{
 
 ### File: `modules/components/admin/enrollment-history.tsx`
 
-SHA-256: `624013e202c59df9bd797ed2a5d0a4f35ee3e0fae7c1f05f4c4036d40a6c1642`
+SHA-256: `9e6b3dd1babc5c5c67b96695e12529a3ecbdd83512688e4e1e99c2fb986e7f8d`
 
 ```tsx
-import PageHeading from "@platform/components/ui/page-heading";
-import {formatActivityDate} from "@platform/helpers/format-activity-date";
+import EventHistory from "./event-history";
 import type {EnrollmentEvent,EnrollmentLabels} from "@platform/types/enrollment";
 export default function EnrollmentHistory({events,courses,labels}:{events:EnrollmentEvent[];courses:{slug:string;title:string}[];labels:EnrollmentLabels}) {
- return <section className="lms-account-stack"><PageHeading level={2} title={labels.history}/>
-  {events.map(event=><article key={event.id} className="lms-profile-card lms-enrollment-event" data-reveal data-reveal-motion="fade"><h3>{labels[event.action]} · {courses.find(course=>course.slug===event.course_slug)?.title ?? event.course_slug}</h3><p>{event.reason}</p><p>{labels.actor}: {event.actor || labels.system}</p><time dateTime={event.created_at}>{formatActivityDate(event.created_at)}</time></article>)}
-  {!events.length&&<p>{labels.empty}</p>}
- </section>;
+ const rows=events.map(event=>({id:event.id,title:labels[event.action]+" · "+(courses.find(course=>course.slug===event.course_slug)?.title??event.course_slug),reason:event.reason,actor:event.actor,createdAt:event.created_at}));
+ return <EventHistory events={rows} labels={{title:labels.history,actor:labels.actor,unknown:labels.system,empty:labels.empty}}/>;
 }
 ```
 
@@ -6150,6 +6246,21 @@ export default function EnrollmentManager({userId,subscriptions,courses,labels,u
   <UserSubscriptions subscriptions={subscriptions} labels={userLabels} renderAction={course=><><p>{course.active ? labels.active : labels.revoked}</p><button type="button" className="lms-text-link" disabled={!hydrated} onClick={()=>setChange({courseSlug:course.slug,revision:course.revision,action:course.active ? "revoke" : "restore"})}>{course.active ? labels.revoke : labels.restore}</button></>}/>
   {change&&<EnrollmentForm initial={change} {...{userId,labels}} courses={change.action==="grant" ? available : courses} onClose={()=>setChange(undefined)}/>}
  </div>;
+}
+```
+
+### File: `modules/components/admin/event-history.tsx`
+
+SHA-256: `294a0e4750f3ed25975ea87f9236b0b18378defecad582763abb3ffb42ea008b`
+
+```tsx
+import PageHeading from "@platform/components/ui/page-heading";
+import {formatActivityDate} from "@platform/helpers/format-activity-date";
+export default function EventHistory({events,labels}:{events:{id:number;title:string;reason:string;actor:string;createdAt:string}[];labels:{title:string;actor:string;unknown:string;empty:string}}) {
+ return <section className="lms-account-stack"><PageHeading level={2} title={labels.title}/>
+  {events.map(event=><article key={event.id} className="lms-profile-card lms-enrollment-event" data-reveal data-reveal-motion="fade"><h3>{event.title}</h3><p>{event.reason}</p><p>{labels.actor}: {event.actor||labels.unknown}</p><time dateTime={event.createdAt}>{formatActivityDate(event.createdAt)}</time></article>)}
+  {!events.length&&<p>{labels.empty}</p>}
+ </section>;
 }
 ```
 
@@ -6622,44 +6733,150 @@ export default function VideoPreview({ url, slug, thumbnailUrl, labels }: { url:
 }
 ```
 
-### File: `modules/components/certificates/certificate-card.tsx`
+### File: `modules/components/certificates/admin-row.tsx`
 
-SHA-256: `37cfd5f0c8d046adeb9daa7b16280ee4705e1b438024c356544c18664eb1e285`
+SHA-256: `2e2ff129234d0f5d664b60858a5a0ee22bf564a9e9cbc608b6aa1552b717d527`
 
 ```tsx
-import type { ContentBindings } from "@platform/types/content";
-import { endpoints } from "@platform/config/navigation";
+"use client";
+import {useState} from "react";
+import CertificateModerationDialog from "./moderation-dialog";
+import {formatActivityDate} from "@platform/helpers/format-activity-date";
+import {endpoints,routes} from "@platform/config/navigation";
+import {useHydrated} from "@khatab/design/hooks/use-hydrated";
+import type {CertificateRecord,CertificateLabels} from "@platform/types/certificates";
+export default function CertificateAdminRow({record,labels}:{record:CertificateRecord;labels:CertificateLabels}) {
+ const [editing,setEditing]=useState(false),hydrated=useHydrated();
+ return <tr><td data-label={labels.learner}>{record.learner_name}</td><td data-label={labels.course}>{record.course_title}</td><td data-label={labels.date}>{formatActivityDate(record.issued_at)}</td><td data-label={labels.serial}><span dir="ltr" className="lms-record-id">{record.id}</span></td><td data-label={labels.filter}>{record.status==="issued"?labels.issued:labels.revoked}</td>
+  <td data-label={labels.actions}><div className="lms-admin-actions"><a className="lms-text-link" href={routes.adminCertificate(record.id)}>{labels.preview}</a><button type="button" className="lms-text-link" disabled={!hydrated} onClick={()=>setEditing(true)}>{record.status==="issued"?labels.revoke:labels.restore}</button></div>
+   {editing&&<CertificateModerationDialog {...{record,labels}} endpoint={endpoints.adminCertificates} onClose={()=>setEditing(false)}/>}
+  </td></tr>;
+}
+```
+
+### File: `modules/components/certificates/admin-table.tsx`
+
+SHA-256: `c4161cad439c56612ccfbf43c1cd063f20776eb427450f1b6ebdfef00f84e4cf`
+
+```tsx
+import CertificateAdminRow from "./admin-row";
+import type {CertificateRecord,CertificateLabels} from "@platform/types/certificates";
+export default function CertificateAdminTable({records,labels}:{records:CertificateRecord[];labels:CertificateLabels}) {
+ return <div className="lms-admin-table-wrap" data-reveal data-reveal-motion="fade"><table className="lms-admin-table"><caption className="lms-visually-hidden">{labels.title}</caption><thead><tr>{[labels.learner,labels.course,labels.date,labels.serial,labels.filter,labels.actions].map(label=><th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>{records.map(record=><CertificateAdminRow key={`${record.id}:${record.revision}`} {...{record,labels}}/>)}</tbody></table>{!records.length&&<p className="lms-admin-empty">{labels.empty}</p>}</div>;
+}
+```
+
+### File: `modules/components/certificates/certificate-card.tsx`
+
+SHA-256: `7245222427399abc06ea1423afaed9162a0bf57cd9803a167229e900087276a8`
+
+```tsx
+import {endpoints,routes} from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
-export default function CertificateCard({
-  interfaceCopy,
-  copy,
-  site,
-  course,
-  learnerName,
-}: {
-  interfaceCopy: Pick<ContentBindings["interfaceCopy"], "certificateHeading">;
-  copy: Pick<ContentBindings["copy"], "print">;
-  site: Pick<ContentBindings["site"], "name" | "demoLabel">;
-  course: Pick<import("@platform/types/lms").Course,"slug"|"title">;
-  learnerName: string;
-}) {
-  return (
-    <article className="lms-certificate" key={course.slug}>
-      <Symbol name="award" />
-      <span>{site.name}</span>
-      <h2>{interfaceCopy.certificateHeading}</h2>
-      <p>{learnerName}</p>
-      <h3>{course.title}</h3>
-      <small>{site.demoLabel}</small>
-      <a
-        className="lms-secondary-button"
-        href={endpoints.certificate(course.slug)}
-      >
-        <Symbol name="download" />
-        {copy.print}
-      </a>
-    </article>
-  );
+import {formatCourseDate} from "@platform/helpers/format-course-date";
+import type {CertificateRecord,CertificateLabels} from "@platform/types/certificates";
+export default function CertificateCard({record,labels,heading,brand,accessible=true}:{record:CertificateRecord;labels:CertificateLabels;heading:string;brand:string;accessible?:boolean}) {
+ return <article className="lms-certificate" data-reveal data-reveal-motion="fade"><Symbol name="award"/><span>{brand}</span><h2>{heading}</h2><p>{record.learner_name}</p><h3>{record.course_title}</h3>
+  <small>{labels.date}: {formatCourseDate(record.issued_at,"")}</small><small>{labels.serial}: <span dir="ltr" className="lms-record-id">{record.id}</span></small>
+  {record.status==="revoked"||!accessible?<p className="lms-error">{record.status==="revoked"?labels.locked:labels.accessLocked}</p>:<a className="lms-secondary-button" href={endpoints.certificate(record.course_slug)}><Symbol name="download"/>{labels.download}</a>}
+  {record.status==="issued"&&accessible&&<a className="lms-text-link" href={routes.certificate(record.course_slug)}>{labels.preview}</a>}
+ </article>;
+}
+```
+
+### File: `modules/components/certificates/document-view.tsx`
+
+SHA-256: `3b223afdbc7d5e05b2f366c78d5c22426542d00fde4c24e228316663c79ba658`
+
+```tsx
+/* eslint-disable @next/next/no-img-element -- Protected printable SVG with embedded Arabic font. */
+import CertificatePrintButton from "./print-button";
+export default function CertificateDocumentView({src,title,printLabel}:{src:string;title:string;printLabel:string}) {
+ return <section className="lms-certificate-document"><img src={src} alt={title} width={1200} height={850} decoding="async"/><CertificatePrintButton label={printLabel}/></section>;
+}
+```
+
+### File: `modules/components/certificates/event-history.tsx`
+
+SHA-256: `a27bf97bf0c6651181c3e30a540602d65512c5fcc768f6bd752f6f6a4761532c`
+
+```tsx
+import EventHistory from "@platform/components/admin/event-history";
+import type {CertificateLabels} from "@platform/types/certificates";
+export default function CertificateEventHistory({events,labels}:{events:{id:number;action:string;reason:string;created_at:string;actor:string}[];labels:CertificateLabels}) {
+ const rows=events.map(event=>({id:event.id,title:event.action==="issue"?labels.issue:event.action==="revoke"?labels.revoke:labels.restore,reason:event.reason,createdAt:event.created_at,actor:event.actor}));
+ return <EventHistory events={rows} labels={{title:labels.history,actor:labels.actor,unknown:labels.unknown,empty:labels.empty}}/>;
+}
+```
+
+### File: `modules/components/certificates/issue-form.tsx`
+
+SHA-256: `81defeac2ab2b46e37b38ec9da89d31d107db4845549a6a0c8b7dca743a596f5`
+
+```tsx
+"use client";
+import {useHydrated} from "@khatab/design/hooks/use-hydrated";
+import FormField from "@platform/components/ui/form-field";
+import Select from "@khatab/design/ui/select";
+import SaveFeedback from "@platform/components/admin/save-feedback";
+import {useAdminSave} from "@platform/hooks/use-admin-save";
+import type {CertificateLabels} from "@platform/types/certificates";
+import {usernamePolicy} from "@platform/helpers/validation/username";
+export default function CertificateIssueForm({courses,labels,endpoint,admin=false}:{courses:{slug:string;title:string}[];labels:CertificateLabels;endpoint:string;admin?:boolean}) {
+ const command=useAdminSave(endpoint,labels.error),hydrated=useHydrated();
+ return <form className="lms-profile-form lms-profile-card" onSubmit={event=>{event.preventDefault();const data=new FormData(event.currentTarget);void command.save({operation:"issue",slug:data.get("slug"),...(admin?{username:data.get("username")}:{} )});}}>
+  <h2>{admin?labels.issue:labels.request}</h2><p className="lms-field-hint">{labels.issueHint}</p>
+  <fieldset disabled={!hydrated||command.pending||!courses.length} className="lms-settings-name-grid">
+   {admin&&<FormField label={labels.username} name="username" required minLength={usernamePolicy.min} maxLength={usernamePolicy.max} dir="ltr" autoComplete="off"/>}
+   <Select name="slug" label={labels.course} required options={courses.map(course=>({value:course.slug,label:course.title}))} defaultValue={courses[0]?.slug}/>
+  </fieldset>{courses.length?<SaveFeedback {...command} pending={!hydrated||command.pending} labels={{...labels,save:admin?labels.issue:labels.request}}/>:<p>{labels.empty}</p>}
+ </form>;
+}
+```
+
+### File: `modules/components/certificates/moderation-dialog.tsx`
+
+SHA-256: `7583654c7c0795c417c138bd26b66f96e688d8141eaf9d7b9de110ddfe2aac63`
+
+```tsx
+"use client";
+import AdminDialog from "@platform/components/admin/admin-dialog";
+import TextareaField from "@platform/components/ui/textarea-field";
+import SaveFeedback from "@platform/components/admin/save-feedback";
+import {useAdminSave} from "@platform/hooks/use-admin-save";
+import {certificatePolicy} from "@platform/config/certificates";
+import type {CertificateRecord,CertificateLabels} from "@platform/types/certificates";
+export default function CertificateModerationDialog({record,labels,endpoint,onClose}:{record:CertificateRecord;labels:CertificateLabels;endpoint:string;onClose:()=>void}) {
+ const command=useAdminSave(endpoint,labels.error),operation=record.status==="issued"?"revoke":"restore";
+ return <AdminDialog title={labels[operation]} closeLabel={labels.cancel} pending={command.pending} onClose={onClose}>
+  <form className="lms-profile-form" onSubmit={event=>{event.preventDefault();void command.save({operation,id:record.id,revision:record.revision,reason:new FormData(event.currentTarget).get("reason")}).then(saved=>{if(saved) onClose();});}}>
+   <p>{record.learner_name} — {record.course_title}</p><TextareaField name="reason" label={labels.reason} required maxLength={certificatePolicy.reasonMax} disabled={command.pending}/><SaveFeedback {...command} labels={labels}/>
+  </form>
+ </AdminDialog>;
+}
+```
+
+### File: `modules/components/certificates/preview.tsx`
+
+SHA-256: `29d06a567eadef2292cd69d26e7587b34a62f3a55bff4db4c0dd9c71e4adfcdb`
+
+```tsx
+/* eslint-disable @next/next/no-img-element -- Same-origin authenticated SVG with embedded Arabic font. */
+import type {CertificateLabels} from "@platform/types/certificates";
+export default function CertificatePreview({src,labels}:{src:string;labels:CertificateLabels}) {
+ return <details className="lms-profile-card lms-certificate-preview" data-reveal data-reveal-motion="fade"><summary className="lms-text-link">{labels.preview}</summary><p className="lms-field-hint">{labels.previewHint}</p><img src={src} alt={labels.preview} width={1200} height={850} loading="lazy" decoding="async"/></details>;
+}
+```
+
+### File: `modules/components/certificates/print-button.tsx`
+
+SHA-256: `d6cb44d972a95fd52bf7585707101c630c35743098475bca82eef248be634acb`
+
+```tsx
+"use client";
+import {useHydrated} from "@khatab/design/hooks/use-hydrated";
+export default function CertificatePrintButton({label}:{label:string}) {
+ const hydrated=useHydrated();return <button type="button" className="btn-primary lms-print-action" disabled={!hydrated} onClick={()=>window.print()}>{label}</button>;
 }
 ```
 
@@ -10271,9 +10488,10 @@ export default function PasswordField({ showLabel, hideLabel, ...props }: Omit<F
 
 ### File: `modules/components/ui/progress-bar.tsx`
 
-SHA-256: `a458cba65e077d037160c7e3eeae459da622064c2ce290a502f725f93fa34be4`
+SHA-256: `24d7a9156c2bc89339b678df5de94eb29fd109a1175be0b63d78491126fa2db7`
 
 ```tsx
+import {completionPercent} from "@platform/helpers/completion-percent";
 import type { ContentBindings } from "@platform/types/content";
 
 export default function ProgressBar({
@@ -10290,7 +10508,7 @@ export default function ProgressBar({
     ![percent, count, total].every(Number.isFinite) ||
     !Number.isInteger(count) ||
     !Number.isInteger(total) ||
-    percent !== (total ? Math.round((count / total) * 100) : 0) ||
+    percent !== completionPercent(count,total) ||
     total < 0 ||
     count < 0 ||
     count > total ||
@@ -10475,6 +10693,17 @@ export const sampleLessonVideoId = "BQTI8hXPVD0";
 export const sampleLessonVideoUrl = `https://www.youtube-nocookie.com/embed/${sampleLessonVideoId}`;
 ```
 
+### File: `modules/config/certificates.ts`
+
+SHA-256: `2ff8273bcbd6ec8c6aedc44a823a8f2dd8bcf3cfa5798071e05a2a187f55537f`
+
+```typescript
+import {recordPolicy} from "./records";
+export const certificatePolicy = {...recordPolicy,statuses:["issued","revoked"] as const,reasonMax:500};
+/** Isolated SVG documents need embedded fonts, never scripts or external requests. */
+export const certificateDocumentPolicy="default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; font-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+```
+
 ### File: `modules/config/commerce.ts`
 
 SHA-256: `2bef2084358bb1473c2c56f33383ede057ced65267a86e466b8772a98d192c36`
@@ -10570,7 +10799,7 @@ export const activityEntities = ["courses","lessons","resources","lesson_resourc
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `c17f88a6a6e81f39ee9a6977789dc99739fb0780cb3ab2706b72f91a9d85afb6`
+SHA-256: `c01f128a7c044d4f21a373e9ef9f70945f783cd2932939b2caaf8952c1dd59d3`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -10624,6 +10853,10 @@ export const routes = {
   liveSessions: "/dashboard/live-sessions",
   adminLiveSessions: "/admin/dashboard/live-sessions",
   adminResources: "/admin/dashboard/resources",
+  adminTools: "/admin/dashboard/tools",
+  adminCertificates: "/admin/dashboard/certificates",
+  adminCertificate: (id:string) => `/admin/dashboard/certificates/${segment(id)}`,
+  certificate: (slug:string) => `/dashboard/certificates/${segment(slug)}`,
   adminActivity: "/admin/dashboard/activity",
   adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
@@ -10650,6 +10883,10 @@ export const routes = {
   },
 };
 export const endpoints = {
+  certificates: "/api/certificates",
+  adminCertificates: "/api/admin/certificates",
+  certificatePreview: "/api/admin/certificates/preview",
+  adminCertificate: (id:string) => `/api/admin/certificates/${segment(id)}`,
   adminLiveSessions: "/api/admin/live-sessions",
   adminResources: "/api/admin/resources",
   lessonNotes: (slug:string,id:string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/notes`,
@@ -10957,10 +11194,13 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `f04200f70160402fbdf40127d1648b4957313ddd3ff7b6662d5baf9434e7d64e`
+SHA-256: `c8beff26e663b681185c0d6807f92e14ba0586edd9d29e723f1952b40bb65fe5`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  CERTIFICATE_INELIGIBLE:"يلزم اشتراك فعّال وإتمام جميع دروس دورة منشورة قبل إصدار الشهادة.",
+  CERTIFICATE_REVOKED:"ألغت الإدارة هذه الشهادة. تواصل مع الدعم للاستفسار.",
+  CERTIFICATE_CONFLICT:"تغيّرت حالة الشهادة. حدّث الصفحة قبل تكرار الإجراء.",
   ENROLLMENT_CONFLICT: "تغيّر الاشتراك منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
   ENROLLMENT_REVOKED: "أوقفت الإدارة الوصول إلى هذه الدورة. تواصل مع الدعم.",
   COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
@@ -10991,6 +11231,7 @@ export const backendCopy: Record<string, string> = {
   CURRICULUM_NOT_EMPTY: "انقل الدروس أو احذف المحتوى قبل حذف الفصل أو القسم.",
   PUBLISHED_CURRICULUM_INCOMPLETE: "هذا التعديل يترك محتوى منشورًا غير مكتمل. ألغِ نشر الدورة أولاً من بياناتها.",
   COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
+  COURSE_HAS_CERTIFICATES:"لا يمكن حذف دورة لها شهادات صادرة. يمكنك إلغاء نشرها بدلاً من حذفها.",
   COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
   COURSE_DURATION_REQUIRED: "أدخل مدة الدورة المباشرة قبل النشر.",
   INCOMPLETE_COURSE: "أكمل محتوى الدورة وبياناتها قبل النشر.",
@@ -11043,6 +11284,29 @@ export const lessonResources: Record<string, readonly string[]> = {
   "editing-foundations/editor-mindset": ["creative-brief"],
   "first-client/portfolio": ["portfolio-plan"],
 };
+```
+
+### File: `modules/data/certificates.ts`
+
+SHA-256: `095c2c799ad7c0f109b24186fc809350a72a0a47ba91f56499c15cd5bc633b63`
+
+```typescript
+import {creatorIdentity,learningIdentity} from "@/config/identity";
+export const certificateCopy = {
+ title:"الشهادات",search:"البحث باسم الطالب أو الدورة",filter:"حالة الشهادة",all:"الكل",apply:"تطبيق",previous:"السابق",next:"التالي",
+ issued:"سارية",revoked:"ملغاة",learner:"اسم الطالب",course:"الدورة",date:"تاريخ الإصدار",serial:"رقم الشهادة",actions:"الإجراءات",empty:"لا توجد شهادات مطابقة.",
+ issue:"إصدار شهادة",username:"اسم المستخدم",issueHint:"تُصدر الشهادة بعد إتمام جميع دروس دورة منشورة باشتراك فعّال. تُحفظ بياناتها كما كانت وقت الإصدار.",
+ revoke:"إلغاء الشهادة",restore:"استعادة الشهادة",reason:"سبب الإجراء",cancel:"إلغاء",save:"تأكيد",saving:"جارٍ الحفظ…",saved:"تم الحفظ",error:"تعذّر حفظ الشهادة. راجع البيانات وحاول مرة أخرى.",
+ preview:"معاينة التصميم",download:"تحميل الشهادة",request:"إصدار شهادتي",locked:"هذه الشهادة ملغاة. تواصل مع الدعم للاستفسار.",accessLocked:"تحميل الشهادة متاح عند تفعيل الاشتراك ونشر الدورة.",actor:"المنفّذ",unknown:"حساب غير متاح",history:"آخر إجراءات الشهادة",support:"تواصل مع الدعم",
+ print:"طباعة / حفظ PDF",previewHint:"معاينة للتصميم فقط؛ ليست شهادة صادرة لطالب.",
+};
+export const certificateDocument = {
+ brandName:learningIdentity.name,brandEnglishName:learningIdentity.englishName,title:"شهادة إتمام تدريبية",
+ introduction:"تشهد منصة تعلّم بأن",completion:"قد أتمّ جميع دروس الدورة التدريبية",issuer:creatorIdentity.name,issuerRole:"مؤسس منصة تعلّم",
+ disclaimer:"شهادة إتمام تدريبية من تعلّم، لا تمثّل اعتمادًا أكاديميًا أو مهنيًا.",
+ dateLabel:"تاريخ الإصدار",serialLabel:"رقم الشهادة",lessonLabel:"عدد الدروس المكتملة",preview:"معاينة التصميم",revoked:"شهادة ملغاة",
+};
+export const certificatePreview = {learnerName:"اسم الطالب",courseTitle:"المونتاج والجرافيك ديزاين والموشن جرافيك",serial:"TA3-PREVIEW",issuedAt:"2026-01-01T00:00:00Z",lessonCount:24};
 ```
 
 ### File: `modules/data/commerce.ts`
@@ -11482,19 +11746,16 @@ export const thumbnailUploadCopy = { ...imageUploadCopy, title: "رفع صورة
 
 ### File: `modules/data/interface-copy.ts`
 
-SHA-256: `80fcb3b904676b2ef84c440ba673b730925406b5dd68c7fc234b4782c523d550`
+SHA-256: `4e823df928e523ee0a3d9937ed8b9688d2aa960fefbea5e3f646ba65e4829aad`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
-const certificateTitle = "شهادة إتمام تدريبية";
 // Shared interface wording, grouped by original screen/component context.
 export const interfaceCopy = {
   playLesson: "تشغيل",
   greeting: "أهلًا،",
   lesson: "الدرس",
   of: "من",
-  certificateTitle,
-  certificateDisclaimer: "نسخة تجريبية — ليست شهادة اعتماد",
   namePlaceholder: "كيف تحب نناديك؟",
   categoryLabel: "تصنيف الدورات",
   studentNavigationLabel: "لوحة الطالب",
@@ -11534,7 +11795,6 @@ export const interfaceCopy = {
   loginPracticeStep: "02 · اتعلّم وجرّب",
   loginProjectStep: "03 · اصنع مشروعك",
   loginDemoDescription: "بياناتك تُحفظ محليًا لهذا العرض التجريبي.",
-  certificateLocked: "أكمل الدورة أولًا",
   requestForbidden: "طلب غير مسموح",
   courseRequired: "اختر دورة موجودة",
   profileInvalid: "اكتب اسمًا وبريدًا إلكترونيًا صحيحين",
@@ -11542,8 +11802,6 @@ export const interfaceCopy = {
   lessonNotFound: "الدرس غير موجود",
   enrollmentRequired: "ابدأ الدورة أولًا",
   resourceNotFound: "الأداة غير موجودة",
-  certificatesPageTitle: "شهاداتي",
-  certificateHeading: certificateTitle,
   libraryPageTitle: "دوراتي",
   libraryTitle: "كل تعلّمك، في مكان واحد.",
   libraryDescription: "ارجع لأي درس، وكمّل رحلتك على راحتك.",
@@ -11612,11 +11870,11 @@ export const liveSessionCopy = {
 
 ### File: `modules/data/materials.ts`
 
-SHA-256: `8dd41a0fa5d92f7bb8a2ef7afd7658e61761379738a77d54ba80326d576c3a68`
+SHA-256: `97ea967eff8b53f447ff57c5f30e644a48c8018d1d5436a1e2fd8a8464f8e75d`
 
 ```typescript
 export const materialCopy = {
- title:"مواد الدروس", create:"إضافة مادة", edit:"تعديل", remove:"حذف", cancel:"إلغاء", name:"اسم المادة", description:"الوصف", type:"نوع الملف أو المادة", kind:"طريقة الإتاحة", text:"نص قابل للتنزيل", link:"رابط خارجي", content:"النص أو رابط HTTPS", course:"الدورة", assignments:"الدروس المرتبطة", selected:"دروس مختارة", save:"حفظ المادة", saving:"جارٍ الحفظ…", saved:"تم الحفظ", error:"تعذّر حفظ المادة. راجع البيانات وحاول مرة أخرى.", confirmRemove:"حذف هذه المادة من جميع الدروس المرتبطة بها؟", empty:"لا توجد مواد مطابقة.", search:"البحث باسم المادة", all:"الكل", apply:"تطبيق", previous:"السابق", next:"التالي", updated:"آخر تحديث", hint:"اختر درسًا واحدًا على الأقل. الرابط الخارجي متاح للمشتركين عبر مكتبة المواد؛ صلاحيات الملف نفسه تُضبط عند مزوّد التخزين.",
+ title:"مكتبة الأدوات", create:"إضافة مادة", edit:"تعديل", remove:"حذف", cancel:"إلغاء", name:"اسم المادة", description:"الوصف", type:"نوع الملف أو المادة", kind:"طريقة الإتاحة", text:"نص قابل للتنزيل", link:"رابط خارجي", content:"النص أو رابط HTTPS", course:"الدورة", assignments:"الدروس المرتبطة", selected:"دروس مختارة", save:"حفظ المادة", saving:"جارٍ الحفظ…", saved:"تم الحفظ", error:"تعذّر حفظ المادة. راجع البيانات وحاول مرة أخرى.", confirmRemove:"حذف هذه المادة من جميع الدروس المرتبطة بها؟", empty:"لا توجد مواد مطابقة.", search:"البحث باسم المادة", all:"الكل", apply:"تطبيق", previous:"السابق", next:"التالي", updated:"آخر تحديث", hint:"اختر درسًا واحدًا على الأقل. الرابط الخارجي متاح للمشتركين عبر مكتبة المواد؛ صلاحيات الملف نفسه تُضبط عند مزوّد التخزين.",
 };
 export const noteCopy = {title:"ملاحظاتي الخاصة",hint:"اكتب ملاحظاتك ثم احفظها في حسابك.",save:"حفظ الملاحظات",saving:"جارٍ الحفظ…",saved:"محفوظة في حسابك",unsaved:"توجد تغييرات لم تُحفظ",error:"تعذّر حفظ الملاحظات. النص ما زال هنا؛ حاول مرة أخرى.",importLocal:"استيراد ملاحظات هذا المتصفح",limit:"٤٠٠٠ حرف كحد أقصى"};
 export const activityCopy = {title:"سجل تغييرات المحتوى",search:"البحث بمعرّف المحتوى",filter:"نوع المحتوى",all:"الكل",apply:"تطبيق",previous:"السابق",next:"التالي",empty:"لا توجد تغييرات مطابقة.",date:"التاريخ",actor:"المنفّذ",entity:"المحتوى",target:"المعرّف",action:"الإجراء",fields:"الحقول المتغيّرة",system:"النظام / خدمة إدارية",unknown:"حساب غير متاح",INSERT:"إضافة",UPDATE:"تعديل",DELETE:"حذف",courses:"الدورات",lessons:"الدروس",resources:"مواد الدروس",lesson_resources:"ربط مواد الدروس",live_sessions:"الجلسات المباشرة",workshop_templates:"قوالب الصفحات",commerce_bundles:"الباقات",commerce_discounts:"الخصومات",admin_users:"صلاحيات الإدارة"};
@@ -11772,7 +12030,7 @@ export const salesCopy:SalesLabels={heading:"المبيعات",search:"بحث ب
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `6bc2abd159ec4f761cc0b33a3eaefbb137dedcb94a22753f1afc590a0e0c882f`
+SHA-256: `bda88953f08c238618a7a042a35cf1d25119a53cda6567ac59f95449f8ccf03c`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -11944,7 +12202,7 @@ export const copy = {
   lessonDetails: "في هذا الدرس",
   certificateTitle: "إنجازك يستحق يتشاف",
   certificateDescription:
-    "أكمل كل دروس الدورة لتظهر شهادة الإتمام التدريبية هنا.",
+    "أكمل كل دروس الدورة، ثم اطلب إصدار شهادة الإتمام التدريبية وحمّلها من هنا.",
   emptyCertificates: "شهادتك الأولى مستنياك",
   emptyCertificatesBody:
     "ابدأ بدورة واحدة وكمّل دروسها. كل درس بيقرّبك من الإنجاز.",
@@ -12029,20 +12287,20 @@ export const templateFieldLabels: Record<string,string> = {
 
 ### File: `modules/features/account/handle-confirmation.ts`
 
-SHA-256: `4548a552091ffe3cc797258ff0932620b38b81a8187d40ce76ad644f99870a01`
+SHA-256: `fb0e91bf2ad41f8015172185444f03b5989a4dc8bfc8858d89184d2fe5f553c6`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "@platform/features/admin/identity";
-import { validUserId } from "@platform/features/admin/helpers/read-moderation";
+import {validUuid} from "@platform/helpers/validation/uuid";
 import { readUserContacts } from "./repositories/read-user-contacts";
 export function handleConfirmation(request: Request, id: string) {
   return apiResponse(async () => {
     const { client } = await requireAdmin();
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
-    if (!validUserId(id)) throw new ApiError(404, "NOT_FOUND");
+    if (!validUuid(id)) throw new ApiError(404, "NOT_FOUND");
     const input = await readJson(request);
     if (!input || input.field !== "phone" || typeof input.value !== "string") throw new ApiError(400, "INVALID_INPUT");
     const contact = await readUserContacts(id), value = contact.phone_e164;
@@ -12529,14 +12787,14 @@ export async function readAdminAnalytics() {
 
 ### File: `modules/features/admin/enrollments/handler.ts`
 
-SHA-256: `5df053410f3b0635d99f82ac94a110ce2dc07a93e0a5e863bd4e9fc4cbbae7ab`
+SHA-256: `1a7be785e589df36e1a09924fc12ad6a8accf0b84deff43d65cf0cd19df496fe`
 
 ```typescript
 import {apiResponse} from "@platform/lib/api/respond";
 import {ApiError} from "@platform/lib/api/error";
 import {readJson,sameOrigin} from "@platform/lib/server-request";
 import {requireAdmin} from "../identity";
-import {validUserId} from "../helpers/read-moderation";
+import {validUuid} from "@platform/helpers/validation/uuid";
 import {validateEnrollment} from "./validate";
 import {manageEnrollment} from "./repository";
 export function handleEnrollmentChange(request:Request,userId:string) {
@@ -12544,7 +12802,7 @@ export function handleEnrollmentChange(request:Request,userId:string) {
   await requireAdmin();
   if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
   const input=validateEnrollment(await readJson(request));
-  if(!validUserId(userId)||!input) throw new ApiError(400,"INVALID_INPUT");
+  if(!validUuid(userId)||!input) throw new ApiError(400,"INVALID_INPUT");
   return Response.json(await manageEnrollment(userId,input));
  });
 }
@@ -12552,13 +12810,13 @@ export function handleEnrollmentChange(request:Request,userId:string) {
 
 ### File: `modules/features/admin/enrollments/repository.ts`
 
-SHA-256: `47f971f062fd29f3f3339d5b4a31598f9c1dd698022d8b7b47cae86d741a823a`
+SHA-256: `e760a64588b371d139b52154ebbfcb83281f49586c5060a5acdfea4c967f07de`
 
 ```typescript
 import "server-only";
 import { requireAdmin } from "../identity";
 import { ApiError } from "@platform/lib/api/error";
-import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import {readActorNames} from "../repositories/actor-names";
 import { enrollmentPolicy } from "@platform/config/enrollment";
 import type { EnrollmentChange, EnrollmentEvent } from "@platform/types/enrollment";
 export async function manageEnrollment(userId: string, change: EnrollmentChange) {
@@ -12574,10 +12832,8 @@ export async function readEnrollmentHistory(userId: string): Promise<EnrollmentE
  const {client} = await requireAdmin();
  const result = await client.from("enrollment_events").select("id,course_slug,action,reason,created_at,actor_id").eq("user_id",userId).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(enrollmentPolicy.historyLimit);
  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- const ids = [...new Set(result.data.flatMap(row => row.actor_id ? [row.actor_id] : []))];
- const actors = ids.length ? await createAuthAdministrator().from("profiles").select("id,name").in("id",ids) : {data:[],error:null};
- if(actors.error) throw new ApiError(503,"INTERNAL_ERROR");
- return result.data.map(row => ({...row,action:row.action as EnrollmentEvent["action"],actor:actors.data?.find(actor=>actor.id===row.actor_id)?.name ?? ""}));
+ const actors=await readActorNames(result.data.map(row=>row.actor_id));
+ return result.data.map(row=>({...row,action:row.action as EnrollmentEvent["action"],actor:actors.get(row.actor_id??"")??""}));
 }
 ```
 
@@ -12601,7 +12857,7 @@ export function validateEnrollment(value: unknown): EnrollmentChange | null {
 
 ### File: `modules/features/admin/handle-course-delete.ts`
 
-SHA-256: `41caf84cdd7d41d4ed4c3bdbb2b76e77fb87e3a089aa19e76a4ae6901de1e053`
+SHA-256: `dd378461d534f93bd9076ebf8464972c32343d45afb1e12f16a459702b2e4872`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
@@ -12614,6 +12870,7 @@ export function handleCourseDelete(slug: string, request: Request) {
   const { client } = await requireAdmin(), input = await readJson(request);
   if (input?.confirmSlug !== slug) throw new ApiError(400,"INVALID_INPUT");
   const { error } = await client.rpc("delete_admin_course", { p_slug: slug });
+  if (error?.message.includes("certificates_course_slug_fkey")) throw new ApiError(409,"COURSE_HAS_CERTIFICATES");
   if (error?.code === "23503") throw new ApiError(409,"COURSE_HAS_COMMERCE");
   if (error?.message.includes("COURSE_HAS_PAYMENTS")) throw new ApiError(409,"COURSE_HAS_PAYMENTS");
   if (error) throw new ApiError(error.message.includes("COURSE_HAS_STUDENTS") ? 409 : error.code === "P0002" ? 404 : 503, error.message.includes("COURSE_HAS_STUDENTS") ? "COURSE_HAS_STUDENTS" : error.code === "P0002" ? "NOT_FOUND" : "INTERNAL_ERROR");
@@ -12746,21 +13003,22 @@ export function handleAdminMediaStream(slug: string, request: Request) {
 
 ### File: `modules/features/admin/handle-user.ts`
 
-SHA-256: `6fae92db917d19822c37c2c6f24e1c6a3334daa6dc4fced51a1850041c409e23`
+SHA-256: `52fb438949e472cfced476c564f7daf79ad81d49e333519ebacb4d65793cf3a9`
 
 ```typescript
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "./identity";
-import { readModeration, validUserId } from "./helpers/read-moderation";
+import {validUuid} from "@platform/helpers/validation/uuid";
+import {readModeration} from "./helpers/read-moderation";
 import { moderateUser } from "./repositories/moderate-user";
 import { readAdminUser } from "./repositories/users";
 import { readUserSubscriptions } from "./repositories/user-subscriptions";
 export async function handleAdminUser(id: string, request?: Request) {
   return apiResponse(async () => {
     await requireAdmin();
-    if (!validUserId(id)) throw new ApiError(400, "INVALID_INPUT");
+    if (!validUuid(id)) throw new ApiError(400, "INVALID_INPUT");
     if (!request) return Response.json({ user: await readAdminUser(id), subscriptions: await readUserSubscriptions(id) });
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
     const change = readModeration(await readJson(request));
@@ -13154,7 +13412,7 @@ export function readCurriculumForm(data: FormData, target: CurriculumTarget, rev
 
 ### File: `modules/features/admin/helpers/read-moderation.ts`
 
-SHA-256: `3dcfd406fa0b8d750930c1acb99acc89c858f5b7c209515d7b991a9ed80715f4`
+SHA-256: `070c61981d61f6f06f5786b1398ce503be0289da67ca6b1941cc1538fdd34117`
 
 ```typescript
 import { suspensionPeriods } from "@platform/config/user-moderation";
@@ -13168,7 +13426,6 @@ export function readModeration(value: unknown): UserModeration | null {
   if (value.action === "ban" || value.action === "restore" || value.action === "remove" || value.action === "promote") return { action: value.action };
   return null;
 }
-export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
 ```
 
 ### File: `modules/features/admin/helpers/read-user-query.ts`
@@ -13388,6 +13645,24 @@ export async function readAdminActivity(query:RecordQuery) {
 }
 ```
 
+### File: `modules/features/admin/repositories/actor-names.ts`
+
+SHA-256: `40309178c24734223a8b02f305f608d178acf0066eecc5bf1310fab7aeef74e8`
+
+```typescript
+import "server-only";
+import {requireAdmin} from "../identity";
+import {createAuthAdministrator} from "@platform/lib/supabase/admin";
+import {ApiError} from "@platform/lib/api/error";
+/** Resolve only display names for bounded, already-authorized event records. */
+export async function readActorNames(actorIds:(string|null)[]) {
+ await requireAdmin();const ids=[...new Set(actorIds.filter((id):id is string=>Boolean(id)))];
+ if(!ids.length) return new Map<string,string>();
+ const result=await createAuthAdministrator().from("profiles").select("id,name").in("id",ids);
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");return new Map(result.data.map(row=>[row.id,row.name]));
+}
+```
+
 ### File: `modules/features/admin/repositories/course-choices.ts`
 
 SHA-256: `811b2b81f4df18a5bc4b2e860aed38a55c21c1680add6688dc25044a3adfcd7c`
@@ -13591,7 +13866,7 @@ export async function saveCurriculum(slug: string, input: CurriculumMutation) {
 
 ### File: `modules/features/admin/repositories/user-handle.ts`
 
-SHA-256: `848fd828f91375f8c1caf269eec687439afff6fc3143d90576584954e845ee38`
+SHA-256: `e7986fef879e66a8f21c3236663c867f72268a35db9d9040c3f673678c294cf3`
 
 ```typescript
 import "server-only";
@@ -13599,7 +13874,7 @@ import { requireAdmin } from "../identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { ApiError } from "@platform/lib/api/error";
 import { isValidUsername, normalizeUsername } from "@platform/helpers/validation/username";
-import { validUserId } from "../helpers/read-moderation";
+import {validUuid} from "@platform/helpers/validation/uuid";
 import { readAdminUser } from "./users";
 /** Resolve a public-facing handle only after authorization; mutations continue using immutable IDs. */
 export async function resolveAdminUser(handle: string) {
@@ -13610,7 +13885,7 @@ export async function resolveAdminUser(handle: string) {
   if (error) throw new ApiError(503, "INTERNAL_ERROR");
   if (data) return readAdminUser(data.id);
   // Existing UUID bookmarks redirect to the stored username in the page.
-  if (validUserId(handle)) return readAdminUser(handle);
+  if (validUuid(handle)) return readAdminUser(handle);
   throw new ApiError(404, "NOT_FOUND");
 }
 ```
@@ -14279,31 +14554,104 @@ export async function streamDrive(url: string, request: Request) {
 }
 ```
 
-### File: `modules/features/certificates/download.ts`
+### File: `modules/features/certificates/document.ts`
 
-SHA-256: `91b58b98d8feb1921bf7d55a2143db001f8c993dd8705f9c12ca48a60209ec68`
+SHA-256: `79e532df1f225c74e0cb0e99345ca8286ffe1f0555960733cbfe54b39a384a91`
 
 ```typescript
-import { requireIdentity } from "@platform/features/auth/server/identity";
-import { ApiError } from "@platform/lib/api/error";
-import { findCourse } from "@platform/features/catalog";
-import { readLearningState, courseProgress } from "@platform/features/learning";
-import { certificatePresentation } from "./presentation";
-import { renderCertificate } from "./renderer";
-import { interfaceCopy } from "@platform/data/interface-copy";
-import { site } from "@platform/data/site";
-import { learningIdentity } from "@/config/identity";
-export async function downloadCertificate(slug: string) {
-  await requireIdentity();
-  const course = await findCourse(slug);
-  if (!course) throw new ApiError(404, "NOT_FOUND");
-  const state = await readLearningState();
-  if (!state.enrolled.includes(slug) || courseProgress(course, state).percent !== 100) throw new ApiError(403, "FORBIDDEN");
-  const svg = renderCertificate({ brandName: site.name, brandEnglishName: site.englishName,
-    learnerName: state.profile.name, courseTitle: course.title, title: interfaceCopy.certificateTitle,
-    disclaimer: interfaceCopy.certificateDisclaimer }, certificatePresentation);
-  return new Response(svg, { headers: { "Content-Type": "image/svg+xml; charset=utf-8",
-    "Content-Disposition": `attachment; filename="${learningIdentity.exportPrefix}-${slug}.svg"` } });
+import {certificateDocumentPolicy} from "@platform/config/certificates";
+import {certificateDocument} from "@platform/data/certificates";
+import {certificatePresentation} from "./presentation";
+import {renderCertificate} from "./renderer";
+import {formatCourseDate} from "@platform/helpers/format-course-date";
+import type {CertificateRecord} from "@platform/types/certificates";
+export function certificateSvg(record:CertificateRecord,watermark="") {
+ return renderCertificate({...certificateDocument,learnerName:record.learner_name,courseTitle:record.course_title,
+  issuedDate:formatCourseDate(record.issued_at,""),serial:record.id,lessonCount:String(record.lesson_count),watermark},certificatePresentation);
+}
+export function certificateResponse(svg:string,filename:string,inline=false) {
+ return new Response(svg,{headers:{"Content-Security-Policy":certificateDocumentPolicy,"Content-Type":"image/svg+xml; charset=utf-8","Content-Disposition":`${inline?"inline":"attachment"}; filename="${filename}.svg"`}});
+}
+```
+
+### File: `modules/features/certificates/download.ts`
+
+SHA-256: `9cb3a2eaa2bf8b4dbfead0d4ac23ddc1fbd8d2c748e799fda5ba7629fcee7fbd`
+
+```typescript
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {ApiError} from "@platform/lib/api/error";
+import {certificateSvg,certificateResponse} from "./document";
+import {learningIdentity} from "@/config/identity";
+export async function readStudentCertificate(slug:string) {
+ const {client,user}=await requireIdentity();
+ const result=await client.from("certificates").select("*").eq("course_slug",slug).eq("user_id",user.id).maybeSingle();
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ if(!result.data) throw new ApiError(403,"CERTIFICATE_INELIGIBLE");
+ if(result.data.status==="revoked") throw new ApiError(403,"CERTIFICATE_REVOKED");
+ const [course,enrollment]=await Promise.all([client.from("courses").select("slug").eq("slug",slug).eq("published",true).maybeSingle(),client.from("enrollments").select("active").eq("user_id",user.id).eq("course_slug",slug).eq("active",true).maybeSingle()]);
+ if(course.error||enrollment.error) throw new ApiError(503,"INTERNAL_ERROR");
+ if(!course.data||!enrollment.data) throw new ApiError(403,"FORBIDDEN");
+ return result.data;
+}
+
+export async function downloadCertificate(slug:string,inline=false) {
+ const record=await readStudentCertificate(slug);return certificateResponse(certificateSvg(record),`${learningIdentity.exportPrefix}-${slug}`,inline);
+}
+```
+
+### File: `modules/features/certificates/errors.ts`
+
+SHA-256: `7197d06a65adc1dce959ac347d3d1488664f9de23e9bbd2093858adc6cea5079`
+
+```typescript
+import {ApiError} from "@platform/lib/api/error";
+export function certificateError(message:string) {
+ const code=["FORBIDDEN","NOT_FOUND","INVALID_INPUT","CERTIFICATE_CONFLICT","CERTIFICATE_INELIGIBLE","CERTIFICATE_REVOKED"].find(code=>message.includes(code)) ?? "INTERNAL_ERROR";
+ return new ApiError(code==="CERTIFICATE_CONFLICT"?409:code==="NOT_FOUND"?404:code==="FORBIDDEN"||code==="CERTIFICATE_INELIGIBLE"||code==="CERTIFICATE_REVOKED"?403:code==="INVALID_INPUT"?400:503,code);
+}
+```
+
+### File: `modules/features/certificates/handle.ts`
+
+SHA-256: `1c06c402d6fd3923a7ed7925efe44c1d571c6ce804d31fa28f29144e6670f45e`
+
+```typescript
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {requireAdmin} from "@platform/features/admin/identity";
+import {apiResponse} from "@platform/lib/api/respond";
+import {ApiError} from "@platform/lib/api/error";
+import {readJson,sameOrigin} from "@platform/lib/server-request";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {certificatePolicy} from "@platform/config/certificates";
+import {listCertificates} from "./repository";
+import {validateCertificate} from "./validate";
+import {mutateCertificate} from "./mutate";
+export function handleCertificates(request:Request,admin=false) {
+ return apiResponse(async()=>{
+  await (admin?requireAdmin():requireIdentity());
+  if(request.method==="GET") return Response.json(await listCertificates(readRecordQuery(Object.fromEntries(new URL(request.url).searchParams),certificatePolicy.statuses),admin));
+  if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
+  const input=validateCertificate(await readJson(request),admin);if(!input) throw new ApiError(400,"INVALID_INPUT");
+  return Response.json(await mutateCertificate(input,admin));
+ });
+}
+```
+
+### File: `modules/features/certificates/mutate.ts`
+
+SHA-256: `d23c310a5c34c399adb7e04f2bbf7ea892f153efb3576a73b6ef62ebe1c892f9`
+
+```typescript
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {requireAdmin} from "@platform/features/admin/identity";
+import {certificateError} from "./errors";
+import type {CertificateAction} from "@platform/types/certificates";
+export async function mutateCertificate(input:CertificateAction,admin=false) {
+ const {client}=await (admin?requireAdmin():requireIdentity());
+ const result=input.operation==="issue" ? await client.rpc("issue_certificate",{p_slug:input.slug,...(input.username?{p_username:input.username}:{})}) : await client.rpc("moderate_certificate",{p_id:input.id,p_action:input.operation,p_revision:input.revision,p_reason:input.reason});
+ if(result.error) throw certificateError(result.error.message);
+ return {saved:true};
 }
 ```
 
@@ -14324,38 +14672,133 @@ export const certificatePresentation: CertificatePresentation = {
 
 ### File: `modules/features/certificates/renderer.ts`
 
-SHA-256: `7b4df16b42a310255a081df25e7ad1500e4498122d6a2fccee10f53c977825d4`
+SHA-256: `ed74cec2d9d3dcd16d173b575c6ab7ab64158326a46160d8a00f7b415b201e5b`
 
 ```typescript
+import {certificateLines,certificateText as text,escapeXml} from "./xml";
 export interface CertificateModel {
-  brandName: string;
-  brandEnglishName: string;
-  learnerName: string;
-  courseTitle: string;
-  title: string;
-  disclaimer: string;
+ brandName:string;brandEnglishName:string;learnerName:string;courseTitle:string;title:string;disclaimer:string;
+ introduction?:string;completion?:string;issuer?:string;issuerRole?:string;dateLabel?:string;serialLabel?:string;lessonLabel?:string;
+ serial?:string;issuedDate?:string;lessonCount?:string;watermark?:string;
 }
-export interface CertificatePresentation {
-  colors: { primary: string; background: string; text: string };
-  fontBase64: string;
+export interface CertificatePresentation {colors:{primary:string;background:string;text:string};fontBase64:string}
+export function renderCertificate(model:CertificateModel,presentation:CertificatePresentation) {
+ const {primary,background,text:ink}=presentation.colors,lines=certificateLines(model.courseTitle,46),size=Math.min(34,Math.floor(88/Math.max(lines.length,1))),step=Math.min(size+14,90/Math.max(lines.length-1,1));
+ const names=certificateLines(model.learnerName,24),nameSize=names.length>1?Math.floor(82/names.length):Math.min(56,960/Math.max(Array.from(model.learnerName).length,1));
+ const learner=names.map((line,index)=>text(line,600,(names.length>1?390:382)-(names.length-1-index)*(nameSize+6),nameSize)).join("");
+ const course=lines.map((line,index)=>text(line,600,486+index*step,size)).join("");
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="title description">
+ <title id="title">${escapeXml(model.title)}</title><desc id="description">${escapeXml(model.learnerName+" — "+model.courseTitle)}</desc>
+ <rect width="1200" height="850" fill="${background}"/>
+ <path d="M950 50 1160 360H740Z" fill="${primary}" opacity=".045"/>
+ <rect x="28" y="28" width="1144" height="794" rx="12" fill="none" stroke="${ink}" stroke-opacity=".18"/>
+ <path d="M28 178V28h150M1022 822h150V672" fill="none" stroke="${primary}" stroke-width="5"/>
+ <path d="m1090 82 20 34h-40Z" fill="${primary}"/>
+ <style>@font-face{font-family:CertificateArabic;src:url(data:font/ttf;base64,${presentation.fontBase64}) format('truetype');font-weight:700;}text{font-family:CertificateArabic;font-weight:700;}</style>
+ <g fill="${ink}">${text(model.brandName,1048,111,40,"start")}
+ <path d="M70 155h1060" stroke="${ink}" stroke-opacity=".15"/>
+ ${text(model.title,600,244,50,"middle",`fill="${primary}"`)}
+ ${text(model.introduction??"",600,names.length>2?285:302,23,"middle",'opacity=".7"')}
+ ${learner}
+ <path d="M440 407h320" stroke="${primary}" stroke-width="2"/>
+ ${text(model.completion??"",600,445,23,"middle",'opacity=".7"')}${course}
+ ${text(model.lessonCount?`${model.lessonLabel}: ${model.lessonCount}`:"",600,615,19,"middle",'opacity=".7"')}
+ <path d="M70 655h1060" stroke="${ink}" stroke-opacity=".15"/>
+ ${text(model.issuer??"",1100,706,28,"start")}${text(model.issuerRole??"",1100,740,18,"start",'opacity=".7"')}
+ ${text(model.issuedDate?`${model.dateLabel}: ${model.issuedDate}`:"",370,704,19)}
+ ${text(model.serialLabel??"",370,738,15,"middle",'opacity=".7"')}
+ <text x="370" y="763" font-size="14" text-anchor="middle" direction="ltr">${escapeXml(model.serial??"")}</text>
+ ${text(model.disclaimer,600,799,16,"middle",'opacity=".7"')}
+ ${model.watermark?text(model.watermark,600,578,50,"middle",`fill="${primary}" opacity=".8"`):""}</g></svg>`;
 }
-const escapeXml = (text: string) =>
-  text.replace(
-    /[<>&"']/g,
-    (char) =>
-      ({
-        "<": "&lt;",
-        ">": "&gt;",
-        "&": "&amp;",
-        '"': "&quot;",
-        "'": "&apos;",
-      })[char]!,
-  );
-export function renderCertificate(
-  model: CertificateModel,
-  presentation: CertificatePresentation,
-) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850"><rect width="1200" height="850" fill="${presentation.colors.background}"/><rect x="35" y="35" width="1130" height="780" rx="14" fill="none" stroke="${presentation.colors.primary}" stroke-width="2"/><style>@font-face{font-family:CertificateArabic;src:url(data:font/ttf;base64,${presentation.fontBase64}) format('truetype');font-weight:700;}</style><g font-weight="700" text-anchor="middle" fill="${presentation.colors.text}" font-family="CertificateArabic"><text x="600" y="150" font-size="44">${escapeXml(model.brandName)} / ${escapeXml(model.brandEnglishName)}</text><text x="600" y="285" font-size="40">${escapeXml(model.title)}</text><text x="600" y="400" font-size="48">${escapeXml(model.learnerName)}</text><text x="600" y="505" font-size="30">${escapeXml(model.courseTitle)}</text><text x="600" y="650" font-size="24">${escapeXml(model.disclaimer)}</text></g></svg>`;
+```
+
+### File: `modules/features/certificates/repository.ts`
+
+SHA-256: `fc1cec27ecb0200789b30daad0c561c4f15a873d2030f9d268544b5825fb9592`
+
+```typescript
+import {readActorNames} from "@platform/features/admin/repositories/actor-names";
+import {validUuid} from "@platform/helpers/validation/uuid";
+import "server-only";
+import {requireIdentity} from "@platform/features/auth/server/identity";
+import {requireAdmin} from "@platform/features/admin/identity";
+import {ApiError} from "@platform/lib/api/error";
+import {recordSearchPattern} from "@platform/helpers/read-record-query";
+import {certificatePolicy} from "@platform/config/certificates";
+import type {RecordQuery} from "@platform/types/materials";
+export async function listCertificates(query:RecordQuery,admin=false) {
+ const {client,user}=await (admin?requireAdmin():requireIdentity()),start=(query.page-1)*certificatePolicy.pageSize;
+ let request=client.from("certificates").select("*",{count:"exact"}).order("issued_at",{ascending:false}).order("id").range(start,start+certificatePolicy.pageSize-1);
+ if(!admin) request=request.eq("user_id",user.id);
+ if(query.search) {const pattern=recordSearchPattern(query.search.replace(/[(),".]/g,""));request=request.or(`learner_name.ilike.${pattern},course_title.ilike.${pattern}`);}
+ if(query.filter!=="all") request=request.eq("status",query.filter);
+ const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return {certificates:result.data,total:result.count ?? 0};
+}
+export async function readCertificate(id:string,admin=false) {
+ const {client,user}=await (admin?requireAdmin():requireIdentity());
+ if(!validUuid(id)) throw new ApiError(404,"NOT_FOUND");
+ let request=client.from("certificates").select("*").eq("id",id);
+ if(!admin) request=request.eq("user_id",user.id);
+ const result=await request.maybeSingle();if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ if(!result.data) throw new ApiError(404,"NOT_FOUND");return result.data;
+}
+
+export async function readCertificateEvents(id:string) {
+ const {client}=await requireAdmin();if(!validUuid(id)) throw new ApiError(404,"NOT_FOUND");
+ const result=await client.from("certificate_events").select("id,action,reason,created_at,actor_id").eq("certificate_id",id).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(certificatePolicy.pageSize);
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");const actors=await readActorNames(result.data.map(row=>row.actor_id));
+ return result.data.map(row=>({...row,actor:actors.get(row.actor_id??"")??""}));
+}
+export async function eligibleCertificateCourses() {
+ const {client}=await requireIdentity();const result=await client.rpc("eligible_certificate_courses");
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");return result.data;
+}
+export async function certificateAccessSlugs() {
+ const {client,user}=await requireIdentity();const result=await client.from("enrollments").select("course_slug,courses!inner(published)").eq("user_id",user.id).eq("active",true).eq("courses.published",true);
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");return new Set(result.data.map(row=>row.course_slug));
+}
+```
+
+### File: `modules/features/certificates/validate.ts`
+
+SHA-256: `6b57a77734c4f256d95eaa0530cce2bef68f0bac46b10cf3798798ef1453205d`
+
+```typescript
+import {validUuid} from "@platform/helpers/validation/uuid";
+import {certificatePolicy} from "@platform/config/certificates";
+import {validRecordRevision} from "@platform/helpers/valid-record-revision";
+import {isValidUsername,normalizeUsername} from "@platform/helpers/validation/username";
+import type {CertificateAction} from "@platform/types/certificates";
+export function validateCertificate(value:Record<string,unknown>|null,admin=false):CertificateAction|null {
+ if(value?.operation==="issue" && typeof value.slug==="string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.slug) && value.slug.length<=120) {
+  if(!admin) return value.username===undefined?{operation:"issue",slug:value.slug}:null;
+  return typeof value.username==="string" && isValidUsername(value.username)?{operation:"issue",slug:value.slug,username:normalizeUsername(value.username)}:null;
+ }
+ if(admin && (value?.operation==="revoke"||value?.operation==="restore") && validUuid(value.id) && validRecordRevision(value.revision) && typeof value.reason==="string" && value.reason.trim().length>0 && value.reason.length<=certificatePolicy.reasonMax)
+  return {operation:value.operation,id:value.id,revision:Number(value.revision),reason:value.reason.trim()};
+ return null;
+}
+```
+
+### File: `modules/features/certificates/xml.ts`
+
+SHA-256: `af22079dddbcf03f8227b25594b9f88caeed5f452a67ed3d07e127cd17f53561`
+
+```typescript
+export const escapeXml=(text:string)=>text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g,"").replace(/[<>&"']/g,char=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&apos;"})[char]!);
+/** Wrap by words without losing long titles; SVG text never contains raw markup. */
+export function certificateLines(text:string,width=38) {
+ const lines:string[]=[];
+ for(const word of text.split(/\s+/)) {
+  const parts=Array.from(word).reduce<string[]>((chunks,char,index)=>{const chunk=Math.floor(index/width);chunks[chunk]=(chunks[chunk]??"")+char;return chunks;},[]);
+  for(const part of parts) {const last=lines.at(-1);if(last && last.length+part.length+1<=width) lines[lines.length-1]=last+" "+part;else lines.push(part);}
+ }
+ return lines;
+}
+export function certificateText(text:string,x:number,y:number,size:number,anchor="middle",extra="") {
+ return `<text x="${x}" y="${y}" font-size="${size}" text-anchor="${anchor}" direction="rtl" unicode-bidi="plaintext" ${extra}>${escapeXml(text)}</text>`;
 }
 ```
 
@@ -15001,9 +15444,10 @@ export async function handleProgress(request: Request) {
 
 ### File: `modules/features/learning/helpers/course-progress.ts`
 
-SHA-256: `d896c8b9e3d1a0a5dc37f749eb985ba9e9fd111d83c4fbc1ead896f853e2e298`
+SHA-256: `3b1a409d6c3c84bed17b59c0017ea3da1e7ca014667c92b99cda70a017466b0b`
 
 ```typescript
+import {completionPercent} from "@platform/helpers/completion-percent";
 import { courseLessons, lessonKey } from "../../catalog/helpers";
 import type { Course, LearningState } from "@platform/types/lms";
 export function courseProgress(
@@ -15018,7 +15462,7 @@ export function courseProgress(
   return {
     count,
     total: lessons.length,
-    percent: lessons.length ? Math.round((count / lessons.length) * 100) : 0,
+    percent: completionPercent(count,lessons.length),
     next: lessons.find(
       (lesson) => !completed.has(lessonKey(course.slug, lesson.id)),
     ),
@@ -17498,6 +17942,15 @@ export function materialFormInput(form:FormData,assignments:MaterialAssignment[]
 }
 ```
 
+### File: `modules/helpers/completion-percent.ts`
+
+SHA-256: `ca799d5eb2022d66ee4b494bb4199644acea292fb2285a01beeb57554b6ff2dc`
+
+```typescript
+/** Reserve 100% for exact completion while retaining ordinary rounded percentages. */
+export function completionPercent(count:number,total:number) {return total?Math.min(count<total?99:100,Math.round(count/total*100)):0;}
+```
+
 ### File: `modules/helpers/format-activity-date.ts`
 
 SHA-256: `4188574b2c5a87175f6181df251f1be1f690675d6d34e2936dcb90fc76843b9e`
@@ -17835,6 +18288,16 @@ export const usernamePolicy = { min: 3, max: 48 } as const;
 export function normalizeUsername(value: string) { return value.trim().toLowerCase(); }
 export function isValidUsername(value: unknown): value is string {
   return typeof value === "string" && /^[a-z0-9][a-z0-9_-]{2,47}$/.test(normalizeUsername(value));
+}
+```
+
+### File: `modules/helpers/validation/uuid.ts`
+
+SHA-256: `79d3d51a5c6f031c3cebcef22c016a9e3e35f1bc1e9c9cfc947c1380bb3e5222`
+
+```typescript
+export function validUuid(value:unknown):value is string {
+ return typeof value==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 ```
 
@@ -19002,6 +19465,22 @@ export async function requestBudget(request: Request, userId?: string) {
 }
 ```
 
+### File: `modules/lib/security/request-policy.ts`
+
+SHA-256: `c5b74e26588e2be779756931457f63a9864221f81a0b5d7c6c4d19f601fa069d`
+
+```typescript
+import {endpoints} from "@platform/config/navigation";
+import {certificateDocumentPolicy} from "@platform/config/certificates";
+import {contentPolicy} from "./content-policy";
+/** Proxy response headers are authoritative; scope embedded-font access to SVG endpoints. */
+export function requestPolicy(request:Pick<Request,"method"|"url">,nonce:string) {
+ const path=new URL(request.url).pathname;
+ const document=request.method==="GET"&&[endpoints.certificates+"/",endpoints.adminCertificates+"/"].some(prefix=>path.startsWith(prefix)&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(path.slice(prefix.length)));
+ return document?certificateDocumentPolicy:contentPolicy(nonce);
+}
+```
+
 ### File: `modules/lib/server-request.ts`
 
 SHA-256: `1cf38e11aebd66a2ae8ed82a58e4d0b37df156b98df4fa497fc599a905b850f5`
@@ -19634,7 +20113,7 @@ SHA-256: `15e266cb9fe68ef0677395fb7e3fd70f4db6d26c168106e4ff7648f2e2e495ef`
 
 ### File: `modules/styles/lms.css`
 
-SHA-256: `79d32d19632c75b6cb0bcbba4f0977a1e031c2bae64c55bded5bfb12f5d06536`
+SHA-256: `59c51c01c2a88e968704c6ed84207c89ec692a5d788392da0cdcec92681aa943`
 
 ```css
 .lms-icon {
@@ -21637,6 +22116,19 @@ button:disabled {
 .lms-admin-checkbox { display: flex; align-items: center; gap: var(--space-control); }
 .lms-admin-checkbox input { width: auto; accent-color: var(--primary-red); }
 .lms-admin-form .lms-form-field { margin: 0; }
+
+/* Certificate documents scale as artwork; labels and controls retain readable sizing. */
+.lms-certificate-preview img { display:block; width:100%; height:auto; margin-block-start:var(--space-lg); border-radius:var(--radius-md); }
+.lms-certificate-preview summary { cursor:pointer; }
+.lms-record-id { overflow-wrap:anywhere; }
+
+.lms-certificate-document { display:grid; gap:var(--space-lg); justify-items:start; }
+.lms-certificate-document img { display:block; width:100%; height:auto; }
+@media print {
+ @page { size:A4 landscape; margin:0; }
+ body:has(.lms-certificate-document) * { visibility:hidden; }
+ body:has(.lms-certificate-document) .lms-certificate-document img { visibility:visible; position:fixed; inset:0; width:100%; height:100%; object-fit:contain; print-color-adjust:exact; }
+}
 ```
 
 ### File: `modules/styles/payments.css`
@@ -23352,6 +23844,16 @@ export interface AuthPageModel {
 }
 ```
 
+### File: `modules/types/certificates.ts`
+
+SHA-256: `f4475ec2bf9938d75a2f99d1c7940e6243032d7238fdcea8b7db6d82d8b6d3c5`
+
+```typescript
+export type CertificateRecord = import("./database").Database["public"]["Tables"]["certificates"]["Row"];
+export type CertificateLabels = {[K in keyof typeof import("@platform/data/certificates").certificateCopy]:string};
+export type CertificateAction = {operation:"issue";slug:string;username?:string}|{operation:"revoke"|"restore";id:string;revision:number;reason:string};
+```
+
 ### File: `modules/types/commerce.ts`
 
 SHA-256: `b3355ea0dcd44d5f9bed132e93b9a70b788db1094cba1d338c16af35494a8afa`
@@ -23508,7 +24010,7 @@ export type DatabaseClient = SupabaseClient<Database>;
 
 ### File: `modules/types/database.ts`
 
-SHA-256: `327841c23d3eb4650908772f5687c6e80428071b78e7d6d65dc78702e662212e`
+SHA-256: `c2a2a5cf19cfb6e1de1bb6b7d55b31dc8d700273708bac45d3cc572327490b20`
 
 ```typescript
 
@@ -23619,6 +24121,46 @@ export type Database = {
                   }
                   Relationships: [
 
+                  ]
+                },"certificate_events": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"certificate_id": string,"created_at": string,"id": number,"reason": string,"revision": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"certificate_id": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"certificate_id"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "certificate_events_certificate_id_fkey"
+      columns: ["certificate_id"]
+isOneToOne: false
+      referencedRelation: "certificates"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"certificates": {
+                  Row: {
+                    "course_slug": string,"course_title": string,"id": string,"issued_at": string,"learner_name": string,"lesson_count": number,"revision": number,"status": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"course_title": string,"id"?: string,"issued_at"?: string,"learner_name": string,"lesson_count": number,"revision"?: number,"status"?: string,"user_id": string
+                  }
+                  Update: {
+                    "course_slug"?: string,"course_title"?: string,"id"?: string,"issued_at"?: string,"learner_name"?: string,"lesson_count"?: number,"revision"?: number,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "certificates_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
                   ]
                 },"commerce_bundle_courses": {
                   Row: {
@@ -24032,11 +24574,22 @@ isOneToOne: true
 "delete_live_session":
 { Args: { "p_id": string,"p_revision": number }; Returns: boolean
                            },
+"eligible_certificate_courses":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "slug": string,"title": string
+            }[]
+                           },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
                            },
+"issue_certificate":
+{ Args: { "p_slug": string,"p_username"?: string }; Returns: string
+                           },
 "manage_enrollment":
 { Args: { "p_action": string,"p_reason": string,"p_revision": number,"p_slug": string,"p_user": string }; Returns: undefined
+                           },
+"moderate_certificate":
+{ Args: { "p_action": string,"p_id": string,"p_reason": string,"p_revision": number }; Returns: undefined
                            },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -35821,6 +36374,172 @@ module.exports = async function browserChecks({ url, config, admin, identities, 
 };
 ```
 
+### File: `tests/backend/certificate-pagination.cjs`
+
+SHA-256: `f75b62636993f672e2f64a83a7fc3d9e6b3b83e08fdd3b0506eee9cf15f2f00c`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real issuance into disposable local course fixtures. */
+const assert=require('node:assert/strict');
+module.exports=async({admin,student,manager,base,sourceLesson,extras,verify})=>{
+ for(let index=0;index<6;index++) {
+  const slug='backend-certificate-pagination-'+index;extras.push(slug);
+  assert.ok(!(await admin.from('courses').insert({...base,slug,metadata:{...base.metadata,slug,title:'Pagination course '+index,modules:[{id:'chapter',title:'Chapter',lessons:[{...base.metadata.modules[0].lessons[0],id:sourceLesson.id}]}]}})).error);
+  assert.ok(!(await admin.from('lessons').insert({...sourceLesson,course_slug:slug})).error);
+  assert.ok(!(await admin.from('enrollments').insert({user_id:student.id,course_slug:slug})).error);
+  assert.ok(!(await admin.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:sourceLesson.id,completed:true})).error);
+  verify((await student.api('/api/certificates',{operation:'issue',slug})).status===200,'Pagination fixture issued from actual completion '+index);
+ }
+ const query='?q=Pagination&filter=issued',endpoint='/api/admin/certificates';
+ const first=JSON.parse((await manager.api(endpoint+query)).data),second=JSON.parse((await manager.api(endpoint+query+'&page=2')).data);
+ verify(first.total===6&&first.certificates.length===5&&second.certificates.length===1,'Admin certificates use five-record pagination');
+ verify(!first.certificates.some(row=>second.certificates.some(other=>other.id===row.id)),'Stable certificate pagination has no duplicate rows');
+ const own=JSON.parse((await student.api('/api/certificates'+query)).data);verify(own.total===6&&own.certificates.length===5,'Student certificate pagination matches admin');
+ const record=first.certificates[0];await manager.api(endpoint,{operation:'revoke',id:record.id,revision:record.revision,reason:'Filter fixture'});
+ const filtered=JSON.parse((await manager.api(endpoint+'?q=Pagination&filter=revoked')).data);
+ verify(filtered.total===1&&filtered.certificates[0].id===record.id,'Combined certificate status/search excludes all unrelated courses');
+};
+```
+
+### File: `tests/backend/certificates-browser.cjs`
+
+SHA-256: `768cb9656ca1c185781f7176ce60f353ab3ef2ca75997496e2c04b23853e4d62`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Local-only browser verification. */
+const {chromium,expect}=require('@playwright/test'),fs=require('node:fs');
+module.exports=async({manager,student,record,url,verify})=>{
+ const browser=await chromium.launch({headless:true}),errors=[];
+ const context=await browser.newContext(),page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
+ const login=async(identity)=>{await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(identity.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(identity.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL(/dashboard/);};
+ try {
+  await login(manager);
+  for(const width of [390,1440]) {
+   await page.setViewportSize({width,height:1000});await page.goto(url+'/admin/dashboard/certificates');
+   await page.getByRole('heading',{name:'الشهادات',exact:true}).waitFor();
+   await page.getByText('معاينة التصميم',{exact:true}).first().click();
+   await page.locator('.lms-certificate-preview img').evaluate(image=>image.decode());
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Certificate admin fits '+width+'px');
+   await page.getByRole('button',{name:'إلغاء الشهادة',exact:true}).first().click();await page.locator('dialog[open]').waitFor();
+   verify(await page.locator('dialog[open] textarea').count()===1,'Moderation opens centered reason dialog '+width+'px');
+   await page.locator('dialog[open]').getByRole('button',{name:'إلغاء',exact:true}).click();
+  }
+  await page.goto(url+'/admin/dashboard/certificates/'+record.id);await page.getByRole('heading',{name:'آخر إجراءات الشهادة',exact:true}).waitFor();
+  verify(await page.getByText('Certificate Manager',{exact:false}).count()>0,'Private certificate history shows actual actor names');
+  fs.mkdirSync('docs/evidence/certificates',{recursive:true});
+  await page.goto(url+'/api/admin/certificates/'+record.id);
+  await page.setViewportSize({width:1200,height:850});await page.locator('svg').waitFor();await page.evaluate(()=>document.fonts.ready);
+  verify(await page.evaluate(()=>document.fonts.check('700 50px CertificateArabic')),'Certificate actually loads the embedded IBM Arabic font');
+  await page.screenshot({path:'docs/evidence/certificates/certificate-ar.png',caret:'initial'});
+  verify(await page.locator('svg text').allTextContents().then(values=>values.includes('شهادة إتمام تدريبية')&&values.includes('محمد خطاب')),'Arabic issuer and completion text render');
+  await page.goto(url+'/admin/dashboard/tools');await page.getByRole('heading',{name:'مكتبة الأدوات',exact:true}).waitFor();
+  verify(await page.getByRole('button',{name:'إضافة مادة',exact:true}).count()===1,'Admin tools reuses working material creation');
+  await context.close();const learner=await browser.newContext(),studentPage=await learner.newPage();
+  studentPage.on('pageerror',error=>errors.push(error.message));
+  await studentPage.goto(url+'/login');await studentPage.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await studentPage.getByLabel('كلمة المرور',{exact:true}).fill(student.password);await studentPage.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await studentPage.waitForURL(/dashboard/);await studentPage.locator('.lms-progress progress').first().waitFor();verify(true,'Student dashboard renders shared exact-completion progress');
+  await studentPage.setViewportSize({width:390,height:844});await studentPage.goto(url+'/dashboard/certificates');
+  await studentPage.getByRole('link',{name:'معاينة التصميم',exact:true}).first().click();await expect.poll(()=>studentPage.locator('.lms-certificate-document img').evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);
+  verify(await studentPage.getByRole('button',{name:'طباعة / حفظ PDF',exact:true}).isEnabled(),'Student can preview and print issued document');
+  verify(await studentPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Student document fits phone');
+  await studentPage.emulateMedia({media:'print'});verify(await studentPage.locator('.lms-certificate-document img').evaluate(image=>getComputedStyle(image).visibility)==='visible','Print stylesheet retains document');
+  verify(errors.length===0,'Certificate admin/student pages have no browser runtime errors');await learner.close();
+ } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/certificates.cjs`
+
+SHA-256: `324e0d670ea9ea36464320a8bd64cb797fb58e1c89ba11fa12b95ba6d0006c06`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Disposable local accounts; no production issuance. */
+const assert=require('node:assert/strict');
+const json=result=>JSON.parse(result.data);
+module.exports=async({admin,provision,anonymous,verify,url})=>{
+ const manager=await provision('Certificate Manager'),student=await provision('أحمد محمد علي'),other=await provision('Certificate Outsider');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='backend-certificate-course',base=(await admin.from('courses').select('*').eq('slug','editing-foundations').single()).data;
+ const sourceLesson=(await admin.from('lessons').select('*').eq('course_slug',base.slug).limit(1).single()).data;
+ const lessons=Array.from({length:3},(_,index)=>({...sourceLesson,id:'certificate-lesson-'+index,course_slug:slug}));
+ const metadataLessons=lessons.map(lesson=>({...base.metadata.modules[0].lessons[0],id:lesson.id}));
+ assert.ok(!(await admin.from('courses').insert({...base,slug,metadata:{...base.metadata,slug,title:'دورة اختبار الشهادات',modules:[{id:'chapter',title:'Chapter',lessons:metadataLessons}]}})).error);
+ assert.ok(!(await admin.from('lessons').insert(lessons)).error);
+ const extras=[];
+ const endpoint='/api/admin/certificates',issue={operation:'issue',slug},username=(await admin.from('profiles').select('username').eq('id',student.id).single()).data.username;
+ try {
+  for(const path of [endpoint,endpoint+'/preview']) {
+   verify((await anonymous(path)).status===401,'Guest cannot read '+path);
+   verify((await student.api(path)).status===403,'Student cannot read '+path);
+  }
+  verify((await anonymous('/api/certificates',issue)).status===401,'Guest cannot issue certificates');
+  verify((await student.api('/api/certificates',issue)).status===403,'Enrollment required for issuance');
+  assert.ok(!(await admin.from('enrollments').insert({user_id:student.id,course_slug:slug})).error);
+  verify((await student.api('/api/certificates',issue)).status===403,'Incomplete course denied');
+  verify((await manager.api(endpoint,{...issue,username})).status===403,'Admin issuance cannot bypass completion');
+  for(const lesson of lessons.slice(0,2)) assert.ok(!(await admin.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:lesson.id,completed:true})).error);
+  verify((await student.api('/api/certificates',issue)).status===403,'One unfinished lesson blocks issuance');
+  verify(!(await student.direct.rpc('eligible_certificate_courses')).data.some(course=>course.slug===slug),'Lightweight eligibility excludes unfinished courses');
+  verify((await student.api('/api/certificates',{...issue,username})).status===400,'Student cannot specify another identity');
+  verify((await other.direct.rpc('issue_certificate',{p_slug:slug,p_username:username})).error?.message.includes('FORBIDDEN'),'Direct RPC cannot impersonate a learner');
+  verify((await student.api('/api/certificates',issue,{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin issuance denied');
+  const missing=await student.api('/api/certificates/'+slug);verify(missing.status===403,'GET never auto-issues a certificate');
+  verify((await admin.from('certificates').select('id').eq('course_slug',slug)).data.length===0,'Denied requests have no issuance side effects');
+  assert.ok(!(await admin.from('lesson_progress').insert({user_id:student.id,course_slug:slug,lesson_id:lessons[2].id,completed:true})).error);
+  const eligible=(await student.direct.rpc('eligible_certificate_courses')).data;verify(eligible.some(course=>course.slug===slug)&&eligible.every(course=>Object.keys(course).sort().join(',')==='slug,title'),'Eligibility returns exact completion and minimal title/slug only');
+  const race=await Promise.all([student.api('/api/certificates',issue),student.api('/api/certificates',issue)]);
+  verify(race.every(result=>result.status===200),'Concurrent issuance is idempotent');
+  let records=(await admin.from('certificates').select('*').eq('course_slug',slug)).data;verify(records.length===1,'Exactly one saved certificate per learner/course');
+  const record=records[0];
+  verify(!(await student.direct.rpc('eligible_certificate_courses')).data.some(course=>course.slug===slug),'Issued courses disappear from issuance choices');
+  verify((await manager.api(endpoint+'/invalid-id')).status===404,'Invalid certificate identifier is a 404, not a database error');
+  verify(record.lesson_count===3&&record.learner_name==='أحمد محمد علي'&&record.course_title==='دورة اختبار الشهادات','Issuer snapshots real name/title/completed lesson count');
+  verify((await admin.from('certificate_events').select('id').eq('certificate_id',record.id)).data.length===1,'Retry creates no duplicate issuance audit event');
+  verify((await student.direct.from('certificates').update({status:'revoked'}).eq('id',record.id)).error?.code==='42501','Student cannot write certificates directly');
+  verify((await student.direct.from('certificates').insert({user_id:student.id,course_slug:slug,learner_name:'Fake',course_title:'Fake',lesson_count:1})).error?.code==='42501','Student cannot forge certificate rows');
+  verify((await other.direct.from('certificates').select('*').eq('id',record.id)).data.length===0,'RLS hides other learner certificate');
+  verify((await student.direct.from('certificate_events').select('*')).data.length===0,'Private administrative reasons remain hidden');
+  verify((await manager.direct.from('certificate_events').delete().eq('certificate_id',record.id)).error?.code==='42501','Administrator JWT cannot delete certificate audit evidence');
+  verify((await manager.direct.from('certificates').update({learner_name:'Fake'}).eq('id',record.id)).error?.code==='42501','Administrator JWT cannot rewrite saved snapshots');
+  verify((await student.direct.rpc('moderate_certificate',{p_id:record.id,p_action:'revoke',p_reason:'Fake',p_revision:1})).error?.message.includes('FORBIDDEN'),'Direct moderation is administrator-only');
+  const own=json(await student.api('/api/certificates?q=%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B1&filter=issued'));verify(own.total===1&&own.certificates.length===1,'Student search and status filter combine');
+  verify(json(await manager.api(endpoint+'?q=%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B1&filter=revoked')).total===0,'Admin search and state filter combine');
+  const malicious=await manager.api(endpoint+'?q='+encodeURIComponent('x),status.eq.revoked,learner_name.ilike.%'));
+  verify(malicious.status===200&&json(malicious).total===0,'Search syntax cannot inject PostgREST filters');
+  const svg=await student.api('/api/certificates/'+slug);verify(svg.status===200&&svg.data.includes('شهادة إتمام تدريبية')&&svg.data.includes(record.id),'Download uses saved Arabic document and serial');
+  verify(svg.headers.get('content-type').startsWith('image/svg+xml')&&/no-store/.test(svg.headers.get('cache-control')),'Document is a private vector download');
+  await admin.from('profiles').update({name:'Changed Name'}).eq('id',student.id);
+  await admin.from('courses').update({metadata:{...base.metadata,slug,title:'Changed course',modules:[{id:'chapter',title:'Chapter',lessons:metadataLessons}]}}).eq('slug',slug);
+  const immutable=await student.api('/api/certificates/'+slug);verify(immutable.data.includes('أحمد محمد علي')&&!immutable.data.includes('Changed Name')&&immutable.data.includes('دورة اختبار الشهادات'),'Later name/course changes cannot rewrite issued document');
+  const moderation={operation:'revoke',id:record.id,revision:1,reason:'Administrator review'};
+  verify((await manager.api(endpoint,{...moderation,reason:''})).status===400,'Moderation requires a nonempty reason');
+  verify((await manager.api(endpoint,moderation,{headers:{Origin:'https://evil.example'}})).status===403,'Cross-origin moderation denied');
+  const changes=await Promise.all([manager.api(endpoint,moderation),manager.api(endpoint,moderation)]);verify(changes.map(result=>result.status).sort().join(',')==='200,409','Concurrent moderation has one winner');
+  verify((await student.api('/api/certificates/'+slug)).status===403,'Revoked certificates cannot download');
+  verify((await student.api('/api/certificates',issue)).status===403,'Reissue cannot bypass administrator revocation');
+  verify(json(await manager.api(endpoint+'?q=%D8%A7%D8%AE%D8%AA%D8%A8%D8%A7%D8%B1&filter=revoked')).certificates.some(row=>row.id===record.id),'Revoked status is searchable by saved learner');
+  const revoked=await manager.api(endpoint+'/'+record.id);verify(revoked.status===200&&revoked.data.includes('شهادة ملغاة'),'Administrator preview visibly marks revoked certificate');
+  verify((await other.api(endpoint+'/'+record.id)).status===403,'Student cannot access admin document');
+  verify((await manager.api(endpoint,{operation:'restore',id:record.id,revision:1,reason:'Reviewed'})).status===409,'Stale restore rejected');
+  verify((await manager.api(endpoint,{operation:'restore',id:record.id,revision:2,reason:'Reviewed'})).status===200,'Admin restores with current revision');
+  verify((await student.api('/api/certificates/'+slug)).status===200,'Restored document downloads with original serial');
+  assert.ok(!(await admin.from('enrollments').update({active:false}).eq('user_id',student.id).eq('course_slug',slug)).error);
+  verify((await student.api('/api/certificates/'+slug)).status===403,'Enrollment revocation blocks document access');
+  await admin.from('enrollments').update({active:true}).eq('user_id',student.id).eq('course_slug',slug);
+  await admin.from('courses').update({published:false}).eq('slug',slug);
+  verify((await student.api('/api/certificates/'+slug)).status===403,'Unpublished course blocks document access');
+  await admin.from('courses').update({published:true}).eq('slug',slug);
+  const history=(await admin.from('certificate_events').select('*').eq('certificate_id',record.id)).data;
+  verify(history.length===3&&history.every(row=>row.actor_id),'Issue/revoke/restore each have immutable actor/reason/time records');
+  await require('./certificate-pagination.cjs')({admin,student,manager,base,sourceLesson,extras,verify});
+  await require('./certificates-browser.cjs')({manager,student,record,url,verify});
+ } finally {
+  if(extras.length) {await admin.from('certificates').delete().in('course_slug',extras);await admin.from('courses').delete().in('slug',extras);}
+  await admin.from('certificates').delete().eq('course_slug',slug);
+  await admin.from('courses').delete().eq('slug',slug);
+ }
+};
+```
+
 ### File: `tests/backend/commerce-browser.cjs`
 
 SHA-256: `4826693e18ab9887005641918c7a8af25d1fb37ad303110ee6f44f555147181b`
@@ -37019,7 +37738,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `386ee78711f80bc131314e4620dcd172a3696ba2810ac008336bd3e8a69d6694`
+SHA-256: `d606565d08915ebb4fa7d441e2e4c6b8e4b36e52c61b8f48660974e482bd91df`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -37082,6 +37801,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'certificates') {
+    await require('./certificates.cjs')({admin,provision,anonymous,verify,url,config});return;
+  }
   if (process.env.BACKEND_SUITE === 'enrollments') {
     await require('./enrollments.cjs')({admin,provision,anonymous,verify,url,config});return;
   }
@@ -37230,6 +37952,7 @@ async function run() {
   verify((await a.api('/api/progress', { courseSlug: course.slug, lessonId: 'missing', completed: true })).status === 404, 'Unknown lesson rejected');
   verify((await a.api(`/api/certificates/${course.slug}`)).status === 403, 'Incomplete course certificate denied');
   for (const lesson of lessons) await a.api('/api/progress', { courseSlug: course.slug, lessonId: lesson.id, completed: true });
+  verify((await a.api('/api/certificates',{operation:'issue',slug:course.slug})).status===200,'Completed student explicitly issues certificate');
   verify((await a.api(`/api/certificates/${course.slug}`)).status === 200, 'Completed enrolled course certificate allowed');
   const resourceId = lessons.flatMap(lesson => lesson.resourceIds)[0];
   if (resourceId) {
@@ -40024,10 +40747,11 @@ export default function Page() {
 
 ### File: `tests/platform/fixtures/reuse/app/reuse-fixture.tsx`
 
-SHA-256: `ed195f1b21344e8ad4a2189256b8788c9c53c3bf2c02102dcc64a90c6b221a29`
+SHA-256: `e011d7882e1ee05484305f7732bf89bcaf8f558c84deafd9d83e39589a1812dd`
 
 ```tsx
 "use client";
+import {certificateCopy} from "@platform/data/certificates";
 import { useEffect, useState } from "react";
 import LandingPage, {
   type LandingModel,
@@ -40213,10 +40937,12 @@ export default function Fixture({ model }: { model: LandingModel }) {
             modules: [],
           }}
           active=""
+          lockedLabel="LOCKED"
           copy={{
             courseContent: "CONTENTS",
             completed: "DONE",
             pending: "PENDING",
+            preview: "PREVIEW",
             progress: "PROGRESS",
             lessons: "LESSONS",
           }}
@@ -40231,11 +40957,10 @@ export default function Fixture({ model }: { model: LandingModel }) {
           copy={{ download: "GET RESOURCE" }}
         />
         <CertificateCard
-          course={{slug:course.slug,title:course.title}}
-          learnerName="ALT LEARNER"
-          site={{ name: "ALT ISSUER", demoLabel: "ALT DEMO" }}
-          copy={{ print: "GET CERTIFICATE" }}
-          interfaceCopy={{ certificateHeading: "ALT CERTIFICATE" }}
+          record={{id:"00000000-0000-0000-0000-000000000001",user_id:"00000000-0000-0000-0000-000000000002",course_slug:course.slug,
+            learner_name:"ALT LEARNER",course_title:course.title,lesson_count:1,issued_at:"2026-01-01T00:00:00Z",status:"issued",revision:1}}
+          brand="ALT ISSUER" heading="ALT CERTIFICATE"
+          labels={{...certificateCopy,date:"ISSUED",serial:"SERIAL",download:"GET CERTIFICATE",preview:"PREVIEW",locked:"LOCKED",accessLocked:"UNAVAILABLE"}}
         />
       </div>
     </>
@@ -42812,6 +43537,56 @@ module.exports = async function({ url, verify }) {
     verify(await page.evaluate(() => window.__injected !== true), 'Untrusted inline scripts are blocked by CSP');
   } finally { await browser.close(); }
 };
+```
+
+### File: `tests/security/certificates.test.ts`
+
+SHA-256: `59eeb6a138b4088059e8b320fb3d518d0beacb2f954f98a6fe22de4f395d476e`
+
+```typescript
+import {certificateResponse} from "../../modules/features/certificates/document";
+import {requestPolicy} from "../../modules/lib/security/request-policy";
+import ProgressBar from "../../modules/components/ui/progress-bar";
+import {completionPercent} from "../../modules/helpers/completion-percent";
+import assert from "node:assert/strict";
+import {test} from "node:test";
+import {validateCertificate} from "../../modules/features/certificates/validate";
+import {renderCertificate} from "../../modules/features/certificates/renderer";
+import {certificateLines} from "../../modules/features/certificates/xml";
+import {courseProgress} from "../../modules/features/learning/helpers/course-progress";
+import {createCourseMetadata} from "../../modules/features/admin/helpers/create-course-metadata";
+test("Certificate payloads cannot assign a learner or moderation authority",()=>{
+ assert.deepEqual(validateCertificate({operation:"issue",slug:"editing-course"}),{operation:"issue",slug:"editing-course"});
+ for(const value of [{operation:"issue",slug:"editing-course",username:"someone"},{operation:"issue",slug:"../evil"},{operation:"revoke",id:"x",revision:1,reason:"x"}]) assert.equal(validateCertificate(value),null);
+ assert.equal(validateCertificate({operation:"issue",slug:"editing",username:"user"},true)?.operation,"issue");
+});
+test("Certificate XML escapes names, titles, serials, labels and watermarks",()=>{
+ const value='طالب <script> & "';const svg=renderCertificate({brandName:value,brandEnglishName:value,learnerName:value,courseTitle:value,title:value,disclaimer:value,watermark:value,serial:value},{colors:{primary:"#fc3522",background:"#101317",text:"#fff"},fontBase64:""});
+ assert.ok(!svg.includes('<script>'));assert.ok(svg.includes('&lt;script&gt;'));assert.ok(svg.includes('direction="rtl"'));assert.ok(svg.includes('width="1200"'));assert.ok(!svg.includes('var('));
+ assert.equal(certificateLines('a'.repeat(150)).join('').length,150);
+});
+test("Completion never rounds an unfinished large course to 100%",()=>{
+ const course=createCourseMetadata({slug:"large-course",title:"Large",description:"Course",amount:1,category:"editing",delivery:"recorded"},{currency:"EGP",action:"Enroll",liveLabel:"Live"});
+ const lessons=Array.from({length:250},(_,index)=>({id:String(index),title:"Lesson",duration:"1:00",durationSeconds:60,description:"",videoUrl:"",resourceIds:[],takeaway:[]}));
+ course.modules=[{title:"Chapter",lessons}];assert.equal(courseProgress(course,{completed:lessons.slice(0,-1).map(lesson=>course.slug+"/"+lesson.id)}).percent,99);
+ assert.equal(courseProgress(course,{completed:lessons.map(lesson=>course.slug+"/"+lesson.id)}).percent,100);
+});
+
+test("Progress presentation validates the same exact-completion percentage",()=>{
+ const props={count:2,total:3,percent:completionPercent(2,3),copy:{progress:"Progress",lessons:"Lessons"}};
+ assert.equal(props.percent,67);assert.doesNotThrow(()=>ProgressBar(props));assert.throws(()=>ProgressBar({...props,percent:100}));
+});
+
+test("Certificate document policy permits embedded fonts while disabling scripts and network requests",()=>{
+ const response=certificateResponse("<svg/>","certificate",true),policy=response.headers.get("content-security-policy")!;
+ assert.ok(policy.includes("font-src data:"));assert.ok(policy.includes("script-src 'none'"));assert.ok(policy.includes("default-src 'none'"));assert.equal(response.headers.get("content-disposition"),'inline; filename="certificate.svg"');
+});
+test("Proxy grants embedded font access only to certificate document GETs",()=>{
+ for(const path of ["/api/certificates/editing-course","/api/admin/certificates/preview","/api/admin/certificates/1234-abcd"])
+  assert.ok(requestPolicy({method:"GET",url:"https://example.com"+path},"nonce").includes("font-src data:"));
+ for(const [method,path] of [["POST","/api/certificates/editing-course"],["GET","/api/admin/certificates"],["GET","/dashboard"],["GET","/api/admin/certificates/id/other"]])
+  assert.ok(requestPolicy({method,url:"https://example.com"+path},"nonce").includes("font-src 'self'"));
+});
 ```
 
 ### File: `tests/security/checkout-link.test.ts`

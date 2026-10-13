@@ -1,34 +1,11 @@
-import type { ContentBindings } from "@platform/types/content";
-import { endpoints } from "@platform/config/navigation";
+import {endpoints,routes} from "@platform/config/navigation";
 import Symbol from "@platform/components/ui/symbol";
-export default function CertificateCard({
-  interfaceCopy,
-  copy,
-  site,
-  course,
-  learnerName,
-}: {
-  interfaceCopy: Pick<ContentBindings["interfaceCopy"], "certificateHeading">;
-  copy: Pick<ContentBindings["copy"], "print">;
-  site: Pick<ContentBindings["site"], "name" | "demoLabel">;
-  course: Pick<import("@platform/types/lms").Course,"slug"|"title">;
-  learnerName: string;
-}) {
-  return (
-    <article className="lms-certificate" key={course.slug}>
-      <Symbol name="award" />
-      <span>{site.name}</span>
-      <h2>{interfaceCopy.certificateHeading}</h2>
-      <p>{learnerName}</p>
-      <h3>{course.title}</h3>
-      <small>{site.demoLabel}</small>
-      <a
-        className="lms-secondary-button"
-        href={endpoints.certificate(course.slug)}
-      >
-        <Symbol name="download" />
-        {copy.print}
-      </a>
-    </article>
-  );
+import {formatCourseDate} from "@platform/helpers/format-course-date";
+import type {CertificateRecord,CertificateLabels} from "@platform/types/certificates";
+export default function CertificateCard({record,labels,heading,brand,accessible=true}:{record:CertificateRecord;labels:CertificateLabels;heading:string;brand:string;accessible?:boolean}) {
+ return <article className="lms-certificate" data-reveal data-reveal-motion="fade"><Symbol name="award"/><span>{brand}</span><h2>{heading}</h2><p>{record.learner_name}</p><h3>{record.course_title}</h3>
+  <small>{labels.date}: {formatCourseDate(record.issued_at,"")}</small><small>{labels.serial}: <span dir="ltr" className="lms-record-id">{record.id}</span></small>
+  {record.status==="revoked"||!accessible?<p className="lms-error">{record.status==="revoked"?labels.locked:labels.accessLocked}</p>:<a className="lms-secondary-button" href={endpoints.certificate(record.course_slug)}><Symbol name="download"/>{labels.download}</a>}
+  {record.status==="issued"&&accessible&&<a className="lms-text-link" href={routes.certificate(record.course_slug)}>{labels.preview}</a>}
+ </article>;
 }

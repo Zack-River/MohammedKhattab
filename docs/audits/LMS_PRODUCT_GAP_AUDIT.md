@@ -20,7 +20,7 @@ Research was compared with actual implemented workflows. The selected features r
 
 | ID | Evidence before change | Result |
 | --- | --- | --- |
-| M01 | `resources` and `lesson_resources` were readable, but there was no admin authoring tab or bounded mutation endpoint. | `/admin/dashboard/resources`: create, edit, delete, multi-course lesson assignments, searchable five-record table/mobile cards, type filter and revision-checked atomic writes. |
+| M01 | `resources` and `lesson_resources` were readable, but there was no admin authoring tab or bounded mutation endpoint. | `/admin/dashboard/tools` (legacy resources redirect): create, edit, delete, multi-course lesson assignments, searchable five-record table/mobile cards, type filter and revision-checked atomic writes. |
 | M02 | Student library rendered every readable resource without filters or pagination. | `/dashboard/resources`: combined search/type filters, stable five-record pagination and existing resource cards/reveal effects. Only protected internal download URLs enter the student page. |
 | N01 | `useLessonNotes` saved exclusively in localStorage. | Enrolled learners get account-scoped private notes, explicit Save, cross-device retrieval, a 4,000-character limit, revision conflict handling and explicit import of legacy browser notes. Preview notes remain browser-local with accurate copy. |
 | A01 | Structured security events did not provide a durable content-change trail. | `/admin/dashboard/activity`: searchable entity-filtered history, five records/page, admin-only access and immutable rows. Tracks course/lesson/material/attachment/session/template/commerce/admin-role changes. Service-origin writes are labelled as service/system, never fabricated as a person. |
@@ -40,7 +40,7 @@ Research was compared with actual implemented workflows. The selected features r
 | Medium | Live operations beyond scheduling | Existing timezone/window/session link behavior is complete. Capacity/cohorts, calendar export, announcements and email reminders remain separate features with delivery/retry/consent rules. |
 | Medium | Complete moderation history and retention | Content/role history is now present. Ban/restore/delete and contact-confirmation actions need durable human actor attribution across service-role APIs. Select an actual retention policy rather than auto-deleting audit evidence. |
 | Medium | Database recovery and course reuse | Tested restore procedure, media recovery, export/import and duplication without copying enrollments, payments or private notes. Git backup is not a database backup. |
-| Medium | Certificate verification | Persist issuance/serial/revocation and build verification after establishing valid business claims. Existing private completion-gated download is unchanged. |
+| Implemented privately | Certificate issuance and management | Persisted immutable learner/course snapshots, serial/date/count, exact-completion issuance, admin revoke/restore with private history, Arabic previews/download/print, five-record search/status lists. Public verification and formal live-attendance certification remain separate. See `../TOOLS_CERTIFICATES.md`. |
 | Optional | Assignments, quizzes and moderated discussions | Add when the teaching workflow needs submission/review/scoring; define grading and moderation before implementing decorative tabs. |
 
 ## Security and operational boundaries
@@ -56,3 +56,7 @@ Research was compared with actual implemented workflows. The selected features r
 ## Verification
 
 See the latest `WORK_CHECKPOINT.md` entry for final test counts, migration/advisor/replay results and actual deployment state. Local test accounts/course/material fixtures are isolated; no external resource URL is followed and no live charge is requested.
+
+## Tools/certificates parity follow-up (2026-10-13)
+
+Student/admin capability mapping and intentional privacy boundaries are documented in `../TOOLS_CERTIFICATES.md`. The Tools tab reuses existing material management. Certificates now have durable administrative controls rather than stateless demo downloads. Completion percentage now caps unfinished progress at 99% while retaining ordinary rounded percentages, so a large course cannot round an incomplete curriculum to 100%. No claim of public verification, graded mastery or attendance certification is made.

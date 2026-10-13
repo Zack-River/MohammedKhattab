@@ -1,13 +1,10 @@
 import { creatorIdentity, learningIdentity } from "../../config/identity";
-const certificateTitle = "شهادة إتمام تدريبية";
 // Shared interface wording, grouped by original screen/component context.
 export const interfaceCopy = {
   playLesson: "تشغيل",
   greeting: "أهلًا،",
   lesson: "الدرس",
   of: "من",
-  certificateTitle,
-  certificateDisclaimer: "نسخة تجريبية — ليست شهادة اعتماد",
   namePlaceholder: "كيف تحب نناديك؟",
   categoryLabel: "تصنيف الدورات",
   studentNavigationLabel: "لوحة الطالب",
@@ -47,7 +44,6 @@ export const interfaceCopy = {
   loginPracticeStep: "02 · اتعلّم وجرّب",
   loginProjectStep: "03 · اصنع مشروعك",
   loginDemoDescription: "بياناتك تُحفظ محليًا لهذا العرض التجريبي.",
-  certificateLocked: "أكمل الدورة أولًا",
   requestForbidden: "طلب غير مسموح",
   courseRequired: "اختر دورة موجودة",
   profileInvalid: "اكتب اسمًا وبريدًا إلكترونيًا صحيحين",
@@ -55,8 +51,6 @@ export const interfaceCopy = {
   lessonNotFound: "الدرس غير موجود",
   enrollmentRequired: "ابدأ الدورة أولًا",
   resourceNotFound: "الأداة غير موجودة",
-  certificatesPageTitle: "شهاداتي",
-  certificateHeading: certificateTitle,
   libraryPageTitle: "دوراتي",
   libraryTitle: "كل تعلّمك، في مكان واحد.",
   libraryDescription: "ارجع لأي درس، وكمّل رحلتك على راحتك.",

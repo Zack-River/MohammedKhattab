@@ -1,7 +1,7 @@
 import "server-only";
 import { requireAdmin } from "../identity";
 import { ApiError } from "@platform/lib/api/error";
-import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import {readActorNames} from "../repositories/actor-names";
 import { enrollmentPolicy } from "@platform/config/enrollment";
 import type { EnrollmentChange, EnrollmentEvent } from "@platform/types/enrollment";
 export async function manageEnrollment(userId: string, change: EnrollmentChange) {
@@ -17,8 +17,6 @@ export async function readEnrollmentHistory(userId: string): Promise<EnrollmentE
  const {client} = await requireAdmin();
  const result = await client.from("enrollment_events").select("id,course_slug,action,reason,created_at,actor_id").eq("user_id",userId).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(enrollmentPolicy.historyLimit);
  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- const ids = [...new Set(result.data.flatMap(row => row.actor_id ? [row.actor_id] : []))];
- const actors = ids.length ? await createAuthAdministrator().from("profiles").select("id,name").in("id",ids) : {data:[],error:null};
- if(actors.error) throw new ApiError(503,"INTERNAL_ERROR");
- return result.data.map(row => ({...row,action:row.action as EnrollmentEvent["action"],actor:actors.data?.find(actor=>actor.id===row.actor_id)?.name ?? ""}));
+ const actors=await readActorNames(result.data.map(row=>row.actor_id));
+ return result.data.map(row=>({...row,action:row.action as EnrollmentEvent["action"],actor:actors.get(row.actor_id??"")??""}));
 }

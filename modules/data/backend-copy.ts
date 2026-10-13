@@ -1,4 +1,7 @@
 export const backendCopy: Record<string, string> = {
+  CERTIFICATE_INELIGIBLE:"يلزم اشتراك فعّال وإتمام جميع دروس دورة منشورة قبل إصدار الشهادة.",
+  CERTIFICATE_REVOKED:"ألغت الإدارة هذه الشهادة. تواصل مع الدعم للاستفسار.",
+  CERTIFICATE_CONFLICT:"تغيّرت حالة الشهادة. حدّث الصفحة قبل تكرار الإجراء.",
   ENROLLMENT_CONFLICT: "تغيّر الاشتراك منذ فتح الصفحة. حدّث الصفحة ثم أعد المحاولة.",
   ENROLLMENT_REVOKED: "أوقفت الإدارة الوصول إلى هذه الدورة. تواصل مع الدعم.",
   COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
@@ -29,6 +32,7 @@ export const backendCopy: Record<string, string> = {
   CURRICULUM_NOT_EMPTY: "انقل الدروس أو احذف المحتوى قبل حذف الفصل أو القسم.",
   PUBLISHED_CURRICULUM_INCOMPLETE: "هذا التعديل يترك محتوى منشورًا غير مكتمل. ألغِ نشر الدورة أولاً من بياناتها.",
   COURSE_SLUG_TAKEN: "رابط الدورة مستخدم بالفعل. اختر رابطًا آخر.",
+  COURSE_HAS_CERTIFICATES:"لا يمكن حذف دورة لها شهادات صادرة. يمكنك إلغاء نشرها بدلاً من حذفها.",
   COURSE_HAS_STUDENTS: "لا يمكن حذف دورة بها اشتراكات. يمكنك إلغاء نشرها بدلاً من حذفها.",
   COURSE_DURATION_REQUIRED: "أدخل مدة الدورة المباشرة قبل النشر.",
   INCOMPLETE_COURSE: "أكمل محتوى الدورة وبياناتها قبل النشر.",

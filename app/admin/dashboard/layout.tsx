@@ -1,3 +1,4 @@
+import {certificateCopy} from "@platform/data/certificates";
 import {materialCopy,activityCopy} from "@platform/data/materials";
 import { liveSessionCopy } from "@platform/data/live-sessions";
 import { adminAccountMenuContent } from "@platform/config/account-menu";
@@ -22,7 +23,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     site={{ ...dashboardShellContent.site, demoLabel: labels.dashboard }}
     copy={{ ...dashboardShellContent.copy, demoAccount: labels.admin }}
     interfaceCopy={{ ...dashboardShellContent.interfaceCopy, sidebarTitle: labels.dashboard, sidebarDescription: labels.description }}
-    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminResources, label: materialCopy.title, symbol: "folder" }, { href: routes.adminActivity, label: activityCopy.title, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
+    dashboardNavigation={[{ href: routes.adminDashboard, label: analyticsCopy.home, symbol: "home" }, { href: routes.adminUsers, label: labels.users, symbol: "user" }, { href: routes.admin, label: labels.courses, symbol: "grid" }, { href: routes.adminSales, label: salesCopy.heading, symbol: "grid" }, { href: routes.adminCommerce(), label: commerceCopy.title, symbol: "grid" }, { href: routes.adminLiveSessions, label: liveSessionCopy.tab, symbol: "clock" }, { href: routes.adminTools, label: materialCopy.title, symbol: "folder" }, { href: routes.adminCertificates, label: certificateCopy.title, symbol: "award" }, { href: routes.adminActivity, label: activityCopy.title, symbol: "clock" }, { href: routes.adminPhoneConfirmations, label: phoneConfirmationCopy.tab, symbol: "user" }]}>
     {children}
   </DashboardShell>;
 }

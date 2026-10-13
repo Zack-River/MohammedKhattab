@@ -1,4 +1,5 @@
 "use client";
+import {certificateCopy} from "@platform/data/certificates";
 import { useEffect, useState } from "react";
 import LandingPage, {
   type LandingModel,
@@ -184,10 +185,12 @@ export default function Fixture({ model }: { model: LandingModel }) {
             modules: [],
           }}
           active=""
+          lockedLabel="LOCKED"
           copy={{
             courseContent: "CONTENTS",
             completed: "DONE",
             pending: "PENDING",
+            preview: "PREVIEW",
             progress: "PROGRESS",
             lessons: "LESSONS",
           }}
@@ -202,11 +205,10 @@ export default function Fixture({ model }: { model: LandingModel }) {
           copy={{ download: "GET RESOURCE" }}
         />
         <CertificateCard
-          course={{slug:course.slug,title:course.title}}
-          learnerName="ALT LEARNER"
-          site={{ name: "ALT ISSUER", demoLabel: "ALT DEMO" }}
-          copy={{ print: "GET CERTIFICATE" }}
-          interfaceCopy={{ certificateHeading: "ALT CERTIFICATE" }}
+          record={{id:"00000000-0000-0000-0000-000000000001",user_id:"00000000-0000-0000-0000-000000000002",course_slug:course.slug,
+            learner_name:"ALT LEARNER",course_title:course.title,lesson_count:1,issued_at:"2026-01-01T00:00:00Z",status:"issued",revision:1}}
+          brand="ALT ISSUER" heading="ALT CERTIFICATE"
+          labels={{...certificateCopy,date:"ISSUED",serial:"SERIAL",download:"GET CERTIFICATE",preview:"PREVIEW",locked:"LOCKED",accessLocked:"UNAVAILABLE"}}
         />
       </div>
     </>

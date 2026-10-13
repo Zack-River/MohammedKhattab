@@ -9,4 +9,3 @@ export function readModeration(value: unknown): UserModeration | null {
   if (value.action === "ban" || value.action === "restore" || value.action === "remove" || value.action === "promote") return { action: value.action };
   return null;
 }
-export function validUserId(id: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }

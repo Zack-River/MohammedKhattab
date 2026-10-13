@@ -107,6 +107,46 @@ export type Database = {
                   Relationships: [
 
                   ]
+                },"certificate_events": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"certificate_id": string,"created_at": string,"id": number,"reason": string,"revision": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"certificate_id": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"certificate_id"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "certificate_events_certificate_id_fkey"
+      columns: ["certificate_id"]
+isOneToOne: false
+      referencedRelation: "certificates"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"certificates": {
+                  Row: {
+                    "course_slug": string,"course_title": string,"id": string,"issued_at": string,"learner_name": string,"lesson_count": number,"revision": number,"status": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_slug": string,"course_title": string,"id"?: string,"issued_at"?: string,"learner_name": string,"lesson_count": number,"revision"?: number,"status"?: string,"user_id": string
+                  }
+                  Update: {
+                    "course_slug"?: string,"course_title"?: string,"id"?: string,"issued_at"?: string,"learner_name"?: string,"lesson_count"?: number,"revision"?: number,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "certificates_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"commerce_bundle_courses": {
                   Row: {
                     "bundle_slug": string,"course_slug": string,"position": number
@@ -519,11 +559,22 @@ isOneToOne: true
 "delete_live_session":
 { Args: { "p_id": string,"p_revision": number }; Returns: boolean
                            },
+"eligible_certificate_courses":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "slug": string,"title": string
+            }[]
+                           },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
                            },
+"issue_certificate":
+{ Args: { "p_slug": string,"p_username"?: string }; Returns: string
+                           },
 "manage_enrollment":
 { Args: { "p_action": string,"p_reason": string,"p_revision": number,"p_slug": string,"p_user": string }; Returns: undefined
+                           },
+"moderate_certificate":
+{ Args: { "p_action": string,"p_id": string,"p_reason": string,"p_revision": number }; Returns: undefined
                            },
 "payment_revenue_snapshot":
 { Args: Record<PropertyKey, never>; Returns: Json

@@ -1,51 +1,20 @@
 import CertificateCard from "@platform/components/certificates/certificate-card";
-import { routes } from "@platform/config/navigation";
-import { interfaceCopy } from "@platform/data/interface-copy";
+import CertificateIssueForm from "@platform/components/certificates/issue-form";
+import RecordFilters from "@platform/components/admin/record-filters";
+import RecordPagination from "@platform/components/admin/record-pagination";
 import PageHeading from "@platform/components/ui/page-heading";
-import EmptyState from "@platform/components/ui/empty-state";
-import { listCourses } from "@platform/features/catalog";
-import { copy, site } from "@platform/data/site";
-import { readStudentState, courseProgress } from "@platform/features/learning";
-export const metadata = {
-  title: interfaceCopy.certificatesPageTitle,
-};
-export default async function CertificatesPage() {
-  const state = await readStudentState();
-  const courses = await listCourses();
-  const earned = courses.filter(
-    (course) =>
-      state.enrolled.includes(course.slug) &&
-      courseProgress(course, state).percent === 100,
-  );
-  return (
-    <>
-      <PageHeading
-        title={copy.certificateTitle}
-        description={copy.certificateDescription}
-      />
-      {earned.length ? (
-        <div className="lms-resource-grid">
-          {earned.map((course) => (
-            <CertificateCard
-              interfaceCopy={{
-                certificateHeading: interfaceCopy.certificateHeading,
-              }}
-              copy={{ print: copy.print }}
-              site={{ name: site.name, demoLabel: site.demoLabel }}
-              key={course.slug}
-              course={course}
-              learnerName={state.profile.name}
-            />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title={copy.emptyCertificates}
-          description={copy.emptyCertificatesBody}
-          href={routes.library}
-          label={copy.continue}
-        />
-      )}
-    </>
-  );
+import {routes,endpoints} from "@platform/config/navigation";
+import {certificateCopy as labels,certificateDocument} from "@platform/data/certificates";
+import {certificatePolicy} from "@platform/config/certificates";
+import {listCertificates,eligibleCertificateCourses,certificateAccessSlugs} from "@platform/features/certificates/repository";
+import {readRecordQuery} from "@platform/helpers/read-record-query";
+import {copy,site} from "@platform/data/site";
+import {requirePageIdentity} from "@platform/features/auth/server/page-identity";
+export const metadata={title:labels.title};
+export default async function CertificatesPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+ await requirePageIdentity();const query=readRecordQuery(await searchParams,certificatePolicy.statuses),[eligible,result,access]=await Promise.all([eligibleCertificateCourses(),listCertificates(query),certificateAccessSlugs()]);
+ return <><PageHeading title={copy.certificateTitle} description={copy.certificateDescription}/><div className="lms-account-stack">
+  {eligible.length>0&&<CertificateIssueForm key={eligible.map(course=>course.slug).join(":")} courses={eligible} labels={labels} endpoint={endpoints.certificates}/>}<RecordFilters action={routes.certificates} query={query} options={[{value:"all",label:labels.all},...certificatePolicy.statuses.map(value=>({value,label:labels[value]}))]} labels={labels}/>
+  <div className="lms-resource-grid">{result.certificates.map(record=><CertificateCard key={record.id} record={record} accessible={access.has(record.course_slug)} labels={labels} heading={certificateDocument.title} brand={site.name}/>)}</div>{!result.total&&<p className="lms-admin-empty">{labels.empty}</p>}
+  <RecordPagination path={routes.certificates} query={query} total={result.total} pageSize={certificatePolicy.pageSize} labels={labels}/></div></>;
 }

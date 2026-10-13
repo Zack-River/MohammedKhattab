@@ -49,6 +49,10 @@ export const routes = {
   liveSessions: "/dashboard/live-sessions",
   adminLiveSessions: "/admin/dashboard/live-sessions",
   adminResources: "/admin/dashboard/resources",
+  adminTools: "/admin/dashboard/tools",
+  adminCertificates: "/admin/dashboard/certificates",
+  adminCertificate: (id:string) => `/admin/dashboard/certificates/${segment(id)}`,
+  certificate: (slug:string) => `/dashboard/certificates/${segment(slug)}`,
   adminActivity: "/admin/dashboard/activity",
   adminPhoneConfirmations: "/admin/dashboard/phone-confirmations",
   adminUser: (username: string) => {
@@ -75,6 +79,10 @@ export const routes = {
   },
 };
 export const endpoints = {
+  certificates: "/api/certificates",
+  adminCertificates: "/api/admin/certificates",
+  certificatePreview: "/api/admin/certificates/preview",
+  adminCertificate: (id:string) => `/api/admin/certificates/${segment(id)}`,
   adminLiveSessions: "/api/admin/live-sessions",
   adminResources: "/api/admin/resources",
   lessonNotes: (slug:string,id:string) => `/api/courses/${segment(slug)}/lessons/${segment(id)}/notes`,

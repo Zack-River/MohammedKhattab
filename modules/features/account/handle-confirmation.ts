@@ -2,13 +2,13 @@ import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson, sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "@platform/features/admin/identity";
-import { validUserId } from "@platform/features/admin/helpers/read-moderation";
+import {validUuid} from "@platform/helpers/validation/uuid";
 import { readUserContacts } from "./repositories/read-user-contacts";
 export function handleConfirmation(request: Request, id: string) {
   return apiResponse(async () => {
     const { client } = await requireAdmin();
     if (!sameOrigin(request)) throw new ApiError(403, "FORBIDDEN");
-    if (!validUserId(id)) throw new ApiError(404, "NOT_FOUND");
+    if (!validUuid(id)) throw new ApiError(404, "NOT_FOUND");
     const input = await readJson(request);
     if (!input || input.field !== "phone" || typeof input.value !== "string") throw new ApiError(400, "INVALID_INPUT");
     const contact = await readUserContacts(id), value = contact.phone_e164;

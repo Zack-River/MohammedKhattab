@@ -1,3 +1,4 @@
+import {completionPercent} from "@platform/helpers/completion-percent";
 import { courseLessons, lessonKey } from "../../catalog/helpers";
 import type { Course, LearningState } from "@platform/types/lms";
 export function courseProgress(
@@ -12,7 +13,7 @@ export function courseProgress(
   return {
     count,
     total: lessons.length,
-    percent: lessons.length ? Math.round((count / lessons.length) * 100) : 0,
+    percent: completionPercent(count,lessons.length),
     next: lessons.find(
       (lesson) => !completed.has(lessonKey(course.slug, lesson.id)),
     ),

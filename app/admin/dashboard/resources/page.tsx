@@ -1,17 +1,8 @@
-import {requireAdminPage} from "@platform/features/admin/page-identity";
-import {adminCourseChoices} from "@platform/features/admin/repositories/course-choices";
-import {readAdminMaterials} from "@platform/features/resources/admin-repository";
-import {readRecordQuery} from "@platform/helpers/read-record-query";
-import MaterialManager from "@platform/components/resources/material-manager";
-import RecordFilters from "@platform/components/admin/record-filters";
-import RecordPagination from "@platform/components/admin/record-pagination";
-import PageHeading from "@platform/components/ui/page-heading";
-import {materialCopy as labels} from "@platform/data/materials";
-import {materialPolicy as p} from "@platform/config/materials";
+import {redirect} from "next/navigation";
 import {routes} from "@platform/config/navigation";
+import {readRecordQuery,recordPageHref} from "@platform/helpers/read-record-query";
+import {materialPolicy} from "@platform/config/materials";
 export default async function Page({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
- await requireAdminPage();const query=readRecordQuery(await searchParams,p.kinds),[result,courses]=await Promise.all([readAdminMaterials(query),adminCourseChoices()]);
- return <><PageHeading title={labels.title}/><RecordFilters action={routes.adminResources} query={query} options={[{value:"all",label:labels.all},...p.kinds.map(value=>({value,label:labels[value]}))]} labels={{...labels,filter:labels.kind}}/>
-  <MaterialManager materials={result.materials} courses={courses} labels={labels}/><RecordPagination path={routes.adminResources} query={query} total={result.total} pageSize={p.pageSize} labels={labels}/>
- </>;
+ const query=readRecordQuery(await searchParams,materialPolicy.kinds);
+ redirect(recordPageHref(routes.adminTools,query,query.page));
 }
