@@ -1,3 +1,10 @@
+# Current checkpoint — Signup activation instructions (2026-10-13)
+
+- Updated the centralized signup confirmation message: open the inbox and activate the email before using the account; check the Spam folder if missing, then sign in after activation. Reuses the existing persistent themed `role="status"` confirmation and resend-email link.
+- Existing signup browser test passed with the updated Spam instruction, confirmation visibility and no redirect; response was intercepted, so no account or email was created. Lint and production build passed; source snapshot verified 1,128 files. Live verification pending release.
+
+---
+
 # Current checkpoint — All courses and bundles access (2026-10-13)
 
 - Added **كل الدورات والباقات** to the existing complimentary-access dialog with the same lifetime, preset and custom-day controls. This hides the individual product selector and explains current published catalog coverage. Grants include bundle member courses once each, exclude drafts and later publications, and create no payment records.

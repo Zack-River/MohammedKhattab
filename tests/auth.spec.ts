@@ -50,7 +50,7 @@ test("signup errors, field focus, blur, confirmation and password visibility", a
   await page.getByLabel("تأكيد كلمة المرور", { exact: true }).fill(demo.password);
   await page.route("**/api/auth/signup", route => route.fulfill({ json: { status: "confirmation_required" } }));
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "راجع بريدك الإلكتروني" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "راجع مجلد الرسائل غير المرغوب فيها (Spam)" })).toBeVisible();
   await expect(page).toHaveURL(/\/signup$/);
 });
 test("login provides pending feedback, recovers from errors and links to signup", async ({ page }) => {

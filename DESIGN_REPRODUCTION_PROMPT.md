@@ -11265,7 +11265,7 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `c8beff26e663b681185c0d6807f92e14ba0586edd9d29e723f1952b40bb65fe5`
+SHA-256: `df5ceec8f14107eea366d6f5d05a5b39a98ca05edacba1a01f59c3c94220a949`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
@@ -11324,7 +11324,7 @@ export const backendCopy: Record<string, string> = {
   INVALID_CREDENTIALS: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
   AUTH_FAILED: "تعذّر إكمال الطلب. حاول مرة أخرى.", RATE_LIMITED: "محاولات كثيرة. انتظر قليلًا ثم حاول مرة أخرى.",
   SUPABASE_NOT_CONFIGURED: "خدمة الحسابات غير مهيّأة بعد.", INTERNAL_ERROR: "تعذّر إكمال الطلب. حاول مرة أخرى.",
-  EMAIL_CONFIRMATION: "راجع بريدك الإلكتروني لتأكيد حسابك، ثم سجّل الدخول.",
+  EMAIL_CONFIRMATION: "لتفعيل حسابك واستخدامه، افتح صندوق الوارد واضغط رابط تأكيد البريد الإلكتروني. لو الرسالة مش موجودة، راجع مجلد الرسائل غير المرغوب فيها (Spam)، ثم سجّل الدخول بعد التفعيل.",
   EMAIL_CHANGE_PENDING: "راجع بريدك الإلكتروني لتأكيد تغيير العنوان.",
   ACCOUNT_LABEL: "حساب الطالب", LOGOUT: "تسجيل الخروج",
 };
@@ -35551,7 +35551,7 @@ test("reusable modules do not create accidental Next.js special-file routes", ()
 
 ### File: `tests/auth.spec.ts`
 
-SHA-256: `60c645ed0a461b9d8ec65a0a395eb337c397b5c340da15095ff64d40f10e307c`
+SHA-256: `a57b3c8a198a7552c93faa4202e71a17c2bd4b949a32d35b0fbe68cef9869d43`
 
 ```typescript
 import { test, expect, type Page } from "@playwright/test";
@@ -35606,7 +35606,7 @@ test("signup errors, field focus, blur, confirmation and password visibility", a
   await page.getByLabel("تأكيد كلمة المرور", { exact: true }).fill(demo.password);
   await page.route("**/api/auth/signup", route => route.fulfill({ json: { status: "confirmation_required" } }));
   await page.getByRole("button", { name: "إنشاء حساب", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "راجع بريدك الإلكتروني" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "راجع مجلد الرسائل غير المرغوب فيها (Spam)" })).toBeVisible();
   await expect(page).toHaveURL(/\/signup$/);
 });
 test("login provides pending feedback, recovers from errors and links to signup", async ({ page }) => {
