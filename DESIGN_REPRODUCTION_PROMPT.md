@@ -16071,7 +16071,7 @@ export { default as Landing } from "./landing";
 
 ### File: `modules/features/marketing/landing.tsx`
 
-SHA-256: `0bf68192c44c769774b8994b3d99a8c1cf31a6777944fc53fc64a3347cf8c15c`
+SHA-256: `49692bfb7ea8c0bc87cf599fc05b1485184f39612d7a505631f4a03f558e5b4a`
 
 ```tsx
 import type { NavigationAccount } from "@platform/types/navigation-account";
@@ -16082,14 +16082,13 @@ import { createCoursesModel } from "./models/courses";
 import { createCoachingModel } from "./models/coaching";
 import { createClosingModel } from "./models/closing";
 import { createFooterModel } from "./models/footer";
-import { workSamplesContent, testimonialsContent } from "../../../config/marketing-proof";
+import { testimonialsContent } from "../../../config/marketing-proof";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { instructor, howItWorks, faq, skillStripItems } from "@platform/data/site";
 import LandingPage, { type LandingModel } from "@platform/components/marketing/landing-page";
 export function createLandingModel(courses: Course[], account: NavigationAccount | null = null): LandingModel {
   return {
     header: createHeaderModel(account),
-    workSamples: { content: workSamplesContent, reveal: true },
     testimonials: { content: testimonialsContent, reveal: true },
     hero: createHeroModel(courses),
     skills: {

@@ -1,3 +1,10 @@
+# Current checkpoint — Remove homepage clients section (2026-10-13)
+
+- Removed the clients header, creator marquee and reel grid from the Ta3allam homepage model only. Shared components and other page models remain available. Homepage navigation contains no clients anchor.
+- Lint and production build (including TypeScript) passed. Live deployment verification follows the push.
+
+---
+
 # Current checkpoint — Admin tools and Arabic certificates (2026-10-13)
 
 - Added the visible administrator Tools tab at `/admin/dashboard/tools`, reusing the existing materials store/editor, lesson assignments, combined filters and five-record lists. Old resources bookmarks preserve search/type/page while redirecting. Student and admin Tools library labels now match; no duplicate store or feature was introduced.
