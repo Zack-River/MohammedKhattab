@@ -32,7 +32,7 @@ export function publicPaymentOrder(order: PaymentOrder) {
 export async function readPaymentReceipt(order: PaymentOrder) {
   const { client, user } = await requireIdentity();
   const slugs=paymentCourseSlugs(order);
-  const result = await client.from("enrollments").select("course_slug,active").eq("user_id",user.id).in("course_slug",slugs);
+  const result = await client.from("enrollment_access").select("course_slug,active,revoked").eq("user_id",user.id).in("course_slug",slugs);
   if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
-  return {...publicPaymentOrder(order), accessRevoked: result.data.some(row=>!row.active), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug && row.active))};
+  return {...publicPaymentOrder(order), accessRevoked: result.data.some(row=>row.revoked), enrolled: slugs.length>0 && slugs.every(slug=>result.data.some(row=>row.course_slug===slug && row.active))};
 }

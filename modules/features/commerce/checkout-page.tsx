@@ -13,7 +13,7 @@ export default async function CommerceCheckoutPage({slug,bundle}:{slug:string;bu
  const identity=await currentIdentity();if(!identity) redirect(routes.login);
  const product=bundle ? await findBundle(slug) : await findCourse(slug);if(!product) notFound();
  const input=bundle ? {bundleSlug:slug} : {courseSlug:slug},quote=await quotePurchase(input);
- const enrolled=await identity.client.from('enrollments').select('course_slug,active').eq('user_id',identity.user.id).in('course_slug',quote.courseSlugs);
+ const enrolled=await identity.client.from('enrollment_access').select('course_slug,active,revoked').eq('user_id',identity.user.id).in('course_slug',quote.courseSlugs);
  if(enrolled.error) throw new Error('Enrollment lookup failed');if(enrolled.data.some(row=>row.active)) redirect(routes.library);
  const paid=await identity.client.from('payment_orders').select('id').eq('user_id',identity.user.id).eq(bundle ? 'bundle_slug' : 'course_slug',slug).eq('status','paid').limit(1).maybeSingle();
  if(paid.error) throw new Error('Payment lookup failed');if(paid.data) redirect(routes.payment(paid.data.id));
@@ -21,6 +21,6 @@ export default async function CommerceCheckoutPage({slug,bundle}:{slug:string;bu
  const account=await readAccount(),verified=account.emailVerified && account.phoneVerified;
  const backHref=bundle ? routes.bundle(slug) : routes.course(slug,'delivery' in product ? product.delivery : undefined);
  return <main className="container lms-public-main"><div className="lms-payment-layout"><h1>{labels.title}</h1><p>{labels.summary}</p><section className="lms-profile-card lms-payment-card" data-reveal="true"><h2>{product.title}</h2><p>{product.description}</p>
- {enrolled.data.some(row=>!row.active) ? <p>{labels.revokedHint}</p> : verified ? <CheckoutControls input={input} initial={quote} labels={commerceCopy} paymentLabels={labels} /> : <><p>{labels.verification}</p><Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>{labels.settings}</Link></>}
+ {enrolled.data.some(row=>row.revoked) ? <p>{labels.revokedHint}</p> : verified ? <CheckoutControls input={input} initial={quote} labels={commerceCopy} paymentLabels={labels} /> : <><p>{labels.verification}</p><Link className="btn-primary" href={account.admin ? routes.adminSettings : routes.settings}>{labels.settings}</Link></>}
  <Link className="lms-payment-back" href={backHref}>{labels.back}</Link></section></div></main>;
 }

@@ -3,25 +3,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
 
-  "graphql_public": {
-          Tables: {
-            [_ in never]: never
-          }
-          Views: {
-            [_ in never]: never
-          }
-          Functions: {
-            "graphql":
-{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
-                           }
-          }
-          Enums: {
-            [_ in never]: never
-          }
-          CompositeTypes: {
-            [_ in never]: never
-          }
-        },"public": {
+  "public": {
           Tables: {
             "account_contacts": {
                   Row: {
@@ -229,14 +211,14 @@ isOneToOne: false
                   ]
                 },"enrollment_events": {
                   Row: {
-                    "action": string,"actor_id": string | null,"course_slug": string,"created_at": string,"id": number,"reason": string,"revision": number,"user_id": string
+                    "access_expires_at": string | null,"action": string,"actor_id": string | null,"bundle_slug": string | null,"course_slug": string,"created_at": string,"id": number,"reason": string,"revision": number,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "action": string,"actor_id"?: string | null,"course_slug": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number,"user_id": string
+                    "access_expires_at"?: string | null,"action": string,"actor_id"?: string | null,"bundle_slug"?: string | null,"course_slug": string,"created_at"?: string,"id"?: never,"reason": string,"revision": number,"user_id": string
                   }
                   Update: {
-                    "action"?: string,"actor_id"?: string | null,"course_slug"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number,"user_id"?: string
+                    "access_expires_at"?: string | null,"action"?: string,"actor_id"?: string | null,"bundle_slug"?: string | null,"course_slug"?: string,"created_at"?: string,"id"?: never,"reason"?: string,"revision"?: number,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -249,14 +231,14 @@ isOneToOne: false
                   ]
                 },"enrollments": {
                   Row: {
-                    "active": boolean,"course_slug": string,"created_at": string,"revision": number,"user_id": string
+                    "access_expires_at": string | null,"access_origin": string,"active": boolean,"course_slug": string,"created_at": string,"revision": number,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"course_slug": string,"created_at"?: string,"revision"?: number,"user_id": string
+                    "access_expires_at"?: string | null,"access_origin"?: string,"active"?: boolean,"course_slug": string,"created_at"?: string,"revision"?: number,"user_id": string
                   }
                   Update: {
-                    "active"?: boolean,"course_slug"?: string,"created_at"?: string,"revision"?: number,"user_id"?: string
+                    "access_expires_at"?: string | null,"access_origin"?: string,"active"?: boolean,"course_slug"?: string,"created_at"?: string,"revision"?: number,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -305,6 +287,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "lessons"
       referencedColumns: ["course_slug","id"]
+    },{
+      foreignKeyName: "lesson_progress_user_id_course_slug_fkey"
+      columns: ["user_id","course_slug"]
+isOneToOne: false
+      referencedRelation: "enrollment_access"
+      referencedColumns: ["user_id","course_slug"]
     },{
       foreignKeyName: "lesson_progress_user_id_course_slug_fkey"
       columns: ["user_id","course_slug"]
@@ -514,7 +502,27 @@ isOneToOne: true
                 }
           }
           Views: {
-            [_ in never]: never
+            "enrollment_access": {
+                  Row: {
+                    "access_expires_at": string | null,"access_origin": string | null,"active": boolean | null,"course_slug": string | null,"created_at": string | null,"revision": number | null,"revoked": boolean | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "access_expires_at"?: string | null,"access_origin"?: string | null,"active"?: never,"course_slug"?: string | null,"created_at"?: string | null,"revision"?: number | null,"revoked"?: never,"user_id"?: string | null
+                         }
+                        Update: {
+                           "access_expires_at"?: string | null,"access_origin"?: string | null,"active"?: never,"course_slug"?: string | null,"created_at"?: string | null,"revision"?: number | null,"revoked"?: never,"user_id"?: string | null
+                         }
+                        Relationships: [
+                    {
+      foreignKeyName: "enrollments_course_slug_fkey"
+      columns: ["course_slug"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["slug"]
+    }
+                  ]
+                }
           }
           Functions: {
             "account_access_allowed":
@@ -563,6 +571,15 @@ isOneToOne: true
 { Args: Record<PropertyKey, never>; Returns: {
               "slug": string,"title": string
             }[]
+                           },
+"enroll_free_course":
+{ Args: { "p_slug": string }; Returns: undefined
+                           },
+"enrollment_current":
+{ Args: { "p_active": boolean,"p_expires": string }; Returns: boolean
+                           },
+"grant_enrollment_access":
+{ Args: { "p_kind": string,"p_reason": string,"p_revisions": Json,"p_slug": string,"p_until": string,"p_user": string }; Returns: number
                            },
 "is_public_featured_bundle":
 { Args: { "p_slug": string }; Returns: boolean
@@ -731,11 +748,7 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "graphql_public": {
-          Enums: {
-
-          }
-        },"public": {
+  "public": {
           Enums: {
 
           }

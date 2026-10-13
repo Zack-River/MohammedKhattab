@@ -20,7 +20,7 @@ module.exports=async({admin,manager,student,slug,url,verify})=>{
   await page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true}).fill('Draft retained on conflict');await page.getByRole('dialog').getByRole('button',{name:'تأكيد التغيير',exact:true}).click();
   await expect(page.getByRole('dialog').getByRole('alert')).toContainText('تغيّر الاشتراك');await expect(page.getByRole('dialog').getByLabel('سبب التغيير',{exact:true})).toHaveValue('Draft retained on conflict');verify(true,'Stale browser edit preserves reason and explains conflict');
   await page.getByRole('dialog').getByRole('button',{name:'إلغاء',exact:true}).click();await page.reload();
-  await page.getByRole('button',{name:'إضافة اشتراك',exact:true}).click();const dialog=page.getByRole('dialog');
+  await page.getByRole('button',{name:'منح وصول مجاني',exact:true}).click();const dialog=page.getByRole('dialog');
   await dialog.getByRole('combobox',{name:'الدورة',exact:true}).click();await page.getByRole('option').filter({hasText:'المونتاج باستخدام Premiere Pro'}).click();
   await dialog.getByLabel('سبب التغيير',{exact:true}).fill('Browser manual grant');await dialog.getByRole('button',{name:'تأكيد التغيير',exact:true}).click();await expect(dialog).toHaveCount(0);await expect(page.locator('.lms-resource-card')).toHaveCount(2);verify(true,'Browser grants a new course with required reason');
   await page.setViewportSize({width:390,height:900});await page.screenshot({path:'/tmp/khatab-enrollment-mobile.png',fullPage:true,caret:'initial'});

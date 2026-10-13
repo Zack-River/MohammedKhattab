@@ -1,6 +1,6 @@
 # Manual course access management
 
-Open `/admin/dashboard/users/[username]`. Add a course with **Add enrollment**, or use **Revoke access** / **Restore enrollment** on its subscription card. Each action requires an administrator-only reason. The most recent five actions show the actor, course and time; all events remain stored.
+Open `/admin/dashboard/users/[username]`. Give complimentary course/bundle access with **Grant free access**, or use **Revoke access** / **Restore enrollment** on its subscription card. Each action requires an administrator-only reason. The most recent five actions show the actor, course and time; all events remain stored.
 
 ## Access and financial rules
 
@@ -27,3 +27,30 @@ The signed-in administrator client calls `manage_enrollment`; both API and RPC v
 ## Verification
 
 Run `BACKEND_SUITE=enrollments npm run backend:test` against the isolated local Supabase configuration. Browser coverage requires the existing Chromium system-library path documented in the checkpoint. Tests cover auth/CSRF, direct JWT/RPC denial, invalid input, contact verification, concurrent/stale mutations, actual note/progress transaction lock contention, active enrollment counts, protected content, preserved history, delayed/replayed settlement, receipts and actual admin forms at 320/390/1440px. No live charge or production account mutation is made.
+
+## Free course and bundle access (2026-10-13)
+
+On an administrator's private user page, choose **منح وصول مجاني**. Select a course or enabled bundle, then lifetime, one day, one week, 30 days, 365 days or custom whole days (1–3,650). Supply a private reason and save. Expiry is stored as an absolute timestamp and displayed with Cairo date/time on the subscription card. Expired access can be renewed or extended to lifetime using the same dialog. Existing explicit revocation must be restored separately before a gift can extend access.
+
+A bundle grant is one atomic transaction covering its current published course members. A revoked member or stale revision rolls back the whole operation. Existing paid/lifetime access is preserved; a shorter gift does not shorten a longer grant. Future bundle membership changes do not rewrite previous gifts; grant the updated bundle explicitly if needed. Disabled bundles or unpublished members cannot be granted through this flow. New grants retain the existing email/phone verification requirement.
+
+No payment gateway request, invoice, payment record or revenue is created by an administrator grant. Existing progress, enrollment date and private notes remain after expiry. The database's `enrollment_current` function and security-invoker `enrollment_access` view enforce expiry at query time; no scheduled job is required. Protected lesson/progress/note/material/live-link policies and certificate issuance/downloads use effective access. Analytics and course student counts exclude expired access. Administrative history retains the grant reason, actor, duration and bundle identifier.
+
+An expired gift to a paid course can proceed to normal checkout. Verified payment settlement upgrades an active manual grant to standard lifetime access; payment replays do not repeatedly rewrite access or bypass an explicit revocation. A legitimately free catalog course can be enrolled again through `enroll_free_course` with normal account/contact/publication/price guards.
+
+The existing administrative enrollment endpoint also accepts:
+
+```json
+{
+  "action": "grant",
+  "kind": "bundle",
+  "slug": "editing-bundle",
+  "expiresAt": null,
+  "reason": "Complimentary access after support review",
+  "revisions": { "editing-foundations": 0, "motion-essentials": 2 }
+}
+```
+
+`kind` is `course` or `bundle`; `expiresAt: null` means lifetime. Timed grants use a future ISO timestamp within the permitted duration. `revisions` snapshots the existing revision for each member (zero for a missing enrollment). The signed-in administrator calls guarded `grant_enrollment_access`; its private per-course helper has no public execute permission. Client inserts cannot set origin or expiry, and clients cannot extend grants through direct writes. Existing revoke/restore requests remain compatible.
+
+Migration: `20261013151301_admin_access_duration.sql`. New focused suite: `BACKEND_SUITE=access-grants npm run backend:test`. All gateway interactions in that suite use the isolated local mock and never charge money.

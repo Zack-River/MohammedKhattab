@@ -9,7 +9,7 @@ if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) thro
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
-if(['payments','commerce','lms-workflows'].includes(process.env.BACKEND_SUITE)) {
+if(['payments','commerce','lms-workflows','access-grants'].includes(process.env.BACKEND_SUITE)) {
  paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
  Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
 }
@@ -58,6 +58,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'access-grants') {
+    await require('./access-grants.cjs')({admin,provision,anonymous:account(),verify,url,config}); return;
+  }
   if (process.env.BACKEND_SUITE === 'pagination') {
     await require('./pagination.cjs')({admin,provision,verify,url});return;
   }

@@ -37,6 +37,6 @@ export async function eligibleCertificateCourses() {
  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");return result.data;
 }
 export async function certificateAccessSlugs() {
- const {client,user}=await requireIdentity();const result=await client.from("enrollments").select("course_slug,courses!inner(published)").eq("user_id",user.id).eq("active",true).eq("courses.published",true);
+ const {client,user}=await requireIdentity();const result=await client.from("enrollment_access").select("course_slug,courses!inner(published)").eq("user_id",user.id).eq("active",true).eq("courses.published",true);
  if(result.error) throw new ApiError(503,"INTERNAL_ERROR");return new Set(result.data.map(row=>row.course_slug));
 }

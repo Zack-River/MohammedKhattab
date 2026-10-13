@@ -1,3 +1,14 @@
+# Current checkpoint — Complimentary timed and lifetime access (2026-10-13)
+
+- Extended the private admin user page with a reusable free-access dialog for courses or enabled bundles: lifetime, 1/7/30/365 days and custom whole days (1–3,650). Existing custom selectors, form fields, reason controls and centered responsive dialog are reused. Subscription cards show lifetime or exact Cairo expiry and expired status; history retains actor/reason, duration and bundle identifier.
+- Added `access_expires_at`/origin to existing enrollment anchors and expiry/bundle snapshots to existing event history. One `enrollment_current` database predicate and security-invoker access view drive learning state, downloads, notes, certificates, live schedule, checkout/receipts, RLS and analytics. Expiry retains progress/notes and requires no background job. Client inserts/updates cannot set or extend expiry.
+- Guarded administrator grant RPC serializes with commerce, checks account/contact verification and exact member revisions, and grants current published bundle members atomically. Revoked members or stale edits roll back all changes. Longer, paid and lifetime access is preserved; renewal can extend temporary access or make it lifetime. Gifts do not create invoices, payment records or revenue. Existing explicit revocation must be restored separately.
+- Expired gifts can proceed to ordinary paid checkout; local mock settlement upgrades them to standard lifetime access. Replays do not keep incrementing revision or bypass revocation. Legitimately free catalog courses have a guarded free re-enrollment RPC. No real charge or production access grant was submitted during verification.
+- **548 checks passed:** 59 new duration/bundle/API/RLS/concurrency/browser/mock-payment checks, 61 existing enrollment checks, 92 commerce, 75 certificates, 71 materials/notes/history, 31 learning/purchase-history, 58 live sessions, 29 security integration and 72 helper/security tests. New browser coverage includes custom two-day and lifetime bundle grants at 320/390/1440px; atomic rollback prevents a partial gift when another member is revoked.
+- Migration `20261013151301_admin_access_duration.sql` applied locally and hosted; both advisors report no issues and complete shadow migration replay has no schema differences. Two hosted guest checks confirmed access-view and grant-RPC denial. Lint, TypeScript/production build and architecture passed (937 production files / zero violations). Final deployment verification is in progress. Usage and API contracts: `docs/ENROLLMENT_MANAGEMENT.md`. Existing untracked `references/` remains user-owned and outside the release.
+
+---
+
 # Current checkpoint — Remove homepage clients section (2026-10-13)
 
 - Removed the clients header, creator marquee and reel grid from the Ta3allam homepage model only. Shared components and other page models remain available. Homepage navigation contains no clients anchor.
