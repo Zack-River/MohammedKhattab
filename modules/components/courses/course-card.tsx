@@ -27,7 +27,7 @@ export default function CourseCard({
   site: Pick<ContentBindings["site"], "englishName">;
   offerCopy: Pick<ContentBindings["offerCopy"], "price">;
 }) {
-  const detailHref = course.featured && !progress ? routes.featured(course.slug) : routes.course(course.slug, course.delivery);
+  const detailHref = routes.course(course.slug, course.delivery);
   const actionHref = progress
     ? progress.next
       ? routes.lesson(course.slug, progress.next.id)

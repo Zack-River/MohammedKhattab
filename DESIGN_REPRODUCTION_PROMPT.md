@@ -4392,7 +4392,7 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `c5d245ea2d7fdb27b1ea4d8365706a212b3f9c6e53ee434f1f9ebfef2e3bfb14`
+SHA-256: `5727593c3e3721de278a949d4d03dac782ad42a1b1ea6d87cad936ab63863072`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
@@ -4400,7 +4400,7 @@ export const projectRoutes = {
   portfolio: "/founder",
   learning: "/",
   courses: "/courses",
-  workshop: `/featured/${workshopCourseConfig.slug}`,
+  workshop: `/courses/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",
@@ -6535,7 +6535,7 @@ export default function CommerceTabs({kind,labels}:{kind:CommerceKind;labels:Com
 
 ### File: `modules/components/commerce/bundle-card.tsx`
 
-SHA-256: `7e05d52e85f48ef2e313cc4ce9decfcf5d3aa89aa09f3e75138b5afbc7582d8d`
+SHA-256: `3d65338417c875a8665c8a8e62836a805651992912fd7aca4dfc230f94b1c42f`
 
 ```tsx
 import Link from "next/link";
@@ -6544,7 +6544,7 @@ import Symbol from "@platform/components/ui/symbol";
 import PriceSummary from "./price-summary";
 import type { BundleProduct,CommerceLabels } from "@platform/types/commerce";
 export default function BundleCard({bundle,labels,courses,detail=false}:{bundle:BundleProduct;labels:CommerceLabels;courses:readonly {slug:string;title:string;delivery?:'live' | 'recorded'}[];detail?:boolean}) {
- return <article className="lms-profile-card lms-bundle-card" data-reveal="true"><h2>{detail ? bundle.title : <Link className="lms-course-text-link" href={bundle.featured ? routes.featured(bundle.slug, "bundle") : routes.bundle(bundle.slug)}>{bundle.title}</Link>}</h2><p>{bundle.description}</p>
+ return <article className="lms-profile-card lms-bundle-card" data-reveal="true"><h2>{detail ? bundle.title : <Link className="lms-course-text-link" href={routes.bundle(bundle.slug)}>{bundle.title}</Link>}</h2><p>{bundle.description}</p>
  <div><h3>{labels.includes}</h3><ul>{bundle.courseSlugs.map(slug=>{const course=courses.find(course=>course.slug===slug);return <li key={slug}><Link className="lms-course-text-link" href={routes.course(slug,course?.delivery)}>{course?.title ?? slug}<Symbol name="arrow" /></Link></li>;})}</ul></div>
  <PriceSummary quote={bundle.quote} labels={labels} /><Link href={routes.bundleCheckout(bundle.slug)} className="btn-primary lms-full-button">{labels.buyBundle}<Symbol name="arrow" /></Link></article>;
 }
@@ -7011,7 +7011,7 @@ export default function CourseArtwork({
 
 ### File: `modules/components/courses/course-card.tsx`
 
-SHA-256: `6d6d1541b5ca719e115317c54917465f389e159530b42b7a5ab6cc98250c949f`
+SHA-256: `f42d3c8902d664ed6014ea876eb56317220dd0a28af03272b042ed6a68891f67`
 
 ```tsx
 import { courseLessons } from "@platform/features/catalog/helpers";
@@ -7043,7 +7043,7 @@ export default function CourseCard({
   site: Pick<ContentBindings["site"], "englishName">;
   offerCopy: Pick<ContentBindings["offerCopy"], "price">;
 }) {
-  const detailHref = course.featured && !progress ? routes.featured(course.slug) : routes.course(course.slug, course.delivery);
+  const detailHref = routes.course(course.slug, course.delivery);
   const actionHref = progress
     ? progress.next
       ? routes.lesson(course.slug, progress.next.id)

@@ -373,3 +373,5 @@ Bundles can select the same approved featured page as courses and live workshops
 ## Independent featured pages and admin video previews (2026-10-13)
 
 Featured marketing uses `/featured/[slug]` (bundles add `?kind=bundle`) while normal course details and payment destinations remain separate. Course and lesson editors compose one shared `VideoPreview` with supplied labels and the existing full-control media player. Drive drafts use the administrator-only stream endpoint; new courses require a saved draft before Drive preview. Player loading remains activation-only, resets on link changes and scroll-out, and uses existing responsive/theme styles. No new media library or visual theme is added.
+
+Public course cards, founder links and platform navigation always open normal course/bundle details, regardless of featured status. Featured routes are direct promotional destinations; the private admin editor retains its featured preview link for preparing campaigns.

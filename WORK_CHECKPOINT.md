@@ -1,3 +1,9 @@
+# Current checkpoint — Promotional links stay separate (2026-10-13)
+
+- Public course title/image links now always open `/courses/[slug]`, regardless of featured status. Founder workshop links also open normal course details. Bundle listing titles open `/bundles/[slug]`.
+- `/featured/[slug]` (bundles add `?kind=bundle`) remains available as a direct advertising destination. Only the private admin editor links to it for campaign preview. Checkout/enrollment links and featured templates remain unchanged.
+- Passed 51 security/helper checks, architecture (826 files / zero violations), lint and production build/TypeScript. Source snapshot verified (994 files), secret scan passed (1,804 files / zero violations), and diff checks passed. No hosted data or database schema change is required.
+
 # Current checkpoint — Admin video previews and separate featured URLs (2026-10-13)
 
 - Course introduction fields (create/edit) and lesson media dialogs compose one reusable video preview with the existing full-control player. Draft YouTube/direct sources preview immediately; Drive uses the protected admin stream and requires a saved course. Changing the source releases previous playback; playback starts on activation, resets off-screen and shows existing player errors. Labels remain supplied and centralized, with no new package/theme values.
