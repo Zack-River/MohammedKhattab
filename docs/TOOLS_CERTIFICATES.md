@@ -42,3 +42,7 @@ Completion reflects the platform's explicit lesson-completion action, not verifi
 Playback-position resume, grading/assignments, formal live attendance, supported refunds, calendar reminders and recovery/retention policy remain tracked product gaps. This iteration does not claim these are implemented or invent decorative controls for them.
 
 See `WORK_CHECKPOINT.md` for the actual fresh test and deployment results.
+
+## Filtered pagination boundary
+
+Read-only production verification exposed a PostgREST `PGRST103` error when a saved filtered bookmark requested a page beyond the current results. All ten affected database list queries now use one shared bounded paging helper. Ordinary pages keep their single read; out-of-range requests retry only the first row with the same authorization and filters to recover the exact count, then return an empty requested page. Database and permission failures remain errors. Local API/browser coverage includes zero results, nonzero counts, mobile layouts, student ownership and old Tools bookmarks.

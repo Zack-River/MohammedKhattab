@@ -1,3 +1,4 @@
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import {requireAdmin} from "../identity";
 import {createAuthAdministrator} from "@platform/lib/supabase/admin";
@@ -10,9 +11,9 @@ export async function readAdminActivity(query:RecordQuery) {
  let request=client.from("admin_activity").select("*",{count:"exact"}).order("created_at",{ascending:false}).order("id",{ascending:false}).range(start,start+recordPolicy.pageSize-1);
  if(query.search) request=request.ilike("target",recordSearchPattern(query.search));
  if(query.filter!=="all") request=request.eq("entity",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const ids=[...new Set(result.data.flatMap(row=>row.actor_id ? [row.actor_id] : []))];
  const profiles=ids.length ? await createAuthAdministrator().from("profiles").select("id,name,username").in("id",ids) : {data:[],error:null};
  if(profiles.error) throw new ApiError(503,"INTERNAL_ERROR");
- return {records:result.data.map(row=>({...row,actor:profiles.data?.find(profile=>profile.id===row.actor_id) ?? null})),total:result.count ?? 0};
+ return {records:result.data.map(row=>({...row,actor:profiles.data?.find(profile=>profile.id===row.actor_id) ?? null})),total:result.count};
 }

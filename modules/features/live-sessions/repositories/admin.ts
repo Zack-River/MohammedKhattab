@@ -1,3 +1,4 @@
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { liveSessionPolicy } from "@platform/config/live-sessions";
 import { readLiveQuery } from "../helpers/read-query";
@@ -14,10 +15,9 @@ export async function readAdminLiveSessions(query:ReturnType<typeof readLiveQuer
  if(query.status==="upcoming") request=request.gt("starts_at",now);
  if(query.status==="active") request=request.lte("starts_at",now).gt("ends_at",now);
  if(query.status==="ended") request=request.lte("ends_at",now);
- const result=await request;
- if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const sessions:AdminLiveSession[]=result.data.map(row=>({...mapLiveSession(row),enabled:row.enabled,revision:row.revision,joinUrl:row.live_session_links?.join_url ?? ""}));
- return {sessions,total:result.count ?? 0,serverNow:now};
+ return {sessions,total:result.count,serverNow:now};
 }
 export async function mutateLiveSession(input:LiveSessionInput | {id:string;revision:number},remove=false) {
  const {client}=await requireAdmin();

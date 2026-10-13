@@ -12555,9 +12555,10 @@ export async function readAccount(): Promise<AccountProfile> {
 
 ### File: `modules/features/account/repositories/read-phone-confirmations.ts`
 
-SHA-256: `b6725930ac9185018bb3297bb9cc5c886121a802f974c41a826e16f72bd302fb`
+SHA-256: `eb0c64aaace2cf62654b3a49d8ea01ddf996c45a8ab28833609d5eb2c7073209`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
@@ -12566,15 +12567,15 @@ import { phoneConfirmationConfig } from "@platform/config/phone-confirmations";
 export async function readPhoneConfirmations(page: number) {
   await requireAdmin();
   const client = createAuthAdministrator(), start = (page - 1) * phoneConfirmationConfig.pageSize;
-  const { data, count, error } = await client.from("account_contacts").select("user_id,email,phone_e164,updated_at", { count: "exact" })
+  const query = client.from("account_contacts").select("user_id,email,phone_e164,updated_at", { count: "exact" })
     .is("phone_verified_at", null).not("phone_e164", "is", null).order("updated_at").order("user_id")
     .range(start, start + phoneConfirmationConfig.pageSize - 1);
-  if (error) throw new ApiError(503, "INTERNAL_ERROR");
-  if (!data?.length) return { requests: [], total: count ?? 0 };
+  const {data,count}=await readDatabasePage(query);
+  if (!data?.length) return { requests: [], total: count };
   const profiles = await client.from("profiles").select("id,name,username").in("id", data.map(row => row.user_id));
   if (profiles.error) throw new ApiError(503, "INTERNAL_ERROR");
   const byId = new Map(profiles.data.map(profile => [profile.id, profile]));
-  return { total: count ?? 0, requests: data.flatMap(row => {
+  return { total: count, requests: data.flatMap(row => {
     const profile = byId.get(row.user_id);
     return profile && row.phone_e164 ? [{ ...row, phone_e164: row.phone_e164, name: profile.name, username: profile.username }] : [];
   }) };
@@ -13622,9 +13623,10 @@ export async function requireAdminPage() {
 
 ### File: `modules/features/admin/repositories/activity.ts`
 
-SHA-256: `855828d647e12d4dc3d7455addd4e7862b720df52ce51de5cc126e6791c4bc40`
+SHA-256: `0f8e9e0e301f549d781e91cb9f2d59215a7e361937b62a913a9fcf5b645141b9`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import {requireAdmin} from "../identity";
 import {createAuthAdministrator} from "@platform/lib/supabase/admin";
@@ -13637,11 +13639,11 @@ export async function readAdminActivity(query:RecordQuery) {
  let request=client.from("admin_activity").select("*",{count:"exact"}).order("created_at",{ascending:false}).order("id",{ascending:false}).range(start,start+recordPolicy.pageSize-1);
  if(query.search) request=request.ilike("target",recordSearchPattern(query.search));
  if(query.filter!=="all") request=request.eq("entity",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const ids=[...new Set(result.data.flatMap(row=>row.actor_id ? [row.actor_id] : []))];
  const profiles=ids.length ? await createAuthAdministrator().from("profiles").select("id,name,username").in("id",ids) : {data:[],error:null};
  if(profiles.error) throw new ApiError(503,"INTERNAL_ERROR");
- return {records:result.data.map(row=>({...row,actor:profiles.data?.find(profile=>profile.id===row.actor_id) ?? null})),total:result.count ?? 0};
+ return {records:result.data.map(row=>({...row,actor:profiles.data?.find(profile=>profile.id===row.actor_id) ?? null})),total:result.count};
 }
 ```
 
@@ -14715,9 +14717,10 @@ export function renderCertificate(model:CertificateModel,presentation:Certificat
 
 ### File: `modules/features/certificates/repository.ts`
 
-SHA-256: `fc1cec27ecb0200789b30daad0c561c4f15a873d2030f9d268544b5825fb9592`
+SHA-256: `64c116e82776579d04e990991b77c653baa7875b576bee1b9abb83927b454c8e`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import {readActorNames} from "@platform/features/admin/repositories/actor-names";
 import {validUuid} from "@platform/helpers/validation/uuid";
 import "server-only";
@@ -14733,8 +14736,8 @@ export async function listCertificates(query:RecordQuery,admin=false) {
  if(!admin) request=request.eq("user_id",user.id);
  if(query.search) {const pattern=recordSearchPattern(query.search.replace(/[(),".]/g,""));request=request.or(`learner_name.ilike.${pattern},course_title.ilike.${pattern}`);}
  if(query.filter!=="all") request=request.eq("status",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- return {certificates:result.data,total:result.count ?? 0};
+ const result=await readDatabasePage(request);
+ return {certificates:result.data,total:result.count};
 }
 export async function readCertificate(id:string,admin=false) {
  const {client,user}=await (admin?requireAdmin():requireIdentity());
@@ -15107,9 +15110,10 @@ export function validateCommerceRecord(kind: CommerceKind, value: unknown): Comm
 
 ### File: `modules/features/commerce/repositories/admin-records.ts`
 
-SHA-256: `11f0cd8c5b9416ee70e57ca0a871b3fd30290a166ff19bccf442a9084c51c265`
+SHA-256: `e8918ad55f527429cf4b421ee725fc61f8e8613c489ab94c80b44730d99ecbae`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
@@ -15125,17 +15129,17 @@ export async function readCommerceList(kind:CommerceKind, search="", status="all
   let query=client.from('commerce_bundles').select('*',{count:'exact'}).order('updated_at',{ascending:false}).order('slug').range(from,from+commercePolicy.pageSize-1);
   if(search) query=query.or(commerceSearchFilter(search,'slug'));
   if(status!=='all') query=query.eq('enabled',status==='active');
-  const result=await query;if(result.error) commerceDatabaseError(result.error);
+  const result=await readDatabasePage(query);
   const slugs=(result.data ?? []).map(row=>row.slug);
   const members=slugs.length ? await client.from('commerce_bundle_courses').select('bundle_slug,course_slug').in('bundle_slug',slugs).order('position') : {data:[],error:null};
   if(members.error) commerceDatabaseError(members.error);
-  return {records:(result.data ?? []).map(row=>readBundleRecord(row,(members.data ?? []).filter(item=>item.bundle_slug===row.slug).map(item=>item.course_slug))),total:result.count ?? 0,page};
+  return {records:(result.data ?? []).map(row=>readBundleRecord(row,(members.data ?? []).filter(item=>item.bundle_slug===row.slug).map(item=>item.course_slug))),total:result.count,page};
  }
  let query=client.from('commerce_discounts').select('*',{count:'exact'}).eq('kind',kind).order('updated_at',{ascending:false}).order('key').range(from,from+commercePolicy.pageSize-1);
  if(search) query=query.or(commerceSearchFilter(search,'key'));
  if(status!=='all') query=query.eq('enabled',status==='active');
- const result=await query;if(result.error) commerceDatabaseError(result.error);
- return {records:(result.data ?? []).map(readDiscountRecord),total:result.count ?? 0,page};
+ const result=await readDatabasePage(query);
+ return {records:(result.data ?? []).map(readDiscountRecord),total:result.count,page};
 }
 ```
 
@@ -15195,9 +15199,10 @@ export async function quotePurchase(input: PurchaseInput, userId?: string): Prom
 
 ### File: `modules/features/commerce/repositories/sales.ts`
 
-SHA-256: `9a8dad49e446385191139f1e73c3a44285dabd7ecfeea1740be7875dd25763de`
+SHA-256: `9d68aae8a14b9653d2f96c833bfaabd067c667ba0dce526e36d34eb14d8728f8`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
@@ -15210,7 +15215,7 @@ export async function readSales(search:string,status:string,page:number) {
  let query=client.from('payment_orders').select('id,course_title,amount_minor,created_at,paid_at,status,live,user_id,bundle_slug,pricing_snapshot',{count:'exact'}).order('created_at',{ascending:false}).order('id').range(start,start+commercePolicy.pageSize-1);
  if(search) query=query.ilike('course_title',`%${search.replace(/[%_\\]/g,'')}%`);
  if(status!=='all') query=query.eq('status',status);
- const result=await query;if(result.error) commerceDatabaseError(result.error);
+ const result=await readDatabasePage(query);
  const ids=(result.data ?? []).flatMap(row=>row.user_id ? [row.user_id] : []);
  const profiles=ids.length ? await client.from('profiles').select('id,name,username').in('id',ids) : {data:[],error:null};
  if(profiles.error) commerceDatabaseError(profiles.error);
@@ -15219,7 +15224,7 @@ export async function readSales(search:string,status:string,page:number) {
   const price=snapshot && typeof snapshot==='object' && !Array.isArray(snapshot) ? snapshot : {};
   return {id:row.id,title:row.course_title,amountMinor:row.amount_minor,createdAt:row.created_at,paidAt:row.paid_at,status:row.status,live:row.live,username:profile?.username ?? null,name:profile?.name ?? '',bundle:Boolean(row.bundle_slug),couponCode:typeof price.couponCode==='string' ? price.couponCode : null,discountMinor:Number(price.offerMinor ?? 0)+Number(price.couponMinor ?? 0)};
  });
- return {records,total:result.count ?? 0,page};
+ return {records,total:result.count,page};
 }
 ```
 
@@ -15248,12 +15253,12 @@ export async function deleteCommerceRecord(kind:CommerceKind,key:string,revision
 
 ### File: `modules/features/commerce/repositories/student-orders.ts`
 
-SHA-256: `96dd10441b4c9bbc3440039f4fed56368d9491a161c574c7482b26212407786b`
+SHA-256: `904bbf4f7687e4af52c1d486d2b9af691336738003fedc1abb61235e9ca12410`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { requireIdentity } from "@platform/features/auth/server/identity";
-import { ApiError } from "@platform/lib/api/error";
 import { commercePolicy } from "@platform/config/commerce";
 import type { SaleRecord } from "@platform/types/sales";
 /** Select only receipt fields; ownership is enforced in the query and by RLS. */
@@ -15263,12 +15268,11 @@ export async function readStudentOrders(search: string, status: string, page: nu
     .eq("user_id", user.id).order("created_at", { ascending: false }).order("id").range(start, start + commercePolicy.pageSize - 1);
   if (search) query = query.ilike("course_title", `%${search.replace(/[%_\\]/g, "")}%`);
   if (status !== "all") query = query.eq("status", status);
-  const result = await query;
-  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const result = await readDatabasePage(query);
   const records: SaleRecord[] = result.data.map(row => ({ id: row.id, title: row.course_title, amountMinor: row.amount_minor,
     createdAt: row.created_at, paidAt: row.paid_at, status: row.status, live: row.live, bundle: Boolean(row.bundle_slug),
     username: null, name: "", couponCode: null, discountMinor: 0 }));
-  return { records, total: result.count ?? 0 };
+  return { records, total: result.count };
 }
 ```
 
@@ -15982,9 +15986,10 @@ export function readLiveSessionForm(form: FormData): Record<string,unknown> {
 
 ### File: `modules/features/live-sessions/repositories/admin.ts`
 
-SHA-256: `08366d1a562bed09a3490dd7464d6e402720eddc05cbe08774c46be87923a4a7`
+SHA-256: `6d7ef9b30803e6eac4983cde25f65d2f1655a02e2836359764a5384a93e6c52c`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import { liveSessionPolicy } from "@platform/config/live-sessions";
 import { readLiveQuery } from "../helpers/read-query";
@@ -16001,10 +16006,9 @@ export async function readAdminLiveSessions(query:ReturnType<typeof readLiveQuer
  if(query.status==="upcoming") request=request.gt("starts_at",now);
  if(query.status==="active") request=request.lte("starts_at",now).gt("ends_at",now);
  if(query.status==="ended") request=request.lte("ends_at",now);
- const result=await request;
- if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const sessions:AdminLiveSession[]=result.data.map(row=>({...mapLiveSession(row),enabled:row.enabled,revision:row.revision,joinUrl:row.live_session_links?.join_url ?? ""}));
- return {sessions,total:result.count ?? 0,serverNow:now};
+ return {sessions,total:result.count,serverNow:now};
 }
 export async function mutateLiveSession(input:LiveSessionInput | {id:string;revision:number},remove=false) {
  const {client}=await requireAdmin();
@@ -17809,9 +17813,10 @@ export function validateProfile(input: unknown, { allowEmptyEmail = false }: { a
 
 ### File: `modules/features/resources/admin-repository.ts`
 
-SHA-256: `4b7ed9bc15b9a30ec14f80166c9361c2dd955676d8d370ac358f87bab489f51e`
+SHA-256: `1cf633294fc3ae6f3a4077c16173c8ff66f31844dee47aecf5b4dfe01caf3b60`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import {requireAdmin} from "@platform/features/admin/identity";
 import {ApiError} from "@platform/lib/api/error";
@@ -17824,9 +17829,9 @@ export async function readAdminMaterials(query:RecordQuery) {
  let request=client.from("resources").select("*,lesson_resources(course_slug,lesson_id)",{count:"exact"}).order("updated_at",{ascending:false}).order("id").range(start,start+materialPolicy.pageSize-1);
  if(query.search) request=request.ilike("title",recordSearchPattern(query.search));
  if(query.filter!=="all") request=request.eq("kind",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const materials:AdminMaterial[]=result.data.map(row=>({id:row.id,title:row.title,description:row.description,type:row.type,kind:row.kind as "text"|"link",content:row.content,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,assignments:row.lesson_resources.map(link=>({courseSlug:link.course_slug,lessonId:link.lesson_id}))}));
- return {materials,total:result.count ?? 0};
+ return {materials,total:result.count};
 }
 export async function mutateMaterial(input:MaterialInput|{id:string;revision:number},remove=false) {
  const {client}=await requireAdmin();
@@ -17892,9 +17897,10 @@ export async function listLessonResources(slug: string, lessonId: string): Promi
 
 ### File: `modules/features/resources/service.ts`
 
-SHA-256: `40f8b0606bed9f88f371498a3285a86a757b4d19573b4f25e6f91c87930a5510`
+SHA-256: `ee290d6b05bddac1ad15bb72b2e3fc3f1a0f30a6ecf97feca6e34da0ad37f7f5`
 
 ```typescript
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import {requireIdentity} from "@platform/features/auth/server/identity";
 import {ApiError} from "@platform/lib/api/error";
 import {materialPolicy} from "@platform/config/materials";
@@ -17905,8 +17911,8 @@ export async function listResources(query:RecordQuery={search:"",filter:"all",pa
  let request=client.from("resources").select("id,title,description,type",{count:"exact"}).order("updated_at",{ascending:false}).order("id").range(start,start+materialPolicy.pageSize-1);
  if(query.search) request=request.ilike("title",recordSearchPattern(query.search));
  if(query.filter!=="all") request=request.eq("kind",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- return {resources:result.data,total:result.count ?? 0};
+ const result=await readDatabasePage(request);
+ return {resources:result.data,total:result.count};
 }
 export async function readResource(id:string) {
  const {client}=await requireIdentity();
@@ -19596,6 +19602,27 @@ export async function updateSession(request: NextRequest) {
   }
   response.headers.set("Cache-Control", "private, no-store");
   return response;
+}
+```
+
+### File: `modules/lib/supabase/read-page.ts`
+
+SHA-256: `415d26b9cee5b58ab8be3fae0530df95ba44432d00080e41b4386575086634ce`
+
+```typescript
+import {ApiError} from "@platform/lib/api/error";
+type PageResult<Row>={data:Row[]|null;count:number|null;error:{code:string}|null};
+type PageRequest<Row>=PromiseLike<PageResult<Row>>&{range(from:number,to:number):PromiseLike<PageResult<Row>>};
+/** PostgREST rejects an out-of-range offset; retain the filtered count without fetching an unbounded list. */
+export async function readDatabasePage<Row>(request:PageRequest<Row>) {
+ const result=await request;
+ if(result.error?.code==="PGRST103") {
+  const first=await request.range(0,0);
+  if(first.error) throw new ApiError(503,"INTERNAL_ERROR");
+  return {data:[] as Row[],count:first.count??0};
+ }
+ if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ return {data:result.data??[],count:result.count??0};
 }
 ```
 
@@ -37738,7 +37765,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `d606565d08915ebb4fa7d441e2e4c6b8e4b36e52c61b8f48660974e482bd91df`
+SHA-256: `e53041da252e7982340fbc81f4f79c32ae4ecdcf5ff2289932ca0a3c4e61f864`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -37801,6 +37828,9 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'pagination') {
+    await require('./pagination.cjs')({admin,provision,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'certificates') {
     await require('./certificates.cjs')({admin,provision,anonymous,verify,url,config});return;
   }
@@ -38533,6 +38563,43 @@ module.exports=async function navigation({url,manager,student,verify}) {
    verify(errors.length===0,role+': no navigation runtime or hydration errors');await context.close();
   }
  } finally {await browser.close();}
+};
+```
+
+### File: `tests/backend/pagination.cjs`
+
+SHA-256: `de9a0a34c573010e99e9b2929d3c91d1d6438771829486ee265117d60fa1dabd`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated, protected list boundary checks. */
+const assert=require('node:assert/strict'),{chromium,expect}=require('@playwright/test');
+module.exports=async({admin,provision,verify,url})=>{
+ const manager=await provision('Paging Manager'),student=await provision('Paging Student');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const filters='?q=missing-pagination-result&filter=text&page=9999',adminPaths=[
+  ['/api/admin/resources','materials',filters],['/api/admin/certificates','certificates',filters],['/api/admin/activity','records',filters],
+  ['/api/admin/live-sessions','sessions','?q=missing-pagination-result&page=9999'],['/api/admin/sales','records','?q=missing-pagination-result&status=paid&page=9999'],
+  ['/api/admin/commerce/bundles','records','?q=missing-pagination-result&page=9999'],['/api/admin/commerce/coupons','records','?q=missing-pagination-result&page=9999'],
+ ];
+ for(const [path,key,query] of adminPaths) {const result=await manager.api(path+query);assert.equal(result.status,200,path);const body=JSON.parse(result.data);verify(body.total===0&&body[key].length===0,'Empty out-of-range API remains usable: '+path);}
+ const baseline=JSON.parse((await manager.api('/api/admin/resources')).data),beyond=await manager.api('/api/admin/resources?page=9999');assert.ok(baseline.total>0);const beyondBody=JSON.parse(beyond.data);
+ verify(beyond.status===200&&beyondBody.total===baseline.total&&beyondBody.materials.length===0,'Out-of-range page preserves the actual nonzero filtered count');
+ const own=await student.api('/api/certificates?q=missing-pagination-result&page=9999');verify(own.status===200&&JSON.parse(own.data).total===0,'Student certificate page fallback retains ownership');
+ const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const login=async(account)=>{await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(account.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(account.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await page.waitForURL(/dashboard/);};
+ try {
+  await login(manager);
+  const pages=[['resources',filters],['certificates',filters],['activity',filters],['live-sessions','?q=missing-pagination-result&page=9999'],['sales','?q=missing-pagination-result&page=9999'],['commerce/bundles','?q=missing-pagination-result&page=9999'],['commerce/coupons','?q=missing-pagination-result&page=9999'],['phone-confirmations','?page=9999']];
+  for(const [path,query] of pages) {await page.goto(url+'/admin/dashboard/'+path+query);await expect(page.getByRole('heading',{level:1}).first()).toBeVisible();verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Out-of-range admin page renders on phone: '+path);}
+  await page.waitForURL(/phone-confirmations/);
+  await page.goto(url+'/admin/dashboard/resources?q=missing-pagination-result&filter=text&page=2');await page.waitForURL(/tools\?/);await expect(page.getByRole('heading',{name:'مكتبة الأدوات',exact:true})).toBeVisible();const params=new URL(page.url()).searchParams;
+  verify(params.get('q')==='missing-pagination-result'&&params.get('filter')==='text'&&params.get('page')==='2','Old Tools bookmark retains all filters with an empty page');
+  await browser.close();const learner=await chromium.launch({headless:true}),studentPage=await learner.newPage({viewport:{width:390,height:844}});studentPage.on('pageerror',error=>errors.push(error.message));
+  try {await studentPage.goto(url+'/login');await studentPage.getByLabel('البريد الإلكتروني',{exact:true}).fill(student.email);await studentPage.getByLabel('كلمة المرور',{exact:true}).fill(student.password);await studentPage.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await studentPage.waitForURL(/dashboard/);
+   for(const [path,query] of [['resources',filters],['certificates',filters],['purchases','?q=missing-pagination-result&page=9999']]) {await studentPage.goto(url+'/dashboard/'+path+query);await expect(studentPage.getByRole('heading',{level:1}).first()).toBeVisible();verify(await studentPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Out-of-range student page renders on phone: '+path);}
+  }finally{await learner.close();}
+  verify(errors.length===0,'Paging boundary checks have no browser runtime errors');
+ }finally{await browser.close();}
 };
 ```
 
@@ -43702,6 +43769,30 @@ test("Recorded overview edits cannot override totals; live schedules remain edit
   course.delivery = "live"; course.duration = "٧ أيام";
   assert.equal(courseDuration(course), "٧ أيام");
   assert.equal(editCourseMetadata(course, { ...values, duration: "٣ أيام" }).duration, "٣ أيام");
+});
+```
+
+### File: `tests/security/database-page.test.ts`
+
+SHA-256: `f4f900a1c78cc0aaa4c18a39cab2d74f5bb164bd7a73482335581993176de96b`
+
+```typescript
+import assert from "node:assert/strict";
+import {test} from "node:test";
+import {readDatabasePage} from "../../modules/lib/supabase/read-page";
+const success={data:[{id:"one"}],count:8,error:null};
+test("Normal database pages preserve data/count without extra requests",async()=>{
+ const request=Object.assign(Promise.resolve(success),{range:()=>{throw Error("Unexpected retry");}});
+ assert.deepEqual(await readDatabasePage(request),success.data?{data:success.data,count:8}:null);
+});
+test("Out-of-range offsets return an empty page and the actual filtered count",async()=>{
+ const ranges:number[][]=[];
+ const request=Object.assign(Promise.resolve({data:null,count:null,error:{code:"PGRST103"}}),{range:(from:number,to:number)=>{ranges.push([from,to]);return Promise.resolve(success);}});
+ assert.deepEqual(await readDatabasePage(request),{data:[],count:8});assert.deepEqual(ranges,[[0,0]]);
+});
+test("Database failures are preserved rather than reported as empty results",async()=>{
+ for(const code of ["42501","08006"]){const request=Object.assign(Promise.resolve({data:null,count:null,error:{code}}),{range:()=>Promise.resolve(success)});await assert.rejects(readDatabasePage(request),{status:503});}
+ const request=Object.assign(Promise.resolve({data:null,count:null,error:{code:"PGRST103"}}),{range:()=>Promise.resolve({data:null,count:null,error:{code:"08006"}})});await assert.rejects(readDatabasePage(request),{status:503});
 });
 ```
 

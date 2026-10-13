@@ -1,3 +1,4 @@
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import "server-only";
 import {requireAdmin} from "@platform/features/admin/identity";
 import {ApiError} from "@platform/lib/api/error";
@@ -10,9 +11,9 @@ export async function readAdminMaterials(query:RecordQuery) {
  let request=client.from("resources").select("*,lesson_resources(course_slug,lesson_id)",{count:"exact"}).order("updated_at",{ascending:false}).order("id").range(start,start+materialPolicy.pageSize-1);
  if(query.search) request=request.ilike("title",recordSearchPattern(query.search));
  if(query.filter!=="all") request=request.eq("kind",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
+ const result=await readDatabasePage(request);
  const materials:AdminMaterial[]=result.data.map(row=>({id:row.id,title:row.title,description:row.description,type:row.type,kind:row.kind as "text"|"link",content:row.content,revision:row.revision,createdAt:row.created_at,updatedAt:row.updated_at,assignments:row.lesson_resources.map(link=>({courseSlug:link.course_slug,lessonId:link.lesson_id}))}));
- return {materials,total:result.count ?? 0};
+ return {materials,total:result.count};
 }
 export async function mutateMaterial(input:MaterialInput|{id:string;revision:number},remove=false) {
  const {client}=await requireAdmin();

@@ -1,3 +1,4 @@
+import {readDatabasePage} from "@platform/lib/supabase/read-page";
 import {readActorNames} from "@platform/features/admin/repositories/actor-names";
 import {validUuid} from "@platform/helpers/validation/uuid";
 import "server-only";
@@ -13,8 +14,8 @@ export async function listCertificates(query:RecordQuery,admin=false) {
  if(!admin) request=request.eq("user_id",user.id);
  if(query.search) {const pattern=recordSearchPattern(query.search.replace(/[(),".]/g,""));request=request.or(`learner_name.ilike.${pattern},course_title.ilike.${pattern}`);}
  if(query.filter!=="all") request=request.eq("status",query.filter);
- const result=await request;if(result.error) throw new ApiError(503,"INTERNAL_ERROR");
- return {certificates:result.data,total:result.count ?? 0};
+ const result=await readDatabasePage(request);
+ return {certificates:result.data,total:result.count};
 }
 export async function readCertificate(id:string,admin=false) {
  const {client,user}=await (admin?requireAdmin():requireIdentity());
