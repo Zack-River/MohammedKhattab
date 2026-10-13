@@ -12,11 +12,15 @@ No example promotions were activated on production. Configure the intended price
 
 ## Student workflow
 
+`/dashboard/purchases` lists the signed-in learner's payment orders with combined search/status filters and five records per page. Each order links to its private payment status page; live/test requests remain distinguished. Failed/expired orders show retry guidance and do not automatically poll the provider. No customer/intent/checkout secrets are rendered in the student history.
+
 A course sale displays its original price struck through and its actual sale price. Offers do not change the underlying catalog base price. Bundle details list all included courses. Checkout accepts a coupon and shows base price → offer reduction → coupon reduction → final amount. Removing the coupon requests a fresh quote.
 
 One product (course or bundle) and at most one coupon per checkout. Percentage calculations floor to the nearest minor currency unit; reductions clamp at the subtotal. A non-stackable coupon cannot be used when an offer applies. Minimum spend is checked after the offer. This version does not prorate partially owned bundles: a bundle containing an already owned course is rejected/redirected to the library. Pending overlapping orders cannot produce another checkout.
 
 Email/phone verification remains mandatory, including zero-total purchases. A 100% discount grants access atomically without a gateway transaction. Paid checkout uses the existing Fawaterak integration. Browser input never supplies the charged price; an optional expected total only guards against unexpected price changes and cannot override database pricing.
+
+New live paid orders are blocked when any included course still uses the original seed lesson video or has recorded lessons with empty video links. Replace those lessons through the existing curriculum editor before selling the course. Free previews and existing entitlements remain available; this guard does not cancel old provider invoices or substitute for editorial content approval.
 
 ## Data and pricing architecture
 

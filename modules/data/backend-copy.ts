@@ -1,4 +1,5 @@
 export const backendCopy: Record<string, string> = {
+  COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
   REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
   REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",
   SECURITY_UNAVAILABLE: "الخدمة مشغولة حاليًا. حاول بعد قليل.",

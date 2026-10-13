@@ -1,8 +1,9 @@
+import { readCommerceQuery } from "./helpers/read-commerce-query";
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson,sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "@platform/features/admin/identity";
-import { commerceKinds,commercePolicy } from "@platform/config/commerce";
+import { commerceKinds } from "@platform/config/commerce";
 import { validateCommerceRecord } from "./helpers/validate-record";
 import { readCommerceList } from "./repositories/admin-records";
 import { saveCommerceRecord,deleteCommerceRecord } from "./repositories/save-record";
@@ -13,7 +14,8 @@ export function handleCommerceAdmin(request:Request,kind:string) {
   const category=kind as CommerceKind;
   if(request.method==='GET') {
    const params=new URL(request.url).searchParams;
-   return Response.json(await readCommerceList(category,(params.get('q') ?? '').slice(0,commercePolicy.maxSearch),params.get('status') ?? 'all',Math.min(10000,Math.max(1,Math.floor(Number(params.get('page')) || 1)))));
+   const {search,status,page}=readCommerceQuery(Object.fromEntries(params),{active:'',inactive:''});
+   return Response.json(await readCommerceList(category,search,status,page));
   }
   if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
   const body=await readJson(request);

@@ -1,4 +1,5 @@
 "use client";
+import { paymentNeedsPolling } from "@platform/features/payments/helpers/status-hint";
 import { useEffect, useState } from "react";
 import { endpoints } from "@platform/config/navigation";
 import { paymentRequest } from "@platform/features/payments/client/request";
@@ -11,7 +12,7 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
   const refresh = () =>
     command.run(async () => setOrder(await paymentRequest<Receipt>(endpoints.paymentReconcile(order.id))));
   useEffect(() => {
-    if (initial.status === "paid" && initial.enrolled) return;
+    if (!paymentNeedsPolling(initial.status, initial.enrolled)) return;
     let stopped = false,
       attempts = 0,
       timer: ReturnType<typeof setTimeout>;

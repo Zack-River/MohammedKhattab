@@ -743,19 +743,20 @@ export default async function ProfilePage() { await requireAdminPage(); return <
 
 ### File: `app/admin/dashboard/sales/page.tsx`
 
-SHA-256: `6faed95bcbb39965db049d8b88c483b036509281ca458440acb82f487dc0ee15`
+SHA-256: `5c8579d3adaeeda0bf5a084fc719b2a6522964d5814292551efdc1ee15325d1a`
 
 ```tsx
+import { readCommerceQuery } from "@platform/features/commerce/helpers/read-commerce-query";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readSales } from "@platform/features/commerce/repositories/sales";
 import { salesCopy as labels } from "@platform/data/sales";
-import SalesTable from "@platform/components/commerce/admin/sales-table";
-import SalesFilters from "@platform/components/commerce/admin/sales-filters";
+import SalesTable from "@platform/components/commerce/sales-table";
+import SalesFilters from "@platform/components/commerce/sales-filters";
 import AdminPagination from "@platform/components/admin/admin-pagination";
 import { routes } from "@platform/config/navigation";
 import { commercePolicy } from "@platform/config/commerce";
 export default async function Page({searchParams}:{searchParams:Promise<Record<string,string | undefined>>}) {
- await requireAdminPage();const query=await searchParams,search=(query.q ?? '').slice(0,commercePolicy.maxSearch),status=Object.keys(labels.states).includes(query.status ?? '') ? query.status! : 'all',page=Math.min(10000,Math.max(1,Math.floor(Number(query.page)||1)));
+ await requireAdminPage();const {search,status,page}=readCommerceQuery(await searchParams,labels.states);
  const result=await readSales(search,status,page),href=(page:number)=>routes.adminSales+'?'+new URLSearchParams({q:search,status,page:String(page)});
  return <main className="lms-dashboard-page"><h1>{labels.heading}</h1><SalesFilters {...{labels,search,status}} /><SalesTable records={result.records} labels={labels} /><AdminPagination page={page} previousHref={page>1 ? href(page-1) : undefined} nextHref={page*commercePolicy.pageSize<result.total ? href(page+1) : undefined} labels={{heading:labels.heading,page:'',previous:labels.previous,next:labels.next}} /></main>;
 }
@@ -2573,6 +2574,37 @@ export default async function ProfilePage() {
 }
 ```
 
+### File: `app/dashboard/purchases/page.tsx`
+
+SHA-256: `acf2bf156a9ebb62ea93b36c63039b1bb1c20d0279f9199d26cfdd2449f52619`
+
+```tsx
+import { requirePageIdentity } from "@platform/features/auth/server/page-identity";
+import { readStudentOrders } from "@platform/features/commerce/repositories/student-orders";
+import { readCommerceQuery } from "@platform/features/commerce/helpers/read-commerce-query";
+import { purchasesCopy as labels } from "@platform/data/purchases";
+import SalesTable from "@platform/components/commerce/sales-table";
+import SalesFilters from "@platform/components/commerce/sales-filters";
+import AdminPagination from "@platform/components/admin/admin-pagination";
+import PageHeading from "@platform/components/ui/page-heading";
+import { routes } from "@platform/config/navigation";
+import { commercePolicy } from "@platform/config/commerce";
+export const metadata = { title: labels.heading };
+export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await requirePageIdentity();
+  const { search, status, page } = readCommerceQuery(await searchParams, labels.states);
+  const result = await readStudentOrders(search, status, page);
+  const href = (page: number) => routes.purchases + "?" + new URLSearchParams({ q: search, status, page: String(page) });
+  return <><PageHeading title={labels.heading} description={labels.description} />
+    <SalesFilters {...{ labels, search, status }} action={routes.purchases} />
+    <SalesTable records={result.records} labels={labels} showCustomer={false} receiptLabel={labels.receipt} />
+    <AdminPagination page={page} previousHref={page > 1 ? href(page - 1) : undefined}
+      nextHref={page * commercePolicy.pageSize < result.total ? href(page + 1) : undefined}
+      labels={{ heading: labels.heading, page: "", previous: labels.previous, next: labels.next }} />
+  </>;
+}
+```
+
 ### File: `app/dashboard/resources/page.tsx`
 
 SHA-256: `69d538a5f42d755d7231b9d7a529a1277563c3d2618c8e5c19145e9f62c2c167`
@@ -3425,7 +3457,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 ### File: `app/learn/[slug]/[lessonId]/page.tsx`
 
-SHA-256: `aa10c0cb9efa69682fbb700f0967fe7bd920772d1a0dcb0cffef5698c6fe6f91`
+SHA-256: `875b04b6080e24f129a0b67cbeecbbb5cfb85dc6461d5aa2987f16b9f5f20d0e`
 
 ```tsx
 import Link from "next/link";
@@ -3452,7 +3484,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       <div className="lms-learn-grid">
         <LessonOutline {...shell.outline} />
         <main className="lms-lesson-main">
-          <Link href={routes.course(slug)} className="lms-breadcrumb">{copy.back}</Link>
+          <Link href={routes.course(slug, context.course.delivery)} className="lms-breadcrumb">{copy.back}</Link>
           <LessonTitle {...playback.title} />
           <LessonPlayer {...playback.player} />
           <LessonActions {...playback.actions} />
@@ -6221,9 +6253,10 @@ export default function UserStatus({ user, labels }: { user: AdminUser; labels: 
 
 ### File: `modules/components/admin/user-subscriptions.tsx`
 
-SHA-256: `09357eb44484d96a3cdcc79122a02f021eb76d1c98c22cacf5e16530e4ee4246`
+SHA-256: `e873227a10a8a09c4b4f1b54b0cd56fa2f1a828d23cb5856fdb9a20fd2669845`
 
 ```tsx
+import ProgressBar from "@platform/components/ui/progress-bar";
 import Link from "next/link";
 import PageHeading from "@platform/components/ui/page-heading";
 import { routes } from "@platform/config/navigation";
@@ -6233,6 +6266,7 @@ export default function UserSubscriptions({ subscriptions, labels }: { subscript
   return <><PageHeading level={2} title={labels.subscriptions} /><div className="lms-resource-grid">
     {subscriptions.map(course => <section className="lms-resource-card" key={course.slug}>
       <h2><Link href={routes.course(course.slug, course.delivery)} className="lms-text-link">{course.title}</Link></h2>
+      {course.total > 0 && <ProgressBar percent={course.percent} count={course.count} total={course.total} copy={{ progress: labels.progress, lessons: labels.lessons }} />}
       <time dateTime={course.enrolledAt}>{course.enrolledAt.slice(0, 10)}</time>
     </section>)}{!subscriptions.length && <p>{labels.noSubscriptions}</p>}
   </div></>;
@@ -6451,36 +6485,6 @@ export default function CommerceRecordsTable({kind,records,labels,onEdit}:{kind:
 }
 ```
 
-### File: `modules/components/commerce/admin/sales-filters.tsx`
-
-SHA-256: `59ccba402a7cc8bba5e20e911b3ce5fb111f74804946747050d68f5b0f3ffe15`
-
-```tsx
-import Form from "next/form";
-import Link from "next/link";
-import Select from "@khatab/design/ui/select";
-import { routes } from "@platform/config/navigation";
-import type { SalesLabels } from "@platform/types/sales";
-export default function SalesFilters({labels,search,status}:{labels:SalesLabels;search:string;status:string}) {
- return <Form action={routes.adminSales} className="lms-admin-filters lms-commerce-filters" role="search"><div className="lms-admin-search"><label htmlFor="sales-search">{labels.search}</label><input id="sales-search" type="search" name="q" defaultValue={search} maxLength={100} /></div><Select name="status" label={labels.status} defaultValue={status} options={[{value:'all',label:labels.all},...Object.entries(labels.states).map(([value,label])=>({value,label}))]} /><div className="lms-admin-actions"><button className="btn-primary">{labels.apply}</button><Link className="lms-secondary-button" href={routes.adminSales}>{labels.clear}</Link></div></Form>;
-}
-```
-
-### File: `modules/components/commerce/admin/sales-table.tsx`
-
-SHA-256: `54eb29173747bbc4b63c77bcd95292f4725383e3363c5662f648d7c09c1a607e`
-
-```tsx
-import Link from "next/link";
-import { routes } from "@platform/config/navigation";
-import { formatCourseDate } from "@platform/helpers/format-course-date";
-import type { SaleRecord,SalesLabels } from "@platform/types/sales";
-export default function SalesTable({records,labels}:{records:SaleRecord[];labels:SalesLabels}) {
- return <div className="lms-admin-table-wrap" data-reveal="true"><table className="lms-admin-table lms-commerce-table"><caption className="lms-visually-hidden">{labels.heading}</caption><thead><tr>{[labels.product,labels.customer,labels.amount,labels.status,labels.date].map(label=><th key={label} scope="col">{label}</th>)}</tr></thead>
- <tbody>{records.map(record=><tr key={record.id}><th scope="row">{record.title}<small>{record.live ? labels.live : labels.test}</small></th><td data-label={labels.customer}>{record.username ? <Link href={routes.adminUser(record.username)} className="lms-course-text-link">{record.name}</Link> : labels.noCustomer}</td><td data-label={labels.amount}><bdi className="numeral">{record.amountMinor/100} {labels.currency}</bdi>{record.discountMinor>0 && <small>{labels.discount}: {record.discountMinor/100} {labels.currency}{record.couponCode && <bdi> · {record.couponCode}</bdi>}</small>}</td><td data-label={labels.status}>{labels.states[record.status]}</td><td data-label={labels.date}><time dateTime={record.createdAt}>{formatCourseDate(record.createdAt,labels.empty)}</time></td></tr>)}</tbody></table>{!records.length && <p className="lms-admin-empty">{labels.empty}</p>}</div>;
-}
-```
-
 ### File: `modules/components/commerce/admin/tabs.tsx`
 
 SHA-256: `eb5cae63ecdc7d07cd8f46286e02c0057fa746497e1ca82c7962336dee835621`
@@ -6574,6 +6578,70 @@ import type { PriceQuote,CommerceLabels } from "@platform/types/commerce";
 export default function PriceSummary({quote,labels}:{quote:PriceQuote;labels:CommerceLabels}) {
  const row=(label:string,minor:number,discount=false)=><div><dt>{label}</dt><dd><bdi className="numeral">{discount ? '−' : ''}{minor/100} {labels.currency}</bdi></dd></div>;
  return <dl className="lms-commerce-price-summary">{quote.offerMinor+quote.couponMinor>0 && row(labels.subtotal,quote.baseMinor)}{quote.offerMinor>0 && row(quote.offerTitle ?? labels.offerDiscount,quote.offerMinor,true)}{quote.couponMinor>0 && row(labels.couponDiscount,quote.couponMinor,true)}<div className="lms-payment-total"><dt>{labels.total}</dt><dd className="numeral">{quote.totalMinor===0 ? labels.free : `${quote.totalMinor/100} ${labels.currency}`}</dd></div></dl>;
+}
+```
+
+### File: `modules/components/commerce/sale-row.tsx`
+
+SHA-256: `17928f82923edad34c27e5d3383bb6843647d6d6a3cc2c0a7a0bc7ffe2c06e70`
+
+```tsx
+import Link from "next/link";
+import { routes } from "@platform/config/navigation";
+import { formatCourseDate } from "@platform/helpers/format-course-date";
+import type { SaleRecord, SalesLabels } from "@platform/types/sales";
+export default function SaleRow({ record, labels, showCustomer, receiptLabel }: {
+  record: SaleRecord; labels: SalesLabels; showCustomer: boolean; receiptLabel?: string;
+}) {
+  return <tr>
+    <th scope="row">{record.title}<small>{record.live ? labels.live : labels.test}</small></th>
+    {showCustomer && <td data-label={labels.customer}>{record.username
+      ? <Link href={routes.adminUser(record.username)} className="lms-course-text-link">{record.name}</Link>
+      : labels.noCustomer}</td>}
+    <td data-label={labels.amount}><bdi className="numeral">{record.amountMinor / 100} {labels.currency}</bdi>
+      {record.discountMinor > 0 && <small>{labels.discount}: {record.discountMinor / 100} {labels.currency}
+        {record.couponCode && <bdi> · {record.couponCode}</bdi>}</small>}</td>
+    <td data-label={labels.status}>{labels.states[record.status]}
+      {receiptLabel && <small><Link className="lms-course-text-link" href={routes.payment(record.id)}>{receiptLabel}</Link></small>}</td>
+    <td data-label={labels.date}><time dateTime={record.createdAt}>{formatCourseDate(record.createdAt, labels.empty)}</time></td>
+  </tr>;
+}
+```
+
+### File: `modules/components/commerce/sales-filters.tsx`
+
+SHA-256: `db96fa480767dc07cfcaf6a3825e43e273769e410e8c4da07001c976f3e66a21`
+
+```tsx
+import Form from "next/form";
+import Link from "next/link";
+import Select from "@khatab/design/ui/select";
+import { routes } from "@platform/config/navigation";
+import type { SalesLabels } from "@platform/types/sales";
+export default function SalesFilters({labels,search,status,action = routes.adminSales}:{labels:SalesLabels;search:string;status:string;action?:string}) {
+ return <Form action={action} className="lms-admin-filters lms-commerce-filters" role="search"><div className="lms-admin-search"><label htmlFor="sales-search">{labels.search}</label><input id="sales-search" type="search" name="q" defaultValue={search} maxLength={100} /></div><Select name="status" label={labels.status} defaultValue={status} options={[{value:'all',label:labels.all},...Object.entries(labels.states).map(([value,label])=>({value,label}))]} /><div className="lms-admin-actions"><button className="btn-primary">{labels.apply}</button><Link className="lms-secondary-button" href={action}>{labels.clear}</Link></div></Form>;
+}
+```
+
+### File: `modules/components/commerce/sales-table.tsx`
+
+SHA-256: `50d8fb13b37a91b6d6895637562da0a3bc1e46f3343fe90de94bb7d90b937d34`
+
+```tsx
+import SaleRow from "./sale-row";
+import type { SaleRecord, SalesLabels } from "@platform/types/sales";
+export default function SalesTable({ records, labels, showCustomer = true, receiptLabel }: {
+  records: SaleRecord[]; labels: SalesLabels; showCustomer?: boolean; receiptLabel?: string;
+}) {
+  const headings = [labels.product, ...(showCustomer ? [labels.customer] : []), labels.amount, labels.status, labels.date];
+  return <div className="lms-admin-table-wrap" data-reveal="true" data-reveal-motion="fade">
+    <table className="lms-admin-table lms-commerce-table">
+      <caption className="lms-visually-hidden">{labels.heading}</caption>
+      <thead><tr>{headings.map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+      <tbody>{records.map(record => <SaleRow key={record.id} {...{ record, labels, showCustomer, receiptLabel }} />)}</tbody>
+    </table>
+    {!records.length && <p className="lms-admin-empty">{labels.empty}</p>}
+  </div>;
 }
 ```
 
@@ -7911,7 +7979,7 @@ export default function LearningHeader({
 
 ### File: `modules/components/learning/lesson-actions.tsx`
 
-SHA-256: `a40e48414bb48bb609613f1e3fd9b077fcaf14a479531ec21bfb64fea184a3d3`
+SHA-256: `135bb9c965f5f09d137f5fb7d6733e69f401d3c22274db5aaf67a7f9a0954a0a`
 
 ```tsx
 import type { ContentBindings } from "@platform/types/content";
@@ -7921,25 +7989,30 @@ import CompletionButton from "@platform/components/learning/completion-button";
 import Symbol from "@platform/components/ui/symbol";
 export default function LessonActions({
   copy,
+  courseHref,
   slug,
   enrolled,
   next,
+  previous,
   complete,
   lessonId,
 }: {
   copy: Pick<
     ContentBindings["copy"],
-    "next" | "error" | "saving" | "completed" | "complete"
+    "previous" | "viewCourse" | "next" | "error" | "saving" | "completed" | "complete"
   >;
+  courseHref: string;
   slug: string;
   enrolled: boolean;
+  previous: import("@platform/types/lms").Lesson | undefined;
   next: import("@platform/types/lms").Lesson | undefined;
   complete: boolean;
   lessonId: string;
 }) {
   return (
     <div className="lms-lesson-actions">
-      <CompletionButton
+      {previous && <Link href={enrolled || previous.preview ? routes.lesson(slug, previous.id) : courseHref} className="lms-text-link">{copy.previous}</Link>}
+      {enrolled ? <CompletionButton
         copy={{
           error: copy.error,
           saving: copy.saving,
@@ -7950,10 +8023,10 @@ export default function LessonActions({
         lessonId={lessonId}
         complete={complete}
         enrolled={enrolled}
-      />
+      /> : <Link href={courseHref} className="btn-primary">{copy.viewCourse}</Link>}
       {next && (
         <Link
-          href={enrolled ? routes.lesson(slug, next.id) : routes.course(slug)}
+          href={enrolled || next.preview ? routes.lesson(slug, next.id) : courseHref}
           className="lms-text-link"
         >
           {copy.next}
@@ -7967,7 +8040,7 @@ export default function LessonActions({
 
 ### File: `modules/components/learning/lesson-information.tsx`
 
-SHA-256: `b09d873da246b45a6a11a46e956be11852728b016ddb0bbbdeb1b163874cf9e8`
+SHA-256: `1aee409df5a68b61f552e4f0269296135f0716d698703cf65e319e337f40b1c7`
 
 ```tsx
 import type { ContentBindings } from "@platform/types/content";
@@ -7989,7 +8062,7 @@ export default function LessonInformation({
     | "notesUnavailable"
     | "notesSaved"
   >;
-  resources: import("@platform/types/lms").Resource[];
+  resources: Omit<import("@platform/types/lms").Resource, "content">[];
   lesson: import("@platform/types/lms").Lesson;
   storageKey: string;
 }) {
@@ -8006,7 +8079,7 @@ export default function LessonInformation({
             </li>
           ))}
         </ul>
-        <h2>{copy.resources}</h2>
+        {resources.length > 0 && <h2>{copy.resources}</h2>}
         {resources.map((resource) => (
           <a
             className="lms-resource-link"
@@ -8077,7 +8150,7 @@ export default function LessonNotes({
 
 ### File: `modules/components/learning/lesson-outline.tsx`
 
-SHA-256: `dd49a08a71de0106169484d7a96c990e0f19067b323be75fc32ffa3f40bc830c`
+SHA-256: `a0f7d219d4f87ae897b2b072b0d195653ae8eda93b0395cba1fdf6875094c08a`
 
 ```tsx
 import { numbered } from "@platform/features/catalog/helpers/numbered";
@@ -8088,15 +8161,17 @@ import ProgressBar from "@platform/components/ui/progress-bar";
 import type { LessonOutlineModel } from "@platform/features/learning/helpers/lesson-outline";
 export default function LessonOutline({
   model,
+  lockedLabel,
   active,
   copy,
 }: {
   model: LessonOutlineModel;
+  lockedLabel: string;
   active: string;
 } & {
   copy: Pick<
     ContentBindings["copy"],
-    "courseContent" | "completed" | "pending" | "progress" | "lessons"
+    "preview" | "courseContent" | "completed" | "pending" | "progress" | "lessons"
   >;
 }) {
   return (
@@ -8111,14 +8186,16 @@ export default function LessonOutline({
       </div>
       <nav aria-label={copy.courseContent}>
         {model.modules.map((module, index) => (
-          <div key={module.title} className="lms-outline-module">
+          <div key={module.id} className="lms-outline-module">
             <h3>
               <span className="numeral">
                 {numbered(index)}
               </span>
               {module.title}
             </h3>
-            {module.lessons.map((lesson) => {
+            {module.groups.map(group => <div key={group.id}>
+            {group.title && <h4 className="lms-outline-section-title">{group.title}</h4>}
+            {group.lessons.map((lesson) => {
               const complete = lesson.complete;
               return (
                 <Link
@@ -8130,18 +8207,18 @@ export default function LessonOutline({
                   <span
                     className={`lms-outline-check ${complete ? "is-complete" : ""}`}
                   >
-                    <Symbol name={complete ? "check" : "play"} />
+                    <Symbol name={lesson.locked ? "lock" : complete ? "check" : "play"} />
                   </span>
                   <span>
                     {lesson.title}
                     <small className="numeral">
                       {lesson.duration} ·{" "}
-                      {complete ? copy.completed : copy.pending}
+                      {lesson.locked ? lockedLabel : complete ? copy.completed : lesson.preview ? copy.preview : copy.pending}
                     </small>
                   </span>
                 </Link>
               );
-            })}
+            })}</div>)}
           </div>
         ))}
       </nav>
@@ -8742,10 +8819,11 @@ export default function CheckoutButton({
 
 ### File: `modules/components/payments/order-result.tsx`
 
-SHA-256: `970c34293a31b4ff6320bfeecc5a1c6c94449f01e700f1e5266c5bd14ca1bb3a`
+SHA-256: `a792f68bdb17d203f52b14185b33f2de77d85e245d66d8b840dda5d9f2bae403`
 
 ```tsx
 "use client";
+import { paymentStatusHint } from "@platform/features/payments/helpers/status-hint";
 import Link from "next/link";
 import Action from "@khatab/design/ui/action";
 import { usePaymentStatus } from "@platform/hooks/use-payment-status";
@@ -8772,7 +8850,7 @@ export default function OrderResult({
       <strong className="lms-payment-amount numeral">
         {order.amount} {labels.currency}
       </strong>
-      <p>{order.status === "paid" ? (order.enrolled ? (order.bundleSlug ? labels.paidBundleHint : labels.paidHint) : labels.activationHint) : labels.pendingHint}</p>
+      <p>{paymentStatusHint(order, labels)}</p>
       {order.status === "paid" && order.enrolled ? (
         <Link className="btn-primary" href={libraryHref}>
           {labels.course}
@@ -9787,7 +9865,7 @@ export const authFields: Record<AuthMode, readonly AuthField[]> = {
 
 ### File: `modules/config/catalog.ts`
 
-SHA-256: `3bc55c883dd3443bc5be732e42c3285ff5cd4d038e51954eb23db5bf9e388993`
+SHA-256: `77134a237628a3e6a390e86e6466542bd7b7fc5148b304dc675b19411be3bbc2`
 
 ```typescript
 export const categories = [
@@ -9805,6 +9883,10 @@ export const artworkKinds = [
   "business",
 ] as const;
 export type ArtworkKind = (typeof artworkKinds)[number];
+
+/** Original seed media is for preview/testing, not a sellable course lesson. */
+export const sampleLessonVideoId = "BQTI8hXPVD0";
+export const sampleLessonVideoUrl = `https://www.youtube-nocookie.com/embed/${sampleLessonVideoId}`;
 ```
 
 ### File: `modules/config/commerce.ts`
@@ -9871,7 +9953,7 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `acd37ac79348c010a1a93e32cdb4163c55e26b4b112faf27ce94115cded45eff`
+SHA-256: `355d1091b042a368e4920c4ec5b5ae2554113b9aba8bbcf6ea6c8e1110887c3d`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
@@ -9910,6 +9992,7 @@ export const routes = {
   forgotPassword: `${learningBase}/forgot-password`,
   confirmEmail: `${learningBase}/confirm-email`,
   resetPassword: `${learningBase}/reset-password`,
+  purchases: `${learningBase}/dashboard/purchases`,
   library: `${learningBase}/dashboard/courses`,
   resources: `${learningBase}/dashboard/resources`,
   certificates: `${learningBase}/dashboard/certificates`,
@@ -10146,10 +10229,11 @@ export const adminCoursesCopy = {
 
 ### File: `modules/data/admin-users.ts`
 
-SHA-256: `6e5a74cff61ea7245d4e03c9ddcb7ae5db3f6cb84334052fa0a336b9a115ce79`
+SHA-256: `0b8c6b082a524e7ee75d7b3f2496f666bb5153bd6d0a88be9405ae81f6dcc592`
 
 ```typescript
 export const adminUsersCopy = {
+  progress: "تقدّم الطالب", lessons: "دروس",
   searchMode: "طريقة البحث", contains: "بحث شامل", prefix: "الاسم يبدأ بـ",
   heading: "إدارة المستخدمين", description: "الحسابات والاشتراكات وإدارة صلاحيات الوصول.",
   users: "المستخدمون", courses: "الدورات", dashboard: "لوحة الإدارة", name: "الاسم", username: "اسم المستخدم",
@@ -10234,10 +10318,11 @@ export const authPages: Record<AuthMode, AuthPageModel> = {
 
 ### File: `modules/data/backend-copy.ts`
 
-SHA-256: `b94937f4b0c334e47d7c3556017ffac72e37213d49556c3f4a8fa1821109a359`
+SHA-256: `4fcf24bfbf057c223cb51e274c74fbeec038462d10afa2e44a69893f316464ca`
 
 ```typescript
 export const backendCopy: Record<string, string> = {
+  COURSE_CONTENT_NOT_READY: "لم يكتمل المحتوى التعليمي لهذه الدورة بعد. تواصل مع الدعم أو اختر دورة أخرى.",
   REQUEST_TOO_LARGE: "حجم الطلب أكبر من الحد المسموح.",
   REQUEST_TIMEOUT: "انتهت مهلة إرسال الطلب. حاول مرة أخرى.",
   SECURITY_UNAVAILABLE: "الخدمة مشغولة حاليًا. حاول بعد قليل.",
@@ -10364,11 +10449,11 @@ export const courseDraftDefaults = { currency: "ج.م", action: "اشترك ال
 
 ### File: `modules/data/courses.ts`
 
-SHA-256: `b0e797d81d810e18949c93b6fec4413509dabcb53e177fdc76bf3ed4998bf27c`
+SHA-256: `5218d1a61bfac4bdd4cc17b00dd5164a449c08dfc06ae4154feee667e12c439c`
 
 ```typescript
 import { liveWorkshopCourse } from "./workshop-course";
-import { categories } from "@platform/config/catalog";
+import { categories, sampleLessonVideoUrl } from "@platform/config/catalog";
 import {
   courseSeconds,
   formatCourseDuration,
@@ -10377,7 +10462,6 @@ import {
 import { lessonResources } from "./catalog-settings";
 import { courseOffers } from "./offers";
 import type { Course, Lesson } from "@platform/types/lms";
-const demoVideo = "https://www.youtube-nocookie.com/embed/BQTI8hXPVD0";
 const lesson = (
   id: string,
   title: string,
@@ -10392,7 +10476,7 @@ const lesson = (
   resourceIds: [],
   description,
   preview,
-  videoUrl: demoVideo,
+  videoUrl: sampleLessonVideoUrl,
   takeaway: [
     "طبّق الفكرة على مشروعك الخاص.",
     "راجع النتيجة قبل الانتقال للدرس التالي.",
@@ -10885,7 +10969,7 @@ export const offerCopy = {
 
 ### File: `modules/data/payment-copy.ts`
 
-SHA-256: `80183f20069a1177a552f1f158b9054c57bca8d5cd9cc65e57d6c9c4898dd0da`
+SHA-256: `b948ca21f81f9e4531af0b93abacfbaf7026491fb68f2d5235e95dd54a170e3a`
 
 ```typescript
 export const paymentCopy = {
@@ -10914,6 +10998,8 @@ export const paymentCopy = {
     expired: "انتهت صلاحية طلب الدفع",
   } as Record<string, string>,
   activationHint: "تم استلام الدفع. أكّد بيانات التواصل ثم اضغط التحقق لتفعيل الدورة بدون دفع مرة أخرى.",
+  failedHint: "لم يكتمل الدفع، ولم يُفعّل اشتراك جديد. يمكنك إعادة المحاولة من صفحة الدورة.",
+  expiredHint: "انتهت صلاحية هذا الطلب. أنشئ طلبًا جديدًا وراجع السعر الحالي قبل الدفع.",
   pendingHint:
     "قد يستغرق تأكيد الدفع بعض الوقت، خاصة عند الدفع بفوري أو المحافظ. سيُفعّل الاشتراك بعد تأكيد فواتيرك، حتى لو أغلقت هذه الصفحة.",
   paidBundleHint: "دورات الباقة أصبحت متاحة في حسابك.",
@@ -10932,6 +11018,16 @@ export const phoneConfirmationCopy = {
   empty: "لا توجد أرقام هواتف بانتظار التأكيد.", view: "عرض المستخدم", count: "طلب بانتظار التأكيد",
   previous: "السابق", next: "التالي", page: "الصفحة", phone: "رقم الهاتف", confirm: "تأكيد الرقم بعد التواصل", confirmed: "تم تأكيد رقم الهاتف.",
 } as const;
+```
+
+### File: `modules/data/purchases.ts`
+
+SHA-256: `6c5fdc03f05c58d8fd66de3c96497d5827a9ba9ff84836d9e3e30550cf334b7d`
+
+```typescript
+import { salesCopy } from "./sales";
+export const purchasesCopy = { ...salesCopy, heading: "طلباتي ومدفوعاتي", receipt: "عرض حالة الطلب",
+  description: "راجع مدفوعاتك وطلباتك المعلّقة من مكان واحد.", empty: "لا توجد طلبات دفع في حسابك بعد." };
 ```
 
 ### File: `modules/data/resources.ts`
@@ -10980,7 +11076,7 @@ export const salesCopy:SalesLabels={heading:"المبيعات",search:"بحث ب
 
 ### File: `modules/data/site.ts`
 
-SHA-256: `298ddc419d3a7c46fd1efdf02a75b070af05250e1dd4dd2403b6afcdfbf85f9e`
+SHA-256: `a79aac2598cb93b8135d1c8443c31a6d3b1474f9389e283772fb9fdc6b738776`
 
 ```typescript
 import { creatorIdentity, learningIdentity } from "../../config/identity";
@@ -10995,7 +11091,7 @@ export const site = {
   englishName: learningIdentity.englishName,
   description:
     "خطوة صغيرة اليوم، مهارة تفتح لك طريقًا جديدًا. دورات في المونتاج والجرافيك ديزاين والموشن جرافيك، مع تدريب على العمل الحر وكوتشينج.",
-  demoLabel: "نسخة تجريبية",
+  demoLabel: "منصة تعلّم",
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
@@ -11008,6 +11104,7 @@ export const marketingNavigation = [
 export const dashboardNavigation = [
   { href: routes.dashboard, label: "نظرة عامة", symbol: "grid" },
   { href: routes.library, label: "دوراتي", symbol: "book" },
+  { href: routes.purchases, label: "طلباتي ومدفوعاتي", symbol: "book" },
   { href: routes.resources, label: "مكتبة الأدوات", symbol: "folder" },
   { href: routes.certificates, label: "شهاداتي", symbol: "award" },
   { href: routes.profile, label: "حسابي", symbol: "user" },
@@ -11090,14 +11187,14 @@ export const faq: FaqContent = {
         "الدورات بتعلّمك المونتاج والجرافيك ديزاين والموشن جرافيك والعمل الحر بمنهج وتطبيقات. الكوتشينج توجيه شخصي لمراجعة أعمالك وتحديد خطوات تطويرك.",
     },
     {
-      question: "هل الدورات والفيديوهات نهائية؟",
+      question: "كيف أعرف محتوى الدورة قبل الاشتراك؟",
       answer:
-        "هذه نسخة تجريبية لتجربة المنصة. عناوين الدورات والمنهج أمثلة، وتستخدم الدروس فيديو معاينة واحدًا إلى أن يُضاف المحتوى التعليمي النهائي.",
+        "تجد الفصول والأقسام والدروس في صفحة الدورة. يمكنك مشاهدة الدروس المتاحة للمعاينة قبل الاشتراك.",
     },
     {
-      question: "هل يوجد دفع أو اشتراك في هذه النسخة؟",
+      question: "كيف يتم الدفع وتفعيل الاشتراك؟",
       answer:
-        "يمكنك تجربة التسجيل والتعلّم مجانًا هنا. الدفع وحسابات المستخدمين الفعلية ليست مفعّلة في النسخة التجريبية.",
+        "أنشئ حسابك وأكّد البريد الإلكتروني ورقم الهاتف، ثم انتقل للدفع الآمن. يتفعّل اشتراكك بعد تأكيد الدفع، وتجد دوراتك داخل حسابك.",
     },
   ],
 };
@@ -11116,10 +11213,11 @@ export const copy = {
   courseContent: "محتوى الدورة",
   preview: "معاينة مجانية",
   lessons: "دروس",
-  demoVideo: "هذا فيديو تجريبي لعرض تجربة التعلّم.",
+  demoVideo: "شاهد الدرس وطبّق الخطوات بنفسك.",
   complete: "أتممت هذا الدرس",
   completed: "تم إتمام الدرس",
   next: "الدرس التالي",
+  previous: "الدرس السابق",
   saving: "جارٍ الحفظ…",
   error: "تعذّر الحفظ. جرّب مرة أخرى.",
   notes: "ملاحظاتك",
@@ -12103,7 +12201,7 @@ export function mutateChapter(course: CurriculumCourse, input: CurriculumMutatio
 
 ### File: `modules/features/admin/helpers/mutate-lesson.ts`
 
-SHA-256: `06f888854c896e67c8376145843e9122515730a62a796fee4cf5eb15e1078922`
+SHA-256: `029cadade1f3bcfb08175b2a824510599a24b74ff40b848896c904cd56ae2bfd`
 
 ```typescript
 import { formatPlayerTime } from "@khatab/design/helpers/media/format-time";
@@ -12115,6 +12213,7 @@ export function mutateLesson(course: CurriculumCourse, input: CurriculumMutation
   const section = input.sectionId ? destination.sections?.find(section => section.id === input.sectionId) : undefined;
   if (input.sectionId && !section) throw new ApiError(400,"INVALID_INPUT");
   const existing = input.operation === "create" ? undefined : curriculumLesson(course,input.id);
+  const sectionPosition = section?.lessonIds.indexOf(input.id ?? "") ?? -1;
   const position = existing?.chapter.id === destination.id ? destination.lessons.findIndex(lesson => lesson.id === input.id) : -1;
   const lesson = existing?.lesson ?? { id, resourceIds: [], takeaway: [], videoUrl: "" };
   for (const chapter of course.modules) {
@@ -12132,7 +12231,8 @@ export function mutateLesson(course: CurriculumCourse, input: CurriculumMutation
     videoUrl: "",
   };
   if (position >= 0) destination.lessons.splice(position,0,updated); else destination.lessons.push(updated);
-  section?.lessonIds.push(lesson.id);
+  if (sectionPosition >= 0) section?.lessonIds.splice(sectionPosition, 0, lesson.id);
+  else section?.lessonIds.push(lesson.id);
 }
 ```
 
@@ -12666,9 +12766,10 @@ export async function resolveAdminUser(handle: string) {
 
 ### File: `modules/features/admin/repositories/user-subscriptions.ts`
 
-SHA-256: `c2bfc6af5476f384fd76c3eb36997bebe01f2578aeb99cf53b2a23676ae8467c`
+SHA-256: `c940ad0d0fa7b7468a681889853ecd3534c88747bd543c5fdfd5a1151bb9cdd6`
 
 ```typescript
+import { courseProgress } from "@platform/features/learning/helpers/course-progress";
 import { requireAdmin } from "../identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { ApiError } from "@platform/lib/api/error";
@@ -12679,13 +12780,17 @@ export async function readUserSubscriptions(id: string) {
   const enrollments = await client.from("enrollments").select("course_slug,created_at").eq("user_id", id).order("created_at", { ascending: false });
   if (enrollments.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!enrollments.data.length) return [];
+  const progress = await client.from("lesson_progress").select("course_slug,lesson_id").eq("user_id", id).eq("completed", true);
+  if (progress.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const completed = progress.data.map(row => `${row.course_slug}/${row.lesson_id}`);
   const courses = await client.from("courses").select("slug,metadata,amount").in("slug", enrollments.data.map(row => row.course_slug));
   if (courses.error) throw new ApiError(503, "INTERNAL_ERROR");
   return enrollments.data.flatMap(row => {
     const record = courses.data.find(course => course.slug === row.course_slug);
     if (!record) return [];
     const course = publicCourse(record.metadata, record.slug, record.amount);
-    return [{ slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at }];
+    const { count, total, percent } = courseProgress(course, { completed });
+    return [{ count, total, percent, slug: course.slug, title: course.title, delivery: course.delivery ?? "recorded" as const, enrolledAt: row.created_at }];
   });
 }
 ```
@@ -12935,15 +13040,19 @@ export default async function CourseDetailsPage({ course }: { course: Course }) 
 
 ### File: `modules/features/catalog/helpers/course-content-groups.ts`
 
-SHA-256: `b74a987b66f9e681886d2c52f324f05546af09cb6c7837317773aa89d02234a5`
+SHA-256: `8a73fc71ecdd0e06c83e10bb3042c00c3c91267243bd6ea9a9964f36ce64c40f`
 
 ```typescript
 import type { CourseModule } from "@platform/types/lms";
 export function courseContentGroups(chapter: CourseModule, ungroupedLabel: string) {
+  const lessonsById = new Map(chapter.lessons.map(lesson => [lesson.id, lesson]));
   const grouped = new Set(chapter.sections?.flatMap(section => section.lessonIds));
   const groups = (chapter.sections ?? []).map(section => ({
     id: section.id, sectionId: section.id as string | undefined, title: section.title,
-    lessons: chapter.lessons.filter(lesson => section.lessonIds.includes(lesson.id)),
+    lessons: section.lessonIds.flatMap(id => {
+      const lesson = lessonsById.get(id);
+      return lesson ? [lesson] : [];
+    }),
   }));
   const ungrouped = chapter.lessons.filter(lesson => !grouped.has(lesson.id));
   if (ungrouped.length) groups.push({ id: "ungrouped", sectionId: undefined, title: chapter.sections?.length ? ungroupedLabel : "", lessons: ungrouped });
@@ -12969,12 +13078,13 @@ export function courseDuration(course: Pick<Course, "modules" | "delivery" | "du
 
 ### File: `modules/features/catalog/helpers/course-lessons.ts`
 
-SHA-256: `fbe6836f15c3c41d56c63f50ddba9ec7514dada443be4326d7bec2f32a3301cf`
+SHA-256: `720f8d08a9c53b440ec77ae7ded8d69e11cd5b8356848b682f45e421c46a4dda`
 
 ```typescript
 import type { Course } from "@platform/types/lms";
+import { courseContentGroups } from "./course-content-groups";
 export const courseLessons = (course: Pick<Course, "modules">) =>
-  course.modules.flatMap((module) => module.lessons);
+  course.modules.flatMap((module) => courseContentGroups(module, "").flatMap(group => group.lessons));
 ```
 
 ### File: `modules/features/catalog/helpers/course-seconds.ts`
@@ -13396,9 +13506,11 @@ export function renderCertificate(
 
 ### File: `modules/features/commerce/admin-page.tsx`
 
-SHA-256: `123b7be654969a936614710249b1ed7b511b1880fd40b71408a78700708a1d0f`
+SHA-256: `6f7d04ac9fdea91f435b4a46c92499d72011c620bdf804549c12d18f54f68289`
 
 ```tsx
+import { readCommerceQuery } from "./helpers/read-commerce-query";
+import { commercePolicy } from "@platform/config/commerce";
 import { requireAdminPage } from "@platform/features/admin/page-identity";
 import { readCommerceTargets } from "./repositories/targets";
 import { readCommerceList } from "./repositories/admin-records";
@@ -13412,13 +13524,13 @@ import AdminPagination from "@platform/components/admin/admin-pagination";
 import type { CommerceKind } from "@platform/types/commerce";
 export default async function CommerceAdminPage({kind,query}:{kind:CommerceKind;query:Record<string,string | string[] | undefined>}) {
  await requireAdminPage();
- const search=typeof query.q==='string' ? query.q.slice(0,100) : '',status=['active','inactive'].includes(String(query.status)) ? String(query.status) : 'all',page=Math.min(10000,Math.max(1,Math.floor(Number(query.page)||1)));
+ const {search,status,page}=readCommerceQuery(query,{active:labels.active,inactive:labels.inactive});
  const [result,options]=await Promise.all([readCommerceList(kind,search,status,page),readCommerceTargets()]);
  const choices=options.courses,targets=[...choices.map(course=>({value:`course:${course.slug}`,label:`${labels.course}: ${course.title}`})),...options.bundles.map(bundle=>({value:`bundle:${bundle.slug}`,label:`${labels.bundle}: ${bundle.title}`}))];
  const href=(page:number)=>routes.adminCommerce(kind)+'?'+new URLSearchParams({q:search,status,page:String(page)});
  return <main className="lms-dashboard-page"><h1>{labels.title}</h1><CommerceTabs {...{kind,labels}} /><CommerceFilters {...{kind,labels,search,status}} />
  <ManageCommerceRecords kind={kind} records={result.records} labels={labels} courses={choices} targets={targets} closeLabel={adminUsersCopy.close} />
- <AdminPagination page={page} previousHref={page>1 ? href(page-1) : undefined} nextHref={page*5<result.total ? href(page+1) : undefined} labels={{heading:labels.title,previous:labels.previous,next:labels.next,page:''}} /></main>;
+ <AdminPagination page={page} previousHref={page>1 ? href(page-1) : undefined} nextHref={page*commercePolicy.pageSize<result.total ? href(page+1) : undefined} labels={{heading:labels.title,previous:labels.previous,next:labels.next,page:''}} /></main>;
 }
 ```
 
@@ -13472,14 +13584,15 @@ export default async function CommerceCheckoutPage({slug,bundle}:{slug:string;bu
 
 ### File: `modules/features/commerce/handle-admin.ts`
 
-SHA-256: `d135d9646f3281a80e980e4e09f4db0780e2d0a08021459a176ea6eb91e84518`
+SHA-256: `5deeb621fb850247ff9457365b636aa12f3dc997ca59cd8d891eb18ba059d59a`
 
 ```typescript
+import { readCommerceQuery } from "./helpers/read-commerce-query";
 import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { readJson,sameOrigin } from "@platform/lib/server-request";
 import { requireAdmin } from "@platform/features/admin/identity";
-import { commerceKinds,commercePolicy } from "@platform/config/commerce";
+import { commerceKinds } from "@platform/config/commerce";
 import { validateCommerceRecord } from "./helpers/validate-record";
 import { readCommerceList } from "./repositories/admin-records";
 import { saveCommerceRecord,deleteCommerceRecord } from "./repositories/save-record";
@@ -13490,7 +13603,8 @@ export function handleCommerceAdmin(request:Request,kind:string) {
   const category=kind as CommerceKind;
   if(request.method==='GET') {
    const params=new URL(request.url).searchParams;
-   return Response.json(await readCommerceList(category,(params.get('q') ?? '').slice(0,commercePolicy.maxSearch),params.get('status') ?? 'all',Math.min(10000,Math.max(1,Math.floor(Number(params.get('page')) || 1)))));
+   const {search,status,page}=readCommerceQuery(Object.fromEntries(params),{active:'',inactive:''});
+   return Response.json(await readCommerceList(category,search,status,page));
   }
   if(!sameOrigin(request)) throw new ApiError(403,"FORBIDDEN");
   const body=await readJson(request);
@@ -13528,14 +13642,16 @@ export function handlePriceQuote(request:Request) {
 
 ### File: `modules/features/commerce/handle-sales.ts`
 
-SHA-256: `fd1cc356fa1d77c0a76cd7cbcbbbaef8d292224fdc914de6e267fac6110fe64d`
+SHA-256: `d34f274714b30376e62f346de1736b40f36116a532692f27e4cc07e38812247a`
 
 ```typescript
+import { readCommerceQuery } from "./helpers/read-commerce-query";
+import { paymentCopy } from "@platform/data/payment-copy";
 import { apiResponse } from "@platform/lib/api/respond";
 import { requireAdmin } from "@platform/features/admin/identity";
 import { readSales } from "./repositories/sales";
 export function handleSales(request:Request) {
- return apiResponse(async()=>{await requireAdmin();const params=new URL(request.url).searchParams;return Response.json(await readSales((params.get('q') ?? '').slice(0,100),params.get('status') ?? 'all',Math.min(10000,Math.max(1,Math.floor(Number(params.get('page')) || 1)))));});
+ return apiResponse(async()=>{await requireAdmin();const params=new URL(request.url).searchParams;const {search,status,page}=readCommerceQuery(Object.fromEntries(params),paymentCopy.states);return Response.json(await readSales(search,status,page));});
 }
 ```
 
@@ -13575,6 +13691,20 @@ SHA-256: `8f5aabce4fda4b68dd45b0af99063d31e0a79e4363e79135175e5f3d23cb4b60`
 import type { CourseOffer } from "@platform/types/lms";
 /** A zero-priced promotion still goes through verified checkout instead of free-course enrollment. */
 export function offerBaseAmount(offer:CourseOffer) { return offer.baseAmount ?? offer.amount; }
+```
+
+### File: `modules/features/commerce/helpers/read-commerce-query.ts`
+
+SHA-256: `ea25f1ff68e3f7d9377a4aec5f4283ea55163fb9261befd128c320401f271266`
+
+```typescript
+import { commercePolicy } from "@platform/config/commerce";
+export function readCommerceQuery(query: Record<string, string | string[] | undefined>, states: Record<string, string>) {
+  const text = (name: string) => typeof query[name] === "string" ? query[name] as string : "";
+  return { search: text("q").slice(0, commercePolicy.maxSearch),
+    status: Object.hasOwn(states, text("status")) ? text("status") : "all",
+    page: Math.min(10000, Math.max(1, Math.floor(Number(text("page")) || 1))) };
+}
 ```
 
 ### File: `modules/features/commerce/helpers/read-form.ts`
@@ -13679,10 +13809,11 @@ export function validateCommerceRecord(kind: CommerceKind, value: unknown): Comm
 
 ### File: `modules/features/commerce/repositories/admin-records.ts`
 
-SHA-256: `7a0534d871df074ce4a2a584d16fe3d12b7dc0eb73bdbcd98c997ff5b99268be`
+SHA-256: `11f0cd8c5b9416ee70e57ca0a871b3fd30290a166ff19bccf442a9084c51c265`
 
 ```typescript
 import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { commerceDatabaseError } from "../helpers/database-error";
 import { readBundleRecord,readDiscountRecord } from "../helpers/read-record";
@@ -13690,6 +13821,7 @@ import { commerceSearchFilter } from "../helpers/search-filter";
 import { commercePolicy } from "@platform/config/commerce";
 import type { CommerceKind, CommerceList } from "@platform/types/commerce";
 export async function readCommerceList(kind:CommerceKind, search="", status="all", page=1): Promise<CommerceList> {
+ await requireAdmin();
  const client=createAuthAdministrator(),from=(page-1)*commercePolicy.pageSize;
  if(kind==='bundles') {
   let query=client.from('commerce_bundles').select('*',{count:'exact'}).order('updated_at',{ascending:false}).order('slug').range(from,from+commercePolicy.pageSize-1);
@@ -13765,15 +13897,17 @@ export async function quotePurchase(input: PurchaseInput, userId?: string): Prom
 
 ### File: `modules/features/commerce/repositories/sales.ts`
 
-SHA-256: `3619322aa7f4f560e17a6fbb1b4f428cd05c48fb65e79a916cf626b8f66bcf2c`
+SHA-256: `9a8dad49e446385191139f1e73c3a44285dabd7ecfeea1740be7875dd25763de`
 
 ```typescript
 import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { commercePolicy } from "@platform/config/commerce";
 import { commerceDatabaseError } from "../helpers/database-error";
 import type { SaleRecord } from "@platform/types/sales";
 export async function readSales(search:string,status:string,page:number) {
+ await requireAdmin();
  const client=createAuthAdministrator(),start=(page-1)*commercePolicy.pageSize;
  let query=client.from('payment_orders').select('id,course_title,amount_minor,created_at,paid_at,status,live,user_id,bundle_slug,pricing_snapshot',{count:'exact'}).order('created_at',{ascending:false}).order('id').range(start,start+commercePolicy.pageSize-1);
  if(search) query=query.ilike('course_title',`%${search.replace(/[%_\\]/g,'')}%`);
@@ -13811,6 +13945,32 @@ export async function deleteCommerceRecord(kind:CommerceKind,key:string,revision
  const result=await createAuthAdministrator().rpc('delete_commerce_record',{p_kind:kind,p_key:key,p_revision:revision});
  if(result.error) commerceDatabaseError(result.error);
  return {deleted:true};
+}
+```
+
+### File: `modules/features/commerce/repositories/student-orders.ts`
+
+SHA-256: `96dd10441b4c9bbc3440039f4fed56368d9491a161c574c7482b26212407786b`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { ApiError } from "@platform/lib/api/error";
+import { commercePolicy } from "@platform/config/commerce";
+import type { SaleRecord } from "@platform/types/sales";
+/** Select only receipt fields; ownership is enforced in the query and by RLS. */
+export async function readStudentOrders(search: string, status: string, page: number) {
+  const { client, user } = await requireIdentity(), start = (page - 1) * commercePolicy.pageSize;
+  let query = client.from("payment_orders").select("id,course_title,amount_minor,created_at,paid_at,status,live,bundle_slug", { count: "exact" })
+    .eq("user_id", user.id).order("created_at", { ascending: false }).order("id").range(start, start + commercePolicy.pageSize - 1);
+  if (search) query = query.ilike("course_title", `%${search.replace(/[%_\\]/g, "")}%`);
+  if (status !== "all") query = query.eq("status", status);
+  const result = await query;
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  const records: SaleRecord[] = result.data.map(row => ({ id: row.id, title: row.course_title, amountMinor: row.amount_minor,
+    createdAt: row.created_at, paidAt: row.paid_at, status: row.status, live: row.live, bundle: Boolean(row.bundle_slug),
+    username: null, name: "", couponCode: null, discountMinor: 0 }));
+  return { records, total: result.count ?? 0 };
 }
 ```
 
@@ -14018,29 +14178,39 @@ export * from "./course-progress";
 
 ### File: `modules/features/learning/helpers/lesson-outline.ts`
 
-SHA-256: `0bf370375e34ab4a53ce6f3f96344422115a04f6164f3f17bd5b5d2f9f7f5349`
+SHA-256: `15c86c6a3c9e98a9ea1a3e6c9948333b80f6ed630d32f91a14151e93c9a1c4d1`
 
 ```typescript
 import { courseProgress } from "./course-progress";
 import type { Course, LearningState } from "@platform/types/lms";
 import { lessonKey } from "../../catalog/helpers";
+import { courseContentGroups } from "../../catalog/helpers/course-content-groups";
 export interface LessonOutlineOptions {
   course: Course;
   state: LearningState;
   lessonHref: (slug: string, lessonId: string) => string;
+  ungroupedLabel?: string;
+  lockedHref?: string;
 }
-export function lessonOutline({ course, state, lessonHref }: LessonOutlineOptions) {
+export function lessonOutline({ course, state, lessonHref, ungroupedLabel = "", lockedHref }: LessonOutlineOptions) {
+  const enrolled = state.enrolled.includes(course.slug), completed = new Set(state.completed);
   return {
     title: course.title,
     progress: courseProgress(course, state),
-    modules: course.modules.map((module) => ({
+    modules: course.modules.map((module, index) => ({
+      id: module.id ?? `chapter-${index + 1}`,
       title: module.title,
-      lessons: module.lessons.map((lesson) => ({
-        id: lesson.id,
-        title: lesson.title,
-        duration: lesson.duration,
-        href: lessonHref(course.slug, lesson.id),
-        complete: state.completed.includes(lessonKey(course.slug, lesson.id)),
+      groups: courseContentGroups(module, ungroupedLabel).map(group => ({
+        id: group.sectionId ? `section-${group.sectionId}` : "unassigned", title: group.title,
+        lessons: group.lessons.map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          duration: lesson.duration,
+          locked: !enrolled && !lesson.preview,
+          preview: Boolean(lesson.preview),
+          href: lockedHref && !enrolled && !lesson.preview ? lockedHref : lessonHref(course.slug, lesson.id),
+          complete: completed.has(lessonKey(course.slug, lesson.id)),
+        })),
       })),
     })),
   };
@@ -14060,18 +14230,17 @@ export * from "./helpers";
 
 ### File: `modules/features/learning/models/lesson-information.ts`
 
-SHA-256: `228129a75a52483ae35de99975b8412cbd4fb87eb09794d37f9ddd6992f55ea6`
+SHA-256: `7f72a29cc1925288ce5a7634a80690392f92caf124c389f3314c06014a114d42`
 
 ```typescript
 import type { LessonContext } from "../read-lesson-context";
 import { notesKey } from "@platform/config/persistence";
 import { copy } from "@platform/data/site";
-import { resources } from "@platform/data/resources";
-export function lessonInformationModel({ state, slug, lessonId, lesson }: LessonContext) {
+export function lessonInformationModel({ state, slug, lessonId, lesson, resources }: LessonContext) {
   return {
     copy: { lessonDetails: copy.lessonDetails, resources: copy.resources, notes: copy.notes,
       notesHint: copy.notesHint, notesUnavailable: copy.notesUnavailable, notesSaved: copy.notesSaved },
-    resources: lesson.resourceIds.flatMap((id) => resources.filter((resource) => resource.id === id)),
+    resources,
     lesson, storageKey: notesKey(state.profile.email || state.profile.name, slug, lessonId),
   };
 }
@@ -14079,29 +14248,30 @@ export function lessonInformationModel({ state, slug, lessonId, lesson }: Lesson
 
 ### File: `modules/features/learning/models/lesson-playback.ts`
 
-SHA-256: `230966b9199fbb89b47f0c948b5f6194e2b1bf2bb7b1f64928e4572b89acb835`
+SHA-256: `abd54ba8075e8934e66c2605dd54b574326742b21731e1b2be2973af2452deb8`
 
 ```typescript
+import { routes } from "@platform/config/navigation";
 import type { LessonContext } from "../read-lesson-context";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { copy, site } from "@platform/data/site";
 export function lessonPlaybackModel(context: LessonContext) {
-  const { course, lesson, index, lessons, slug, enrolled, next, complete, lessonId } = context;
+  const { course, lesson, index, lessons, slug, enrolled, next, previous, complete, lessonId } = context;
   return {
     title: { interfaceCopy: { lessonCounterLabel: interfaceCopy.lessonCounterLabel,
       lessonCounterSeparator: interfaceCopy.lessonCounterSeparator }, lesson, index, lessons },
     player: { interfaceCopy: { playLesson: interfaceCopy.playLesson },
       copy: { demoVideo: copy.demoVideo, artworkLessonLabel: copy.artworkLessonLabel },
       site: { englishName: site.englishName }, course, lesson },
-    actions: { copy: { next: copy.next, error: copy.error, saving: copy.saving,
-      completed: copy.completed, complete: copy.complete }, slug, enrolled, next, complete, lessonId },
+    actions: { copy: { previous: copy.previous, viewCourse: copy.viewCourse, next: copy.next, error: copy.error, saving: copy.saving,
+      completed: copy.completed, complete: copy.complete }, courseHref: routes.course(slug, course.delivery), slug, enrolled, next, previous, complete, lessonId },
   };
 }
 ```
 
 ### File: `modules/features/learning/models/lesson-shell.ts`
 
-SHA-256: `6f8cccfc74253ad7b3d27dbe65d393cb1f5bcd5020db768f2781a5f11fe7c6ad`
+SHA-256: `34e5d44b09b7533a9b9c5a66239ae473f34e7f7bed91e5e34c5ade9eebf20cd2`
 
 ```typescript
 import { routes } from "@platform/config/navigation";
@@ -14109,22 +14279,24 @@ import type { LessonContext } from "../read-lesson-context";
 import { lessonOutline } from "../helpers/lesson-outline";
 import { interfaceCopy } from "@platform/data/interface-copy";
 import { copy, site } from "@platform/data/site";
+import { courseDetailsCopy } from "@platform/data/course-details";
 export function lessonShellModel({ course, state, lessonId }: LessonContext) {
   return {
     header: { interfaceCopy: { dashboardLabel: interfaceCopy.dashboardLabel },
       site: { demoLabel: site.demoLabel, name: site.name, englishName: site.englishName } },
-    outline: { copy: { courseContent: copy.courseContent, completed: copy.completed,
-      pending: copy.pending, progress: copy.progress, lessons: copy.lessons },
-      model: lessonOutline({ course, state, lessonHref: routes.lesson }), active: lessonId },
+    outline: { lockedLabel: courseDetailsCopy.locked, copy: { courseContent: copy.courseContent, completed: copy.completed,
+      preview: copy.preview, pending: copy.pending, progress: copy.progress, lessons: copy.lessons },
+      model: lessonOutline({ course, state, lessonHref: routes.lesson, ungroupedLabel: courseDetailsCopy.ungrouped, lockedHref: routes.course(course.slug, course.delivery) }), active: lessonId },
   };
 }
 ```
 
 ### File: `modules/features/learning/read-lesson-context.ts`
 
-SHA-256: `eb0ecc74e7661f84b120ffd57b1a194b03b1ba27f9220615fe9c03b295ef1599`
+SHA-256: `27fe358ff9575f60233a337a635b31764620a50190ea7978690e41365f28e3d8`
 
 ```typescript
+import { listLessonResources } from "@platform/features/resources/lesson-resources";
 import { playableUrl } from "@platform/helpers/media/playable-url";
 import { currentIdentity } from "@platform/features/auth/server/identity";
 import { readPlayback } from "../catalog/repositories/read-playback";
@@ -14141,11 +14313,12 @@ export async function readLessonContext(slug: string, lessonId: string) {
   if (!lesson.preview && !await currentIdentity()) redirect(routes.login);
   const state = await readLearningState();
   const enrolled = state.enrolled.includes(slug);
-  if (!enrolled && !lesson.preview) redirect(routes.course(slug));
+  if (!enrolled && !lesson.preview) redirect(routes.course(slug, course.delivery));
   const lessons = courseLessons(course);
   const index = lessons.findIndex((item) => item.id === lessonId);
-  return { slug, lessonId, course, lesson: { ...lesson, videoUrl: playableUrl(await readPlayback(slug, lessonId), slug, lessonId) }, state, enrolled, lessons, index,
-    next: lessons[index + 1], complete: state.completed.includes(lessonKey(slug, lessonId)) };
+  const [videoUrl, resources] = await Promise.all([readPlayback(slug, lessonId), enrolled ? listLessonResources(slug, lessonId) : Promise.resolve([])]);
+  return { resources, previous: index > 0 ? lessons[index - 1] : undefined, slug, lessonId, course, lesson: { ...lesson, videoUrl: playableUrl(videoUrl, slug, lessonId) }, state, enrolled, lessons, index,
+    next: lessons.at(index + 1), complete: state.completed.includes(lessonKey(slug, lessonId)) };
 }
 export type LessonContext = Awaited<ReturnType<typeof readLessonContext>>;
 ```
@@ -15478,6 +15651,36 @@ export function readGatewayEnvelope(result: unknown): Record<string, unknown> {
 }
 ```
 
+### File: `modules/features/payments/helpers/sample-content.ts`
+
+SHA-256: `b7cfeeb21f0ca4710297978c1032f8c7eb2284b0de5740aed34401bf982dfd06`
+
+```typescript
+import { sampleLessonVideoUrl } from "@platform/config/catalog";
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
+export function isSampleLessonVideo(url: string) {
+  return getYouTubeEmbedUrl(url) === getYouTubeEmbedUrl(sampleLessonVideoUrl);
+}
+```
+
+### File: `modules/features/payments/helpers/status-hint.ts`
+
+SHA-256: `9e055cda625921864973e9ef91e9744ed2178244dac6775f73f0e230d70353b5`
+
+```typescript
+import type { paymentCopy } from "@platform/data/payment-copy";
+export function paymentStatusHint(order: { status: string; enrolled: boolean; bundleSlug?: string | null }, labels: typeof paymentCopy) {
+  if (order.status === "failed") return labels.failedHint;
+  if (order.status === "expired") return labels.expiredHint;
+  if (order.status !== "paid") return labels.pendingHint;
+  if (!order.enrolled) return labels.activationHint;
+  return order.bundleSlug ? labels.paidBundleHint : labels.paidHint;
+}
+export function paymentNeedsPolling(status: string, enrolled: boolean) {
+  return status === "creating" || status === "pending" || status === "paid" && !enrolled;
+}
+```
+
 ### File: `modules/features/payments/helpers/validate-transaction.ts`
 
 SHA-256: `6c482c904906f6ef77a6d1467408a9f50cd3f80b3b0cea6362f9f16b81c85cca`
@@ -15538,6 +15741,33 @@ export function verifyPaymentSignature(body: Record<string, unknown>, key: strin
 }
 ```
 
+### File: `modules/features/payments/repositories/assert-live-content.ts`
+
+SHA-256: `8281911a2a18c1ee3dff58cefed25a6dbc85c53a543445cb7a00ffe10fcff494`
+
+```typescript
+import "server-only";
+import { createAuthAdministrator } from "@platform/lib/supabase/admin";
+import { ApiError } from "@platform/lib/api/error";
+import { sampleLessonVideoId } from "@platform/config/catalog";
+import { isSampleLessonVideo } from "../helpers/sample-content";
+/** Check all purchased members before creating an order or contacting the live provider. */
+export async function assertLivePurchaseContent(slugs: string[]) {
+  const client = createAuthAdministrator();
+  const [samples, courses] = await Promise.all([
+    client.from("lessons").select("video_url").in("course_slug", slugs).like("video_url", `%${sampleLessonVideoId}%`),
+    client.from("courses").select("slug,delivery:metadata->>delivery").in("slug", slugs),
+  ]);
+  if (samples.error || courses.error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (samples.data.some(lesson => isSampleLessonVideo(lesson.video_url))) throw new ApiError(409, "COURSE_CONTENT_NOT_READY");
+  const recorded = courses.data.filter(course => course.delivery !== "live").map(course => course.slug);
+  if (!recorded.length) return;
+  const empty = await client.from("lessons").select("id").in("course_slug", recorded).eq("video_url", "").limit(1);
+  if (empty.error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (empty.data.length) throw new ApiError(409, "COURSE_CONTENT_NOT_READY");
+}
+```
+
 ### File: `modules/features/payments/repositories/begin-order.ts`
 
 SHA-256: `b8acadb95f1e436023b1ef59ef0453f487a79f0b3460a2a0c8ef1435b48eb7f4`
@@ -15560,10 +15790,13 @@ export async function beginPaymentOrder(userId: string, input: PurchaseInput) {
 
 ### File: `modules/features/payments/repositories/create-checkout.ts`
 
-SHA-256: `42ab4d8629d1ad6881dd83d57740e834a82e1ffd85108e16978b1b23721cbeaa`
+SHA-256: `fe52b110395b6641b18fdc3cb69919e1efb8aa0ac4bb5c6852282ace31f28c69`
 
 ```typescript
 import "server-only";
+import { assertLivePurchaseContent } from "./assert-live-content";
+import { paymentEnvironment } from "../gateway/environment";
+import { quotePurchase } from "@platform/features/commerce/repositories/quote";
 import { requireIdentity } from "@platform/features/auth/server/identity";
 import { readAccount } from "@platform/features/account/repositories/read-account";
 import { createGatewayCheckout } from "../gateway/create-checkout";
@@ -15577,6 +15810,10 @@ export async function createCheckout(input: PurchaseInput) {
   const verification = await client.rpc("contacts_verified");
   if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
+  if (paymentEnvironment().live) {
+    const quote = await quotePurchase(input, user.id);
+    if (quote.totalMinor > 0) await assertLivePurchaseContent(quote.courseSlugs);
+  }
   const account = await readAccount(),
     record = await beginPaymentOrder(user.id, input);
   if (record.order.amount_minor === 0) return {orderId:record.order.id,checkoutUrl:routes.payment(record.order.id)};
@@ -15933,6 +16170,27 @@ export function validateProfile(input: unknown, { allowEmptyEmail = false }: { a
     return null;
   if (value.username !== undefined && !isValidUsername(value.username)) return null;
   return { name, email, ...(typeof value.username === "string" ? { username: normalizeUsername(value.username) } : {}) };
+}
+```
+
+### File: `modules/features/resources/lesson-resources.ts`
+
+SHA-256: `00e592d347cf3db81f5a7639437bef820aee567ab91a42fdef990816672e59f2`
+
+```typescript
+import "server-only";
+import { requireIdentity } from "@platform/features/auth/server/identity";
+import { ApiError } from "@platform/lib/api/error";
+import type { Resource } from "@platform/types/lms";
+/** Both queries use the learner session; RLS enforces enrollment and publication. */
+export async function listLessonResources(slug: string, lessonId: string): Promise<Omit<Resource, "content">[]> {
+  const { client } = await requireIdentity();
+  const links = await client.from("lesson_resources").select("resource_id").eq("course_slug", slug).eq("lesson_id", lessonId);
+  if (links.error) throw new ApiError(503, "INTERNAL_ERROR");
+  if (!links.data.length) return [];
+  const result = await client.from("resources").select("id,title,description,type").in("id", links.data.map(link => link.resource_id)).order("title");
+  if (result.error) throw new ApiError(503, "INTERNAL_ERROR");
+  return result.data;
 }
 ```
 
@@ -16781,10 +17039,11 @@ export function useLogout(errorLabel: string) {
 
 ### File: `modules/hooks/use-payment-status.ts`
 
-SHA-256: `7476579dfab13132beae23a2cc9080b0af8e28502698a9ced39ea795540db3df`
+SHA-256: `b659f35c68c5312dd7313cd2580c742f9a4ef57e38cb7ee4c3d7c41603741478`
 
 ```typescript
 "use client";
+import { paymentNeedsPolling } from "@platform/features/payments/helpers/status-hint";
 import { useEffect, useState } from "react";
 import { endpoints } from "@platform/config/navigation";
 import { paymentRequest } from "@platform/features/payments/client/request";
@@ -16797,7 +17056,7 @@ export function usePaymentStatus(initial: Receipt, errorLabel: string) {
   const refresh = () =>
     command.run(async () => setOrder(await paymentRequest<Receipt>(endpoints.paymentReconcile(order.id))));
   useEffect(() => {
-    if (initial.status === "paid" && initial.enrolled) return;
+    if (!paymentNeedsPolling(initial.status, initial.enrolled)) return;
     let stopped = false,
       attempts = 0,
       timer: ReturnType<typeof setTimeout>;
@@ -17980,7 +18239,7 @@ SHA-256: `f7f10a5bc74f59c95e0b9fb2ce2c288f639ed51593cd603024366bccd748567f`
 
 ### File: `modules/styles/lms.css`
 
-SHA-256: `bce53f60b3c460a9e5d1ac53c422a887c2e1777cf28b088ffbf08023513f699c`
+SHA-256: `79d32d19632c75b6cb0bcbba4f0977a1e031c2bae64c55bded5bfb12f5d06536`
 
 ```css
 .lms-icon {
@@ -18893,6 +19152,11 @@ button:disabled {
   padding: var(--size-22px) var(--size-20px) var(--space-control);
   font-size: var(--font-size-caption);
   color: var(--text-secondary);
+}
+.lms-outline-section-title {
+  padding: var(--space-md) var(--size-20px) var(--space-sm);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
 }
 .lms-outline-module h3 span {
   color: var(--primary-red);
@@ -21619,7 +21883,7 @@ export interface CreateCourseInput { slug: string; title: string; description: s
 
 ### File: `modules/types/admin-users.ts`
 
-SHA-256: `23d789211f981ca568a734c456788b4e844c24404c004421c6d0397c66c0be21`
+SHA-256: `bd7d093b18cf4dd864269eb5c814fdef5db29f7951b7934b67ed1ca5ea5328ef`
 
 ```typescript
 import type { suspensionPeriods, userSearchModes } from "@platform/config/user-moderation";
@@ -21633,7 +21897,7 @@ export interface AdminUserPage { users: AdminUser[]; page: number; hasNext: bool
 export interface AdminUserQuery {
   page: number; search: string; searchMode: typeof userSearchModes[number]; statuses: ("suspended" | "banned")[]; adminsOnly: boolean; newcomers: boolean;
 }
-export interface UserSubscription { slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
+export interface UserSubscription { count: number; total: number; percent: number; slug: string; title: string; enrolledAt: string; delivery: "recorded" | "live"; }
 
 import type { adminUsersCopy } from "@platform/data/admin-users";
 export type AdminUsersLabels = { [K in keyof typeof adminUsersCopy]: string };
@@ -23535,13 +23799,14 @@ export function toggleYouTubePlayer(player: YouTubePlayerInstance | null, snapsh
 
 ### File: `packages/design-system/helpers/motion/create-entrance.ts`
 
-SHA-256: `e7297156f263a55efe3572132d4236bdb8ca62df300556f5e8ba8829eba5baef`
+SHA-256: `f86bc0df7f18ed981525e0e5b03b10be04c5e02ae072197980c112e6cdce4c88`
 
 ```typescript
 import type { RevealGroup } from "../../types/interactions";
 export function createEntrance(target: Element, group: RevealGroup, index: number, easing: string) {
+  const fadeOnly = target.getAttribute("data-reveal-motion") === "fade";
   const animation = target.animate([
-    { opacity: 0, transform: `translate3d(${group.x ?? 0}px,${group.y ?? 0}px,0) scale(${group.scale ?? 1})` },
+    { opacity: 0, transform: fadeOnly ? "none" : `translate3d(${group.x ?? 0}px,${group.y ?? 0}px,0) scale(${group.scale ?? 1})` },
     { opacity: 1, transform: "none" },
   ], { duration: group.duration, delay: (group.delay ?? 0) + index * (group.stagger ?? 0), easing, fill: "both" });
   animation.pause();
@@ -33867,6 +34132,21 @@ const url=process.env.TARGET_URL||'http://localhost:3040';
 })().catch(error=>{console.error(error.message);process.exitCode=1;});
 ```
 
+### File: `tests/backend/block-live-provider.mjs`
+
+SHA-256: `14a58ff7b7c972f7e8b2ac19db4a928960d1adfa8e1398052199b87b4fbeba58`
+
+```typescript
+// This preloader is used only by the isolated live-readiness acceptance server.
+if (!/^http:\/\/127\.0\.0\.1:/.test(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")) throw new Error("Local database required");
+const original = globalThis.fetch;
+globalThis.fetch = (input, options) => {
+  const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
+  if (["app.fawaterk.com", "staging.fawaterk.com"].includes(url.hostname)) throw new Error("Live provider network access disabled in acceptance tests");
+  return original(input, options);
+};
+```
+
 ### File: `tests/backend/browser.cjs`
 
 SHA-256: `2f65f1fcb747d484f56ed8964a9467a51fc796c2721391f74d16138df580cf72`
@@ -34949,7 +35229,7 @@ module.exports=async function imageUploads({admin,provision,anonymous,verify,url
 
 ### File: `tests/backend/integration.cjs`
 
-SHA-256: `556213c22124a4bbc08d2a867ea8a320727e5b2ec9abf36e1ed3bb0e23abf50c`
+SHA-256: `ccac4159e770e188418945a88b6ff6049a5a7d48259c867d94abf08c5f457493`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Node integration runner with local-only credentials. */
@@ -34963,12 +35243,14 @@ if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) thro
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
-if(['payments','commerce'].includes(process.env.BACKEND_SUITE)) {
+if(['payments','commerce','lms-workflows'].includes(process.env.BACKEND_SUITE)) {
  paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
  Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
 }
+if(process.env.BACKEND_SUITE === 'live-content-gate') Object.assign(env,{FAWATERAK_TOKEN_URL:'https://app.fawaterk.com/oauth/token',FAWATERAK_CLIENT_ID:'blocked-local-client',FAWATERAK_CLIENT_SECRET:'blocked-local-secret',HASH_API_KEY:'local-only-hash'});
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
-const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
+const preload=process.env.BACKEND_SUITE === 'live-content-gate' ? ['--import', require('node:path').resolve('tests/backend/block-live-provider.mjs')] : [];
+const server = spawn('node', [...preload, 'node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const identities = [];
 let checks = 0;
@@ -35010,6 +35292,12 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'live-content-gate') {
+    await require('./live-content-gate.cjs')({admin,provision,verify});return;
+  }
+  if (process.env.BACKEND_SUITE === 'lms-workflows') {
+    await require('./lms-workflows.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
   }
@@ -35243,6 +35531,144 @@ test("Drive metadata uses the admin stream; safe direct sources stay direct", ()
   assert.equal(lessonProbeSource("video-course"," /assets/video/workshop-intro.mp4 "),"/assets/video/workshop-intro.mp4");
   for(const url of ["","javascript:alert(1)","https://drive.google.com/drive/folders/1234567890","/assets/../file"]) assert.equal(lessonProbeSource("video-course",url),null);
 });
+```
+
+### File: `tests/backend/live-content-gate.cjs`
+
+SHA-256: `f000370151802f8c9501deb9ad0b59a922c917601d6a75d3b2b786e40e8e649c`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- No production provider traffic or charges. */
+const assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+module.exports=async({admin,provision,verify})=>{
+ const manager=await provision('Readiness Manager'),student=await provision('Readiness Student');
+ await admin.from('admin_users').insert({user_id:manager.id});
+ const slug='readiness-'+randomUUID(),emptySlug=slug+'-empty';
+ try {
+  const course=await student.api('/api/payments/checkout',{courseSlug:'editing-foundations'});
+  verify(course.status===409&&JSON.parse(course.data).code==='COURSE_CONTENT_NOT_READY','Live checkout rejects original sample lessons before creating an order');
+  const bundle={key:slug,title:'Readiness bundle',description:'Local acceptance bundle',amountMinor:10000,courseSlugs:['editing-foundations','motion-essentials'],courseSlug:null,bundleSlug:null,discountType:'percent',discountValue:10,startsAt:null,endsAt:null,enabled:true,stackable:false,minimumMinor:0,maximumUses:null,perUserLimit:1,revision:0};
+  assert.equal((await manager.api('/api/admin/commerce/bundles',bundle)).status,200);
+  const result=await student.api('/api/payments/checkout',{bundleSlug:slug});
+  verify(result.status===409&&JSON.parse(result.data).code==='COURSE_CONTENT_NOT_READY','Bundle live checkout checks every included course');
+  const source=(await admin.from('courses').select('metadata').eq('slug','editing-foundations').single()).data.metadata;
+  assert.ok(!(await admin.from('courses').insert({slug:emptySlug,metadata:{...source,slug:emptySlug},amount:499,published:true})).error);
+  assert.ok(!(await admin.from('lessons').insert({course_slug:emptySlug,id:'editor-mindset',video_url:'',preview:false})).error);
+  const incomplete=await student.api('/api/payments/checkout',{courseSlug:emptySlug});
+  verify(incomplete.status===409&&JSON.parse(incomplete.data).code==='COURSE_CONTENT_NOT_READY','Recorded lessons without video links cannot start live paid checkout');
+  const orders=await admin.from('payment_orders').select('id',{count:'exact'}).eq('user_id',student.id);assert.ok(!orders.error);
+  verify(orders.count===0,'Rejected readiness creates no pending orders, provider intents or charges');
+  verify((await student.api('/learn/editing-foundations/editor-mindset')).status===200,'Readiness guard preserves free preview');
+ } finally {await admin.from('commerce_bundles').delete().eq('slug',slug);await admin.from('courses').delete().eq('slug',emptySlug);}
+};
+```
+
+### File: `tests/backend/lms-workflows-browser.cjs`
+
+SHA-256: `b49c79e0d8fb72ca45aba9e8825b9e243cbea90741b2c576e628866552126e14`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real student/admin browser acceptance. */
+const { chromium, expect } = require('@playwright/test');
+module.exports=async({url,student,manager,slug,verify})=>{
+ const browser=await chromium.launch({headless:true}),page=await browser.newPage(),errors=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ const login=async(user)=>{await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(user.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(user.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(/dashboard$/);};
+ try {
+  await login(student);await page.goto(url+'/learn/'+slug+'/second');
+  const links=page.locator('.lms-lesson-outline nav a');
+  verify((await links.allTextContents()).map(text=>text.match(/Lesson (first|second|third)/)[1]).join(',')==='second,first,third','Sidebar follows section order before unassigned lessons');
+  await page.getByRole('link',{name:'الدرس التالي',exact:true}).click();await expect(page).toHaveURL(url+'/learn/'+slug+'/first');
+  verify(true,'Next lesson follows the same order as curriculum and sidebar');
+  await page.getByRole('link',{name:'الدرس السابق',exact:true}).click();await expect(page).toHaveURL(url+'/learn/'+slug+'/second');
+  verify(true,'Previous lesson returns to preceding section lesson');
+  await expect(page.locator('.lms-outline-check.is-complete')).toHaveCount(1);
+  await page.goto(url+'/dashboard/purchases');
+  await expect(page.locator('.lms-commerce-table tbody tr')).toHaveCount(5);
+  verify(true,'Payment history displays at most five orders per page');
+  await page.getByRole('link',{name:'التالي',exact:true}).click();await expect(page.locator('.lms-commerce-table tbody tr')).toHaveCount(2);
+  verify(true,'Payment history pagination preserves remaining owned records');
+  for(const width of [320,390,768,1440]) {
+   await page.setViewportSize({width,height:900});await page.goto(url+'/dashboard/purchases?q=Pending&status=pending');
+   await expect(page.locator('.lms-commerce-table tbody tr')).toHaveCount(1);
+   verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Payment history fits '+width+'px');
+  }
+  const receipt=page.getByRole('link',{name:'عرض حالة الطلب',exact:true});
+  await receipt.scrollIntoViewIfNeeded();await expect(page.locator('.lms-admin-table-wrap')).toHaveCSS('opacity','1');
+  await receipt.click();await expect(page).toHaveURL(/\/payments\//,{timeout:15000});
+  verify(true,'Pending request has a recoverable private status destination');
+  for(const status of ['failed','expired']) {
+   let polls=0,receiptPath='';const listener=request=>{if(receiptPath && request.url().endsWith('/api'+receiptPath+'/reconcile')) polls++;};page.on('request',listener);
+   await page.goto(url+'/dashboard/purchases?status='+status);
+   await expect(page.locator('.lms-admin-table-wrap')).toHaveCSS('opacity','1');
+   const link=page.getByRole('link',{name:'عرض حالة الطلب',exact:true});receiptPath=await link.getAttribute('href');await link.click();
+   await expect(page).toHaveURL(/\/payments\//,{timeout:15000});await expect(page.locator('.lms-payment-card')).toBeVisible();
+   verify(polls===0,'Terminal '+status+' receipt avoids automatic gateway polling');page.off('request',listener);
+  }
+  await page.context().clearCookies();await login(manager);
+  const profile=await manager.api('/api/admin/users/'+student.id),username=JSON.parse(profile.data).user.username;
+  await page.goto(url+'/admin/dashboard/users/'+username);await expect(page.locator('progress').first()).toHaveAttribute('value','33');
+  verify(true,'Admin user page renders shared progress visualization');
+  verify(errors.length===0,'Learning and payment history flows have no browser exceptions');
+ }finally{await browser.close();}
+};
+```
+
+### File: `tests/backend/lms-workflows.cjs`
+
+SHA-256: `af644538c4cd8346dbacc2fa44502d62a4b84252f5e035a34984a5ec48c8dc73`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Isolated database-backed learning acceptance. */
+const assert = require('node:assert/strict'), { randomUUID } = require('node:crypto');
+module.exports = async ({ admin, provision, anonymous, verify, url }) => {
+ const student = await provision('Workflow Student'), other = await provision('Workflow Other'), manager = await provision('Workflow Manager');
+ assert.ok(!(await admin.from('admin_users').insert({user_id:manager.id})).error);
+ const slug='workflow-'+randomUUID(), resource='resource-'+randomUUID(), parse=r=>JSON.parse(r.data);
+ const source=parse(await anonymous('/api/courses/editing-foundations'));
+ const make=id=>({...source.modules[0].lessons[0],id,title:'Lesson '+id,preview:id==='second',resourceIds:[]});
+ const course={...source,slug,title:'Workflow acceptance course',modules:[{id:'chapter',title:'Learning chapter',sections:[{id:'intro',title:'Introduction section',lessonIds:['second','first']}],lessons:[make('first'),make('second'),make('third')]}]};
+ try {
+  assert.ok(!(await admin.from('courses').insert({slug,metadata:course,amount:499,published:true})).error);
+  assert.ok(!(await admin.from('lessons').insert(course.modules[0].lessons.map(l=>({course_slug:slug,id:l.id,preview:l.preview,video_url:'/assets/video/workshop-intro.mp4'})))).error);
+  assert.ok(!(await admin.from('resources').insert({id:resource,title:'Database-only learning resource',description:'Live resource',type:'TXT',content:'Protected practice checklist'})).error);
+  assert.ok(!(await admin.from('lesson_resources').insert({resource_id:resource,course_slug:slug,lesson_id:'second'})).error);
+  const preview=await anonymous('/learn/'+slug+'/second');
+  verify(preview.status===200&&!preview.data.includes('Database-only learning resource'),'Anonymous preview hides protected resources');
+  verify(!preview.data.includes('أتممت هذا الدرس'),'Preview does not invite visitors to mutate completion or auto-enroll');
+  verify((await other.api('/api/resources/'+resource)).status===404,'Unenrolled account cannot download resource');
+  assert.ok(!(await admin.from('enrollments').insert({user_id:student.id,course_slug:slug})).error);
+  const lesson=await student.api('/learn/'+slug+'/second');
+  verify(lesson.data.includes('Database-only learning resource'),'Learner sees database resource absent from seed and public metadata');
+  verify(lesson.data.includes('Introduction section'),'Learner outline displays actual section titles');
+  verify((await student.api('/api/resources/'+resource)).data==='Protected practice checklist','Enrolled learner downloads actual resource content');
+  verify((await student.api('/api/progress',{courseSlug:slug,lessonId:'second',completed:true})).status===200,'Completion is persisted for owned course');
+  let detail=parse(await manager.api('/api/admin/users/'+student.id));
+  let progress=detail.subscriptions.find(s=>s.slug===slug);
+  verify(progress.count===1&&progress.total===3&&progress.percent===33,'Admin reports real current curriculum progress');
+  verify((await other.api('/api/admin/users/'+student.id)).status===403,'Student cannot inspect another learner progress');
+  const intent=randomUUID();
+  const orders=Array.from({length:7},(_,index)=>({user_id:student.id,course_slug:slug,course_title:index===0?'Pending workflow order':'Paid workflow order '+index,amount_minor:49900,live:false,status:index===0?'pending':index===1?'failed':index===2?'expired':'paid',provider_intent_key:index===0?intent:null}));
+  orders.push({user_id:other.id,course_slug:slug,course_title:'Other learner secret order',amount_minor:49900,live:false,status:'paid'});
+  const inserted=await admin.from('payment_orders').insert(orders).select('id');assert.ok(!inserted.error,inserted.error?.message);
+  const history=await student.api('/dashboard/purchases');
+  verify(history.status===200&&!history.data.includes('Other learner secret order'),'History only lists current account orders');
+  verify(!history.data.includes(intent),'History excludes provider intent keys');
+  const filtered=await student.api('/dashboard/purchases?q=Pending&status=pending');
+  verify(filtered.data.includes('Pending workflow order')&&!filtered.data.includes('Paid workflow order 1'),'History search and status combine');
+  const denied=await anonymous('/dashboard/purchases');
+  verify(denied.status===307||denied.data.includes('NEXT_REDIRECT'),'History requires authentication');
+  await require('./lms-workflows-browser.cjs')({url,student,manager,slug,verify});
+  assert.ok(!(await admin.from('lesson_progress').upsert({user_id:student.id,course_slug:slug,lesson_id:'third',completed:true})).error);
+  detail=parse(await manager.api('/api/admin/users/'+student.id));progress=detail.subscriptions.find(s=>s.slug===slug);
+  verify(progress.count===2&&progress.percent===67,'Admin progress updates without modifying enrollment or price');
+ } finally {
+  await admin.from('payment_orders').delete().eq('course_slug',slug);
+  await admin.from('enrollments').delete().eq('course_slug',slug);
+  await admin.from('courses').delete().eq('slug',slug);
+  await admin.from('resources').delete().eq('id',resource);
+ }
+};
 ```
 
 ### File: `tests/backend/navigation-browser.cjs`
@@ -40482,9 +40908,89 @@ test("Checked and unchecked native forms encode real booleans", () => {
 });
 ```
 
+### File: `tests/security/learning-workflows.test.ts`
+
+SHA-256: `1c55fe8e38b5c0ea3d207fd078a9ec56dba7a795a5b9bfabd8600350cd516ebf`
+
+```typescript
+import { paymentStatusHint, paymentNeedsPolling } from "../../modules/features/payments/helpers/status-hint";
+import { paymentCopy } from "../../modules/data/payment-copy";
+import { isSampleLessonVideo } from "../../modules/features/payments/helpers/sample-content";
+import { lessonPlaybackModel } from "../../modules/features/learning/models/lesson-playback";
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createCourseMetadata } from "../../modules/features/admin/helpers/create-course-metadata";
+import { courseLessons } from "../../modules/features/catalog/helpers/course-lessons";
+import { courseProgress } from "../../modules/features/learning/helpers/course-progress";
+import { lessonOutline } from "../../modules/features/learning/helpers/lesson-outline";
+import { applyCurriculumMutation } from "../../modules/features/admin/helpers/apply-curriculum-mutation";
+import { readCommerceQuery } from "../../modules/features/commerce/helpers/read-commerce-query";
+function fixture() {
+  const course = createCourseMetadata({ slug: "ordered-course", title: "Ordered course", description: "Course", amount: 499, category: "editing", delivery: "recorded" }, { currency: "EGP", action: "Enroll", liveLabel: "Live" });
+  const lesson = (id: string) => ({ id, title: id, duration: "1:00", durationSeconds: 60, description: "", videoUrl: "", resourceIds: [], takeaway: [] });
+  course.modules = [{ id: "chapter", title: "Chapter", sections: [{ id: "section", title: "Section", lessonIds: ["second", "first"] }], lessons: [lesson("first"), lesson("second"), lesson("third")] }];
+  return course;
+}
+test("Resume and completion follow section lesson order, including unassigned lessons", () => {
+  const course = fixture();
+  assert.deepEqual(courseLessons(course).map(l => l.id), ["second", "first", "third"]);
+  assert.equal(courseProgress(course, { completed: [] }).next?.id, "second");
+  assert.equal(courseProgress(course, { completed: ["ordered-course/second", "ordered-course/deleted", "other-course/first"] }).next?.id, "first");
+  assert.equal(courseProgress(course, { completed: ["ordered-course/second", "ordered-course/deleted"] }).percent, 33);
+});
+test("Editing a lesson preserves its section position and does not mutate the original", () => {
+  const course = fixture(), before = structuredClone(course);
+  const result = applyCurriculumMutation(course, { kind: "lesson", operation: "edit", revision: 0, id: "second", chapterId: "chapter", sectionId: "section", title: "Updated", description: "", durationSeconds: 60, videoUrl: "/assets/video/workshop-intro.mp4", preview: false }, "second");
+  assert.deepEqual(result.modules[0].sections![0].lessonIds, ["second", "first"]);
+  assert.deepEqual(course, before);
+});
+test("Lesson outline preserves actual sections, unassigned grouping and current progress", () => {
+  const course = fixture(), state = { enrolled: [course.slug], completed: [course.slug + "/second"], profile: { name: "Learner", email: "learner@example.com" } };
+  const result = lessonOutline({ course, state, lessonHref: (slug, id) => `/learn/${slug}/${id}`, ungroupedLabel: "Additional lessons" });
+  assert.deepEqual(result.modules[0].groups.map(g => g.title), ["Section", "Additional lessons"]);
+  assert.equal(result.modules[0].groups[0].lessons[0].complete, true);
+  assert.equal(result.modules[0].groups[1].lessons[0].href, "/learn/ordered-course/third");
+  const preview = lessonOutline({course,state:{...state,enrolled:[]},lessonHref:()=>"/lesson",lockedHref:"/course"});
+  assert.equal(preview.modules[0].groups[0].lessons[0].locked, true);
+  assert.equal(preview.modules[0].groups[0].lessons[0].href, "/course");
+});
+test("Sales filters accept only known states, bound pagination and handle repeated parameters", () => {
+  const states = { pending: "Pending", paid: "Paid" };
+  assert.deepEqual(readCommerceQuery({ q: ["one", "two"], status: "__proto__", page: "-1" }, states), { search: "", status: "all", page: 1 });
+  assert.equal(readCommerceQuery({ page: "Infinity", status: "paid", q: "x".repeat(200) }, states).page, 10000);
+  assert.equal(readCommerceQuery({ q: "x".repeat(200) }, states).search.length, 100);
+});
+
+test("Terminal payment failures do not claim confirmation is pending or keep polling", () => {
+  for (const status of ["failed", "expired"]) {
+    assert.equal(paymentNeedsPolling(status, false), false);
+    assert.notEqual(paymentStatusHint({ status, enrolled: false, bundleSlug: null }, paymentCopy), paymentCopy.pendingHint);
+  }
+  assert.equal(paymentNeedsPolling("pending", false), true);
+  assert.equal(paymentNeedsPolling("paid", true), false);
+  assert.equal(paymentNeedsPolling("paid", false), true);
+  assert.equal(paymentStatusHint({ status: "paid", enrolled: true, bundleSlug: "bundle" }, paymentCopy), paymentCopy.paidBundleHint);
+});
+
+test("Original sample lesson media is recognized across YouTube URL formats", () => {
+  for (const url of ["https://www.youtube-nocookie.com/embed/BQTI8hXPVD0", "https://youtu.be/BQTI8hXPVD0", "https://www.youtube.com/watch?v=BQTI8hXPVD0"]) assert.equal(isSampleLessonVideo(url), true);
+  assert.equal(isSampleLessonVideo("https://youtu.be/h1G6qEPRIPg"), false);
+  assert.equal(isSampleLessonVideo("/assets/video/workshop-intro.mp4"), false);
+});
+
+test("Live lesson preview actions return to the workshop route", () => {
+  const course = fixture(); course.delivery = "live";
+  const lessons = courseLessons(course), lesson = lessons[0];
+  const model = lessonPlaybackModel({ course, lesson, slug: course.slug, lessons, index: 0, lessonId: lesson.id,
+    state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], enrolled: false,
+    previous: undefined, next: lessons[1], complete: false });
+  assert.equal(model.actions.courseHref, "/workshops/ordered-course");
+});
+```
+
 ### File: `tests/security/payment-locks.cjs`
 
-SHA-256: `b694bef38e2ad765fd75f43f14feb20b05946b36df13a7535e427f98d34f121d`
+SHA-256: `3e6555ae53b798e60447a9f6c7e47b37d4c17adc98a8326fc00a2659775d1613`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated database concurrency regression. */
@@ -40503,7 +41009,9 @@ module.exports = async function paymentLocks({ connectionString, user, slug, ord
   await a.connect(); await b.connect();
   try {
     await a.query('begin');
-    await a.query('select pg_advisory_xact_lock(hashtextextended($1,0))', [user + slug]);
+    // Commerce serializes all purchases for a user, including overlapping bundles.
+    // Hold the actual RPC lock before contacts; the retired per-course key inverted that order.
+    await a.query('select pg_advisory_xact_lock(hashtextextended($1,0))', ['commerce:' + user]);
     await a.query('select 1 from public.account_contacts where user_id=$1 for update', [user]);
     const settling = b.query('select public.settle_course_payment($1,$2,999001,120000,\'EGP\')', [order, intent]).then(() => null, e => e);
     await waitForLock(a, b.processID);
@@ -40583,6 +41091,35 @@ test("sensitive actions have independent budgets", () => {
   assert.equal(ratePolicy("/api/account/verification", "POST").name, "email");
   assert.equal(ratePolicy("/api/media/images", "POST").name, "upload");
   assert.equal(ratePolicy("/api/payments/fawaterak/webhook_json", "POST").name, "webhook");
+});
+```
+
+### File: `tests/security/reveal-interaction.test.ts`
+
+SHA-256: `9d5b8a6de0422f053d090e28f03dde010de7ed0b380211406c5f4a16f70e6d7a`
+
+```typescript
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createEntrance } from "../../packages/design-system/helpers/motion/create-entrance";
+function capture(mode: string | null) {
+  let frames: Keyframe[] = [], options: KeyframeAnimationOptions = {}, paused = false;
+  const target = { getAttribute: () => mode, animate: (keyframes: Keyframe[], settings: KeyframeAnimationOptions) => {
+    frames = keyframes; options = settings; return { pause: () => { paused = true; } };
+  } } as unknown as Element;
+  createEntrance(target, { trigger: "[data-reveal]", y: 32, duration: 500, delay: 50, stagger: 80 }, 2, "ease");
+  return { frames, options, paused };
+}
+test("Interactive fade targets keep their hit area stationary and retain centralized timing", () => {
+  const result = capture("fade");
+  assert.deepEqual(result.frames.map(frame => frame.transform), ["none", "none"]);
+  assert.deepEqual(result.frames.map(frame => frame.opacity), [0, 1]);
+  assert.equal(result.options.duration, 500);
+  assert.equal(result.options.delay, 210);
+  assert.equal(result.paused, true);
+});
+test("Default reveals retain their configured movement", () => {
+  assert.match(String(capture(null).frames[0].transform), /translate3d\(0px,32px,0\)/);
 });
 ```
 

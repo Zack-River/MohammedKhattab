@@ -9,12 +9,14 @@ if (!/^postgresql:\/\/postgres:postgres@127\.0\.0\.1:/.test(config.DB_URL)) thro
 const url = 'http://localhost:3045';
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: config.API_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: config.PUBLISHABLE_KEY ?? config.ANON_KEY, APP_ORIGIN: url, SUPABASE_SECRET_KEY: config.SECRET_KEY ?? config.SERVICE_ROLE_KEY };
 let paymentMock;
-if(['payments','commerce'].includes(process.env.BACKEND_SUITE)) {
+if(['payments','commerce','lms-workflows'].includes(process.env.BACKEND_SUITE)) {
  paymentMock=require('./payment-gateway.cjs').paymentGateway();paymentMock.server.listen(3046,'127.0.0.1');
  Object.assign(env,{FAWATERAK_TOKEN_URL:'http://127.0.0.1:3046/oauth/token',FAWATERAK_CLIENT_ID:'local-payment-client',FAWATERAK_CLIENT_SECRET:'local-payment-secret',HASH_API_KEY:'local-payment-hmac',FAWATERAK_TEST_ORIGIN:'http://127.0.0.1:3046'});
 }
+if(process.env.BACKEND_SUITE === 'live-content-gate') Object.assign(env,{FAWATERAK_TOKEN_URL:'https://app.fawaterk.com/oauth/token',FAWATERAK_CLIENT_ID:'blocked-local-client',FAWATERAK_CLIENT_SECRET:'blocked-local-secret',HASH_API_KEY:'local-only-hash'});
 const log = fs.openSync('/tmp/khatab-backend-server.log', 'w');
-const server = spawn('node', ['node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
+const preload=process.env.BACKEND_SUITE === 'live-content-gate' ? ['--import', require('node:path').resolve('tests/backend/block-live-provider.mjs')] : [];
+const server = spawn('node', [...preload, 'node_modules/next/dist/bin/next', 'dev', '--hostname', '127.0.0.1', '--port', '3045'], { env, stdio: ['ignore', log, log] });
 const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const identities = [];
 let checks = 0;
@@ -56,6 +58,12 @@ async function run() {
   // Local-only test isolation prevents a previous suite's budget from affecting another suite.
   const budgetDb = new (require('pg').Client)({ connectionString: config.DB_URL });
   await budgetDb.connect(); await budgetDb.query('delete from private.request_buckets'); await budgetDb.end();
+  if (process.env.BACKEND_SUITE === 'live-content-gate') {
+    await require('./live-content-gate.cjs')({admin,provision,verify});return;
+  }
+  if (process.env.BACKEND_SUITE === 'lms-workflows') {
+    await require('./lms-workflows.cjs')({admin,provision,anonymous,verify,url});return;
+  }
   if (process.env.BACKEND_SUITE === 'security') {
     await require('./security.cjs')({ admin, provision, anonymous, verify, url, config }); return;
   }

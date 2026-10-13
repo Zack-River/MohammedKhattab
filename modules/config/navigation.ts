@@ -34,6 +34,7 @@ export const routes = {
   forgotPassword: `${learningBase}/forgot-password`,
   confirmEmail: `${learningBase}/confirm-email`,
   resetPassword: `${learningBase}/reset-password`,
+  purchases: `${learningBase}/dashboard/purchases`,
   library: `${learningBase}/dashboard/courses`,
   resources: `${learningBase}/dashboard/resources`,
   certificates: `${learningBase}/dashboard/certificates`,

@@ -17,7 +17,7 @@ export default function LessonInformation({
     | "notesUnavailable"
     | "notesSaved"
   >;
-  resources: import("@platform/types/lms").Resource[];
+  resources: Omit<import("@platform/types/lms").Resource, "content">[];
   lesson: import("@platform/types/lms").Lesson;
   storageKey: string;
 }) {
@@ -34,7 +34,7 @@ export default function LessonInformation({
             </li>
           ))}
         </ul>
-        <h2>{copy.resources}</h2>
+        {resources.length > 0 && <h2>{copy.resources}</h2>}
         {resources.map((resource) => (
           <a
             className="lms-resource-link"

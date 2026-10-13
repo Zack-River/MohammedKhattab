@@ -7,6 +7,7 @@ export function mutateLesson(course: CurriculumCourse, input: CurriculumMutation
   const section = input.sectionId ? destination.sections?.find(section => section.id === input.sectionId) : undefined;
   if (input.sectionId && !section) throw new ApiError(400,"INVALID_INPUT");
   const existing = input.operation === "create" ? undefined : curriculumLesson(course,input.id);
+  const sectionPosition = section?.lessonIds.indexOf(input.id ?? "") ?? -1;
   const position = existing?.chapter.id === destination.id ? destination.lessons.findIndex(lesson => lesson.id === input.id) : -1;
   const lesson = existing?.lesson ?? { id, resourceIds: [], takeaway: [], videoUrl: "" };
   for (const chapter of course.modules) {
@@ -24,5 +25,6 @@ export function mutateLesson(course: CurriculumCourse, input: CurriculumMutation
     videoUrl: "",
   };
   if (position >= 0) destination.lessons.splice(position,0,updated); else destination.lessons.push(updated);
-  section?.lessonIds.push(lesson.id);
+  if (sectionPosition >= 0) section?.lessonIds.splice(sectionPosition, 0, lesson.id);
+  else section?.lessonIds.push(lesson.id);
 }

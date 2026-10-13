@@ -1,4 +1,7 @@
 import "server-only";
+import { assertLivePurchaseContent } from "./assert-live-content";
+import { paymentEnvironment } from "../gateway/environment";
+import { quotePurchase } from "@platform/features/commerce/repositories/quote";
 import { requireIdentity } from "@platform/features/auth/server/identity";
 import { readAccount } from "@platform/features/account/repositories/read-account";
 import { createGatewayCheckout } from "../gateway/create-checkout";
@@ -12,6 +15,10 @@ export async function createCheckout(input: PurchaseInput) {
   const verification = await client.rpc("contacts_verified");
   if (verification.error) throw new ApiError(503, "INTERNAL_ERROR");
   if (!verification.data) throw new ApiError(403, "CONTACT_VERIFICATION_REQUIRED");
+  if (paymentEnvironment().live) {
+    const quote = await quotePurchase(input, user.id);
+    if (quote.totalMinor > 0) await assertLivePurchaseContent(quote.courseSlugs);
+  }
   const account = await readAccount(),
     record = await beginPaymentOrder(user.id, input);
   if (record.order.amount_minor === 0) return {orderId:record.order.id,checkoutUrl:routes.payment(record.order.id)};

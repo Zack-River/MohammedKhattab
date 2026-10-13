@@ -909,6 +909,11 @@ button:disabled {
   font-size: var(--font-size-caption);
   color: var(--text-secondary);
 }
+.lms-outline-section-title {
+  padding: var(--space-md) var(--size-20px) var(--space-sm);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
 .lms-outline-module h3 span {
   color: var(--primary-red);
 }

@@ -22,7 +22,7 @@ export default async function LessonPage({ params }: { params: Promise<{ slug: s
       <div className="lms-learn-grid">
         <LessonOutline {...shell.outline} />
         <main className="lms-lesson-main">
-          <Link href={routes.course(slug)} className="lms-breadcrumb">{copy.back}</Link>
+          <Link href={routes.course(slug, context.course.delivery)} className="lms-breadcrumb">{copy.back}</Link>
           <LessonTitle {...playback.title} />
           <LessonPlayer {...playback.player} />
           <LessonActions {...playback.actions} />

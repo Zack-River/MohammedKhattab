@@ -14,7 +14,9 @@ module.exports = async function paymentLocks({ connectionString, user, slug, ord
   await a.connect(); await b.connect();
   try {
     await a.query('begin');
-    await a.query('select pg_advisory_xact_lock(hashtextextended($1,0))', [user + slug]);
+    // Commerce serializes all purchases for a user, including overlapping bundles.
+    // Hold the actual RPC lock before contacts; the retired per-course key inverted that order.
+    await a.query('select pg_advisory_xact_lock(hashtextextended($1,0))', ['commerce:' + user]);
     await a.query('select 1 from public.account_contacts where user_id=$1 for update', [user]);
     const settling = b.query('select public.settle_course_payment($1,$2,999001,120000,\'EGP\')', [order, intent]).then(() => null, e => e);
     await waitForLock(a, b.processID);

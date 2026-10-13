@@ -1,4 +1,5 @@
 export const adminUsersCopy = {
+  progress: "تقدّم الطالب", lessons: "دروس",
   searchMode: "طريقة البحث", contains: "بحث شامل", prefix: "الاسم يبدأ بـ",
   heading: "إدارة المستخدمين", description: "الحسابات والاشتراكات وإدارة صلاحيات الوصول.",
   users: "المستخدمون", courses: "الدورات", dashboard: "لوحة الإدارة", name: "الاسم", username: "اسم المستخدم",

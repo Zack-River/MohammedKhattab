@@ -1,5 +1,5 @@
 import { liveWorkshopCourse } from "./workshop-course";
-import { categories } from "@platform/config/catalog";
+import { categories, sampleLessonVideoUrl } from "@platform/config/catalog";
 import {
   courseSeconds,
   formatCourseDuration,
@@ -8,7 +8,6 @@ import {
 import { lessonResources } from "./catalog-settings";
 import { courseOffers } from "./offers";
 import type { Course, Lesson } from "@platform/types/lms";
-const demoVideo = "https://www.youtube-nocookie.com/embed/BQTI8hXPVD0";
 const lesson = (
   id: string,
   title: string,
@@ -23,7 +22,7 @@ const lesson = (
   resourceIds: [],
   description,
   preview,
-  videoUrl: demoVideo,
+  videoUrl: sampleLessonVideoUrl,
   takeaway: [
     "طبّق الفكرة على مشروعك الخاص.",
     "راجع النتيجة قبل الانتقال للدرس التالي.",

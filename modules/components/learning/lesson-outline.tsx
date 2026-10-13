@@ -6,15 +6,17 @@ import ProgressBar from "@platform/components/ui/progress-bar";
 import type { LessonOutlineModel } from "@platform/features/learning/helpers/lesson-outline";
 export default function LessonOutline({
   model,
+  lockedLabel,
   active,
   copy,
 }: {
   model: LessonOutlineModel;
+  lockedLabel: string;
   active: string;
 } & {
   copy: Pick<
     ContentBindings["copy"],
-    "courseContent" | "completed" | "pending" | "progress" | "lessons"
+    "preview" | "courseContent" | "completed" | "pending" | "progress" | "lessons"
   >;
 }) {
   return (
@@ -29,14 +31,16 @@ export default function LessonOutline({
       </div>
       <nav aria-label={copy.courseContent}>
         {model.modules.map((module, index) => (
-          <div key={module.title} className="lms-outline-module">
+          <div key={module.id} className="lms-outline-module">
             <h3>
               <span className="numeral">
                 {numbered(index)}
               </span>
               {module.title}
             </h3>
-            {module.lessons.map((lesson) => {
+            {module.groups.map(group => <div key={group.id}>
+            {group.title && <h4 className="lms-outline-section-title">{group.title}</h4>}
+            {group.lessons.map((lesson) => {
               const complete = lesson.complete;
               return (
                 <Link
@@ -48,18 +52,18 @@ export default function LessonOutline({
                   <span
                     className={`lms-outline-check ${complete ? "is-complete" : ""}`}
                   >
-                    <Symbol name={complete ? "check" : "play"} />
+                    <Symbol name={lesson.locked ? "lock" : complete ? "check" : "play"} />
                   </span>
                   <span>
                     {lesson.title}
                     <small className="numeral">
                       {lesson.duration} ·{" "}
-                      {complete ? copy.completed : copy.pending}
+                      {lesson.locked ? lockedLabel : complete ? copy.completed : lesson.preview ? copy.preview : copy.pending}
                     </small>
                   </span>
                 </Link>
               );
-            })}
+            })}</div>)}
           </div>
         ))}
       </nav>

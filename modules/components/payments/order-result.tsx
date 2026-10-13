@@ -1,4 +1,5 @@
 "use client";
+import { paymentStatusHint } from "@platform/features/payments/helpers/status-hint";
 import Link from "next/link";
 import Action from "@khatab/design/ui/action";
 import { usePaymentStatus } from "@platform/hooks/use-payment-status";
@@ -25,7 +26,7 @@ export default function OrderResult({
       <strong className="lms-payment-amount numeral">
         {order.amount} {labels.currency}
       </strong>
-      <p>{order.status === "paid" ? (order.enrolled ? (order.bundleSlug ? labels.paidBundleHint : labels.paidHint) : labels.activationHint) : labels.pendingHint}</p>
+      <p>{paymentStatusHint(order, labels)}</p>
       {order.status === "paid" && order.enrolled ? (
         <Link className="btn-primary" href={libraryHref}>
           {labels.course}

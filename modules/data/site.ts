@@ -10,7 +10,7 @@ export const site = {
   englishName: learningIdentity.englishName,
   description:
     "خطوة صغيرة اليوم، مهارة تفتح لك طريقًا جديدًا. دورات في المونتاج والجرافيك ديزاين والموشن جرافيك، مع تدريب على العمل الحر وكوتشينج.",
-  demoLabel: "نسخة تجريبية",
+  demoLabel: "منصة تعلّم",
   email: creatorIdentity.email,
 };
 export const marketingNavigation = [
@@ -23,6 +23,7 @@ export const marketingNavigation = [
 export const dashboardNavigation = [
   { href: routes.dashboard, label: "نظرة عامة", symbol: "grid" },
   { href: routes.library, label: "دوراتي", symbol: "book" },
+  { href: routes.purchases, label: "طلباتي ومدفوعاتي", symbol: "book" },
   { href: routes.resources, label: "مكتبة الأدوات", symbol: "folder" },
   { href: routes.certificates, label: "شهاداتي", symbol: "award" },
   { href: routes.profile, label: "حسابي", symbol: "user" },
@@ -105,14 +106,14 @@ export const faq: FaqContent = {
         "الدورات بتعلّمك المونتاج والجرافيك ديزاين والموشن جرافيك والعمل الحر بمنهج وتطبيقات. الكوتشينج توجيه شخصي لمراجعة أعمالك وتحديد خطوات تطويرك.",
     },
     {
-      question: "هل الدورات والفيديوهات نهائية؟",
+      question: "كيف أعرف محتوى الدورة قبل الاشتراك؟",
       answer:
-        "هذه نسخة تجريبية لتجربة المنصة. عناوين الدورات والمنهج أمثلة، وتستخدم الدروس فيديو معاينة واحدًا إلى أن يُضاف المحتوى التعليمي النهائي.",
+        "تجد الفصول والأقسام والدروس في صفحة الدورة. يمكنك مشاهدة الدروس المتاحة للمعاينة قبل الاشتراك.",
     },
     {
-      question: "هل يوجد دفع أو اشتراك في هذه النسخة؟",
+      question: "كيف يتم الدفع وتفعيل الاشتراك؟",
       answer:
-        "يمكنك تجربة التسجيل والتعلّم مجانًا هنا. الدفع وحسابات المستخدمين الفعلية ليست مفعّلة في النسخة التجريبية.",
+        "أنشئ حسابك وأكّد البريد الإلكتروني ورقم الهاتف، ثم انتقل للدفع الآمن. يتفعّل اشتراكك بعد تأكيد الدفع، وتجد دوراتك داخل حسابك.",
     },
   ],
 };
@@ -131,10 +132,11 @@ export const copy = {
   courseContent: "محتوى الدورة",
   preview: "معاينة مجانية",
   lessons: "دروس",
-  demoVideo: "هذا فيديو تجريبي لعرض تجربة التعلّم.",
+  demoVideo: "شاهد الدرس وطبّق الخطوات بنفسك.",
   complete: "أتممت هذا الدرس",
   completed: "تم إتمام الدرس",
   next: "الدرس التالي",
+  previous: "الدرس السابق",
   saving: "جارٍ الحفظ…",
   error: "تعذّر الحفظ. جرّب مرة أخرى.",
   notes: "ملاحظاتك",

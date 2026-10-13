@@ -7,6 +7,12 @@ The client chose these two sites as the visual reference for this project and fu
 
 Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. Ta3allam is the unified app’s home page `/`; the personal portfolio is `/founder` and the workshop is `/workshops/7days-freelance`.
 
+## Learning and payment workflow additions (2026-10-13)
+
+Student lesson navigation follows saved chapter/section order, then unassigned lessons. The same grouping helper supplies the public curriculum, learner outline and resume/next/previous calculations. Section headings and locked/preview indicators use the existing typography, muted colors and icon set. Preview visitors are directed to course details; enrolled learners retain explicit manual completion. Materials are retrieved through learner-scoped database relationships rather than static seed imports. Browser-local notes remain labelled as such.
+
+`/dashboard/purchases` reuses the sales filters/table/row components with customer information omitted and receipt links enabled. Search and status combine; five records per page become the existing mobile card layout. Test/live payments are explicitly distinguished. Failed/expired receipt copy does not imply payment is awaiting confirmation. Admin user subscription cards reuse the shared progress component with actual current lesson totals. Transaction tables use `data-reveal-motion="fade"` so entrance opacity changes without moving a link between pointer press and release. Default reveals retain their configured translation. No new dependency or visual theme is introduced.
+
 ## Shared foundation
 
 `packages/design-system/styles/theme.css` owns the canonical colors, typography, spacing, radii, layout widths and motion roles. `app/styles/theme.css` remains the workshop entry point and imports that source; `modules/styles/theme.css` imports it before explicit LMS deltas. Both references share `#101317` backgrounds, `#FC3522` accents, IBM Plex Sans Arabic, Arabic RTL typography, dark cards, restrained borders, and red primary actions. Fonts and assets are local.

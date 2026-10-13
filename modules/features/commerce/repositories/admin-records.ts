@@ -1,4 +1,5 @@
 import "server-only";
+import { requireAdmin } from "@platform/features/admin/identity";
 import { createAuthAdministrator } from "@platform/lib/supabase/admin";
 import { commerceDatabaseError } from "../helpers/database-error";
 import { readBundleRecord,readDiscountRecord } from "../helpers/read-record";
@@ -6,6 +7,7 @@ import { commerceSearchFilter } from "../helpers/search-filter";
 import { commercePolicy } from "@platform/config/commerce";
 import type { CommerceKind, CommerceList } from "@platform/types/commerce";
 export async function readCommerceList(kind:CommerceKind, search="", status="all", page=1): Promise<CommerceList> {
+ await requireAdmin();
  const client=createAuthAdministrator(),from=(page-1)*commercePolicy.pageSize;
  if(kind==='bundles') {
   let query=client.from('commerce_bundles').select('*',{count:'exact'}).order('updated_at',{ascending:false}).order('slug').range(from,from+commercePolicy.pageSize-1);
