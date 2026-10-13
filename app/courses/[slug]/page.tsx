@@ -1,10 +1,8 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { findCourse } from "@platform/features/catalog";
 import { routes } from "@platform/config/navigation";
 import CourseDetailsPage from "@platform/features/catalog/course-details-page";
 import PublicSiteShell from "@platform/features/marketing/public-site-shell";
-import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
-import { isFeaturedCourse } from "@platform/features/catalog/helpers/is-featured-course";
 type CourseParams = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: CourseParams) {
   const { slug } = await params, course = await findCourse(slug);
@@ -14,7 +12,5 @@ export async function generateMetadata({ params }: CourseParams) {
 export default async function CoursePage({ params }: CourseParams) {
   const { slug } = await params, course = await findCourse(slug);
   if (!course) notFound();
-  if (course.delivery === "live") redirect(routes.workshopPage(slug));
-  if (isFeaturedCourse(course)) return <FeaturedCourse course={course} />;
   return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
 }

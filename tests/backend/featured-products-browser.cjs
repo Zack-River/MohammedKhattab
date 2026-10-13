@@ -12,7 +12,7 @@ module.exports=async({manager,url,bundleSlug,api,verify})=>{
   const response=page.waitForResponse(r=>r.url().endsWith(api)&&r.request().method()==='POST');
   await page.getByRole('button',{name:'حفظ التصميم',exact:true}).click();verify((await response).status()===200,'Shared browser editor saves bundle template');
   for(const width of [390,1440]){
-   await page.setViewportSize({width,height:900});await page.goto(url+'/bundles/'+bundleSlug);
+   await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+bundleSlug+'?kind=bundle');
    await expect(page.getByRole('heading',{name:'Distinct bundle heading',exact:true})).toBeVisible();
    verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('footer').count()===1,'Bundle has one navbar/footer at '+width);
    await expect(page.locator('.top-scarcity-bar')).toContainText('Actual bundle sale');

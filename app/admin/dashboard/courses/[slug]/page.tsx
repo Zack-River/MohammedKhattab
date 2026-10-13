@@ -1,3 +1,4 @@
+import { mediaPreviewCopy } from "@platform/data/media-preview";
 import { templateCopy } from "@platform/data/workshop-template";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -16,7 +17,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
-  return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
+  return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}{record.published && record.course.featured && <Link href={routes.featured(slug)} className="lms-text-link">{mediaPreviewCopy.featured}</Link>}</PageHeading>
     <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} templateLabel={templateCopy.title} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
 }

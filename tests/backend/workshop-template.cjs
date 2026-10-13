@@ -26,7 +26,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await manager.api(path,{document:v,revision:0})).status===200,'Admin saves custom content and section visibility');
   verify((await manager.api(path,{document:v,revision:0})).status===409,'Concurrent initial template write rejects stale revision');
   record=parse(await manager.api(path));verify(record.revision===1&&record.document.content.hero.title[0]==='Unique featured heading','Template persists full content');
-  const publicPage=await anonymous('/workshops/'+slug);
+  const publicPage=await anonymous('/featured/'+slug);
   verify(publicPage.status===200&&publicPage.data.includes('Unique featured heading')&&publicPage.data.includes('Unique question?')&&!publicPage.data.includes('guarantee-section'),'Published template uses edited text and hides section');
   verify(publicPage.data.includes('lms-site-header')&&!publicPage.data.includes('top-scarcity-bar'),'Featured template uses main navbar and hides countdown');
   verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('course_slug',slug).select()).data?.length,'RLS prevents student direct writes');
@@ -34,7 +34,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   bad.content.hero.action.href='/';bad.content.hero.section.id='hacked';verify((await manager.api(path,{document:bad,revision:1})).status===400,'Template cannot break section IDs or animation contract');
   v.order=['hero','faq',...v.order.filter(k=>!['hero','faq'].includes(k))];
   verify((await manager.api(path,{document:v,revision:1})).status===200,'Admin saves custom section order');
-  const reordered=await anonymous('/workshops/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
+  const reordered=await anonymous('/featured/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
   verify((await manager.api(path,{document:v,revision:1})).status===409,'Stale template edit cannot overwrite newer document');
   verify((await anonymous('/api/courses/'+slug+'/template-media?clip=../../secret')).status===404,'Public media endpoint rejects arbitrary clip lookup');
   await require('./recorded-featured.cjs')({admin,manager,student,anonymous,verify,url});

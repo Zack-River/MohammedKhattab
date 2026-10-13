@@ -3,7 +3,7 @@ export const projectRoutes = {
   portfolio: "/founder",
   learning: "/",
   courses: "/courses",
-  workshop: `/workshops/${workshopCourseConfig.slug}`,
+  workshop: `/featured/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",

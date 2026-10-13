@@ -32,7 +32,7 @@ module.exports=async({manager,student,admin,course,liveSlug,url,verify})=>{
   await admin.from('courses').update({metadata:{...course,introVideoUrl:'',thumbnailUrl:''}}).eq('slug',course.slug);await page.goto(url+'/courses/'+course.slug);
   await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toHaveCount(0);await expect(page.locator('.lms-course-intro .lms-course-art')).toBeVisible();verify(true,'Courses without media show their themed artwork without an invalid play action');
   await require('./featured-workshop-browser.cjs')({browser,manager,url,liveSlug,verify});
-  await admin.from('enrollments').insert({user_id:student.id,course_slug:liveSlug});await page.goto(url+'/workshops/'+liveSlug);
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:liveSlug});await page.goto(url+'/workshops/'+liveSlug);await expect(page).toHaveURL(url+'/courses/'+liveSlug);verify(true,'Browser follows old workshop link to canonical course details');
   await expect(page.getByRole('link',{name:'متابعة الورشة',exact:true})).toHaveAttribute('href',/^https:\/\/wa\.me\//);verify(true,'Enrolled live workshop without lessons has a working support action');
   verify(errors.length===0,'Detail pages have no browser runtime or hydration errors');
  }finally{await browser.close();}

@@ -5,7 +5,7 @@ The client chose these two sites as the visual reference for this project and fu
 - [Workshop](https://warshataltagheer.vercel.app/)
 - [Personal brand](https://mohamedkhattab.vercel.app/)
 
-Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. Ta3allam is the unified app’s home page `/`; the personal portfolio is `/founder` and the workshop is `/workshops/7days-freelance`.
+Keep their visual language when adding pages. Do not introduce a new aesthetic, light editorial sections, scroll storytelling, or new animation/player libraries unless requested. The workshop reconstruction remains the workshop home page. Ta3allam is the unified app’s home page `/`; the personal portfolio is `/founder` and the featured workshop marketing page is `/featured/7days-freelance`, with its details at `/courses/7days-freelance`. Old workshop links redirect to details.
 
 ## Learning and payment workflow additions (2026-10-13)
 
@@ -369,3 +369,7 @@ Featured recorded courses and live workshops use the shared Ta3llam navbar. Thei
 ## Featured bundle layouts and real offer strip (2026-10-13)
 
 Bundles can select the same approved featured page as courses and live workshops. Reuse the template editor, content schema, theme, section components, main navbar, players and footer. Keep `/bundles/[slug]` and bundle checkout semantics. Show the active saved offer name and its actual end date in the existing dark urgency strip; omit the strip when no offer applies, omit the timer for undated offers, and remove it after expiry. Never display demo viewer counts or restarting five-day deadlines as live commercial data. Offer management owns campaign identity and dates; template editing owns visibility and composition.
+
+## Independent featured pages and admin video previews (2026-10-13)
+
+Featured marketing uses `/featured/[slug]` (bundles add `?kind=bundle`) while normal course details and payment destinations remain separate. Course and lesson editors compose one shared `VideoPreview` with supplied labels and the existing full-control media player. Drive drafts use the administrator-only stream endpoint; new courses require a saved draft before Drive preview. Player loading remains activation-only, resets on link changes and scroll-out, and uses existing responsive/theme styles. No new media library or visual theme is added.

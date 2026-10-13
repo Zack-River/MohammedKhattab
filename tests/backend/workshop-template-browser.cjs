@@ -20,7 +20,7 @@ module.exports=async({manager,slug,url,verify})=>{
   await page.reload();await page.locator('.lms-template-editor > fieldset > details').first().locator('summary').first().click();
   await expect(page.getByLabel('الوصف',{exact:true}).first()).toHaveValue('Saved using the reusable template editor');verify(true,'Edited template survives reload');
   for(const width of [390,1440]) {
-   await page.setViewportSize({width,height:900});await page.goto(url+'/workshops/'+slug);await page.waitForLoadState('networkidle');
+   await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+slug);await page.waitForLoadState('networkidle');
    await expect(page.getByText('Saved using the reusable template editor',{exact:true})).toBeVisible();
    verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Featured workshop fits '+width);
    verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('header').count()===1,'Featured workshop has exactly one shared navbar at '+width);

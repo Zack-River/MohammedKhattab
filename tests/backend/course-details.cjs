@@ -18,13 +18,14 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   let current=await read();verify(current.course.featured===false,'Ordinary status persists');
   verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:'true'})).status===400,'Non-boolean featured edit rejected');
   verify((await manager.api('/api/admin/courses/'+liveSlug,edit(current))).status===200,'Ordinary live workshop publishes');
-  const ordinary=await anonymous('/workshops/'+liveSlug);verify(ordinary.status===200&&ordinary.data.includes('lms-course-details-page')&&!ordinary.data.includes('roadmap-section'),'Ordinary workshops render shared details');
+  const alias=await anonymous('/workshops/'+liveSlug);verify(alias.status===308 || alias.data.includes('NEXT_REDIRECT;replace;/courses/'+liveSlug+';308;'),'Legacy workshop URLs redirect to normal course details ('+alias.status+')');
+  const ordinary=await anonymous('/courses/'+liveSlug);verify(ordinary.status===200&&ordinary.data.includes('lms-course-details-page')&&!ordinary.data.includes('roadmap-section'),'Ordinary workshops render shared details');
   current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:true})).status===200,'Admin enables featured design');
-  const featured=await anonymous('/workshops/'+liveSlug);verify(featured.status===200&&featured.data.includes('roadmap-section')&&!featured.data.includes('lms-course-details-page'),'Featured workshops render campaign template');
+  const featured=await anonymous('/featured/'+liveSlug);verify(featured.status===200&&featured.data.includes('roadmap-section')&&!featured.data.includes('lms-course-details-page'),'Featured workshops render campaign template');
   verify(!featured.data.includes('تأسيس العقلية والبرنامج الأساسي')&&!featured.data.includes('class="hero-video-shell"'),'New featured workshops do not inherit the seven-day curriculum or intro video');
-  const legacy=await anonymous('/workshops/7days-freelance');verify(legacy.status===200&&legacy.data.includes('roadmap-section'),'Existing seven-day workshop keeps approved design');
+  const legacy=await anonymous('/featured/7days-freelance');verify(legacy.status===200&&legacy.data.includes('roadmap-section'),'Existing seven-day workshop keeps approved design');
   await require('./course-details-browser.cjs')({manager,student,admin,course,liveSlug,url,verify});
   current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),amount:0,featured:false})).status===200,'Free ordinary live workshop can be saved');
-  const free=await anonymous('/workshops/'+liveSlug);verify(free.data.includes('احجز مكانك')&&free.data.includes('https://wa.me/'),'Free live workshops without lessons provide a booking action');
+  const free=await anonymous('/courses/'+liveSlug);verify(free.data.includes('احجز مكانك')&&free.data.includes('https://wa.me/'),'Free live workshops without lessons provide a booking action');
  }finally{await admin.from('courses').delete().in('slug',[slug,liveSlug]);}
 };

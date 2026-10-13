@@ -539,9 +539,10 @@ export default async function CourseContentPage({ params }: { params: Promise<{ 
 
 ### File: `app/admin/dashboard/courses/[slug]/page.tsx`
 
-SHA-256: `e4d78d969d0219277bcbce295fb7792d562ffaa9eca93613a9d5f335ae8b591b`
+SHA-256: `c40a8df13449412e9ee18356b857e688744492d5f17de1fcd920f3b92ec95b4d`
 
 ```tsx
+import { mediaPreviewCopy } from "@platform/data/media-preview";
 import { templateCopy } from "@platform/data/workshop-template";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -560,7 +561,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const record = (await readAdminCourses(slug))[0];
   if (!record) notFound();
-  return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}</PageHeading>
+  return <><PageHeading title={record.course.title}>{record.published && <Link href={routes.course(slug, record.course.delivery)} className="lms-text-link">{adminCopy.publicPage}</Link>}{record.published && record.course.featured && <Link href={routes.featured(slug)} className="lms-text-link">{mediaPreviewCopy.featured}</Link>}</PageHeading>
     <CourseEditorTabs slug={slug} active="overview" labels={adminCoursesCopy} templateLabel={templateCopy.title} /><CourseEditor {...record} labels={adminCopy} uploadLabels={thumbnailUploadCopy} categories={categories.filter(category => category.id !== "all")} />
   </>;
 }
@@ -1352,7 +1353,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 ### File: `app/bundles/[slug]/page.tsx`
 
-SHA-256: `af5fc94c1aaa28cf775603fc4e1b044e2b47f7f3d782cd7c4057be59eb92621e`
+SHA-256: `59752c74fd589c90f2ce9ff548e7bf5c36eabfcf5930f7b2494059f8bd4f545b`
 
 ```tsx
 import { notFound } from "next/navigation";
@@ -1360,13 +1361,10 @@ import { findBundle } from "@platform/features/commerce/repositories/bundles";
 import { listCourses } from "@platform/features/catalog/service";
 import BundleCard from "@platform/components/commerce/bundle-card";
 import { commerceCopy } from "@platform/data/commerce";
-import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
 import PublicSiteShell from "@platform/features/marketing/public-site-shell";
-import { bundleTemplateCourse } from "@platform/features/marketing/templates/helpers/bundle-course";
 export default async function Page({params}:{params:Promise<{slug:string}>}) {
  const bundle=await findBundle((await params).slug);if(!bundle) notFound();
  const courses=await listCourses();
- if(bundle.featured) return <FeaturedCourse kind="bundle" quote={bundle.quote} course={bundleTemplateCourse({...bundle,amountMinor:bundle.quote.baseMinor},bundle.courseSlugs.map(slug=>courses.find(course=>course.slug===slug)!).filter(Boolean))} />;
  return <PublicSiteShell> <main className="container lms-public-main lms-bundle-details"><h1>{commerceCopy.bundles}</h1><BundleCard bundle={bundle} labels={commerceCopy} courses={courses.map(({slug,title,delivery})=>({slug,title,delivery}))} detail /></main></PublicSiteShell>;
 }
 ```
@@ -2252,16 +2250,14 @@ export const workshopMetadata: Metadata = {
 
 ### File: `app/courses/[slug]/page.tsx`
 
-SHA-256: `7feea9629f3a5ceac00058c67f4cb557ab9e26365c59c780b807c5abf91b5644`
+SHA-256: `10ab80d9176c0ca664f19c699c8cf8ee386d6c788312223c81d01bbdc384be21`
 
 ```tsx
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { findCourse } from "@platform/features/catalog";
 import { routes } from "@platform/config/navigation";
 import CourseDetailsPage from "@platform/features/catalog/course-details-page";
 import PublicSiteShell from "@platform/features/marketing/public-site-shell";
-import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
-import { isFeaturedCourse } from "@platform/features/catalog/helpers/is-featured-course";
 type CourseParams = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: CourseParams) {
   const { slug } = await params, course = await findCourse(slug);
@@ -2271,8 +2267,6 @@ export async function generateMetadata({ params }: CourseParams) {
 export default async function CoursePage({ params }: CourseParams) {
   const { slug } = await params, course = await findCourse(slug);
   if (!course) notFound();
-  if (course.delivery === "live") redirect(routes.workshopPage(slug));
-  if (isFeaturedCourse(course)) return <FeaturedCourse course={course} />;
   return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
 }
 ```
@@ -3125,6 +3119,34 @@ export default function ErrorPage({ reset }: { reset: () => void }) {
 }
 ```
 
+### File: `app/featured/[slug]/page.tsx`
+
+SHA-256: `e1de80bed0ad41106fe76589f453c038d768d1ad487354cec1bf50c57111db0f`
+
+```tsx
+import type { ProductKind } from "@platform/types/commerce";
+import { notFound } from "next/navigation";
+import { readPublicTemplateSubject } from "@platform/features/marketing/templates/public-subject";
+import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
+import { routes } from "@platform/config/navigation";
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ kind?: string | string[] }> };
+async function subject({ params, searchParams }: Props) {
+  const { slug } = await params, { kind } = await searchParams;
+  if (kind !== undefined && kind !== "course" && kind !== "bundle") notFound();
+  const productKind: ProductKind = kind === "bundle" ? "bundle" : "course";
+  const course = await readPublicTemplateSubject(productKind, slug);
+  if (!course?.featured) notFound();
+  return { course, kind: productKind };
+}
+export async function generateMetadata(props: Props) {
+  const { course, kind } = await subject(props);
+  return { title: course.title, description: course.description, alternates: { canonical: routes.featured(course.slug, kind) } };
+}
+export default async function Page(props: Props) {
+  return <FeaturedCourse {...await subject(props)} />;
+}
+```
+
 ### File: `app/founder/page.tsx`
 
 SHA-256: `c81a7cd516677acc0d64e7c51acd8875f3241ce931f781e14dcee5b3fcd87670`
@@ -3676,32 +3698,16 @@ SHA-256: `fce48b8d3894060f92c19608724647c79f19c30ed95cb67cd23462858ebe7fd6`
 
 ### File: `app/workshops/[slug]/page.tsx`
 
-SHA-256: `883d5eb856370b2698b6b7cea84c44293cd257540ef8f65aa2e25952d0e95c19`
+SHA-256: `d6c864e46294455e8591f32e120e803da44977eee636fe6a57cc903a8fb15fab`
 
 ```tsx
-import FeaturedCourse from "@platform/features/marketing/templates/featured-course";
-import { workshopMetadata } from "@/app/config/workshop-metadata";
+import { notFound, permanentRedirect } from "next/navigation";
 import { findCourse } from "@platform/features/catalog/service";
 import { routes } from "@platform/config/navigation";
-import { liveWorkshopCourse } from "@platform/data/workshop-course";
-import { isFeaturedCourse } from "@platform/features/catalog/helpers/is-featured-course";
-import CourseDetailsPage from "@platform/features/catalog/course-details-page";
-import PublicSiteShell from "@platform/features/marketing/public-site-shell";
-import { notFound } from "next/navigation";
-type WorkshopParams = { params: Promise<{ slug: string }> };
-export async function generateMetadata({ params }: WorkshopParams) {
-  const { slug } = await params;
-  const course = await findCourse(slug);
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const course = await findCourse((await params).slug);
   if (!course || course.delivery !== "live") notFound();
-  if (!isFeaturedCourse(course)) return { title: course.title, description: course.description, alternates: { canonical: routes.workshopPage(course.slug) } };
-  return { ...workshopMetadata, alternates: { canonical: routes.workshopPage(slug) }, title: { absolute: course?.title ?? liveWorkshopCourse.title }, description: course?.description ?? workshopMetadata.description };
-}
-export default async function FreelanceWorkshopPage({ params }: WorkshopParams) {
-  const { slug } = await params;
-  const course = await findCourse(slug);
-  if (!course || course.delivery !== "live") notFound();
-  if (!isFeaturedCourse(course)) return <PublicSiteShell><CourseDetailsPage course={course} /></PublicSiteShell>;
-  return <FeaturedCourse course={course} />;
+  permanentRedirect(routes.course(course.slug));
 }
 ```
 
@@ -4386,7 +4392,7 @@ export const portfolioFolderUrl =
 
 ### File: `config/project-navigation.ts`
 
-SHA-256: `52f1fa535292113d4260256cc37df27bcea621715a38c34fa27fec2e91ef4925`
+SHA-256: `c5d245ea2d7fdb27b1ea4d8365706a212b3f9c6e53ee434f1f9ebfef2e3bfb14`
 
 ```typescript
 import { workshopCourseConfig } from "./workshop-course";
@@ -4394,7 +4400,7 @@ export const projectRoutes = {
   portfolio: "/founder",
   learning: "/",
   courses: "/courses",
-  workshop: `/workshops/${workshopCourseConfig.slug}`,
+  workshop: `/featured/${workshopCourseConfig.slug}`,
 } as const;
 export const projectNavigation = {
   label: "صفحات محمد خطاب",
@@ -5572,18 +5578,22 @@ export default function CourseFormLayout({ labels, details, media, actions, pend
 
 ### File: `modules/components/admin/course-media-fields.tsx`
 
-SHA-256: `f2d75b9ae7a7661e1c178651790d7cfd02ae01bf13c49d3ad547f11cb8970a11`
+SHA-256: `1e7fd2ad0a23d539f78faf3eb805174d3421e2413d2657469152b11d44554ecb`
 
 ```tsx
 "use client";
+import { useState } from "react";
+import VideoPreview from "./video-preview";
 import type { CourseEditorProps } from "@platform/types/course-editor";
 import { adminCoursePolicy as policy } from "@platform/config/admin";
 import FormField from "@platform/components/ui/form-field";
 import CourseThumbnailField from "./course-thumbnail-field";
 export default function CourseMediaFields({ course, labels, uploadLabels, uploadHint }: Pick<CourseEditorProps,"labels" | "uploadLabels"> & { course?: CourseEditorProps["course"]; uploadHint?: string }) {
+  const [videoUrl, setVideoUrl] = useState(course?.introVideoUrl ?? "");
   return <>
     <CourseThumbnailField slug={course?.slug} uploadHint={uploadHint} initialUrl={course?.thumbnailUrl ?? ""} label={labels.thumbnail} maxLength={policy.urlMax} uploadLabels={uploadLabels} />
-    <FormField label={labels.video} name="introVideoUrl" dir="ltr" defaultValue={course?.introVideoUrl ?? ""} maxLength={policy.urlMax} hint={labels.mediaHint} />
+    <FormField label={labels.video} name="introVideoUrl" dir="ltr" value={videoUrl} onChange={event => setVideoUrl(event.target.value)} maxLength={policy.urlMax} hint={labels.mediaHint} />
+    <VideoPreview labels={labels} url={videoUrl} slug={course?.slug} thumbnailUrl={course?.thumbnailUrl} />
   </>;
 }
 ```
@@ -5821,10 +5831,11 @@ export default function LessonFields({ context, target }: { context: CurriculumC
 
 ### File: `modules/components/admin/curriculum/lesson-media-fields.tsx`
 
-SHA-256: `d09dafa67b73c3246a69495ceea200af7c8915e95456658411a121c09d74efd7`
+SHA-256: `c21548b8dbf472b34a4786e372569c94be2229a9c3e0635129d3ec6c07513a9d`
 
 ```tsx
 "use client";
+import VideoPreview from "../video-preview";
 import FormField from "@platform/components/ui/form-field";
 import { useLessonVideoDuration } from "@platform/hooks/use-lesson-video-duration";
 import { adminCoursePolicy } from "@platform/config/admin";
@@ -5833,6 +5844,7 @@ export default function LessonMediaFields({ slug, initialUrl, initialSeconds, la
   const { url, change, seconds, pending, error, inputRef, retry } = useLessonVideoDuration(slug,initialUrl,initialSeconds,labels);
   return <>
     <FormField label={labels.video} name="videoUrl" ref={inputRef} dir="ltr" value={url} onChange={event => change(event.target.value)} maxLength={adminCoursePolicy.urlMax} hint={labels.mediaHint} error={error} required />
+    <VideoPreview labels={labels} url={url} slug={slug} />
     <FormField label={labels.duration} name="durationSeconds" type="text" dir="ltr" readOnly value={seconds ?? ""} hint={pending ? labels.durationLoading : labels.durationHint} aria-busy={pending} />
     {error && <button type="button" className="lms-text-link" onClick={retry}>{labels.retryDuration}</button>}
   </>;
@@ -6300,6 +6312,28 @@ export default function UsersTable({ users, labels }: { users: AdminUser[]; labe
 }
 ```
 
+### File: `modules/components/admin/video-preview.tsx`
+
+SHA-256: `be55f70d27475a1d044c8e9e59551d8d3b71cdeb9ac86eb7dc54241fceb2b996`
+
+```tsx
+"use client";
+import MediaPlayer from "@khatab/design/ui/media-player";
+import { adminPreviewVideoUrl } from "@platform/features/admin/helpers/preview-video-url";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import type { mediaPreviewCopy } from "@platform/data/media-preview";
+type Labels = Pick<typeof mediaPreviewCopy, "previewTitle" | "previewPlay" | "previewHint" | "previewCreateFirst">;
+export default function VideoPreview({ url, slug, thumbnailUrl, labels }: { url: string; slug?: string; thumbnailUrl?: string; labels: Labels }) {
+  const source = adminPreviewVideoUrl(url, slug);
+  if (!source) return !slug && driveFileId(url) ? <p className="lms-field-hint">{labels.previewCreateFirst}</p> : null;
+  return <section aria-label={labels.previewTitle} className="lms-form-field">
+    <span>{labels.previewTitle}</span>
+    <MediaPlayer videoUrl={source} thumbnailUrl={thumbnailUrl ?? ""} title={labels.previewTitle} playLabel={labels.previewPlay} controlsVariant="full" />
+    <small className="lms-field-hint">{labels.previewHint}</small>
+  </section>;
+}
+```
+
 ### File: `modules/components/certificates/certificate-card.tsx`
 
 SHA-256: `37cfd5f0c8d046adeb9daa7b16280ee4705e1b438024c356544c18664eb1e285`
@@ -6501,7 +6535,7 @@ export default function CommerceTabs({kind,labels}:{kind:CommerceKind;labels:Com
 
 ### File: `modules/components/commerce/bundle-card.tsx`
 
-SHA-256: `3d65338417c875a8665c8a8e62836a805651992912fd7aca4dfc230f94b1c42f`
+SHA-256: `7e05d52e85f48ef2e313cc4ce9decfcf5d3aa89aa09f3e75138b5afbc7582d8d`
 
 ```tsx
 import Link from "next/link";
@@ -6510,7 +6544,7 @@ import Symbol from "@platform/components/ui/symbol";
 import PriceSummary from "./price-summary";
 import type { BundleProduct,CommerceLabels } from "@platform/types/commerce";
 export default function BundleCard({bundle,labels,courses,detail=false}:{bundle:BundleProduct;labels:CommerceLabels;courses:readonly {slug:string;title:string;delivery?:'live' | 'recorded'}[];detail?:boolean}) {
- return <article className="lms-profile-card lms-bundle-card" data-reveal="true"><h2>{detail ? bundle.title : <Link className="lms-course-text-link" href={routes.bundle(bundle.slug)}>{bundle.title}</Link>}</h2><p>{bundle.description}</p>
+ return <article className="lms-profile-card lms-bundle-card" data-reveal="true"><h2>{detail ? bundle.title : <Link className="lms-course-text-link" href={bundle.featured ? routes.featured(bundle.slug, "bundle") : routes.bundle(bundle.slug)}>{bundle.title}</Link>}</h2><p>{bundle.description}</p>
  <div><h3>{labels.includes}</h3><ul>{bundle.courseSlugs.map(slug=>{const course=courses.find(course=>course.slug===slug);return <li key={slug}><Link className="lms-course-text-link" href={routes.course(slug,course?.delivery)}>{course?.title ?? slug}<Symbol name="arrow" /></Link></li>;})}</ul></div>
  <PriceSummary quote={bundle.quote} labels={labels} /><Link href={routes.bundleCheckout(bundle.slug)} className="btn-primary lms-full-button">{labels.buyBundle}<Symbol name="arrow" /></Link></article>;
 }
@@ -6977,7 +7011,7 @@ export default function CourseArtwork({
 
 ### File: `modules/components/courses/course-card.tsx`
 
-SHA-256: `f42d3c8902d664ed6014ea876eb56317220dd0a28af03272b042ed6a68891f67`
+SHA-256: `6d6d1541b5ca719e115317c54917465f389e159530b42b7a5ab6cc98250c949f`
 
 ```tsx
 import { courseLessons } from "@platform/features/catalog/helpers";
@@ -7009,7 +7043,7 @@ export default function CourseCard({
   site: Pick<ContentBindings["site"], "englishName">;
   offerCopy: Pick<ContentBindings["offerCopy"], "price">;
 }) {
-  const detailHref = routes.course(course.slug, course.delivery);
+  const detailHref = course.featured && !progress ? routes.featured(course.slug) : routes.course(course.slug, course.delivery);
   const actionHref = progress
     ? progress.next
       ? routes.lesson(course.slug, progress.next.id)
@@ -9953,11 +9987,10 @@ export const imageUploadPolicy = {
 
 ### File: `modules/config/navigation.ts`
 
-SHA-256: `355d1091b042a368e4920c4ec5b5ae2554113b9aba8bbcf6ea6c8e1110887c3d`
+SHA-256: `a916c643531c1a9487783d4839f5cb36d838650413984e5992ee33b6884f99ba`
 
 ```typescript
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
-import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
 const learningBase = projectRoutes.learning === "/" ? "" : projectRoutes.learning;
@@ -9976,6 +10009,7 @@ export const sectionIds = {
   courseContent: "course-content",
 } as const;
 export const routes = {
+  featured: (slug: string, kind: "course" | "bundle" = "course") => `/featured/${segment(slug)}${kind === "bundle" ? "?kind=bundle" : ""}`,
   bundles: "/bundles",
   bundle: (slug: string) => `/bundles/${segment(slug)}`,
   bundleCheckout: (slug: string) => `/checkout/${segment(slug)}?kind=bundle`,
@@ -10015,11 +10049,11 @@ export const routes = {
   adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
-  course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
+  course: (slug: string, _delivery?: "recorded" | "live") => { void _delivery; return `${learningBase}/courses/${segment(slug)}`; },
   lesson: (slug: string, id: string) =>
     `${learningBase}/learn/${segment(slug)}/${segment(id)}`,
   enrollment: (slug: string, delivery?: "recorded" | "live") =>
-    delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${routes.course(slug)}#${sectionIds.enrollment}`,
+    `${routes.course(slug, delivery)}#${sectionIds.enrollment}`,
   section: (id: keyof typeof sectionIds) => `${projectRoutes.learning}#${sectionIds[id]}`,
   catalog: (query = "", category = "all") => {
     const params = new URLSearchParams();
@@ -10258,17 +10292,19 @@ export const adminUsersCopy = {
 
 ### File: `modules/data/admin.ts`
 
-SHA-256: `1e967716c347363320d82cfe9b84b84e6fbe6f62c73371866c76c0e9115769f9`
+SHA-256: `7b51c5394794ab55a2e0d866a0dbd581310b76e543544220ae02ccb28f74f088`
 
 ```typescript
+import { mediaPreviewCopy } from "./media-preview";
 export const adminCopy = {
+ ...mediaPreviewCopy,
   detailsHeading: "بيانات الدورة", mediaHeading: "الصورة والفيديو", publicationHeading: "النشر والحفظ",
   navigation: "إدارة الدورات", heading: "إدارة الدورات",
   edit: "تعديل الدورة", title: "اسم الدورة", descriptionLabel: "الوصف", price: "السعر (ج.م)", free: "مجاني", priceHint: "أدخل مبلغًا صحيحًا أكبر من صفر أو اختر مجاني.", category: "التصنيف",
   duration: "مدة الدورة", durationHint: "مطلوبة قبل نشر الدورة المباشرة، مثل: ٧ أيام.",
   durationAutomaticHint: "تُحسب تلقائيًا من إجمالي مدد الدروس، وتتحدث عند تغيير المحتوى.",
   featuredLayout: "تصميم الصفحة المميزة",
-  featuredLayoutHint: "استخدم التصميم الترويجي بدل صفحة التفاصيل، مع الاحتفاظ بنوع الدورة ومحتواها.",
+  featuredLayoutHint: "فعّل صفحة ترويجية مستقلة على /featured مع الاحتفاظ بصفحة تفاصيل الدورة.",
   thumbnail: "رابط الصورة المصغّرة", video: "رابط الفيديو التعريفي", published: "منشورة في المنصة",
   save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر الحفظ. راجع البيانات وحاول مرة أخرى.",
   mediaHint: "رابط فيديو YouTube قابل للتضمين، أو فيديو مباشر، أو ملف Google Drive عام. ملفات Drive الخاصة تحتاج صلاحية وصول منفصلة.",
@@ -10798,10 +10834,12 @@ export const courses: Course[] = [...records.map((course) => ({
 
 ### File: `modules/data/curriculum.ts`
 
-SHA-256: `c57736628e4b6ce420605c337a0eb7572766fcdbefdb640df74969b2f3a3f1ef`
+SHA-256: `c4c329ff78a65e3e2e46406c394d02be4a82650e31e5062707a6a182d82dd039`
 
 ```typescript
+import { mediaPreviewCopy } from "./media-preview";
 export const curriculumCopy = {
+ ...mediaPreviewCopy,
  chapter: "فصل", section: "قسم", lesson: "درس", create: "إضافة", edit: "تعديل", remove: "حذف", close: "إغلاق", cancel: "إلغاء",
  addChapter: "إضافة فصل", addSection: "إضافة قسم", addLesson: "إضافة درس", title: "الاسم", description: "وصف الدرس", video: "رابط فيديو الدرس", duration: "مدة الدرس بالثواني", durationHint: "تُحسب تلقائيًا من رابط الفيديو.", durationLoading: "جارٍ حساب مدة الفيديو…", durationError: "تعذّر قراءة مدة الفيديو. تأكد من صحة الرابط وإتاحة الملف للمشاهدة، ثم أعد المحاولة.", retryDuration: "إعادة المحاولة", preview: "معاينة مجانية", chapterLabel: "الفصل", sectionLabel: "القسم", ungrouped: "بدون قسم", empty: "لا توجد دروس في هذا القسم بعد.", emptyCourse: "ابدأ بإضافة فصل، ثم أضف أقسامه ودروسه.",
  save: "حفظ التغييرات", saving: "جارٍ الحفظ…", saved: "تم حفظ التغييرات", error: "تعذّر حفظ المحتوى. حاول مرة أخرى.",
@@ -10937,6 +10975,17 @@ export const interfaceCopy = {
     "ابدأ بالمونتاج أو التصميم أو الموشن، وبعدها جهّز نفسك للعمل الحر بخطوات واضحة.",
   closingAction: "ابدأ رحلتك",
 } as const;
+```
+
+### File: `modules/data/media-preview.ts`
+
+SHA-256: `b879cce6d5d9a9728f4c4384138c17881a1e774b5d3e43def5b01bd5e5f1f7db`
+
+```typescript
+export const mediaPreviewCopy = {
+  previewTitle: "معاينة الفيديو", previewPlay: "تشغيل المعاينة", previewHint: "شغّل الفيديو للتأكد من المحتوى والصوت قبل الحفظ.",
+  previewCreateFirst: "احفظ مسودة الدورة أولًا لمعاينة فيديو Google Drive.", featured: "عرض الصفحة المميزة",
+};
 ```
 
 ### File: `modules/data/offers.ts`
@@ -12261,6 +12310,26 @@ export function mutateSection(course: CurriculumCourse, input: CurriculumMutatio
   chapter.lessons = chapter.lessons.filter(lesson => !assigned.has(lesson.id));
   chapter.sections = chapter.sections!.filter(record => record.id !== section.id);
   destination.sections.push(section);
+}
+```
+
+### File: `modules/features/admin/helpers/preview-video-url.ts`
+
+SHA-256: `5968c7498b9ac13f7da6334478a74cf82f6391e2531ea3edad7625cb0d81816b`
+
+```typescript
+import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
+import { endpoints } from "@platform/config/navigation";
+import { driveFileId } from "@platform/helpers/media/drive-file-id";
+import { validMediaUrl } from "./validate-media-url";
+/** Draft Drive videos use the admin-only proxy, never the published lesson stream. */
+export function adminPreviewVideoUrl(value: string, slug?: string) {
+  const url = value.trim();
+  if (!url || !validMediaUrl(url)) return "";
+  const youtube = getYouTubeEmbedUrl(url);
+  if (youtube) return youtube;
+  if (driveFileId(url)) return slug ? endpoints.adminMediaStream(slug, url) : "";
+  return url;
 }
 ```
 
@@ -33993,6 +34062,38 @@ module.exports = async function userManagementChecks({ admin, provision, anonymo
 };
 ```
 
+### File: `tests/backend/admin-video-preview-browser.cjs`
+
+SHA-256: `08220753cca10d8c24287a65bc137f6a391fd3df285e372d733063fc203dbc4e`
+
+```typescript
+/* eslint-disable @typescript-eslint/no-require-imports -- Real admin playback with local media; no external provider request. */
+const {expect}=require('@playwright/test');
+module.exports=async({page,url,slug,verify})=>{
+ const field=page.getByLabel('رابط الفيديو التعريفي',{exact:true});
+ await field.fill('/assets/video/workshop-intro.mp4');
+ const player=page.getByRole('region',{name:'معاينة الفيديو'});
+ for(const width of [390,1440]){
+  await page.setViewportSize({width,height:900});
+  await expect(player).toBeVisible();
+  verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Admin video preview fits '+width);
+ }
+ await player.getByRole('button',{name:'تشغيل المعاينة',exact:true}).click();
+ await expect.poll(()=>player.locator('video').evaluate(video=>video.readyState)).toBeGreaterThan(0);
+ verify(true,'Admin preview loads real local video metadata after activation');
+ await field.fill('https://drive.google.com/file/d/1pVLFPEqSMCXJAjAR3VRl69hg_3zVQctu/view');
+ await expect(player.locator('video')).toHaveCount(0);
+ await page.route('**/api/admin/courses/'+slug+'/media/stream?*',route=>route.fulfill({status:302,headers:{location:url+'/assets/video/workshop-intro.mp4'}}));
+ const request=page.waitForRequest(r=>r.url().includes('/api/admin/courses/'+slug+'/media/stream?'));
+ await player.getByRole('button',{name:'تشغيل المعاينة',exact:true}).click();await request;
+ await expect.poll(()=>player.locator('video').evaluate(video=>video.readyState)).toBeGreaterThan(0);
+ verify(true,'Draft Drive preview uses admin stream and replaces the previous player');
+ await field.fill('javascript:alert(1)');await expect(player).toHaveCount(0);
+ verify(true,'Unsafe draft media cannot instantiate a player');
+ await field.fill('');
+};
+```
+
 ### File: `tests/backend/admin.cjs`
 
 SHA-256: `1fc05e0f12a34dfaec37b9aa3f739411501b340d9a609c868c38ea36214dd51a`
@@ -34432,7 +34533,7 @@ test("Creation rejects invalid media or duration values", () => {
 
 ### File: `tests/backend/course-details-browser.cjs`
 
-SHA-256: `72aa4d6888da36ca1c5c5205eff10c8e7ad7011f6e1cb12f46ebe070d01cad08`
+SHA-256: `0093fe4fd0c0b9d35b6dc2f2d8120df8dae7a5b7dc264604a1f87c090c46daa0`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Responsive shared course details and real enrollment state. */
@@ -34469,7 +34570,7 @@ module.exports=async({manager,student,admin,course,liveSlug,url,verify})=>{
   await admin.from('courses').update({metadata:{...course,introVideoUrl:'',thumbnailUrl:''}}).eq('slug',course.slug);await page.goto(url+'/courses/'+course.slug);
   await expect(page.getByRole('button',{name:'شاهد الفيديو التعريفي',exact:true})).toHaveCount(0);await expect(page.locator('.lms-course-intro .lms-course-art')).toBeVisible();verify(true,'Courses without media show their themed artwork without an invalid play action');
   await require('./featured-workshop-browser.cjs')({browser,manager,url,liveSlug,verify});
-  await admin.from('enrollments').insert({user_id:student.id,course_slug:liveSlug});await page.goto(url+'/workshops/'+liveSlug);
+  await admin.from('enrollments').insert({user_id:student.id,course_slug:liveSlug});await page.goto(url+'/workshops/'+liveSlug);await expect(page).toHaveURL(url+'/courses/'+liveSlug);verify(true,'Browser follows old workshop link to canonical course details');
   await expect(page.getByRole('link',{name:'متابعة الورشة',exact:true})).toHaveAttribute('href',/^https:\/\/wa\.me\//);verify(true,'Enrolled live workshop without lessons has a working support action');
   verify(errors.length===0,'Detail pages have no browser runtime or hydration errors');
  }finally{await browser.close();}
@@ -34478,7 +34579,7 @@ module.exports=async({manager,student,admin,course,liveSlug,url,verify})=>{
 
 ### File: `tests/backend/course-details.cjs`
 
-SHA-256: `1eb5c0cfc18c9fe698639e6dbd7fbbb41500a8ae896f51e0c393e0d4dfae489a`
+SHA-256: `7744c712e74039e1cb0a8d803a4a37e563f435b28234de59849979bd969796d9`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated detail-template and featured-setting acceptance. */
@@ -34501,14 +34602,15 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   let current=await read();verify(current.course.featured===false,'Ordinary status persists');
   verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:'true'})).status===400,'Non-boolean featured edit rejected');
   verify((await manager.api('/api/admin/courses/'+liveSlug,edit(current))).status===200,'Ordinary live workshop publishes');
-  const ordinary=await anonymous('/workshops/'+liveSlug);verify(ordinary.status===200&&ordinary.data.includes('lms-course-details-page')&&!ordinary.data.includes('roadmap-section'),'Ordinary workshops render shared details');
+  const alias=await anonymous('/workshops/'+liveSlug);verify(alias.status===308 || alias.data.includes('NEXT_REDIRECT;replace;/courses/'+liveSlug+';308;'),'Legacy workshop URLs redirect to normal course details ('+alias.status+')');
+  const ordinary=await anonymous('/courses/'+liveSlug);verify(ordinary.status===200&&ordinary.data.includes('lms-course-details-page')&&!ordinary.data.includes('roadmap-section'),'Ordinary workshops render shared details');
   current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),featured:true})).status===200,'Admin enables featured design');
-  const featured=await anonymous('/workshops/'+liveSlug);verify(featured.status===200&&featured.data.includes('roadmap-section')&&!featured.data.includes('lms-course-details-page'),'Featured workshops render campaign template');
+  const featured=await anonymous('/featured/'+liveSlug);verify(featured.status===200&&featured.data.includes('roadmap-section')&&!featured.data.includes('lms-course-details-page'),'Featured workshops render campaign template');
   verify(!featured.data.includes('تأسيس العقلية والبرنامج الأساسي')&&!featured.data.includes('class="hero-video-shell"'),'New featured workshops do not inherit the seven-day curriculum or intro video');
-  const legacy=await anonymous('/workshops/7days-freelance');verify(legacy.status===200&&legacy.data.includes('roadmap-section'),'Existing seven-day workshop keeps approved design');
+  const legacy=await anonymous('/featured/7days-freelance');verify(legacy.status===200&&legacy.data.includes('roadmap-section'),'Existing seven-day workshop keeps approved design');
   await require('./course-details-browser.cjs')({manager,student,admin,course,liveSlug,url,verify});
   current=await read();verify((await manager.api('/api/admin/courses/'+liveSlug,{...edit(current),amount:0,featured:false})).status===200,'Free ordinary live workshop can be saved');
-  const free=await anonymous('/workshops/'+liveSlug);verify(free.data.includes('احجز مكانك')&&free.data.includes('https://wa.me/'),'Free live workshops without lessons provide a booking action');
+  const free=await anonymous('/courses/'+liveSlug);verify(free.data.includes('احجز مكانك')&&free.data.includes('https://wa.me/'),'Free live workshops without lessons provide a booking action');
  }finally{await admin.from('courses').delete().in('slug',[slug,liveSlug]);}
 };
 ```
@@ -34891,7 +34993,7 @@ console.log("Email placeholder contract passed: seven allowed variables, whitesp
 
 ### File: `tests/backend/featured-products-browser.cjs`
 
-SHA-256: `3d367cf1c2f431af76780b9a8dae72f02de42f38cc0e8fd3d2811d6f861e2304`
+SHA-256: `cf28b82f77bbe8e8d9790b2ff3afc7ec62a4f88757b8bf5c78be834d4b728cfc`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Bundle template editing and responsive public urgency. */
@@ -34908,7 +35010,7 @@ module.exports=async({manager,url,bundleSlug,api,verify})=>{
   const response=page.waitForResponse(r=>r.url().endsWith(api)&&r.request().method()==='POST');
   await page.getByRole('button',{name:'حفظ التصميم',exact:true}).click();verify((await response).status()===200,'Shared browser editor saves bundle template');
   for(const width of [390,1440]){
-   await page.setViewportSize({width,height:900});await page.goto(url+'/bundles/'+bundleSlug);
+   await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+bundleSlug+'?kind=bundle');
    await expect(page.getByRole('heading',{name:'Distinct bundle heading',exact:true})).toBeVisible();
    verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('footer').count()===1,'Bundle has one navbar/footer at '+width);
    await expect(page.locator('.top-scarcity-bar')).toContainText('Actual bundle sale');
@@ -34924,7 +35026,7 @@ module.exports=async({manager,url,bundleSlug,api,verify})=>{
 
 ### File: `tests/backend/featured-products.cjs`
 
-SHA-256: `f2d46bde80c082658af3566e7209e635c48f3956cb1684349a8f5903e91d7ad0`
+SHA-256: `36b47d40530c4eef45380fc3306d7763bc6b4b32d11baf49fc9fb9bd6c63c991`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated real-sale and featured-bundle acceptance. No gateway requests. */
@@ -34953,30 +35055,31 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await manager.api(api,{document:template.document,revision:0})).status===409,'Bundle template rejects concurrent stale saves');
   verify((await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length===1,'RLS exposes published featured bundle template');
   verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('bundle_slug',bundleSlug).select()).data?.length,'RLS blocks student bundle template mutation');
-  let page=await anonymous('/bundles/'+bundleSlug);
-  verify(page.status===200&&page.data.includes('Distinct bundle heading'),'Featured bundle renders at its bundle URL');
+  const details=await anonymous('/bundles/'+bundleSlug);verify(details.data.includes('lms-bundle-details')&&!details.data.includes('Distinct bundle heading'),'Featured bundle retains normal details');
+  let page=await anonymous('/featured/'+bundleSlug+'?kind=bundle');
+  verify(page.status===200&&page.data.includes('Distinct bundle heading'),'Featured bundle renders at its independent featured URL');
   verify(!page.data.includes('lms-featured-offer-bar')&&!page.data.includes('54 بيشاهدوا'),'Featured product without active offer has no fictional urgency');
   const sale={...base,key:offerKey,title:('Actual bundle sale '+ 'extended campaign '.repeat(7)).trim(),courseSlugs:[],bundleSlug,featured:false,endsAt:new Date(Date.now()+3600000).toISOString()};
   verify((await manager.api('/api/admin/commerce/offers',sale)).status===200,'Admin creates real named bundle offer with fixed deadline');
-  page=await anonymous('/bundles/'+bundleSlug);
+  page=await anonymous('/featured/'+bundleSlug+'?kind=bundle');
   const quote=parse(await student.api('/api/payments/quote',{bundleSlug}));
   verify(page.data.includes('Actual bundle sale')&&page.data.includes('lms-featured-offer-bar')&&page.data.includes(quote.endsAt),'Featured strip uses real bundle sale and end timestamp');
   verify(quote.offerTitle===sale.title&&Date.parse(quote.endsAt)===Date.parse(sale.endsAt)&&quote.totalMinor===64000,'Strip campaign agrees with canonical checkout quote');
   verify((await manager.api('/api/admin/commerce/offers',{...sale,key:courseOfferKey,title:'Actual course sale',courseSlug:slugs[0],bundleSlug:null})).status===200,'Course offer is independently configured');
-  const coursePage=await anonymous('/courses/'+slugs[0]);verify(coursePage.data.includes('Actual course sale')&&!coursePage.data.includes('Actual bundle sale'),'Course featured strip resolves its own sale');
+  const coursePage=await anonymous('/featured/'+slugs[0]);verify(coursePage.data.includes('Actual course sale')&&!coursePage.data.includes('Actual bundle sale'),'Course featured strip resolves its own sale');
   verify((await anonymous('/api/bundles/'+bundleSlug+'/template-media?clip=../../private')).status===404,'Bundle media endpoint rejects arbitrary clips');
   await require('./featured-products-browser.cjs')({manager,url,bundleSlug,api,verify});
   let saved=parse(await manager.api(api));saved.document.showCountdown=false;
   verify((await manager.api(api,{document:saved.document,revision:saved.revision})).status===200,'Admin can hide real sale strip');
-  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Template visibility hides the sale strip');
+  verify(!(await anonymous('/featured/'+bundleSlug+'?kind=bundle')).data.includes('lms-featured-offer-bar'),'Template visibility hides the sale strip');
   saved=parse(await manager.api(api));saved.document.showCountdown=true;
   await manager.api(api,{document:saved.document,revision:saved.revision});
   await admin.from('commerce_discounts').update({ends_at:new Date(Date.now()-1000).toISOString()}).eq('key',offerKey);
-  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Expired sale has no strip on a new page request');
+  verify(!(await anonymous('/featured/'+bundleSlug+'?kind=bundle')).data.includes('lms-featured-offer-bar'),'Expired sale has no strip on a new page request');
   await admin.from('commerce_discounts').update({ends_at:null}).eq('key',offerKey);
-  const noDeadline=await anonymous('/bundles/'+bundleSlug);verify(noDeadline.data.includes('Actual bundle sale')&&!noDeadline.data.includes('role="timer"'),'Active undated offer shows its name without manufactured deadline');
+  const noDeadline=await anonymous('/featured/'+bundleSlug+'?kind=bundle');verify(noDeadline.data.includes('Actual bundle sale')&&!noDeadline.data.includes('role="timer"'),'Active undated offer shows its name without manufactured deadline');
   await admin.from('commerce_discounts').update({starts_at:new Date(Date.now()+3600000).toISOString()}).eq('key',offerKey);
-  verify(!(await anonymous('/bundles/'+bundleSlug)).data.includes('lms-featured-offer-bar'),'Future sale has no premature countdown');
+  verify(!(await anonymous('/featured/'+bundleSlug+'?kind=bundle')).data.includes('lms-featured-offer-bar'),'Future sale has no premature countdown');
   await admin.from('commerce_bundles').update({featured:false}).eq('slug',bundleSlug);
   const ordinary=await anonymous('/bundles/'+bundleSlug);verify(ordinary.data.includes('lms-bundle-details')&&!ordinary.data.includes('Distinct bundle heading'),'Unfeatured bundle restores standard details');
   verify(!(await student.direct.from('workshop_templates').select('bundle_slug').eq('bundle_slug',bundleSlug)).data?.length,'Unfeatured bundle template is hidden by RLS');
@@ -34993,7 +35096,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
 
 ### File: `tests/backend/featured-workshop-browser.cjs`
 
-SHA-256: `0a95904861f753f423f90bb8d545c539156e1b4e252ddecd8542b1126b8af3e4`
+SHA-256: `019b48c38ca911c3901802df8a445c048f2c3b93160e6bc88a5c4493174c6d5f`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Featured campaign selection through the admin UI. */
@@ -35001,7 +35104,7 @@ const {expect}=require('@playwright/test');
 module.exports=async({browser,manager,url,liveSlug,verify})=>{
  const page=await browser.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(url+'/login');await page.getByLabel('البريد الإلكتروني',{exact:true}).fill(manager.email);await page.getByLabel('كلمة المرور',{exact:true}).fill(manager.password);await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();await expect(page).toHaveURL(url+'/admin/dashboard');
- await page.goto(url+'/workshops/'+liveSlug);await page.waitForLoadState('networkidle');await expect(page.getByRole('heading',{level:1})).toHaveText('ورشة تجريبية مباشرة');await expect(page.locator('.hero-video-shell')).toHaveCount(0);await expect(page.locator('.roadmap-timeline .day-item')).toHaveCount(0);verify(true,'Featured workshop browser uses own title and no invented media or timeline');
+ await page.goto(url+'/featured/'+liveSlug);await page.waitForLoadState('networkidle');await expect(page.getByRole('heading',{level:1})).toHaveText('ورشة تجريبية مباشرة');await expect(page.locator('.hero-video-shell')).toHaveCount(0);await expect(page.locator('.roadmap-timeline .day-item')).toHaveCount(0);verify(true,'Featured workshop browser uses own title and no invented media or timeline');
  await page.goto(url+'/admin/dashboard/courses/'+liveSlug);await page.waitForLoadState('networkidle');const featured=page.getByRole('checkbox',{name:'تصميم الصفحة المميزة',exact:true});
  await expect(featured).toBeChecked();await featured.uncheck();await page.getByRole('button',{name:'حفظ التغييرات',exact:true}).click();await expect(page.getByRole('status')).toHaveText('تم حفظ التغييرات');
  await page.reload();await page.waitForLoadState('networkidle');await expect(featured).not.toBeChecked();verify(true,'Admin can remove featured status and retain it after refresh');
@@ -36000,7 +36103,7 @@ module.exports=async function checks({admin,provision,anonymous,verify,url}) {
 
 ### File: `tests/backend/recorded-featured.cjs`
 
-SHA-256: `d5e1a8eb95e339025377ff8b12fc66630ebdca0d8557f1098d5f6fbdb8250dac`
+SHA-256: `dd6f62f56a854d293dacb93769006780060cfa0ab4a341364074dbe22276cee4`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated recorded-template authorization and routing regression. */
@@ -36019,18 +36122,20 @@ module.exports=async({admin,manager,student,anonymous,verify,url})=>{
   verify((await student.api(path+'/template')).status===403,'Student cannot manage recorded template');
   verify((await student.direct.from('workshop_templates').select('course_slug').eq('course_slug',slug)).data?.length===1,'RLS permits published recorded featured template reads');
   verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('course_slug',slug).select()).data?.length,'RLS denies recorded template student writes');
-  const featured=await anonymous('/courses/'+slug);
-  verify(featured.status===200&&featured.data.includes('Recorded featured heading')&&featured.data.includes('roadmap-section'),'Recorded featured design renders at course URL');
+  const featured=await anonymous('/featured/'+slug);
+  verify(featured.status===200&&featured.data.includes('Recorded featured heading')&&featured.data.includes('roadmap-section'),'Recorded featured design renders at independent featured URL');
+  const details=await anonymous('/courses/'+slug);verify(details.data.includes('lms-course-details-page')&&!details.data.includes('Recorded featured heading'),'Featured course retains its separate normal details');
   const wrongRoute=await anonymous('/workshops/'+slug);
   verify(wrongRoute.status===404 || (wrongRoute.data.includes('lms-not-found') && !wrongRoute.data.includes('Recorded featured heading')),'Recorded course cannot become a live workshop URL');
   const browser=await chromium.launch(),page=await browser.newPage({reducedMotion:'reduce'});
   try{
    await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:manager.email,password:manager.password}});
    await page.goto(url+'/admin/dashboard/courses/'+slug);
+   await require('./admin-video-preview-browser.cjs')({page,url,slug,verify});
    await expect(page.getByRole('checkbox',{name:'تصميم الصفحة المميزة'})).toBeChecked();
    await expect(page.getByRole('link',{name:'تصميم الصفحة المميزة',exact:true})).toBeVisible();verify(true,'Recorded editor exposes layout control and template tab');
    for(const width of [390,1440]){
-    await page.setViewportSize({width,height:900});await page.goto(url+'/courses/'+slug);
+    await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+slug);
     await expect(page.getByRole('heading',{name:'Recorded featured heading',exact:true})).toBeVisible();
     verify(await page.locator('header.lms-site-header').count()===1,'Recorded featured page has one navbar at '+width);
     verify(await page.locator('footer').count()===1,'Recorded featured page has one footer at '+width);
@@ -36228,7 +36333,7 @@ module.exports = async function usernameControls({ admin, provision, anonymous, 
 
 ### File: `tests/backend/workshop-template-browser.cjs`
 
-SHA-256: `bb24241b97638594f5a62422f6e468e5e052b75b578f1fccda30134f18b8584f`
+SHA-256: `7e14ed064ceae365fd569863ab7aa3cb97d69e6ec878c580b3d5449ebde5541c`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Real editor interactions and responsive main navigation. */
@@ -36253,7 +36358,7 @@ module.exports=async({manager,slug,url,verify})=>{
   await page.reload();await page.locator('.lms-template-editor > fieldset > details').first().locator('summary').first().click();
   await expect(page.getByLabel('الوصف',{exact:true}).first()).toHaveValue('Saved using the reusable template editor');verify(true,'Edited template survives reload');
   for(const width of [390,1440]) {
-   await page.setViewportSize({width,height:900});await page.goto(url+'/workshops/'+slug);await page.waitForLoadState('networkidle');
+   await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+slug);await page.waitForLoadState('networkidle');
    await expect(page.getByText('Saved using the reusable template editor',{exact:true})).toBeVisible();
    verify(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Featured workshop fits '+width);
    verify(await page.locator('header.lms-site-header').count()===1&&await page.locator('header').count()===1,'Featured workshop has exactly one shared navbar at '+width);
@@ -36267,7 +36372,7 @@ module.exports=async({manager,slug,url,verify})=>{
 
 ### File: `tests/backend/workshop-template.cjs`
 
-SHA-256: `bec27d34adbfd2ebcaf0ee68c87577753f45c7cff3ef8d230314a214bbdca36f`
+SHA-256: `4345586deddb2d264afe589b824d76ed156e2a61a70e0c1879b4cee9f12bbd38`
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-require-imports -- Isolated featured template CRUD and permission checks. */
@@ -36298,7 +36403,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   verify((await manager.api(path,{document:v,revision:0})).status===200,'Admin saves custom content and section visibility');
   verify((await manager.api(path,{document:v,revision:0})).status===409,'Concurrent initial template write rejects stale revision');
   record=parse(await manager.api(path));verify(record.revision===1&&record.document.content.hero.title[0]==='Unique featured heading','Template persists full content');
-  const publicPage=await anonymous('/workshops/'+slug);
+  const publicPage=await anonymous('/featured/'+slug);
   verify(publicPage.status===200&&publicPage.data.includes('Unique featured heading')&&publicPage.data.includes('Unique question?')&&!publicPage.data.includes('guarantee-section'),'Published template uses edited text and hides section');
   verify(publicPage.data.includes('lms-site-header')&&!publicPage.data.includes('top-scarcity-bar'),'Featured template uses main navbar and hides countdown');
   verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('course_slug',slug).select()).data?.length,'RLS prevents student direct writes');
@@ -36306,7 +36411,7 @@ module.exports=async({admin,provision,anonymous,verify,url})=>{
   bad.content.hero.action.href='/';bad.content.hero.section.id='hacked';verify((await manager.api(path,{document:bad,revision:1})).status===400,'Template cannot break section IDs or animation contract');
   v.order=['hero','faq',...v.order.filter(k=>!['hero','faq'].includes(k))];
   verify((await manager.api(path,{document:v,revision:1})).status===200,'Admin saves custom section order');
-  const reordered=await anonymous('/workshops/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
+  const reordered=await anonymous('/featured/'+slug);verify(reordered.data.indexOf('id="faq"')<reordered.data.indexOf('id="roadmap"'),'Saved section order controls public layout');
   verify((await manager.api(path,{document:v,revision:1})).status===409,'Stale template edit cannot overwrite newer document');
   verify((await anonymous('/api/courses/'+slug+'/template-media?clip=../../secret')).status===404,'Public media endpoint rejects arbitrary clip lookup');
   await require('./recorded-featured.cjs')({admin,manager,student,anonymous,verify,url});
@@ -40620,6 +40725,32 @@ test("reduced motion and JavaScript-free visits keep all content visible", async
 });
 ```
 
+### File: `tests/security/admin-preview.test.ts`
+
+SHA-256: `407e910ba6cd0906b6f60f8b5a4984a3d6daca210a92fc2cff9ed61bd80f6c50`
+
+```typescript
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { adminPreviewVideoUrl } from "../../modules/features/admin/helpers/preview-video-url";
+import { routes } from "../../modules/config/navigation";
+test("Admin preview normalizes YouTube, scopes Drive to protected draft stream and rejects unsafe links", () => {
+  assert.match(adminPreviewVideoUrl("https://youtu.be/h1G6qEPRIPg"), /youtube.*\/embed\/h1G6qEPRIPg/);
+  const drive = "https://drive.google.com/file/d/1pVLFPEqSMCXJAjAR3VRl69hg_3zVQctu/view";
+  assert.match(adminPreviewVideoUrl(drive, "draft-course"), /^\/api\/admin\/courses\/draft-course\/media\/stream\?url=/);
+  assert.equal(adminPreviewVideoUrl(drive), "");
+  assert.equal(adminPreviewVideoUrl("javascript:alert(1)", "draft-course"), "");
+  assert.equal(adminPreviewVideoUrl("/assets/video/workshop-intro.mp4"), "/assets/video/workshop-intro.mp4");
+});
+test("Featured destinations are independent from course details and payment", () => {
+  assert.equal(routes.featured("course"), "/featured/course");
+  assert.equal(routes.featured("course", "bundle"), "/featured/course?kind=bundle");
+  assert.equal(routes.course("course", "live"), "/courses/course");
+  assert.equal(routes.checkout("course"), "/checkout/course");
+  assert.throws(() => routes.featured("../private"));
+});
+```
+
 ### File: `tests/security/browser.cjs`
 
 SHA-256: `588a197d77a78dc2e982ab7b5376d1372835920bfdb4fb0660945f3e0c2c74c0`
@@ -40910,7 +41041,7 @@ test("Checked and unchecked native forms encode real booleans", () => {
 
 ### File: `tests/security/learning-workflows.test.ts`
 
-SHA-256: `1c55fe8e38b5c0ea3d207fd078a9ec56dba7a795a5b9bfabd8600350cd516ebf`
+SHA-256: `c9a9d25a9022fa47da85ce14678ef693c04d91331835858f36631e131110bbb0`
 
 ```typescript
 import { paymentStatusHint, paymentNeedsPolling } from "../../modules/features/payments/helpers/status-hint";
@@ -40978,13 +41109,13 @@ test("Original sample lesson media is recognized across YouTube URL formats", ()
   assert.equal(isSampleLessonVideo("/assets/video/workshop-intro.mp4"), false);
 });
 
-test("Live lesson preview actions return to the workshop route", () => {
+test("Live lesson preview actions return to the normal course details route", () => {
   const course = fixture(); course.delivery = "live";
   const lessons = courseLessons(course), lesson = lessons[0];
   const model = lessonPlaybackModel({ course, lesson, slug: course.slug, lessons, index: 0, lessonId: lesson.id,
     state: { enrolled: [], completed: [], profile: { name: "", email: "" } }, resources: [], enrolled: false,
     previous: undefined, next: lessons[1], complete: false });
-  assert.equal(model.actions.courseHref, "/workshops/ordered-course");
+  assert.equal(model.actions.courseHref, "/courses/ordered-course");
 });
 ```
 

@@ -2,7 +2,7 @@
 
 The supplied `references/course-details.html` establishes the information structure: title/category, preview, description, curriculum and adjacent enrollment/instructor panels. Its WordPress administration UI, scripts, styles and other-site account names are not application content. The implementation uses Ta3llam's existing dark/red theme, IBM Plex Sans Arabic, components, native disclosures and reveal engine; it adds no package.
 
-`/courses/[slug]` renders recorded courses. Live courses retain their canonical `/workshops/[slug]` destination. Ordinary workshops use the same details template. Only `delivery: "live"` plus `featured: true` selects the workshop marketing template. The admin overview and creation forms expose **ورشة مميزة** for workshops. Both create/edit APIs validate a boolean; omitted legacy edits retain the saved value. Recorded-course featured metadata used elsewhere is preserved, but cannot select this workshop template.
+`/courses/[slug]` always renders the standard details page for recorded and live courses. Legacy `/workshops/[slug]` links redirect to those details. Enabling Featured Page Layout adds a separate `/featured/[slug]` marketing page without replacing details or checkout. Featured bundles use `/featured/[slug]?kind=bundle` and retain `/bundles/[slug]` details. Delivery and featured layout remain independent; unpublished or unfeatured marketing targets are unavailable.
 
 Migration `20261012170000_featured_workshop_template.sql` marks the existing seven-day workshop featured only if it has no saved setting. It does not override subsequent administrator choices or alter prices, media, enrollment or lesson content. The local seed also records that initial choice.
 

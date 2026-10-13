@@ -1,5 +1,4 @@
 import { isValidUsername, normalizeUsername } from "../helpers/validation/username";
-import { workshopCourseConfig } from "../../config/workshop-course";
 import { projectRoutes } from "../../config/project-navigation";
 /** Public destinations are owned here; route filenames remain Next.js conventions. */
 const learningBase = projectRoutes.learning === "/" ? "" : projectRoutes.learning;
@@ -18,6 +17,7 @@ export const sectionIds = {
   courseContent: "course-content",
 } as const;
 export const routes = {
+  featured: (slug: string, kind: "course" | "bundle" = "course") => `/featured/${segment(slug)}${kind === "bundle" ? "?kind=bundle" : ""}`,
   bundles: "/bundles",
   bundle: (slug: string) => `/bundles/${segment(slug)}`,
   bundleCheckout: (slug: string) => `/checkout/${segment(slug)}?kind=bundle`,
@@ -57,11 +57,11 @@ export const routes = {
   adminCourseContent: (slug: string) => `/admin/dashboard/courses/${segment(slug)}/content`,
   adminCourse: (slug: string) => `${routes.admin}/${segment(slug)}`,
   workshopPage: (slug: string) => `/workshops/${segment(slug)}`,
-  course: (slug: string, delivery?: "recorded" | "live") => delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${learningBase}/courses/${segment(slug)}`,
+  course: (slug: string, _delivery?: "recorded" | "live") => { void _delivery; return `${learningBase}/courses/${segment(slug)}`; },
   lesson: (slug: string, id: string) =>
     `${learningBase}/learn/${segment(slug)}/${segment(id)}`,
   enrollment: (slug: string, delivery?: "recorded" | "live") =>
-    delivery === "live" || slug === workshopCourseConfig.slug ? routes.workshopPage(slug) : `${routes.course(slug)}#${sectionIds.enrollment}`,
+    `${routes.course(slug, delivery)}#${sectionIds.enrollment}`,
   section: (id: keyof typeof sectionIds) => `${projectRoutes.learning}#${sectionIds[id]}`,
   catalog: (query = "", category = "all") => {
     const params = new URLSearchParams();

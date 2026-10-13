@@ -14,18 +14,20 @@ module.exports=async({admin,manager,student,anonymous,verify,url})=>{
   verify((await student.api(path+'/template')).status===403,'Student cannot manage recorded template');
   verify((await student.direct.from('workshop_templates').select('course_slug').eq('course_slug',slug)).data?.length===1,'RLS permits published recorded featured template reads');
   verify(!(await student.direct.from('workshop_templates').update({revision:99}).eq('course_slug',slug).select()).data?.length,'RLS denies recorded template student writes');
-  const featured=await anonymous('/courses/'+slug);
-  verify(featured.status===200&&featured.data.includes('Recorded featured heading')&&featured.data.includes('roadmap-section'),'Recorded featured design renders at course URL');
+  const featured=await anonymous('/featured/'+slug);
+  verify(featured.status===200&&featured.data.includes('Recorded featured heading')&&featured.data.includes('roadmap-section'),'Recorded featured design renders at independent featured URL');
+  const details=await anonymous('/courses/'+slug);verify(details.data.includes('lms-course-details-page')&&!details.data.includes('Recorded featured heading'),'Featured course retains its separate normal details');
   const wrongRoute=await anonymous('/workshops/'+slug);
   verify(wrongRoute.status===404 || (wrongRoute.data.includes('lms-not-found') && !wrongRoute.data.includes('Recorded featured heading')),'Recorded course cannot become a live workshop URL');
   const browser=await chromium.launch(),page=await browser.newPage({reducedMotion:'reduce'});
   try{
    await page.context().request.post(url+'/api/auth/login',{headers:{Origin:url},data:{email:manager.email,password:manager.password}});
    await page.goto(url+'/admin/dashboard/courses/'+slug);
+   await require('./admin-video-preview-browser.cjs')({page,url,slug,verify});
    await expect(page.getByRole('checkbox',{name:'تصميم الصفحة المميزة'})).toBeChecked();
    await expect(page.getByRole('link',{name:'تصميم الصفحة المميزة',exact:true})).toBeVisible();verify(true,'Recorded editor exposes layout control and template tab');
    for(const width of [390,1440]){
-    await page.setViewportSize({width,height:900});await page.goto(url+'/courses/'+slug);
+    await page.setViewportSize({width,height:900});await page.goto(url+'/featured/'+slug);
     await expect(page.getByRole('heading',{name:'Recorded featured heading',exact:true})).toBeVisible();
     verify(await page.locator('header.lms-site-header').count()===1,'Recorded featured page has one navbar at '+width);
     verify(await page.locator('footer').count()===1,'Recorded featured page has one footer at '+width);
