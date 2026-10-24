@@ -145,3 +145,9 @@ body:has(.lms-admin-dialog[open]) { overflow: hidden; }
 @media (max-width: 480px) { .lms-curriculum-heading, .lms-curriculum-row { align-items: stretch; } .lms-curriculum-heading .lms-admin-actions, .lms-curriculum-row .lms-admin-actions { width: 100%; } }
 
 .lms-course-price-field { display: grid; gap: var(--space-sm); min-width: 0; }
+.lms-duration-control { display: grid; gap: var(--space-control); min-width: 0; }
+.lms-duration-control > label { font-weight: var(--weight-semibold); }
+.lms-duration-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-sm); }
+.lms-duration-part { display: grid; gap: var(--space-unit); }
+.lms-duration-part label { font-size: var(--font-size-caption); color: var(--text-secondary); }
+.lms-duration-part input { text-align: center; }

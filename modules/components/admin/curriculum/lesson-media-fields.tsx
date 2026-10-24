@@ -4,6 +4,7 @@ import FormField from "@platform/components/ui/form-field";
 import { useLessonVideoDuration } from "@platform/hooks/use-lesson-video-duration";
 import { adminCoursePolicy } from "@platform/config/admin";
 import type { CurriculumLabels } from "@platform/types/curriculum";
+import LessonDurationInputs from "./lesson-duration-inputs";
 
 export default function LessonMediaFields({ slug, initialUrl, initialSeconds, labels }: { slug: string; initialUrl: string; initialSeconds?: number; labels: CurriculumLabels }) {
   const { url, change, seconds, changeSeconds, pending, error, retry } = useLessonVideoDuration(slug, initialUrl, initialSeconds, labels);
@@ -20,26 +21,14 @@ export default function LessonMediaFields({ slug, initialUrl, initialSeconds, la
         required
       />
       <VideoPreview labels={labels} url={url} slug={slug} />
-      <FormField
-        label={labels.duration}
-        name="durationSeconds"
-        type="number"
-        dir="ltr"
-        value={seconds ?? ""}
-        onChange={event => {
-          const val = event.target.value.trim();
-          changeSeconds(val ? Math.max(1, Math.round(Number(val))) : undefined);
-        }}
-        hint={pending ? labels.durationLoading : (!seconds && error) ? labels.durationError : labels.durationHint}
-        aria-busy={pending}
-        min={1}
-        required
+      <LessonDurationInputs
+        seconds={seconds}
+        onChange={changeSeconds}
+        pending={pending}
+        error={error}
+        labels={labels}
+        onRetry={retry}
       />
-      {error && !seconds && (
-        <button type="button" className="lms-text-link" onClick={retry}>
-          {labels.retryDuration}
-        </button>
-      )}
     </>
   );
 }
