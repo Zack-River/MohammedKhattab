@@ -11,6 +11,6 @@ export function lessonPlaybackModel(context: LessonContext) {
       copy: { demoVideo: copy.demoVideo, artworkLessonLabel: copy.artworkLessonLabel },
       site: { englishName: site.englishName }, course, lesson },
     actions: { copy: { previous: copy.previous, viewCourse: copy.viewCourse, next: copy.next, error: copy.error, saving: copy.saving,
-      completed: copy.completed, complete: copy.complete }, courseHref: routes.course(slug, course.delivery), slug, enrolled, next, previous, complete, lessonId },
+      completed: copy.completed, complete: copy.complete }, courseHref: routes.course(slug, course.delivery), slug, enrolled, next, previous, complete, lessonId, unreleased: !lesson.videoUrl },
   };
 }

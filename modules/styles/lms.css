@@ -968,6 +968,11 @@ button:disabled {
   border-color: var(--accent-green-border);
   background: var(--accent-green-subtle);
 }
+.lms-outline-check.is-unreleased {
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+  background: var(--bg-surface-elevated);
+}
 .lms-lesson-main {
   padding: var(--space-xl);
   min-width: 0;
@@ -1040,6 +1045,47 @@ button:disabled {
   font-weight: var(--weight-semibold);
   max-width: 90%;
 }
+.lms-unreleased-overlay {
+  background: radial-gradient(
+    circle at center,
+    rgba(28, 34, 43, 0.94) 0%,
+    rgba(16, 19, 23, 0.98) 100%
+  );
+  padding: var(--space-xl);
+  text-align: center;
+  gap: var(--space-md);
+}
+.lms-unreleased-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--size-4px) var(--space-md);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-elevated);
+  border: var(--size-1px) solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--weight-medium);
+}
+.lms-unreleased-badge .lms-icon {
+  width: var(--dimension-14);
+  height: var(--dimension-14);
+  color: var(--primary-red);
+}
+.lms-unreleased-title {
+  font-size: clamp(var(--size-1_15rem), var(--size-2vw), var(--size-1_5rem));
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  max-width: 85%;
+  line-height: var(--leading-title);
+}
+.lms-unreleased-desc {
+  font-size: var(--size-0_95rem);
+  color: var(--text-muted);
+  max-width: var(--size-480px);
+  line-height: var(--leading-longform);
+  margin: 0;
+}
 .lms-lesson-actions {
   display: flex;
   justify-content: space-between;
@@ -1057,6 +1103,23 @@ button:disabled {
   border-color: var(--accent-green-border);
   color: var(--accent-green);
   background: var(--accent-green-subtle);
+}
+.lms-lesson-unreleased-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-control) var(--size-20px);
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-elevated);
+  border: var(--size-1px) solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: var(--font-size-action);
+  font-weight: var(--weight-medium);
+}
+.lms-lesson-unreleased-pill .lms-icon {
+  width: var(--dimension-16);
+  height: var(--dimension-16);
+  color: var(--primary-red);
 }
 .lms-lesson-information {
   display: grid;

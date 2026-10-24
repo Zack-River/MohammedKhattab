@@ -14,7 +14,10 @@ export async function assertLivePurchaseContent(slugs: string[]) {
   if (samples.data.some(lesson => isSampleLessonVideo(lesson.video_url))) throw new ApiError(409, "COURSE_CONTENT_NOT_READY");
   const recorded = courses.data.filter(course => course.delivery !== "live").map(course => course.slug);
   if (!recorded.length) return;
-  const empty = await client.from("lessons").select("id").in("course_slug", recorded).eq("video_url", "").limit(1);
-  if (empty.error) throw new ApiError(503, "INTERNAL_ERROR");
-  if (empty.data.length) throw new ApiError(409, "COURSE_CONTENT_NOT_READY");
+  const lessons = await client.from("lessons").select("course_slug,video_url").in("course_slug", recorded);
+  if (lessons.error) throw new ApiError(503, "INTERNAL_ERROR");
+  for (const slug of recorded) {
+    const ready = lessons.data.some(lesson => lesson.course_slug === slug && Boolean(lesson.video_url));
+    if (!ready) throw new ApiError(409, "COURSE_CONTENT_NOT_READY");
+  }
 }

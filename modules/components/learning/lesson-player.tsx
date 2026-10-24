@@ -23,6 +23,30 @@ export default function LessonPlayer({
   site: Pick<ContentBindings["site"], "englishName">;
 }) {
   const { ref, generation } = useMediaPlayerSession(true);
+  if (!lesson.videoUrl) {
+    return (
+      <div className="lms-lesson-player lms-lesson-unreleased" ref={ref}>
+        <div className="lms-player-button lms-unreleased-placeholder">
+          <CourseArtwork
+            lessonLabel={copy.artworkLessonLabel}
+            site={{ englishName: site.englishName }}
+            course={course}
+            large
+          />
+          <div className="lms-player-overlay lms-unreleased-overlay">
+            <span className="lms-unreleased-badge">
+              <Symbol name="clock" />
+              قريبًا
+            </span>
+            <span className="lms-unreleased-title">{lesson.title}</span>
+            <p className="lms-unreleased-desc">
+              محتوى هذا الدرس قيد الإعداد وسيتم إتاحته قريبًا للمشتركين.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="lms-lesson-player" ref={ref}>
       <DeferredVideoPlayer

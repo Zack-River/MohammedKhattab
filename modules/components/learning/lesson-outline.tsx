@@ -50,15 +50,15 @@ export default function LessonOutline({
                   aria-current={active === lesson.id ? "page" : undefined}
                 >
                   <span
-                    className={`lms-outline-check ${complete ? "is-complete" : ""}`}
+                    className={`lms-outline-check ${complete ? "is-complete" : lesson.unreleased ? "is-unreleased" : ""}`}
                   >
-                    <Symbol name={lesson.locked ? "lock" : complete ? "check" : "play"} />
+                    <Symbol name={lesson.locked ? "lock" : complete ? "check" : lesson.unreleased ? "clock" : "play"} />
                   </span>
                   <span>
                     {lesson.title}
                     <small className="numeral">
                       {lesson.duration} ·{" "}
-                      {lesson.locked ? lockedLabel : complete ? copy.completed : lesson.preview ? copy.preview : copy.pending}
+                      {lesson.locked ? lockedLabel : complete ? copy.completed : lesson.unreleased ? "قريبًا" : lesson.preview ? copy.preview : copy.pending}
                     </small>
                   </span>
                 </Link>

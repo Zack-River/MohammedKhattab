@@ -12,6 +12,7 @@ export default function LessonActions({
   previous,
   complete,
   lessonId,
+  unreleased,
 }: {
   copy: Pick<
     ContentBindings["copy"],
@@ -24,22 +25,32 @@ export default function LessonActions({
   next: import("@platform/types/lms").Lesson | undefined;
   complete: boolean;
   lessonId: string;
+  unreleased?: boolean;
 }) {
   return (
     <div className="lms-lesson-actions">
       {previous && <Link href={enrolled || previous.preview ? routes.lesson(slug, previous.id) : courseHref} className="lms-text-link">{copy.previous}</Link>}
-      {enrolled ? <CompletionButton
-        copy={{
-          error: copy.error,
-          saving: copy.saving,
-          completed: copy.completed,
-          complete: copy.complete,
-        }}
-        slug={slug}
-        lessonId={lessonId}
-        complete={complete}
-        enrolled={enrolled}
-      /> : <Link href={courseHref} className="btn-primary">{copy.viewCourse}</Link>}
+      {enrolled ? (
+        unreleased ? (
+          <span className="lms-lesson-unreleased-pill">
+            <Symbol name="clock" />
+            قريبًا
+          </span>
+        ) : (
+          <CompletionButton
+            copy={{
+              error: copy.error,
+              saving: copy.saving,
+              completed: copy.completed,
+              complete: copy.complete,
+            }}
+            slug={slug}
+            lessonId={lessonId}
+            complete={complete}
+            enrolled={enrolled}
+          />
+        )
+      ) : <Link href={courseHref} className="btn-primary">{copy.viewCourse}</Link>}
       {next && (
         <Link
           href={enrolled || next.preview ? routes.lesson(slug, next.id) : courseHref}
