@@ -32,13 +32,15 @@ export interface YouTubePlayerEvent {
 }
 export interface YouTubeAPI {
   Player: new (
-    element: HTMLIFrameElement,
+    element: HTMLElement | string,
     options: {
+      videoId?: string;
+      playerVars?: Record<string, string | number | boolean>;
       events: {
         onReady(event: YouTubePlayerEvent): void;
         onStateChange(event: YouTubePlayerEvent): void;
-        onError(event: YouTubePlayerEvent): void;
-        onAutoplayBlocked(event: YouTubePlayerEvent): void;
+        onError?(event: YouTubePlayerEvent): void;
+        onAutoplayBlocked?(event: YouTubePlayerEvent): void;
       };
     },
   ) => YouTubePlayerInstance;

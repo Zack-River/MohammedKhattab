@@ -2,15 +2,11 @@ import { apiResponse } from "@platform/lib/api/respond";
 import { ApiError } from "@platform/lib/api/error";
 import { requireAdmin } from "./identity";
 import { adminCoursePolicy } from "@platform/config/admin";
-import { getYouTubeEmbedUrl } from "@khatab/design/lib/video";
+import { extractYouTubeId } from "@khatab/design/lib/video";
 
 async function fetchYouTubeDuration(url: string): Promise<number | null> {
-  if (!getYouTubeEmbedUrl(url)) return null;
-  const parsed = new URL(url);
-  const id = parsed.hostname === "youtu.be"
-    ? parsed.pathname.slice(1)
-    : parsed.searchParams.get("v") || parsed.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})\/?$/)?.[1];
-  if (!id || !/^[\w-]{11}$/.test(id)) return null;
+  const id = extractYouTubeId(url);
+  if (!id) return null;
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 8000);
   try {
     const res = await fetch(`https://www.youtube.com/watch?v=${id}`, {
