@@ -1,5 +1,5 @@
 import type { ClientsContent, TestimonialsContent } from "@khatab/design/types/marketing";
-import { creators, clientReels } from "./workshop-clients";
+import { creators, workshopReels } from "./workshop-clients";
 import { studentReviews } from "./student-reviews";
 
 export const workSamplesContent = {
@@ -16,7 +16,8 @@ export const workSamplesContent = {
       ],
     },
     creators,
-    reels: clientReels,
+    reelsTitle: "تطبيقات من داخل الورشة",
+    reels: workshopReels,
     marqueeLabel: "شريط صناع المحتوى",
   } as const satisfies ClientsContent;
 

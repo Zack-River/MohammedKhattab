@@ -8,7 +8,7 @@ import type { ClientsContent } from "../types/marketing";
 export default function ClientsSection({
   content,
   reveal = false,
-  showReels = false,
+  showReels = true,
 }: {
   content: ClientsContent;
   reveal?: boolean;
@@ -25,10 +25,17 @@ export default function ClientsSection({
         />
         <CreatorMarquee items={content.creators} label={content.marqueeLabel} />
         {showReels && Boolean(content.reels?.length) && (
-          <div className="clients-grid reels-grid" data-reveal={reveal || undefined}>
-            {content.reels.map((reel, index) => (
-              <ReelCard key={index} {...reel} />
-            ))}
+          <div className="reels-section-wrapper">
+            {content.reelsTitle && (
+              <div className="reels-header" data-reveal={reveal || undefined}>
+                <h3 className="headline-h3 reels-title">{content.reelsTitle}</h3>
+              </div>
+            )}
+            <div className="clients-grid reels-grid" data-reveal={reveal || undefined}>
+              {content.reels.map((reel, index) => (
+                <ReelCard key={index} {...reel} />
+              ))}
+            </div>
           </div>
         )}
       </Container>

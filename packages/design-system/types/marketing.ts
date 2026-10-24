@@ -73,6 +73,7 @@ export interface ClientsContent extends BaseSectionContent {
   heading: SectionHeadingContent;
   creators: readonly CreatorData[];
   reels: readonly ReelData[];
+  reelsTitle?: string;
   marqueeLabel: string;
 }
 export interface TransformationContent extends BaseSectionContent {

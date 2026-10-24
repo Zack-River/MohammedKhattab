@@ -1015,6 +1015,17 @@ h6 {
   padding-right: var(--space-sm);
 }
 
+.reels-header {
+  text-align: center;
+  margin-top: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+}
+
+.reels-title {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
 .clients-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

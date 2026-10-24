@@ -201,3 +201,10 @@ export const portfolioReels: readonly ReelData[] = [
   ...clientReels,
   ...youtubePortfolioReels,
 ];
+
+export const workshopReels: readonly ReelData[] = youtubePortfolioReels.map(
+  (reel) => ({
+    ...reel,
+    format: "تطبيقات من داخل الورشة",
+  }),
+);
