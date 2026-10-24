@@ -8,9 +8,11 @@ import type { ClientsContent } from "../types/marketing";
 export default function ClientsSection({
   content,
   reveal = false,
+  showReels = false,
 }: {
   content: ClientsContent;
   reveal?: boolean;
+  showReels?: boolean;
 }) {
   return (
     <Section {...content.section}>
@@ -22,11 +24,13 @@ export default function ClientsSection({
           titleClassName="clients-single-line"
         />
         <CreatorMarquee items={content.creators} label={content.marqueeLabel} />
-        <div className="clients-grid reels-grid" data-reveal={reveal || undefined}>
-          {content.reels.map((reel, index) => (
-            <ReelCard key={index} {...reel} />
-          ))}
-        </div>
+        {showReels && Boolean(content.reels?.length) && (
+          <div className="clients-grid reels-grid" data-reveal={reveal || undefined}>
+            {content.reels.map((reel, index) => (
+              <ReelCard key={index} {...reel} />
+            ))}
+          </div>
+        )}
       </Container>
     </Section>
   );

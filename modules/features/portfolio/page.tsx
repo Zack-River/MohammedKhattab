@@ -2,7 +2,7 @@ import { designerCredit } from "../../../config/designer";
 import { projectNavigation } from "../../../config/project-navigation";
 import { personalPortfolio as content } from "../../../config/personal-portfolio-model";
 import { portfolioSocials } from "../../../config/creator-contacts";
-import { creators, clientReels } from "../../../config/workshop-clients";
+import { creators, portfolioReels } from "../../../config/workshop-clients";
 import RevealContent from "@platform/components/marketing/reveal-content";
 import Header from "@platform/components/portfolio/header";
 import Hero from "@platform/components/portfolio/hero";
@@ -34,7 +34,7 @@ export default function PortfolioPage() {
           <Clients content={content.clients} clients={creators} />
           <Work
             content={content.work}
-            samples={clientReels}
+            samples={portfolioReels}
           />
           <Courses content={content.courses} />
           <Collaboration content={content.collaboration} />

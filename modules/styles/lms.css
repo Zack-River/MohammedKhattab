@@ -7,15 +7,22 @@
   display: flex;
   gap: var(--size-10px);
   align-items: center;
-  font-size: var(--lms-size-1_7rem);
+  font-size: var(--size-1_35rem);
   font-weight: var(--weight-bold);
   line-height: var(--leading-headline);
   white-space: nowrap;
+  direction: rtl;
+}
+.lms-brand-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-6px);
 }
 .lms-brand-mark {
+  display: inline-block;
   color: var(--primary-red);
-  font-size: var(--lms-size-1_4rem);
-  transform: rotate(var(--lms-size-negative-10deg));
+  font-size: var(--size-1_15rem);
+  transform: rotate(var(--size-90deg));
 }
 .lms-brand small {
   display: block;
@@ -1446,10 +1453,10 @@ button:disabled {
     font-size: var(--font-size-control);
   }
   .lms-brand {
-    font-size: var(--size-1_45rem);
+    font-size: var(--size-1_2rem);
   }
   .lms-brand-mark {
-    font-size: var(--size-1_2rem);
+    font-size: var(--size-1_02rem);
   }
   .lms-brand small {
     font-size: var(--font-size-caption);

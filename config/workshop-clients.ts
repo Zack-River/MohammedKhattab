@@ -105,3 +105,99 @@ export const clientReels: readonly ReelData[] = portfolioWorks.flatMap(
     ];
   },
 );
+
+export const youtubePortfolioReels: readonly ReelData[] = [
+  {
+    format: "من أعمال خطاب",
+    duration: "0:06",
+    preview: "02",
+    title: "02",
+    description: "شورت من أعمال خطاب",
+    video: {
+      source: {
+        kind: "file",
+        url: "https://www.youtube.com/shorts/5aDh9Zsn_tk",
+        poster: "https://i.ytimg.com/vi/5aDh9Zsn_tk/maxresdefault.jpg",
+      },
+      controls: workshopPlayerLabels,
+      playLabel: "تشغيل 02",
+      poster: {
+        src: "https://i.ytimg.com/vi/5aDh9Zsn_tk/maxresdefault.jpg",
+        alt: "02",
+        width: 720,
+        height: 1280,
+      },
+    },
+  },
+  {
+    format: "من أعمال خطاب",
+    duration: "0:19",
+    preview: "03",
+    title: "03",
+    description: "شورت من أعمال خطاب",
+    video: {
+      source: {
+        kind: "file",
+        url: "https://www.youtube.com/shorts/-r7Pyw7nkE0",
+        poster: "https://i.ytimg.com/vi/-r7Pyw7nkE0/maxresdefault.jpg",
+      },
+      controls: workshopPlayerLabels,
+      playLabel: "تشغيل 03",
+      poster: {
+        src: "https://i.ytimg.com/vi/-r7Pyw7nkE0/maxresdefault.jpg",
+        alt: "03",
+        width: 720,
+        height: 1280,
+      },
+    },
+  },
+  {
+    format: "من أعمال خطاب",
+    duration: "0:09",
+    preview: "04",
+    title: "04",
+    description: "شورت من أعمال خطاب",
+    video: {
+      source: {
+        kind: "file",
+        url: "https://www.youtube.com/shorts/0wYGJPdZn0w",
+        poster: "https://i.ytimg.com/vi/0wYGJPdZn0w/maxresdefault.jpg",
+      },
+      controls: workshopPlayerLabels,
+      playLabel: "تشغيل 04",
+      poster: {
+        src: "https://i.ytimg.com/vi/0wYGJPdZn0w/maxresdefault.jpg",
+        alt: "04",
+        width: 720,
+        height: 1280,
+      },
+    },
+  },
+  {
+    format: "من أعمال خطاب",
+    duration: "0:07",
+    preview: "05",
+    title: "05",
+    description: "شورت من أعمال خطاب",
+    video: {
+      source: {
+        kind: "file",
+        url: "https://www.youtube.com/shorts/Ps1SL5powM8",
+        poster: "https://i.ytimg.com/vi/Ps1SL5powM8/maxresdefault.jpg",
+      },
+      controls: workshopPlayerLabels,
+      playLabel: "تشغيل 05",
+      poster: {
+        src: "https://i.ytimg.com/vi/Ps1SL5powM8/maxresdefault.jpg",
+        alt: "05",
+        width: 720,
+        height: 1280,
+      },
+    },
+  },
+];
+
+export const portfolioReels: readonly ReelData[] = [
+  ...clientReels,
+  ...youtubePortfolioReels,
+];

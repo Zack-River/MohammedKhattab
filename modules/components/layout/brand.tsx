@@ -10,11 +10,13 @@ export default function Brand({
 }) {
   return (
     <Link href={href} className="lms-brand" aria-label={site.name}>
-      <span className="lms-brand-mark" aria-hidden="true">
-        ▲
-      </span>
       <span>
-        {site.name}
+        <span className="lms-brand-title">
+          {site.name}
+          <span className="lms-brand-mark" aria-hidden="true">
+            ▲
+          </span>
+        </span>
         <small>{site.englishName}</small>
       </span>
     </Link>
