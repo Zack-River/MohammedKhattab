@@ -34,7 +34,6 @@ export function handleAdminMediaProbe(slug: string, request: Request) {
     if (course.error) throw new ApiError(503, "INTERNAL_ERROR");
     if (!course.data) throw new ApiError(404, "NOT_FOUND");
     const seconds = await fetchYouTubeDuration(url);
-    if (seconds) return Response.json({ seconds });
-    throw new ApiError(422, "MEDIA_PROBE_FAILED");
+    return Response.json({ seconds: seconds ?? null });
   });
 }

@@ -5,7 +5,8 @@ import { youtubePlayerPolicy } from "../../../config/youtube-player";
 import type { YouTubePlayerInstance } from "../../../types/video-player";
 
 function createHiddenProbeIframe(sourceUrl: string) {
-  const iframe = createYouTubeIframe(sourceUrl, "Video metadata");
+  const normalized = sourceUrl.replace("youtube-nocookie.com", "www.youtube.com");
+  const iframe = createYouTubeIframe(normalized, "Video metadata");
   iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:200px;height:200px;opacity:0;pointer-events:none;";
   iframe.tabIndex = -1;
   iframe.setAttribute("aria-hidden", "true");
@@ -16,7 +17,10 @@ export function probeYouTubeDuration(url: string, signal: AbortSignal, timeoutMs
   return new Promise((resolve, reject) => {
     const source = getControlledYouTubeUrl(url, window.location.origin);
     if (!source || signal.aborted) { reject(new Error("YouTube metadata unavailable")); return; }
-    const controlled = new URL(source); controlled.searchParams.set("autoplay", "0");
+    const controlled = new URL(source);
+    controlled.searchParams.set("autoplay", "1");
+    controlled.searchParams.set("mute", "1");
+    controlled.searchParams.set("playsinline", "1");
     const iframe = createHiddenProbeIframe(controlled.href);
     let player: YouTubePlayerInstance | undefined, settled = false;
     const finish = (seconds?: number) => {
