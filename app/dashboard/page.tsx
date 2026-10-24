@@ -62,36 +62,21 @@ export default async function DashboardPage() {
       <CourseGrid
         courses={enrolled}
         layout="dashboard"
-        progress={Object.fromEntries(
-          enrolled.map((course) => [
-            course.slug,
-            courseProgress(course, state),
-          ]),
-        )}
-        copy={{
-          lessons: copy.lessons,
-          continue: copy.continue,
-          progress: copy.progress,
-        }}
+        progress={Object.fromEntries(enrolled.map((course) => [course.slug, courseProgress(course, state)]))}
+        copy={{ lessons: copy.lessons, continue: copy.continue, progress: copy.progress }}
         site={{ englishName: site.englishName }}
         offerCopy={{ price: offerCopy.price }}
       />
       <div className="lms-section-top lms-dashboard-section">
         <h2>{copy.recommendations}</h2>
-        <Link href={routes.courses} className="lms-text-link">
-          {copy.allCourses}
-        </Link>
+        <Link href={routes.courses} className="lms-text-link">{copy.allCourses}</Link>
       </div>
       <CourseGrid
-        courses={selectCourses(courses, catalogSettings.recommendationIds)
+        courses={(selectCourses(courses, catalogSettings.recommendationIds).length > 0 ? selectCourses(courses, catalogSettings.recommendationIds) : courses)
           .filter((course) => !state.enrolled.includes(course.slug))
           .slice(0, catalogSettings.recommendationLimit)}
         layout="dashboard"
-        copy={{
-          lessons: copy.lessons,
-          continue: copy.continue,
-          progress: copy.progress,
-        }}
+        copy={{ lessons: copy.lessons, continue: copy.continue, progress: copy.progress }}
         site={{ englishName: site.englishName }}
         offerCopy={{ price: offerCopy.price }}
       />

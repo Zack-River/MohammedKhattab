@@ -6,12 +6,17 @@ import { catalogSettings } from "@platform/data/catalog-settings";
 import type { Course } from "@platform/types/lms";
 import type { LandingModel } from "@platform/components/marketing/landing-page";
 export function createCoursesModel(courses: Course[]): LandingModel["courses"] {
+  const showcase = selectCourses(
+    courses,
+    catalogSettings.showcaseIds,
+    catalogSettings.showcaseLimit,
+  );
+  const selected =
+    showcase.length === catalogSettings.showcaseLimit
+      ? showcase
+      : courses.slice(0, catalogSettings.showcaseLimit);
   return {
-    courses: selectCourses(
-      courses,
-      catalogSettings.showcaseIds,
-      catalogSettings.showcaseLimit,
-    ),
+    courses: selected,
     copy: {
       lessons: copy.lessons,
       continue: copy.continue,
