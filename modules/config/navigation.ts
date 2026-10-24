@@ -105,6 +105,7 @@ export const endpoints = {
   auth: { login: "/api/auth/login", signup: "/api/auth/signup", logout: "/api/auth/logout", session: "/api/auth/session" },
   adminCourse: (slug: string) => `/api/admin/courses/${segment(slug)}`,
   adminMediaStream: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/stream?url=${encodeURIComponent(url)}`,
+  adminMediaProbe: (slug: string, url: string) => `${endpoints.adminCourse(slug)}/media/probe?url=${encodeURIComponent(url)}`,
   bundleTemplateMedia: (slug:string,clip:string) => `/api/bundles/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,
   adminBundleTemplate: (slug:string) => `/api/admin/commerce/bundles/${segment(slug)}/template`,
   templateMedia: (slug: string, clip: string) => `/api/courses/${segment(slug)}/template-media?clip=${encodeURIComponent(clip)}`,

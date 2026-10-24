@@ -8,18 +8,19 @@ export function useLessonVideoDuration(slug: string, initialUrl: string, initial
   const [result,setResult] = useState({ url: initialSeconds ? initialUrl : "", seconds: initialSeconds, error: "" });
   const pending = Boolean(url && result.url !== url), seconds = url && !pending ? result.seconds : undefined, error = result.url === url ? result.error : "";
   function change(value: string) { if (value === url) return; inputRef.current?.setCustomValidity(labels.durationLoading); setUrl(value); }
+  function changeSeconds(value: number | undefined) { setResult(prev => ({ ...prev, seconds: value, error: value ? "" : prev.error })); }
   function retryProbe() { setResult({url:"",seconds:undefined,error:""}); retry(value => value + 1); }
   useEffect(() => {
     if (!url || result.url === url) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       const source = lessonProbeSource(slug,url);
-      const probe = source ? probeMediaDuration(source,controller.signal,labels.durationError) : Promise.reject(new Error(labels.durationError));
+      const probe = source ? probeMediaDuration(source,controller.signal,labels.durationError,slug) : Promise.reject(new Error(labels.durationError));
       void probe.then(seconds => { if (!controller.signal.aborted) setResult({url,seconds,error:""}); })
         .catch(() => { if (!controller.signal.aborted) setResult({url,seconds:undefined,error:labels.durationError}); });
     },policy.metadataDelayMs);
     return () => { clearTimeout(timer); controller.abort(); };
   },[url,slug,result.url,attempt,labels.durationError]);
   useEffect(() => { inputRef.current?.setCustomValidity(url && !seconds ? error || labels.durationLoading : ""); },[url,seconds,error,labels.durationLoading]);
-  return { url, change, seconds, pending, error, inputRef, retry: retryProbe };
+  return { url, change, seconds, changeSeconds, pending, error, inputRef, retry: retryProbe };
 }
